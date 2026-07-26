@@ -77,7 +77,7 @@ class DapSmartStepIntoHandler extends XSmartStepIntoHandler<DapSmartStepIntoHand
   }
 
   // The PLAIN Step Into action (F7) consults this — the base implementation
-  // returns a rejected promise, meaning "no variants, just step". Returning our
+  // returns a rejected promise, meaning "no variants, just step". Returning the
   // variants makes F7 behave like the Java debugger: with more than one call on
   // the line the same highlight/Tab chooser appears; with zero or one the
   // platform performs an ordinary step into.

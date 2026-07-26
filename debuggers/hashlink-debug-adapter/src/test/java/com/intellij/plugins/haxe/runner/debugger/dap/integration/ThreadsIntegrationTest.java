@@ -17,9 +17,9 @@ import org.junit.Test;
 
 /**
  * Multi-threaded debugging against real HashLink (suspend-all). A worker thread
- * hits a breakpoint while main is parked in block(); at that stop we assert the
- * full thread list, and — the decisive check — read each thread's OWN stack and
- * locals (worker: workerLocal=222; main: v=111).
+ * hits a breakpoint while main is parked in block(); that stop is checked against
+ * the full thread list and — the decisive check — against each thread's OWN stack
+ * and locals (worker: workerLocal=222; main: v=111).
  */
 public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 

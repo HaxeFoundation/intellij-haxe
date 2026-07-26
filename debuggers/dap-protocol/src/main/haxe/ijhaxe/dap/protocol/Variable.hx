@@ -11,6 +11,6 @@ typedef Variable = {
 	var ?type:String;
 	var ?namedVariables:Int;
 	var ?indexedVariables:Int;
-	// Our classification for the client's icon (the wire form of ijhaxe.debug.values.VariableKind).
+	// Classification driving the client's icon (the wire form of ijhaxe.debug.values.VariableKind).
 	var ?kind:String;
 }

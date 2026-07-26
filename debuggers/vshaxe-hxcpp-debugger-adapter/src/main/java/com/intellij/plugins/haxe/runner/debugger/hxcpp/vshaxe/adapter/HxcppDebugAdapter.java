@@ -56,7 +56,7 @@ import tools.jackson.databind.JsonNode;
  * Lifecycle: construct (binds the debuggee listener socket), let the caller
  * spawn the debuggee (compiled with -lib hxcpp-debug-server -debug and defines
  * matching {@link #getDebuggeePort()}), then {@link #start} with the DAP
- * connection. The debuggee's Server connects to our listener, holds the app
+ * connection. The debuggee's Server connects to that listener, holds the app
  * stopped, and is released by the jsonrpc continue sent on configurationDone.
  *
  * Threading: one thread runs the DAP request loop (requests are handled

@@ -184,7 +184,7 @@ public class EvalStepExceptionLiveTest {
       assertTrue("step #" + i + " answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
 
       // the terminate may race ahead of / lag behind the step response; poll a
-      // short window for it, or for a fresh stop meaning we must step again
+      // short window for it, or for a fresh stop meaning another step is needed
       long deadline = System.currentTimeMillis() + 4_000;
       boolean stoppedAgain = false;
       while (System.currentTimeMillis() < deadline) {

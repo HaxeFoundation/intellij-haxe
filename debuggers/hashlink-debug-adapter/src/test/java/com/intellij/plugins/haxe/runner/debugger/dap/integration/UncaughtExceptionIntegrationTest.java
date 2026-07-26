@@ -30,7 +30,7 @@ public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {
     assertTrue("uncaught filter enabled", request(exceptionBreakpoints("uncaught")).isSuccess());
     assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
 
-    // "caught-one" (thrown inside a try) is skipped; we stop on "uncaught-one"
+    // "caught-one" (thrown inside a try) is skipped; the stop is on "uncaught-one"
     StoppedEvent stopped = awaitStopped();
     assertEquals("stopped for exception", "exception", stopped.getBody().getReason());
     String description = stopped.getBody().getDescription();

@@ -63,8 +63,8 @@ class DebuggeeProcess {
 		}
 
 		// sys.io.Process has no working-directory parameter, so set it around the
-		// spawn. The adapter serves one debuggee at a time, so this is safe; we
-		// restore immediately afterwards.
+		// spawn. The adapter serves one debuggee at a time, so this is safe; the
+		// previous directory is restored immediately afterwards.
 		var previousCwd:Null<String> = null;
 		if (cwd != null) {
 			previousCwd = Sys.getCwd();

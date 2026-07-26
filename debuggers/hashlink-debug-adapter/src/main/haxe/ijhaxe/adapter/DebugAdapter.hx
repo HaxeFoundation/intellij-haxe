@@ -83,7 +83,7 @@ class DebugAdapter {
 		// TCP RST on Windows, and an RST DISCARDS data already buffered on the
 		// receiving side - observed as the intermittently lost disconnect
 		// response ("Connection reset" on the client while the adapter had
-		// already logged the response as sent). EOF from our reader means the
+		// already logged the response as sent). EOF from the reader means the
 		// client received everything and closed; the timeout covers clients
 		// that never close.
 		awaitClientClose();

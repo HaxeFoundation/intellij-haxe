@@ -92,7 +92,7 @@ final class FqnNavigateLink {
   }
 
   private static @Nullable FullyQualifiedInfo getRuntimeQualifiedInfo(@NonNull String value) {
-    // Runtime does not contain module info so we remove it and only use class
+    // Runtime does not contain module info, so it is dropped and only the class is used
     FullyQualifiedInfo info = new FullyQualifiedInfo(value);
     if(!info.hasModuleName()) return null;
     if(!info.hasClassName()) {

@@ -572,10 +572,11 @@ class RequestDispatcher {
 		};
 	}
 
-	// The HL runtime (hl.exe) running THIS adapter — the VM we launch the debuggee
-	// with when the client doesn't override it. Sys.executablePath()'s deprecation
-	// points at Sys.programPath(), but on HL that returns the adapter's own .hl
-	// file, not the runtime, so we keep executablePath and silence just this one.
+	// The HL runtime (hl.exe) running THIS adapter — the VM the debuggee is
+	// launched with when the client doesn't override it. Sys.executablePath()'s
+	// deprecation points at Sys.programPath(), but on HL that returns the
+	// adapter's own .hl file, not the runtime, so executablePath stays and the
+	// warning is silenced for just this function.
 	@:haxe.warning("-WDeprecated")
 	static function defaultHlExecutable():String {
 		return Sys.executablePath();

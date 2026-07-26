@@ -50,7 +50,7 @@ import tools.jackson.databind.JsonNode;
  * Lifecycle: construct (binds the VM listener socket), let the caller spawn
  * {@code haxe <args> -D eval-debugger=127.0.0.1:<port> --interp} (or any
  * compilation whose MACROS should be debugged), then {@link #start} with the
- * DAP connection. The eval VM connects to our listener and WAITS before
+ * DAP connection. The eval VM connects to that listener and WAITS before
  * running main; configurationDone releases it with the protocol's continue.
  *
  * Simpler than the hxcpp sibling in two load-bearing ways: the VM assigns a
@@ -394,8 +394,8 @@ public class EvalDebugAdapter implements Closeable {
 
   /**
    * A step drove the interpreter into an UNCAUGHT exception. The eval VM does
-   * NOT raise an exceptionStop for a step the way it does for continue (verified
-   * live); instead the stack unwinds out from under us and further VM calls
+   * NOT raise an exceptionStop for a step the way it does for continue;
+   * instead the stack unwinds away underneath and further VM calls
    * report "No frame found" (an {@link EvalProtocolException}), leaving the
    * process WEDGED with the exception pending — no stop, no exit. Resuming runs
    * the exception off the end, which exits the process (its message printed to
@@ -410,7 +410,7 @@ public class EvalDebugAdapter implements Closeable {
     try {
       vm().resume();
     } catch (EvalConnectionClosedException alreadyEnded) {
-      // the process beat us to exiting; the disconnect sends terminated
+      // the process already exited; the disconnect sends terminated
       return StepOutcome.PROGRAM_ENDED;
     } catch (IOException unresponsive) {
       endSessionWithUnresponsiveVm();
@@ -954,7 +954,7 @@ public class EvalDebugAdapter implements Closeable {
    * evaluates its own breakpoint state), or the landing sits on a line the IDE
    * registered a breakpoint on (belt and braces for landings the VM does not
    * flag). The step's own STARTING line is exempt either way, so stepping off
-   * a line whose breakpoint we are already parked on cannot insta-stop.
+   * a line the debuggee is already parked on cannot insta-stop.
    */
   private boolean landedOnBreakpoint(EvalProtocol.EvalStackFrame top, FrameSignature start) {
     if (top == null) {

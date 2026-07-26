@@ -43,14 +43,14 @@ class SteppingController {
 				session.state = Running;
 				session.emit(EvStepStarted(requestSeq)); // ack now; the stopped(reason:"step") event follows
 				if (interrupted != null) {
-					// another thread stopped us during the resume dance: report
-					// that stop right after the step response
+					// another thread stopped the debuggee during the resume dance:
+					// report that stop right after the step response
 					session.handleWaitOutcome(interrupted);
 				} else if (session.activeStep == null) {
 					// No landing could be planted at all (the only "next" is an
-					// unresolvable native return). Behave like continue and tell
-					// the client we are running rather than leaving it waiting
-					// for a step stop that cannot exist. NOTE: a step whose
+					// unresolvable native return). Behave like continue and report
+					// the debuggee as running rather than leaving the client
+					// waiting for a step stop that cannot exist. NOTE: a step whose
 					// landings ARE planted waits for them however long the code
 					// runs (a slow call is not a reason to give up the step).
 					session.emit(EvResumed(threadId));
@@ -150,7 +150,7 @@ class SteppingController {
 	}
 
 	// Plant the temporary breakpoints that mark where this step should land, then
-	// resume (stepping over the instruction we are parked on). `activeStep`
+	// resume (stepping over the instruction the thread is parked on). `activeStep`
 	// afterwards says whether any landing was planted (null = the caller
 	// downgrades the step to a plain continue). Returns a pending debug event
 	// when another thread interrupted the resume dance.
@@ -238,7 +238,7 @@ class SteppingController {
 	}
 
 	// Parked MID-op — EIP past the op's first native byte — means the op's call
-	// instruction already ran and we sit at its return address (the only
+	// instruction already ran and the thread sits at its return address (the only
 	// user-visible mid-op stop: temps/user breakpoints are planted at op
 	// starts). That call must not be offered or planted as enterable again.
 	function callAtOpAlreadyRan(eip:Pointer, fidx:Int, op:Int):Bool {

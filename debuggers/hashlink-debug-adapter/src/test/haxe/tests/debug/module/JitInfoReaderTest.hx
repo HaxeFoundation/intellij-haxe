@@ -142,7 +142,7 @@ class JitInfoReaderTest {
 			assert.fail("unsupported version should throw");
 		} catch (e:DebugError) {
 			// The message must say WHICH version kind mismatched (the handshake
-			// protocol digit), what we saw, and what is supported.
+			// protocol digit), what was received, and what is supported.
 			assert.isTrue(StringTools.contains(e.message, "handshake protocol version"),
 				"names the version kind (was: " + e.message + ")");
 			assert.isTrue(StringTools.contains(e.message, "HLD9"), "reports the received version");

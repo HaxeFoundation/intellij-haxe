@@ -384,8 +384,8 @@ class Dispatcher {
 
 	// A frame's Locals scope. The frameId names a (thread, stack index) pair via
 	// the registry built in stackTrace. hxcpp exposes one flat set of locals per
-	// frame (params + declared vars + `this`), so we surface a single "Locals"
-	// scope rather than splitting arguments out.
+	// frame (params + declared vars + `this`), so a single "Locals" scope is
+	// reported rather than splitting arguments out.
 	function handleScopes(seq:Int, command:String, args:Dynamic):Void {
 		var frameId = (args != null && args.frameId != null) ? args.frameId : 0;
 		var location = framesById.get(frameId);
@@ -470,7 +470,7 @@ class Dispatcher {
 				sendEvent("thread", {reason: "exited", threadId: threadNumber});
 			case ThreadStarted(threadNumber):
 				// a thread RESUMED (runtime "started" = running again); its stack
-				// is stale now. DAP resume reporting is implicit in our
+				// is stale now. DAP resume reporting is implicit in the
 				// continue/step responses.
 				stoppedStacks.remove(threadNumber);
 			case ThreadStopped(threadNumber, status, breakpoint, stack, description):

@@ -44,7 +44,7 @@ final class DapDebuggerEvaluator extends XDebuggerEvaluator {
         // "expr.field" paths and re-selecting the result prefills what was typed.
         callback.evaluated(new DapValue(process, result, 0,
                                           !expression.isBlank() ? expression : null));
-        // NOTE: we do NOT rebuildViews() here even though an assignment changed
+        // NOTE: rebuildViews() is deliberately NOT called here even though an assignment changed
         // debuggee state. The evaluate dialog already calls session.rebuildViews()
         // in its own evaluationDone(), so a second one from this (request) thread
         // races the platform's post-evaluation refresh and intermittently doubled

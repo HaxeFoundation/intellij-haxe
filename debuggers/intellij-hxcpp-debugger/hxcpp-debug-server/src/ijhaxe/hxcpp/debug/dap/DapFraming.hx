@@ -12,7 +12,7 @@ import haxe.io.BytesBuffer;
 **/
 class DapFraming {
 	// sanity cap: no legitimate DAP request is this big; a huge length is a
-	// corrupt header and must not make us allocate gigabytes
+	// corrupt header and must not allocate gigabytes
 	static inline var MAX_PAYLOAD = 16 * 1024 * 1024;
 	static inline var HEADER_END = "\r\n\r\n";
 	static inline var LENGTH_PREFIX = "Content-Length:";

@@ -95,7 +95,7 @@ final class HashLinkRunConfigurations {
         }
       }
     } catch (InvalidPathException ignored) {
-      // fall through with what we have
+      // fall through with the candidates collected so far
     }
     return candidates;
   }

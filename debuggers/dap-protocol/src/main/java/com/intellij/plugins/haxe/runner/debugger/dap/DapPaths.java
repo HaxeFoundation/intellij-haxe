@@ -4,7 +4,7 @@ import java.util.Locale;
 
 /**
  * Source-path normalization shared across the DAP debuggers. Windows paths
- * reach us with either separator and in varying case (the IDE, the compiler
+ * arrive with either separator and in varying case (the IDE, the compiler
  * and the runtime disagree), so matching and comparison go through here.
  */
 public final class DapPaths {

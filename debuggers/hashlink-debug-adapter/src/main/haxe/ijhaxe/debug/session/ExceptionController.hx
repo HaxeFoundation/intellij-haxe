@@ -129,19 +129,19 @@ class ExceptionController {
 		session.emit(EvStoppedException(threadId, session.descriptions.thrown(threadId, excEntry.reg)));
 	}
 
-	// hl_throw's entry: EVERY exception passes through here. We only surface
-	// VM-RAISED errors (null access, bounds, cast, ...) — i.e. throws whose
+	// hl_throw's entry: EVERY exception passes through here. Only VM-RAISED
+	// errors (null access, bounds, cast, ...) are surfaced — i.e. throws whose
 	// immediate caller is C runtime code, not a jitted OThrow. A bytecode
 	// throw's caller IS jit code, so it is left to the OThrow-based breakpoints
 	// (avoiding a double stop) and resumed past silently here.
 	//
 	// The thrown value is UNREADABLE at this entry (it sits in an argument
 	// register HL's debug API does not expose), so a VM-raised throw does not
-	// stop here either: we set HL_EXC_CATCH_ALL on the throwing thread and let
-	// hl_throw run on — it stores exc_value and then executes its own
+	// stop here either: HL_EXC_CATCH_ALL is set on the throwing thread and
+	// hl_throw runs on — it stores exc_value and then executes its own
 	// hl_debug_break, where handleVmThrowBreak reports the stop WITH the
-	// actual error message. Only when the thread registry is unreadable do we
-	// stop here, with a generic description.
+	// actual error message. Only an unreadable thread registry stops here,
+	// with a generic description.
 	public function handleNativeThrowHit(threadId:Int):Void {
 		var syntheticBp = session.breakpoints.nativeThrowBreakpoint();
 		var vmRaised = session.throwClassifier.raisedByRuntime(threadId);

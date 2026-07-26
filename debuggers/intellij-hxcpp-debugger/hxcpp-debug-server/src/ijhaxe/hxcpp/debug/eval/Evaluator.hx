@@ -249,7 +249,7 @@ private class ResolvingInterp extends Interp {
 			}
 		}
 		// a frame local (or anything else already bound) owns the root name;
-		// our own package objects are the one thing safe to extend
+		// the synthesized package objects are the one thing safe to extend
 		if (variables.exists(segments[0]) && !packageRoots.exists(segments[0])) {
 			return;
 		}

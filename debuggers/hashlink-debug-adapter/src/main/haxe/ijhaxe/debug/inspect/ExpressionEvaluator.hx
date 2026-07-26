@@ -253,7 +253,7 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// `value is Type` (Haxe Std.isOfType semantics, the subset we support):
+	// `value is Type` (Haxe Std.isOfType semantics, the supported subset):
 	// null is never an instance; Int/Float/Bool/String/Dynamic match by kind
 	// (an Int satisfies Float, as in Haxe); a class/enum/struct name matches an
 	// object whose runtime class equals it or descends from it (tsuper chain,

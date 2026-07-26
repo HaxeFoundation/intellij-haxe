@@ -14,7 +14,7 @@ import org.junit.Test;
  * Type-specific exception breakpoints: a filter naming exception class
  * "Boom" must skip an unrelated {@code haxe.Exception} throw and stop only at the
  * {@code Kaboom} throw — Kaboom extends Boom, so this also proves subtype matching
- * (we match the thrown value's class and its superclasses).
+ * (the match covers the thrown value's class and its superclasses).
  */
 public class TypedExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase {
 
@@ -28,7 +28,7 @@ public class TypedExceptionBreakpointsIntegrationTest extends DapIntegrationTest
     initialize();
     assertTrue("launch succeeds", launch(typedThrowFixtureHl.toString()).isSuccess());
     // filter on the base class "Boom" — the first throw (haxe.Exception) is not a
-    // Boom and must be skipped; the Kaboom throw (a Boom subclass) must stop us
+    // Boom and must be skipped; the Kaboom throw (a Boom subclass) must stop
     assertTrue("type filter set", request(exceptionTypeFilter("Boom")).isSuccess());
     assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
 

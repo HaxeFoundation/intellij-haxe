@@ -52,8 +52,8 @@ public abstract class DapIntegrationTestBase {
   // Hard ceiling on the adapter announcing its port. A HashLink that cannot
   // load the adapter module (missing std native on old VMs) pops a MODAL
   // Windows error dialog and STAYS ALIVE behind it, so its stdout never closes
-  // and a plain readLine() would block forever. When this elapses we kill the
-  // process tree, which closes the pipe and turns the hang into a clean failure.
+  // and a plain readLine() would block forever. Elapsing kills the process tree,
+  // which closes the pipe and turns the hang into a clean failure.
   private static final long PORT_TIMEOUT_MS = 20_000;
 
   protected static final String FIXTURE_MAIN = "Main.hx";
@@ -270,9 +270,9 @@ public abstract class DapIntegrationTestBase {
 
   // The trace breadcrumbs (DAP_ADAPTER_TRACE) can exceed the OS pipe buffer, so
   // a background thread must drain the adapter's merged stdout/stderr for the
-  // whole test — otherwise the adapter would block mid-write and we would be
-  // debugging a hang we created ourselves. The captured output is printed on
-  // teardown so a failed run self-diagnoses.
+  // whole test — otherwise the adapter blocks mid-write and the test hangs for a
+  // reason that has nothing to do with what it covers. The captured output is
+  // printed on teardown so a failed run self-diagnoses.
   private void printAdapterOutput() {
     String output;
     synchronized (adapterOutput) {

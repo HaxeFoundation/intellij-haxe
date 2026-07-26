@@ -78,7 +78,7 @@ final class HlBuildSniffer {
       }
       CACHE.put(key, new CacheEntry(List.copyOf(visited), List.copyOf(stamps), build));
     } catch (IOException ignored) {
-      // don't cache what we can't validate
+      // a result that cannot be validated is not cached
     }
     return build;
   }

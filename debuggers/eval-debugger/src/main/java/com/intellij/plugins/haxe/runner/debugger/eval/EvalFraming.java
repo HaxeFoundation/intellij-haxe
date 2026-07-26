@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 public final class EvalFraming {
   /**
    * The request prefix is a ui16, so a request payload can never exceed
-   * 64KB - 1. Our requests are small (paths, expressions); anything larger
+   * 64KB - 1. Requests here are small (paths, expressions); anything larger
    * indicates a caller bug, not a legitimate message.
    */
   static final int MAX_REQUEST_BYTES = 0xFFFF;

@@ -33,14 +33,14 @@ class LineBreakpointController {
 
 		var planned = BreakpointPlanner.plan(session.module, session.jit, sourcePath, requested);
 
-		// while the debuggee runs we must stop it before writing its memory
+		// a running debuggee has to be stopped before its memory can be written
 		var wasRunning = switch (session.state) { case Running: true; default: false; };
 		if (wasRunning) {
 			session.pauseForMemoryWrite();
 		}
 		session.breakpoints.setForSource(sourceKey, planned.locations);
-		// setForSource re-armed this source's breakpoints; if we are stopped on one of
-		// them it just re-planted its INT3 at the current instruction pointer. Lift that
+		// setForSource re-armed this source's breakpoints; a stop parked on one of
+		// them just re-planted its INT3 at the current instruction pointer. Lift that
 		// INT3 again (keep it suspended) and re-point currentStoppedBreakpoint to the
 		// re-installed instance, so the next continue single-steps the real instruction
 		// instead of stepping straight into the fresh INT3 and re-hitting the same line
@@ -53,7 +53,7 @@ class LineBreakpointController {
 		emitBreakpointResults(requestSeq, planned.results, isReverify);
 	}
 
-	// Keeps the breakpoint we are currently stopped on suspended (INT3 lifted) across a
+	// Keeps the breakpoint the session is stopped on suspended (INT3 lifted) across a
 	// setForSource re-install. No-op when running, or when the stopped breakpoint is not
 	// an address-keyed line breakpoint (e.g. an exception breakpoint).
 	function reconcileStoppedBreakpoint():Void {

@@ -600,8 +600,8 @@ class DebugSession {
 				state = Running;
 				emit(EvContinued(requestSeq));
 				if (interrupted != null) {
-					// another thread stopped us during the resume dance: report
-					// that stop right after the continue response
+					// another thread stopped the debuggee during the resume dance:
+					// report that stop right after the continue response
 					handleWaitOutcome(interrupted);
 				}
 			default:
@@ -614,7 +614,7 @@ class DebugSession {
 	// ANOTHER thread interrupted the dance (all threads run once the pending
 	// event is continued, so e.g. a second thread can hit a breakpoint right
 	// here) — the caller must process it as a normal stop AFTER settling its
-	// own state; we must NOT resume past it or the whole process stays frozen.
+	// own state; resuming past it leaves the whole process frozen.
 	function stepOverAndResume(threadId:Int):Null<WaitOutcome> {
 		// resuming invalidates the stopped-frame cache and its variablesReferences
 		inspector.invalidate();
@@ -685,7 +685,7 @@ class DebugSession {
 	}
 
 	// The single-step-over-the-patched-instruction sequence. On return the
-	// debuggee is frozen again (either our SingleStep event or an interrupting
+	// debuggee is frozen again (either the SingleStep event or an interrupting
 	// event is pending), which is exactly when register writes are reliable.
 	function trapDance(threadId:Int):Null<WaitOutcome> {
 		setTrapFlag(threadId);
@@ -696,9 +696,9 @@ class DebugSession {
 		return interrupted;
 	}
 
-	// Waits for OUR thread's single-step to complete. Multithreaded reality:
-	// while the step's one instruction runs, every other thread runs too, so
-	// arbitrary events can arrive first —
+	// Waits for the single-step on `threadId` to complete. While the step's one
+	// instruction runs, every other thread runs too, so arbitrary events can
+	// arrive first —
 	//  - Handled(4): thread create/exit/set-name etc. that hl_debug_wait ALREADY
 	//    continued internally. Not a stop; keep waiting. (Treating these as the
 	//    step's completion was the random multithreaded freeze: the early return
@@ -706,8 +706,8 @@ class DebugSession {
 	//    writes, stuck TF — and the final resume then targeted the wrong event.)
 	//  - Breakpoint/Error/StackOverflow from any thread: a REAL pending event
 	//    that now owns the process freeze. Returned to the caller to be handled
-	//    as a normal stop; continuing it with our thread id would fail and leave
-	//    the debuggee frozen forever.
+	//    as a normal stop; continuing it with the stepping thread's id fails and
+	//    leaves the debuggee frozen forever.
 	function waitForSingleStep(threadId:Int):Null<WaitOutcome> {
 		for (_ in 0...100) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
@@ -721,7 +721,7 @@ class DebugSession {
 				case Handled:
 					// already continued inside hl_debug_wait: not a stop
 				case Timeout:
-					// keep waiting: our instruction hasn't retired yet
+					// keep waiting: the instruction hasn't retired yet
 				case Exit:
 					state = Exited;
 					releaseExitedProcess(outcome.threadId);
@@ -735,8 +735,9 @@ class DebugSession {
 		return null;
 	}
 
-	// The temp we hit is at a deeper (recursive) frame than the step started in:
-	// not our landing. Single-step past it, re-arm it, and keep running.
+	// The temp that was hit sits at a deeper (recursive) frame than the step
+	// started in, so it is not the landing. Single-step past it, re-arm it, and
+	// keep running.
 	function stepPastTempAndResume(threadId:Int, address:Pointer):Void {
 		breakpoints.suspendTemp(address);
 		var interrupted = trapDance(threadId);
@@ -762,7 +763,7 @@ class DebugSession {
 	}
 
 	// Enter the Stopped state on `threadId`: end any active step, record the
-	// breakpoint we stopped at (null for a step or exception landing), and prime
+	// breakpoint stopped at (null for a step or exception landing), and prime
 	// the inspector for a new stop. The caller emits the specific stopped event.
 	inline function enterStopped(threadId:Int, breakpoint:Null<PatchedBreakpoint>):Void {
 		finishStep();
@@ -866,11 +867,11 @@ class DebugSession {
 	// stop, so any thread's registers are readable.
 	function handleDisconnect(requestSeq:Int):Void {
 		if (debuggeePid != 0) {
-			// Free the debuggee before we let go. Launch mode: kill it (we own it).
-			// Attach mode: no kill (the client owns its lifetime), so restore every
-			// patched INT3 first — the process may keep running after we detach and a
-			// leftover trap would crash it. Either way, continue any held stop event so
-			// a suspended process does not stall the detach we do further below.
+			// Free the debuggee before letting go. Launch mode: kill it (the session
+			// owns it). Attach mode: no kill (the client owns its lifetime), so
+			// restore every patched INT3 first — the process may keep running after
+			// the detach and a leftover trap would crash it. Either way, continue any
+			// held stop event so a suspended process does not stall the detach below.
 			if (process != null) {
 				process.kill();
 				dbg("disconnect: kill done");
@@ -890,9 +891,10 @@ class DebugSession {
 			}
 			// Drain any still-pending debug events (the just-continued stop, or an
 			// EXIT_PROCESS from a concurrent terminate) and continue them. Windows
-			// DebugActiveProcessStop stalls while a debug event is outstanding, so a
-			// suspended debuggee we detach without draining leaves the client stuck on
-			// "waiting for process detach" — it cannot die until we let go cleanly.
+			// DebugActiveProcessStop stalls while a debug event is outstanding, so
+			// detaching from a suspended debuggee without draining leaves the client
+			// stuck on "waiting for process detach" — it cannot die until the
+			// debugger lets go cleanly.
 			var drained = 0;
 			while (drained++ < MAX_ATTACH_DRAIN_EVENTS) {
 				var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
@@ -909,9 +911,9 @@ class DebugSession {
 		}
 		// Answer the disconnect NOW, before the detach. In attach mode
 		// DebugActiveProcessStop can stall for seconds on a just-suspended debuggee;
-		// the client tears us down (killing both processes) the instant it sees this
-		// response — which also unblocks/moots the detach. Waiting for the detach here
-		// only made the client sit on its disconnect timeout.
+		// the client tears the adapter down (killing both processes) the instant it
+		// sees this response — which also unblocks/moots the detach. Answering after
+		// the detach instead leaves the client sitting on its disconnect timeout.
 		alive = false;
 		emit(EvSessionEnded(requestSeq));
 		dbg("disconnect: response emitted");
@@ -1017,7 +1019,7 @@ class DebugSession {
 
 	// Resume past a trap that must NOT stop the debuggee (a false breakpoint
 	// condition, a filtered exception, hl_throw's silent passthrough), and
-	// process any stop another thread raised while we were doing so.
+	// process any stop another thread raised meanwhile.
 	function resumePastSuppressedTrap(threadId:Int, bp:PatchedBreakpoint):Void {
 		inspector.invalidate();
 		var interrupted = resumePastUserBreakpoint(threadId, bp);
@@ -1062,9 +1064,9 @@ class DebugSession {
 	// hl_debug_wait returns Exit for the OS's exit-process debug event WITHOUT
 	// continuing it, and Windows keeps the dying process alive until the
 	// debugger continues that event and detaches. Release it so whoever owns
-	// the process (the IDE/test runner in attach mode, our own Process handle
-	// in launch mode) sees it actually terminate. Call BEFORE reading the exit
-	// code: waitExitCode blocks on full termination.
+	// the process (the IDE/test runner in attach mode, the session's Process
+	// handle in launch mode) sees it actually terminate. Call BEFORE reading the
+	// exit code: waitExitCode blocks on full termination.
 	function releaseExitedProcess(threadId:Int):Void {
 		try {
 			api.resume(debuggeePid, threadId);
