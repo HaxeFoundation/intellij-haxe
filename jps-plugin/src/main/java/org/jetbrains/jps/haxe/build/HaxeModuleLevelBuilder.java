@@ -313,10 +313,13 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
   }
 
   private static BuildMessage.Kind toBuildMessageKind(HaxeCompilerMessage.Category category) {
-    return switch (category) {
-      case ERROR -> BuildMessage.Kind.ERROR;
-      case WARNING -> BuildMessage.Kind.WARNING;
-      default -> BuildMessage.Kind.INFO;
-    };
+    switch (category) {
+      case ERROR:
+        return BuildMessage.Kind.ERROR;
+      case WARNING:
+        return BuildMessage.Kind.WARNING;
+      default:
+        return BuildMessage.Kind.INFO;
+    }
   }
 }
