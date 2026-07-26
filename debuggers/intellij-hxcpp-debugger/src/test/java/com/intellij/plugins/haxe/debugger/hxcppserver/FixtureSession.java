@@ -321,7 +321,9 @@ final class FixtureSession implements AutoCloseable {
   /** Lines the debuggee printed so far whose text starts with the prefix. */
   int outputCount(String prefix) {
     synchronized (output) {
-      return (int)output.stream().filter(line -> line.startsWith(prefix)).count();
+      return (int)output.stream()
+        .filter(line -> line.startsWith(prefix))
+        .count();
     }
   }
 

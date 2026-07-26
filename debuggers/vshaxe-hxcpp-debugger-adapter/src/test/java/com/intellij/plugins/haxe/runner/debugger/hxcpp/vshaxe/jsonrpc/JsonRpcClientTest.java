@@ -60,7 +60,9 @@ public class JsonRpcClientTest {
   private JsonNode serverReceive() throws IOException {
     String payload = JsonRpcFraming.readPayload(serverIn);
     assertNotNull("server side saw EOF", payload);
-    return JsonMapper.builder().build().readTree(payload);
+    return JsonMapper.builder()
+      .build()
+      .readTree(payload);
   }
 
   @Test

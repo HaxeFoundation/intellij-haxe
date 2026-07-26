@@ -35,11 +35,15 @@ final class Results {
   record Cell(String lane, String haxe, String runtime, String status, List<ClassResult> classes,
               List<String> flakyTests, long seconds) {
     int totalFailures() {
-      return classes.stream().mapToInt(c -> c.failures() + c.errors()).sum();
+      return classes.stream()
+        .mapToInt(c -> c.failures() + c.errors())
+        .sum();
     }
 
     int totalSkipped() {
-      return classes.stream().mapToInt(ClassResult::skipped).sum();
+      return classes.stream()
+        .mapToInt(ClassResult::skipped)
+        .sum();
     }
   }
 

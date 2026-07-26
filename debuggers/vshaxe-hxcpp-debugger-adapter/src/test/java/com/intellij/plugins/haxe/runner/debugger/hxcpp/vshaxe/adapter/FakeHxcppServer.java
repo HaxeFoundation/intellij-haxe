@@ -63,7 +63,9 @@ class FakeHxcppServer implements Closeable {
 
   /** The recorded requests for one method. */
   List<JsonNode> requests(String method) {
-    return requests.stream().filter(r -> method.equals(r.path("method").asString())).toList();
+    return requests.stream()
+      .filter(r -> method.equals(r.path("method").asString()))
+      .toList();
   }
 
   /** Pushes a notification (a message without id) to the adapter. */

@@ -49,7 +49,9 @@ final class HashLinkRunConfigurations {
     }
 
     List<Path> candidates = outputCandidates(module, settings, build.output());
-    return candidates.stream().filter(Files::isRegularFile).findFirst()
+    return candidates.stream()
+      .filter(Files::isRegularFile)
+      .findFirst()
       .or(() -> candidates.stream().findFirst());
   }
 

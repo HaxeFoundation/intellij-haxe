@@ -116,7 +116,12 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 
   private static String names(List<DapThread> threads) {
     StringBuilder sb = new StringBuilder();
-    for (DapThread t : threads) sb.append(t.getName()).append("[").append(t.getId()).append("] ");
+    for (DapThread t : threads) {
+      sb.append(t.getName())
+        .append("[")
+        .append(t.getId())
+        .append("] ");
+    }
     return sb.toString();
   }
 }

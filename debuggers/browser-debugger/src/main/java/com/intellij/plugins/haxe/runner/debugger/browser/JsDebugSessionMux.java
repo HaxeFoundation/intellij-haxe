@@ -401,7 +401,10 @@ public final class JsDebugSessionMux implements DapEndpoint {
     trackedBySessionId.keySet().removeIf(key -> (int)(key >>> 32) == sessionIndex);
     List<TrackedBreakpoint> all;
     synchronized (trackedBySource) {
-      all = trackedBySource.values().stream().flatMap(List::stream).toList();
+      all = trackedBySource.values()
+        .stream()
+        .flatMap(List::stream)
+        .toList();
     }
     for (TrackedBreakpoint bp : all) {
       boolean before = bp.mergedVerified();

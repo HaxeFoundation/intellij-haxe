@@ -308,10 +308,16 @@ public class JsDebugAdapterLiveProbe {
       assertTrue("completions", completionsResponse.isSuccess());
       var items = ((CompletionsResponse)
                      completionsResponse).getBody().getTargets();
-      System.out.println("[probe] completions for 'docum': "
-                         + items.stream().limit(8).map(i -> i.getLabel()).toList());
-      assertTrue("expected 'document' among runtime completions",
-                 items.stream().anyMatch(i -> "document".equals(i.getLabel())));
+
+      List<String> labels = items.stream()
+        .limit(8)
+        .map(CompletionItem::getLabel)
+        .toList();
+
+      System.out.println("[probe] completions for 'docum': " + labels);
+
+      boolean anyMatch = items.stream().anyMatch(i -> "document".equals(i.getLabel()));
+      assertTrue("expected 'document' among runtime completions", anyMatch);
 
       // --- smart step INTO f2 (the outer call) ---
       StepInRequest stepIn =

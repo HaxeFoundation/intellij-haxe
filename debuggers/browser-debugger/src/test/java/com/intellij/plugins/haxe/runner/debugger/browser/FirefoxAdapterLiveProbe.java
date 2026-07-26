@@ -346,8 +346,11 @@ public class FirefoxAdapterLiveProbe {
       Response vResponse = client.sendRequest(variables, TIMEOUT);
       if (vResponse instanceof VariablesResponse vars && vars.isSuccess() && vars.getBody() != null) {
         List<Variable> list = vars.getBody().getVariables();
-        System.out.println("[probe] scope '" + scope.getName() + "': "
-                           + list.stream().limit(5).map(v -> v.getName() + "=" + v.getValue()).toList());
+        List<String> valueStrings = list.stream()
+          .limit(5)
+          .map(v -> v.getName() + "=" + v.getValue())
+          .toList();
+        System.out.println("[probe] scope '" + scope.getName() + "': " + valueStrings);
       }
     }
 
@@ -770,9 +773,13 @@ public class FirefoxAdapterLiveProbe {
     request.setArguments(arguments);
     Response response = client.sendRequest(request, TIMEOUT);
     assertTrue("setBreakpoints " + hxFile.getFileName(), response.isSuccess());
+
     if (response instanceof SetBreakpointsResponse ok && ok.getBody() != null && ok.getBody().getBreakpoints() != null) {
-      ok.getBody().getBreakpoints().forEach(b -> System.out.println(
-        "[probe] bp " + hxFile.getFileName() + " id=" + b.getId() + " verified=" + b.isVerified()));
+      ok.getBody()
+        .getBreakpoints()
+        .forEach(b -> {
+          System.out.println("[probe] bp " + hxFile.getFileName() + " id=" + b.getId() + " verified=" + b.isVerified());
+        });
     }
   }
 

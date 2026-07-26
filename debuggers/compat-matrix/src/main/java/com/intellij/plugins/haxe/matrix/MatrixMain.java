@@ -111,7 +111,10 @@ public final class MatrixMain {
     for (String arg : args) {
       if (arg.startsWith(FLAG_LANES)) {
         // lane names are matched lowercase (run() tests contains("hashlink") etc.)
-        lanes = flagValueList(arg, FLAG_LANES).stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
+        lanes = flagValueList(arg, FLAG_LANES)
+          .stream()
+          .map(s -> s.toLowerCase(Locale.ROOT))
+          .toList();
       } else if (arg.startsWith(FLAG_HAXE)) {
         haxeFilter = flagValueList(arg, FLAG_HAXE);
       } else if (arg.startsWith(FLAG_HL)) {
@@ -218,7 +221,9 @@ public final class MatrixMain {
   /** The dirs whose file name is listed in {@code names}, or all of them when {@code names} is empty. */
   private static List<Path> applyNameFilter(List<Path> dirs, List<String> names) {
     return names.isEmpty() ? dirs
-      : dirs.stream().filter(d -> names.contains(d.getFileName().toString())).toList();
+      : dirs.stream()
+        .filter(d -> names.contains(d.getFileName().toString()))
+        .toList();
   }
 
   /**
@@ -344,10 +349,15 @@ public final class MatrixMain {
     GradleRunner.killStrays();
     overlayResults(moduleResults, evidence, resultFilter);
     List<Results.ClassResult> merged = Results.parse(evidence);
+
     List<String> after = merged.stream()
       .flatMap(MatrixMain::failedTestIds)
       .toList();
-    List<String> flaky = before.stream().filter(t -> !after.contains(t)).toList();
+
+    List<String> flaky = before.stream()
+      .filter(t -> !after.contains(t))
+      .toList();
+
     if (!flaky.isEmpty()) {
       log.line("      flaky (passed on retry): " + String.join(", ", flaky));
     }
@@ -362,7 +372,9 @@ public final class MatrixMain {
    */
   /** "ClassName::testName" for every failed test of one class result. */
   private static Stream<String> failedTestIds(Results.ClassResult result) {
-    return result.failed().stream().map(failure -> result.name() + "::" + failure.test());
+    return result.failed()
+      .stream()
+      .map(failure -> result.name() + "::" + failure.test());
   }
 
   private void preserveFirstAttempt(List<Results.ClassResult> failing, Path evidence) throws IOException {
@@ -546,7 +558,12 @@ public final class MatrixMain {
       verifyLaneHaxe(haxe, haxeEnv(haxeDir));
       log.line("    " + haxe + " : building the C++ fixtures (this is the slow part)");
       List<String> build = new ArrayList<>();
-      fixtures.keySet().stream().sorted().forEach(t -> build.add(":debuggers:intellij-hxcpp-debugger:" + t));
+
+      fixtures.keySet()
+        .stream()
+        .sorted()
+        .forEach(t -> build.add(":debuggers:intellij-hxcpp-debugger:" + t));
+
       build.addAll(EXCLUDE_HAXELIB);
       build.add(GRADLE_CONTINUE);
       gradle.run(build, haxeEnv(haxeDir), out.resolve("logs/hxcpp-" + haxe + "-build.log"), 1200);
@@ -632,7 +649,10 @@ public final class MatrixMain {
       // an explicit --hl selection overrides the smart-reduced grid
       List<Path> runtimes = (full || !hlFilter.isEmpty() || !VersionManifest.DEGRADED_HAXE_ON_HL.contains(haxe))
         ? hlDirs
-        : hlDirs.stream().filter(d -> VersionManifest.REFERENCE_RUNTIMES.contains(d.getFileName().toString())).toList();
+        : hlDirs.stream()
+          .filter(d -> VersionManifest.REFERENCE_RUNTIMES.contains(d.getFileName().toString()))
+          .toList();
+
       for (Path hlDir : runtimes) {
         String runtime = hlDir.getFileName().toString();
         Path hlBinary = Platform.findBinary(hlDir, "hl");
@@ -730,10 +750,26 @@ public final class MatrixMain {
   private void report() throws IOException {
     // ascending here even though the lanes RUN newest-first - report columns
     // should not depend on execution order
-    List<String> haxeNames = !haxeDirs.isEmpty() ? names(haxeDirs).stream().sorted().toList()
-      : cells.stream().map(Results.Cell::haxe).distinct().sorted().toList();
-    List<String> hlNames = !hlDirs.isEmpty() ? names(hlDirs)
-      : cells.stream().map(Results.Cell::runtime).filter(Objects::nonNull).distinct().sorted().toList();
+    List<String> haxeNames = !haxeDirs.isEmpty()
+      ? names(haxeDirs).stream()
+        .sorted()
+        .toList()
+
+      : cells.stream()
+        .map(Results.Cell::haxe)
+        .distinct()
+        .sorted()
+        .toList();
+
+    List<String> hlNames = !hlDirs.isEmpty()
+      ? names(hlDirs)
+      : cells.stream()
+        .map(Results.Cell::runtime)
+        .filter(Objects::nonNull)
+        .distinct()
+        .sorted()
+        .toList();
+
     // one timestamped report per run (so results stay traceable to WHEN they
     // ran) plus index.html always mirroring the newest run
     Path stamped = out.resolve("matrix-" + startedAt + ".html");
@@ -761,7 +797,9 @@ public final class MatrixMain {
   }
 
   private static List<String> names(List<Path> dirs) {
-    return dirs.stream().map(d -> d.getFileName().toString()).toList();
+    return dirs.stream()
+      .map(d -> d.getFileName().toString())
+      .toList();
   }
 
   private static long lastModified(Path path) {

@@ -71,7 +71,9 @@ final class DapExecutionStack extends XExecutionStack {
   }
 
   private List<DapStackFrame> toFrames(List<StackFrame> dapFrames) {
-    return dapFrames.stream().map(frame -> new DapStackFrame(process, frame, threadId)).toList();
+    return dapFrames.stream()
+      .map(frame -> new DapStackFrame(process, frame, threadId))
+      .toList();
   }
 
   @Override

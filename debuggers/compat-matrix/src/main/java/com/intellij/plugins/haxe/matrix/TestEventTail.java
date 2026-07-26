@@ -116,12 +116,15 @@ final class TestEventTail {
     if (classes.isEmpty()) {
       return;
     }
-    classes.keySet().stream().sorted().forEach(name -> {
-      int[] counts = classes.get(name);
-      log.line("      " + name + ": " + counts[0] + " tests"
-               + (counts[1] > 0 ? ", " + counts[1] + " FAILED" : "")
-               + (counts[2] > 0 ? ", " + counts[2] + " skipped" : ""));
-    });
+    classes.keySet()
+      .stream()
+      .sorted()
+      .forEach(name -> {
+        int[] counts = classes.get(name);
+        log.line("      " + name + ": " + counts[0] + " tests"
+                 + (counts[1] > 0 ? ", " + counts[1] + " FAILED" : "")
+                 + (counts[2] > 0 ? ", " + counts[2] + " skipped" : ""));
+      });
     classes.clear();
     total = 0;
     reportedTotal = 0;
