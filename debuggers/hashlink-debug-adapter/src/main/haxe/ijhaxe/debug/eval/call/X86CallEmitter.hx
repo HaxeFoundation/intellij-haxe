@@ -1,5 +1,6 @@
 package ijhaxe.debug.eval.call;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.call.CallArg;
 
 import haxe.Int64;
@@ -44,7 +45,7 @@ class X86CallEmitter implements CallTrampoline {
 
 	public function build(funcAddr:Int64, args:Array<CallArg>, floatBits:Int):Bytes {
 		if (args.length > MAX_ARGS) {
-			throw new ijhaxe.debug.DebugError("Too many arguments to call (max " + MAX_ARGS + ")");
+			throw new DebugError("Too many arguments to call (max " + MAX_ARGS + ")");
 		}
 		var out = new BytesBuffer();
 		out.addByte(0x51); // push ecx

@@ -17,6 +17,7 @@ import ijhaxe.dap.protocol.responses.ContinueResponseBody;
 import ijhaxe.dap.protocol.responses.ErrorResponseBody;
 import ijhaxe.dap.protocol.Event;
 import ijhaxe.dap.protocol.requests.LaunchRequestArguments;
+import ijhaxe.dap.protocol.responses.Message;
 import ijhaxe.dap.protocol.requests.PauseArguments;
 import ijhaxe.dap.protocol.ProtocolMessage;
 import ijhaxe.dap.protocol.Request;
@@ -478,7 +479,7 @@ class RequestDispatcher {
 	}
 
 	function sendError(requestSeq:Int, command:String, errorId:Int, message:String, ?variables:Null<Map<String, String>>):Void {
-		var error:ijhaxe.dap.protocol.responses.Message = {id: errorId, format: message, showUser: false};
+		var error:Message = {id: errorId, format: message, showUser: false};
 		if (variables != null) {
 			// DAP Message.variables is a plain JSON object; copy the Map into one
 			var details = new haxe.DynamicAccess<String>();

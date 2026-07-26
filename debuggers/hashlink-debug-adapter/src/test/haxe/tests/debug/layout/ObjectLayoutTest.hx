@@ -20,7 +20,7 @@ class ObjectLayoutTest {
 		return {name: name, tsuper: tsuper, fields: fields, proto: [], globalValue: null, bindings: []};
 	}
 
-	static function offsetOf(layout:Array<ijhaxe.debug.layout.FieldLayout>, name:String):Int {
+	static function offsetOf(layout:Array<FieldLayout>, name:String):Int {
 		for (f in layout) {
 			if (f.name == name) {
 				return f.offset;

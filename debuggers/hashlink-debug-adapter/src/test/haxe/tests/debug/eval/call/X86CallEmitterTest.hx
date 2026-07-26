@@ -1,5 +1,6 @@
 package tests.debug.eval.call;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.call.X86CallEmitter;
 import ijhaxe.debug.eval.call.CallArg;
 
@@ -62,7 +63,7 @@ class X86CallEmitterTest {
 		var threw = false;
 		try {
 			new X86CallEmitter().build(Int64.ofInt(1), many, 0);
-		} catch (e:ijhaxe.debug.DebugError) {
+		} catch (e:DebugError) {
 			threw = true;
 		}
 		assert.isTrue(threw, "rejects more than the supported argument count");

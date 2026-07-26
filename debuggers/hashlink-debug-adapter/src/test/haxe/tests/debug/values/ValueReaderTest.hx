@@ -122,7 +122,7 @@ class ValueReaderTest {
 		pokeI32(api, 0x1008, 42);
 		pokeI32(api, 0x2000, 3); // kind 3 = HI32
 		var r = reader(api);
-		r.runtimeTypes = new ijhaxe.debug.values.RuntimeTypes(new MemoryReader(api, 1, true), new ijhaxe.debug.layout.Align(true, false), _ -> null);
+		r.runtimeTypes = new RuntimeTypes(new MemoryReader(api, 1, true), new Align(true, false), _ -> null);
 		var decoded = r.read(addr(0x900), HDyn);
 		assert.equals("42", decoded.value, "Dynamic holding an Int decodes via the runtime type");
 	}

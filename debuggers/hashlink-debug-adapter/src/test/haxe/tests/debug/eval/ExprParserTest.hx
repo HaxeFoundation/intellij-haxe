@@ -1,5 +1,6 @@
 package tests.debug.eval;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.ExprAst.Expr;
 import ijhaxe.debug.eval.ExprParser;
 
@@ -37,7 +38,7 @@ class ExprParserTest {
 			return try {
 				ExprParser.parse(s);
 				false;
-			} catch (e:ijhaxe.debug.DebugError) true;
+			} catch (e:DebugError) true;
 		}
 
 		// literals

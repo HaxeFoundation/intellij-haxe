@@ -1,6 +1,7 @@
 package ijhaxe.debug.eval;
-import format.hl.Data.HLType;
 
+import ijhaxe.debug.Pointer;
+import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
@@ -20,10 +21,10 @@ enum EvalValue {
 		came from one (pass-through without re-materializing); null for literals
 		and concat results (materialized on demand via makeString).
 	**/
-	VString(v:String, ptr:Null<ijhaxe.debug.Pointer>);
+	VString(v:String, ptr:Null<Pointer>);
 	VNull;
 	/**
 		A debuggee-resident pointer value (object/array/map/closure/...).
 	**/
-	VObject(raw:ijhaxe.debug.Pointer, type:HLType);
+	VObject(raw:Pointer, type:HLType);
 }

@@ -1,5 +1,6 @@
 package tests.debug.eval;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.EvalValue;
 import ijhaxe.debug.eval.Operators;
 import haxe.Int64;
@@ -19,7 +20,7 @@ class OperatorsTest {
 			return try {
 				run();
 				false;
-			} catch (e:ijhaxe.debug.DebugError) true;
+			} catch (e:DebugError) true;
 		}
 
 		// arithmetic + promotion
