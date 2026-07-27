@@ -528,18 +528,17 @@ public class HxcppDebugAdapter implements Closeable {
   }
 
   private void handleNotification(JsonRpcNotification notification) throws IOException {
+    // absent on the exception notification, where the missing node yields 0
+    int threadId = notification.params().path("threadId").asInt();
+
     switch (notification.method()) {
-      case HxcppProtocol.NOTIFY_BREAKPOINT_STOP ->
-        sendStopped("breakpoint", notification.params().path("threadId").asInt(), null);
-      case HxcppProtocol.NOTIFY_PAUSE_STOP ->
-        sendStopped("pause", notification.params().path("threadId").asInt(), null);
+      case HxcppProtocol.NOTIFY_BREAKPOINT_STOP -> sendStopped("breakpoint", threadId, null);
+      case HxcppProtocol.NOTIFY_PAUSE_STOP -> sendStopped("pause", threadId, null);
       case HxcppProtocol.NOTIFY_EXCEPTION_STOP ->
         // the protocol carries no threadId for exceptions; 0 mirrors the vshaxe adapter
         sendStopped("exception", 0, notification.params().path("text").asString(""));
-      case HxcppProtocol.NOTIFY_THREAD_START ->
-        sendThreadEvent(ThreadEvent.REASON_STARTED, notification.params().path("threadId").asInt());
-      case HxcppProtocol.NOTIFY_THREAD_EXIT ->
-        sendThreadEvent(ThreadEvent.REASON_EXITED, notification.params().path("threadId").asInt());
+      case HxcppProtocol.NOTIFY_THREAD_START -> sendThreadEvent(ThreadEvent.REASON_STARTED, threadId);
+      case HxcppProtocol.NOTIFY_THREAD_EXIT -> sendThreadEvent(ThreadEvent.REASON_EXITED, threadId);
       default -> System.err.println("HxcppDebugAdapter: unknown notification '" + notification.method() + "'");
     }
   }

@@ -1,6 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.util.net.NetUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +22,22 @@ final class LiveProbeUtil {
     <body><script src='app.js'></script></body></html>""";
 
   private LiveProbeUtil() {
+  }
+
+  /** Probe-side diagnostics; the tag separates them from the [adapter] and [server] streams. */
+  static void probe(String message) {
+    System.out.println("[probe] " + message);
+  }
+
+  /**
+   * Asserts the stop landed on the haxe original at {@code line} — a frame
+   * pointing at the generated app.js means the source map was not applied.
+   */
+  static void assertStoppedInHx(StackFrame top, String hxFile, int line) {
+    assertNotNull("top frame has no source", top.getSource());
+    assertTrue("top frame is not the .hx original: " + top.getSource().getPath(),
+               top.getSource().getPath() != null && top.getSource().getPath().endsWith(hxFile));
+    assertTrue("wrong line: " + top.getLine(), top.getLine() == line);
   }
 
   static boolean haxeOnPath() {
