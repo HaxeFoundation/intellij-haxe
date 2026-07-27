@@ -685,6 +685,24 @@ public class HxcppDebugAdapterTest {
     assertNull(stopped.getBody().getDescription());
   }
 
+  private Event awaitEvent(Class<? extends Event> type) throws InterruptedException {
+    long deadline = System.currentTimeMillis() + TIMEOUT;
+    while (System.currentTimeMillis() < deadline) {
+      Event event = dapClient.pollEvent(250);
+      if (event != null && type.isInstance(event)) {
+        return event;
+      }
+    }
+    throw new AssertionError("No " + type.getSimpleName() + " within " + TIMEOUT + " ms");
+  }
+
+  private void stopAtBreakpoint(int threadId) throws Exception {
+    server.notify("breakpointStop", """
+        {"threadId": %d}
+        """.formatted(threadId));
+    awaitEvent(StoppedEvent.class);
+  }
+
   /** The request failed, and its message names the cause. */
   private static void assertFailedWith(Response response, String expected) {
     assertFalse("expected failure, got success", response.isSuccess());

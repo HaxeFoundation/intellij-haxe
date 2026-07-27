@@ -37,12 +37,41 @@ import org.junit.Test;
  * the uncaught throw at all — the VM's DEFAULT would.
  */
 public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
+
+  @Test(timeout = 60_000)
+  public void resumeAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
+    startSession(List.of("uncaught"));
+    StoppedEvent stopped = awaitExceptionStop();
+    String description = stopped.getBody().getDescription();
+    assertTrue("stop carries the thrown text", description != null && description.contains("uncaught-object"));
+
+    ContinueRequest resume = continueRequest(stopped.getBody().getThreadId());
+    assertTrue("resume at the uncaught stop", request(resume).isSuccess());
+    awaitNaturalDeath();
+  }
+
+  @Test(timeout = 60_000)
+  public void steppingAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
+    startSession(List.of("uncaught"));
+    StoppedEvent stopped = awaitExceptionStop();
+    StepInRequest stepIn = stepInRequest(stopped.getBody().getThreadId());
+    assertTrue("stepIn at the uncaught stop", request(stepIn).isSuccess());
+    awaitNaturalDeath();
+  }
+
+  @Test(timeout = 60_000)
+  public void withExceptionBreakpointsDisabledAnUncaughtThrowNeverStops() throws Exception {
+    // the IDE sends EMPTY filters when every exception breakpoint is disabled;
+    // that must override the VM's stop-on-uncaught DEFAULT: no stop, just the
+    // program's natural death
+    startSession(List.of());
+    awaitNaturalDeath();
+  }
+
   @Override
   protected String fixtureMain() {
     return "EvalThrowObj";
   }
-
-
 
   private void startSession(List<String> filters) throws Exception {
     InitializeRequest initialize = new InitializeRequest();
@@ -86,36 +115,5 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
       }
     }
     throw new AssertionError("program never died within " + TIMEOUT + "ms");
-  }
-
-  @Test(timeout = 60_000)
-  public void resumeAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
-    startSession(List.of("uncaught"));
-    StoppedEvent stopped = awaitExceptionStop();
-    String description = stopped.getBody().getDescription();
-    assertTrue("stop carries the thrown text", description != null && description.contains("uncaught-object"));
-
-    ContinueRequest resume = continueRequest(stopped.getBody().getThreadId());
-    assertTrue("resume at the uncaught stop", request(resume).isSuccess());
-    awaitNaturalDeath();
-  }
-
-  @Test(timeout = 60_000)
-  public void steppingAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
-    startSession(List.of("uncaught"));
-    StoppedEvent stopped = awaitExceptionStop();
-
-    StepInRequest stepIn = stepInRequest(stopped.getBody().getThreadId());
-    assertTrue("stepIn at the uncaught stop", request(stepIn).isSuccess());
-    awaitNaturalDeath();
-  }
-
-  @Test(timeout = 60_000)
-  public void withExceptionBreakpointsDisabledAnUncaughtThrowNeverStops() throws Exception {
-    // the IDE sends EMPTY filters when every exception breakpoint is disabled;
-    // that must override the VM's stop-on-uncaught DEFAULT: no stop, just the
-    // program's natural death
-    startSession(List.of());
-    awaitNaturalDeath();
   }
 }
