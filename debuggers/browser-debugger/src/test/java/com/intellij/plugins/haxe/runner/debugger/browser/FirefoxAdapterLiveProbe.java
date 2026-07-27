@@ -2,9 +2,14 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 
-import static org.junit.Assert.assertNotNull;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.assertStoppedInHx;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.awaitInitialized;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.continueRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.probe;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.scopesRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stackTraceRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.variablesRequest;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
@@ -338,11 +343,7 @@ public class FirefoxAdapterLiveProbe {
 
     assertTrue("threads", client.sendRequest(new ThreadsRequest(), TIMEOUT).isSuccess());
 
-    StackTraceRequest stackTrace = new StackTraceRequest();
-    StackTraceArguments stArgs = new StackTraceArguments();
-    stArgs.setThreadId(threadId);
-    stackTrace.setArguments(stArgs);
-    Response stResponse = client.sendRequest(stackTrace, TIMEOUT);
+    Response stResponse = client.sendRequest(stackTraceRequest(threadId), TIMEOUT);
     assertTrue("stackTrace", stResponse.isSuccess());
 
     List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
@@ -357,20 +358,12 @@ public class FirefoxAdapterLiveProbe {
     assertStoppedInHx(top, MAIN_HX, BP_LINE);
 
     // scopes + a few variables of the top frame
-    ScopesRequest scopes = new ScopesRequest();
-    ScopesArguments scArgs = new ScopesArguments();
-    scArgs.setFrameId(top.getId());
-    scopes.setArguments(scArgs);
-    Response scResponse = client.sendRequest(scopes, TIMEOUT);
+    Response scResponse = client.sendRequest(scopesRequest(top.getId()), TIMEOUT);
     assertTrue("scopes", scResponse.isSuccess());
 
     for (var scope : ((ScopesResponse)scResponse).getBody().getScopes()) {
-      VariablesRequest variables = new VariablesRequest();
-      VariablesArguments vArgs = new VariablesArguments();
-      vArgs.setVariablesReference(scope.getVariablesReference());
-      variables.setArguments(vArgs);
-
-      Response vResponse = client.sendRequest(variables, TIMEOUT);
+      Response vResponse =
+        client.sendRequest(variablesRequest(scope.getVariablesReference()), TIMEOUT);
 
       if (vResponse instanceof VariablesResponse vars && vars.isSuccess() && vars.getBody() != null) {
         List<Variable> list = vars.getBody().getVariables();
@@ -408,11 +401,7 @@ public class FirefoxAdapterLiveProbe {
       Response launch = client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
       assertTrue("launch failed: " + launch.getMessage(), launch.isSuccess());
 
-      boolean initialized = false;
-      long deadline = System.currentTimeMillis() + 15_000;
-      while (System.currentTimeMillis() < deadline && !initialized) {
-        initialized = client.pollEvent(250) instanceof InitializedEvent;
-      }
+      boolean initialized = awaitInitialized(client, 15_000);
       assertTrue("no initialized event after launch", initialized);
 
       SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
@@ -428,7 +417,7 @@ public class FirefoxAdapterLiveProbe {
       assertTrue("setBreakpoints failed", client.sendRequest(setBreakpoints, TIMEOUT).isSuccess());
 
       StoppedEvent stopped = null;
-      deadline = System.currentTimeMillis() + 15_000;
+      long deadline = System.currentTimeMillis() + 15_000;
       while (System.currentTimeMillis() < deadline && stopped == null) {
         if (client.pollEvent(250) instanceof StoppedEvent s) {
           stopped = s;
@@ -437,12 +426,7 @@ public class FirefoxAdapterLiveProbe {
       assertNotNull("breakpoint never hit over http", stopped);
       int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
 
-      StackTraceRequest stackTrace = new StackTraceRequest();
-      StackTraceArguments stArgs = new StackTraceArguments();
-      stArgs.setThreadId(threadId);
-      stackTrace.setArguments(stArgs);
-
-      Response stResponse = client.sendRequest(stackTrace, TIMEOUT);
+      Response stResponse = client.sendRequest(stackTraceRequest(threadId), TIMEOUT);
       assertTrue("stackTrace", stResponse.isSuccess());
       List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
       assertTrue("no frames", !frames.isEmpty());
@@ -506,11 +490,7 @@ public class FirefoxAdapterLiveProbe {
         if (!session.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess()) {
           return false;
         }
-        long deadline = System.currentTimeMillis() + 15_000;
-        boolean initialized = false;
-        while (System.currentTimeMillis() < deadline && !initialized) {
-          initialized = session.pollEvent(250) instanceof InitializedEvent;
-        }
+        boolean initialized = awaitInitialized(session, 15_000);
         if (!initialized) {
           return false;
         }
@@ -530,7 +510,7 @@ public class FirefoxAdapterLiveProbe {
         // the fixture ticks every 250ms and lazy verification takes 1-2s, so
         // a path that binds stops well inside this window; the forward
         // variant is EXPECTED not to stop and pays the full wait
-        deadline = System.currentTimeMillis() + 8_000;
+        long deadline = System.currentTimeMillis() + 8_000;
 
         while (System.currentTimeMillis() < deadline && stopped == null) {
           Event event = session.pollEvent(250);
@@ -631,11 +611,7 @@ public class FirefoxAdapterLiveProbe {
 
       assertTrue("launch", client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess());
 
-      long deadline = System.currentTimeMillis() + 15_000;
-      boolean initialized = false;
-      while (System.currentTimeMillis() < deadline && !initialized) {
-        initialized = client.pollEvent(250) instanceof InitializedEvent;
-      }
+      boolean initialized = awaitInitialized(client, 15_000);
       assertTrue("initialized", initialized);
 
       // breakpoint in the worker only; the ticking line hits ~immediately
@@ -706,11 +682,7 @@ public class FirefoxAdapterLiveProbe {
 
       assertTrue("launch", client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess());
 
-      long deadline = System.currentTimeMillis() + 15_000;
-      boolean initialized = false;
-      while (System.currentTimeMillis() < deadline && !initialized) {
-        initialized = client.pollEvent(250) instanceof InitializedEvent;
-      }
+      boolean initialized = awaitInitialized(client, 15_000);
       assertTrue("initialized", initialized);
       sendBreakpoint(fixture.resolve(WORKER_HX), FF_WORKER_TICK_LINE);
 
@@ -785,39 +757,24 @@ public class FirefoxAdapterLiveProbe {
   }
 
   private StackFrame topFrame(int threadId) throws Exception {
-    StackTraceRequest request = new StackTraceRequest();
-    StackTraceArguments arguments = new StackTraceArguments();
-    arguments.setThreadId(threadId);
-    request.setArguments(arguments);
-    Response response = client.sendRequest(request, TIMEOUT);
+    Response response = client.sendRequest(stackTraceRequest(threadId), TIMEOUT);
     return response instanceof StackTraceResponse st && st.isSuccess() && !st.getBody().getStackFrames().isEmpty()
            ? st.getBody().getStackFrames().get(0) : null;
   }
 
   private void resumeThread(int threadId) throws Exception {
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments arguments = new ContinueArguments();
-    arguments.setThreadId(threadId);
-    resume.setArguments(arguments);
-    client.sendRequest(resume, TIMEOUT);
+    client.sendRequest(continueRequest(threadId), TIMEOUT);
   }
 
   private String timedScopesAndVariables(int frameId) {
     long start = System.currentTimeMillis();
     try {
-      ScopesRequest scopes = new ScopesRequest();
-      ScopesArguments scArgs = new ScopesArguments();
-      scArgs.setFrameId(frameId);
-      scopes.setArguments(scArgs);
-      Response scResponse = client.sendRequest(scopes, 10_000);
+      Response scResponse = client.sendRequest(scopesRequest(frameId), 10_000);
       if (!(scResponse instanceof ScopesResponse ok) || !ok.isSuccess() || ok.getBody().getScopes().isEmpty()) {
         return "scopes FAILED after " + (System.currentTimeMillis() - start) + "ms";
       }
-      VariablesRequest variables = new VariablesRequest();
-      VariablesArguments vArgs = new VariablesArguments();
-      vArgs.setVariablesReference(ok.getBody().getScopes().get(0).getVariablesReference());
-      variables.setArguments(vArgs);
-      Response vResponse = client.sendRequest(variables, 10_000);
+      int reference = ok.getBody().getScopes().get(0).getVariablesReference();
+      Response vResponse = client.sendRequest(variablesRequest(reference), 10_000);
       int count = vResponse instanceof VariablesResponse vr && vr.isSuccess() && vr.getBody().getVariables() != null
                   ? vr.getBody().getVariables().size() : -1;
       return "OK (" + count + " vars, " + (System.currentTimeMillis() - start) + "ms)";
@@ -946,11 +903,7 @@ public class FirefoxAdapterLiveProbe {
           return false;
         }
 
-        long deadline = System.currentTimeMillis() + 15_000;
-        boolean initialized = false;
-        while (System.currentTimeMillis() < deadline && !initialized) {
-          initialized = session.pollEvent(250) instanceof InitializedEvent;
-        }
+        boolean initialized = awaitInitialized(session, 15_000);
         if (!initialized) {
           probe("  variant " + variant + " no initialized event");
           return false;
@@ -974,7 +927,7 @@ public class FirefoxAdapterLiveProbe {
 
         // observe everything; an entry pause (non-breakpoint stop) is resumed
         // after a beat so the map can bind; success = a stop ON the .hx line
-        deadline = System.currentTimeMillis() + 15_000;
+        long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline) {
           Event event = session.pollEvent(250);
           if (event == null) {
@@ -998,11 +951,7 @@ public class FirefoxAdapterLiveProbe {
           }
           int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
 
-          StackTraceRequest stackTrace = new StackTraceRequest();
-          StackTraceArguments stArgs = new StackTraceArguments();
-          stArgs.setThreadId(threadId);
-          stackTrace.setArguments(stArgs);
-          Response stResponse = session.sendRequest(stackTrace, TIMEOUT);
+          Response stResponse = session.sendRequest(stackTraceRequest(threadId), TIMEOUT);
 
           StackFrame top = stResponse instanceof StackTraceResponse st && st.isSuccess()
                            && !st.getBody().getStackFrames().isEmpty()
@@ -1018,11 +967,7 @@ public class FirefoxAdapterLiveProbe {
           }
           // entry pause or foreign stop: give the adapter a beat to bind, resume
           Thread.sleep(1_500);
-          ContinueRequest resume = new ContinueRequest();
-          ContinueArguments cArgs = new ContinueArguments();
-          cArgs.setThreadId(threadId);
-          resume.setArguments(cArgs);
-          session.sendRequest(resume, TIMEOUT);
+          session.sendRequest(continueRequest(threadId), TIMEOUT);
         }
         session.sendRequest(new DisconnectRequest(), TIMEOUT);
         return false;

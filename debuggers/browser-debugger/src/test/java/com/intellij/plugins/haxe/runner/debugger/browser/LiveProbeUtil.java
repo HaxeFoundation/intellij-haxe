@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.InitializedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.util.net.NetUtils;
@@ -90,6 +91,17 @@ final class LiveProbeUtil {
     arguments.setThreadId(threadId);
     request.setArguments(arguments);
     return request;
+  }
+
+  /** True when the adapter's initialized event arrives before the timeout. */
+  static boolean awaitInitialized(DapEndpoint endpoint, long millis) throws Exception {
+    long deadline = System.currentTimeMillis() + millis;
+    while (System.currentTimeMillis() < deadline) {
+      if (endpoint.pollEvent(250) instanceof InitializedEvent) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** The next stopped event, or null when none arrives before the timeout. */

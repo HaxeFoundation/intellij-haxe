@@ -33,69 +33,14 @@ import org.junit.Test;
  * to catch a stall on the exception path. If the adapter deadlocked, the
  * bounded requests here would time out and FAIL rather than hang forever.
  */
-public class EvalExceptionLiveTest {
+public class EvalExceptionLiveTest extends EvalLiveTestBase {
+  @Override
+  protected String fixtureMain() {
+    return "EvalThrow";
+  }
+
   private static final int THROW_LINE = 9;
-  private static final long TIMEOUT = 15_000;
 
-  private EvalDebugAdapter adapter;
-  private DapClient dapClient;
-  private ServerSocket dapListener;
-  private Process haxe;
-
-  private static boolean haxeOnPath() {
-    try {
-      Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
-      return probe.waitFor(10, TimeUnit.SECONDS) && probe.exitValue() == 0;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  private static Path fixtureDir() {
-    String fromGradle = System.getProperty("eval.fixture.src.dir");
-    return fromGradle != null ? Path.of(fromGradle) : Path.of("test-fixtures").toAbsolutePath();
-  }
-
-  @Before
-  public void wire() throws IOException {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
-    Path fixtures = fixtureDir();
-    Assume.assumeTrue("throw fixture missing - skipping", Files.isRegularFile(fixtures.resolve("EvalThrow.hx")));
-
-    adapter = new EvalDebugAdapter(TIMEOUT);
-    haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", "EvalThrow",
-                              "-D", "eval-debugger=127.0.0.1:" + adapter.getVmPort(), "--interp")
-      .redirectErrorStream(true).start();
-    dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
-    Socket clientSide = new Socket(InetAddress.getLoopbackAddress(), dapListener.getLocalPort());
-    adapter.start(new DapConnection(dapListener.accept()));
-    dapClient = new DapClient(new DapConnection(clientSide));
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (dapClient != null) {
-      try {
-        dapClient.close();
-      } catch (IOException ignored) {
-      }
-    }
-    if (adapter != null) {
-      adapter.close();
-    }
-    if (haxe != null && !haxe.waitFor(3, TimeUnit.SECONDS)) {
-      haxe.descendants().forEach(ProcessHandle::destroyForcibly);
-      haxe.destroyForcibly();
-      haxe.waitFor(5, TimeUnit.SECONDS);
-    }
-    if (dapListener != null) {
-      dapListener.close();
-    }
-  }
-
-  private Response request(Request request) throws Exception {
-    return dapClient.sendRequest(request, TIMEOUT);
-  }
 
   private <T extends Event> T awaitEvent(Class<T> type) throws Exception {
     long deadline = System.currentTimeMillis() + TIMEOUT;
@@ -114,7 +59,7 @@ public class EvalExceptionLiveTest {
     initialize.setArguments(new InitializeRequestArguments());
     assertTrue("initialize", request(initialize).isSuccess());
     dapClient.pollEvent(TIMEOUT);
-    assertTrue("launch", request(new LaunchRequest()).isSuccess());
+    launch();
 
     // the IDE sends exception filters (the backend reports it can't honor
     // them, but the request must still not wedge the session)
@@ -124,7 +69,7 @@ public class EvalExceptionLiveTest {
     exceptions.setArguments(exArgs);
     assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
 
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
     assertEquals("stopped for an exception", "exception", stopped.getBody().getReason());

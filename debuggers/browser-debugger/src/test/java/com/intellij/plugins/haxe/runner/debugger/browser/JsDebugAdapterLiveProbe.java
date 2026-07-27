@@ -1001,24 +1001,7 @@ public class JsDebugAdapterLiveProbe {
       }
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(launchConfig));
 
-      StartDebuggingRequest startDebugging = null;
-      long deadline = System.currentTimeMillis() + 20_000;
-      while (System.currentTimeMillis() < deadline && startDebugging == null) {
-        Event event = parent.pollEvent(100);
-        if (traceAdapter && event instanceof OutputEvent o && o.getBody() != null) {
-          System.out.println("[trace-out] " + String.valueOf(o.getBody().getOutput()).trim());
-        }
-        if (event instanceof InitializedEvent) {
-          parent.sendRequest(new ConfigurationDoneRequest(), TIMEOUT);
-        }
-        Request incoming = parent.pollIncomingRequest(50);
-        if (incoming != null) {
-          parent.respond(incoming, true);
-          if (incoming instanceof StartDebuggingRequest start) {
-            startDebugging = start;
-          }
-        }
-      }
+      StartDebuggingRequest startDebugging = awaitStartDebugging(20_000);
       assertNotNull("no startDebugging reverse request", startDebugging);
 
       try (DapClient child = connectWithRetry(adapterPort)) {
@@ -1037,7 +1020,7 @@ public class JsDebugAdapterLiveProbe {
 
         boolean childConfigured = false;
         StoppedEvent stopped = null;
-        deadline = System.currentTimeMillis() + 20_000;
+        long deadline = System.currentTimeMillis() + 20_000;
         while (System.currentTimeMillis() < deadline && stopped == null) {
           Event event = child.pollEvent(100);
           if (traceAdapter && event instanceof OutputEvent o && o.getBody() != null) {

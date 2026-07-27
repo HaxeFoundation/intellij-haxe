@@ -37,75 +37,19 @@ import org.junit.Test;
  * breakpoints mid-verb (response + breakpointStop notification);
  * these tests pin the adapter's step-emulation loops to the same contract.
  */
-public class EvalStepBreakpointLiveTest {
+public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
+  @Override
+  protected String fixtureMain() {
+    return "EvalStepBp";
+  }
+
   // EvalStepBp.hx load-bearing lines
   private static final int HELPER_BP_LINE = 11;
   private static final int WORK_START_LINE = 16;
   private static final int HELPER_CALL_LINE = 18;
   private static final int WORK_LATER_BP_LINE = 19;
 
-  private static final long TIMEOUT = 15_000;
 
-  private EvalDebugAdapter adapter;
-  private DapClient dapClient;
-  private ServerSocket dapListener;
-  private Process haxe;
-
-  private static boolean haxeOnPath() {
-    try {
-      Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
-      return probe.waitFor(10, TimeUnit.SECONDS) && probe.exitValue() == 0;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  private static Path fixtureDir() {
-    String fromGradle = System.getProperty("eval.fixture.src.dir");
-    return fromGradle != null ? Path.of(fromGradle) : Path.of("test-fixtures").toAbsolutePath();
-  }
-
-  @Before
-  public void wire() throws IOException {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
-    Path fixtures = fixtureDir();
-    Assume.assumeTrue("EvalStepBp fixture missing - skipping", Files.isRegularFile(fixtures.resolve("EvalStepBp.hx")));
-
-    adapter = new EvalDebugAdapter(TIMEOUT);
-    haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", "EvalStepBp",
-                              "-D", "eval-debugger=127.0.0.1:" + adapter.getVmPort(), "--interp")
-      .redirectErrorStream(true)
-      .start();
-    dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
-    Socket clientSide = new Socket(InetAddress.getLoopbackAddress(), dapListener.getLocalPort());
-    adapter.start(new DapConnection(dapListener.accept()));
-    dapClient = new DapClient(new DapConnection(clientSide));
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (dapClient != null) {
-      try {
-        dapClient.close();
-      } catch (IOException ignored) {
-      }
-    }
-    if (adapter != null) {
-      adapter.close();
-    }
-    if (haxe != null && !haxe.waitFor(3, TimeUnit.SECONDS)) {
-      haxe.descendants().forEach(ProcessHandle::destroyForcibly);
-      haxe.destroyForcibly();
-      haxe.waitFor(5, TimeUnit.SECONDS);
-    }
-    if (dapListener != null) {
-      dapListener.close();
-    }
-  }
-
-  private Response request(Request request) throws Exception {
-    return dapClient.sendRequest(request, TIMEOUT);
-  }
 
   private StoppedEvent awaitStopped() throws Exception {
     long deadline = System.currentTimeMillis() + TIMEOUT;
@@ -124,7 +68,7 @@ public class EvalStepBreakpointLiveTest {
     initialize.setArguments(new InitializeRequestArguments());
     assertTrue("initialize", request(initialize).isSuccess());
     dapClient.pollEvent(TIMEOUT);
-    assertTrue("launch", request(new LaunchRequest()).isSuccess());
+    launch();
 
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
@@ -140,7 +84,7 @@ public class EvalStepBreakpointLiveTest {
     bpArgs.setBreakpoints(breakpoints);
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitStopped();
     assertEquals("first stop is the breakpoint", "breakpoint", stopped.getBody().getReason());
