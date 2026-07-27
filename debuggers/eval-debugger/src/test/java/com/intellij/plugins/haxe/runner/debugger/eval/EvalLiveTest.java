@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.DapPaths;
+import com.intellij.plugins.haxe.runner.debugger.eval.EvalProtocol.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -120,11 +121,11 @@ public class EvalLiveTest {
     EvalProtocol protocol = new EvalProtocol(connection);
 
     // the VM is waiting before main: it must answer while suspended
-    List<EvalProtocol.EvalThread> threads = protocol.getThreads();
+    List<EvalThread> threads = protocol.getThreads();
     assertFalse("VM reports at least one thread", threads.isEmpty());
 
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    List<EvalProtocol.EvalBreakpoint> ids = protocol.setBreakpoints(fixture, BREAK_LINE);
+    List<EvalBreakpoint> ids = protocol.setBreakpoints(fixture, BREAK_LINE);
     assertEquals("one breakpoint registered", 1, ids.size());
     assertTrue("VM assigned a breakpoint id", ids.get(0).id() >= 0);
 
@@ -132,20 +133,20 @@ public class EvalLiveTest {
     assertTrue("hit the breakpoint within " + TIMEOUT_MS + "ms",
                stopped.await(TIMEOUT_MS, TimeUnit.MILLISECONDS));
 
-    List<EvalProtocol.EvalStackFrame> frames = protocol.stackTrace(stoppedThread[0]);
+    List<EvalStackFrame> frames = protocol.stackTrace(stoppedThread[0]);
     assertFalse("stack has frames at the stop", frames.isEmpty());
-    EvalProtocol.EvalStackFrame top = frames.get(0);
+    EvalStackFrame top = frames.get(0);
     assertEquals("stopped on the breakpoint line", BREAK_LINE, top.line());
     assertTrue("top frame is in the fixture (was " + top.source() + ")",
                top.source() != null && DapPaths.toForwardSlashes(top.source()).endsWith("EvalMain.hx"));
 
     // scopes/variables at the stop: the local declared BEFORE the break line
     // must be visible with its value
-    List<EvalProtocol.EvalScope> scopes = protocol.getScopes(top.id());
+    List<EvalScope> scopes = protocol.getScopes(top.id());
     assertFalse("stop exposes scopes", scopes.isEmpty());
     boolean sawGreeting = false;
-    for (EvalProtocol.EvalScope scope : scopes) {
-      for (EvalProtocol.EvalVar var : protocol.getVariables(scope.id())) {
+    for (EvalScope scope : scopes) {
+      for (EvalVar var : protocol.getVariables(scope.id())) {
         if ("greeting".equals(var.name())) {
           sawGreeting = true;
           assertTrue("greeting holds its value (was " + var.value() + ")",
