@@ -22,6 +22,8 @@ java {
 dependencies {
     // tar.gz extraction (haxe linux archives); the JDK only covers zip
     implementation(libs.commonsCompress)
+    // the report payload; the same jackson the debugger modules already use
+    implementation(libs.jacksonDatabind)
 }
 
 // Provisions toolchains (downloading what this OS has release binaries for),

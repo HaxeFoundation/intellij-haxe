@@ -130,6 +130,7 @@ final class Provisioner {
         if (response.statusCode() != 200) {
           throw new IOException("HTTP " + response.statusCode() + " for " + url);
         }
+
         String actual = sha256Of(download);
         if (!actual.equalsIgnoreCase(sha256)) {
           throw new IOException("SHA-256 mismatch for " + url

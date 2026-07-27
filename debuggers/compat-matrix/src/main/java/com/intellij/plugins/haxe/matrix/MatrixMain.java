@@ -814,8 +814,10 @@ public final class MatrixMain {
     Path stamped = out.resolve("matrix-" + startedAt + ".html");
     Report.write(root.resolve("debuggers/compat-matrix/report-template.html"),
                  stamped, cells, haxeNames, hlNames, resources, full);
+
     Files.copy(stamped, out.resolve("index.html"),
                StandardCopyOption.REPLACE_EXISTING);
+
     log.line("report: " + stamped + " (also copied to index.html)");
   }
 
