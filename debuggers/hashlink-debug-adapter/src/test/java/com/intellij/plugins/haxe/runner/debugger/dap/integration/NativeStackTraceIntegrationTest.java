@@ -40,7 +40,7 @@ public class NativeStackTraceIntegrationTest extends DapIntegrationTestBase {
     initialize();
     assertTrue("launch succeeds", launch(stacktraceFixtureHl.toString()).isSuccess());
     assertTrue("setBreakpoints succeeds", setBreakpoint("StackTrace.hx", STACKTRACE_BREAK_LINE).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
     StoppedEvent stopped = awaitStopped();
 
     // the live local `err` is a haxe.Exception; expand it to reach __nativeStack

@@ -55,9 +55,9 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     // the "evaluate expression" route the user asked for: path = value
-    assertTrue("n = 7 accepted", evaluate(frameId, "n = 7").isSuccess());
-    assertTrue("obj.x = 3 accepted", evaluate(frameId, "obj.x = 3").isSuccess());
-    assertTrue("copy from another variable accepted", evaluate(frameId, "n = idx").isSuccess());
+    assertTrue("n = 7 accepted", evaluateRaw(frameId, "n = 7").isSuccess());
+    assertTrue("obj.x = 3 accepted", evaluateRaw(frameId, "obj.x = 3").isSuccess());
+    assertTrue("copy from another variable accepted", evaluateRaw(frameId, "n = idx").isSuccess());
 
     // reading back reflects the writes (idx is 1)
     int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
@@ -73,7 +73,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     int locals = localsScopeReference(frameId);
 
     // creating a new String needs allocation — not available in this session
-    Response newString = evaluate(frameId, "n = \"hello\"");
+    Response newString = evaluateRaw(frameId, "n = \"hello\"");
     assertFalse("assigning a string literal is rejected", newString.isSuccess());
 
     // a boolean word into an int slot is a type error, reported clearly
@@ -151,15 +151,6 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     args.setVariablesReference(containerReference);
     args.setName(name);
     args.setValue(value);
-    request.setArguments(args);
-    return request(request);
-  }
-
-  private Response evaluate(int frameId, String expression) throws Exception {
-    EvaluateRequest request = new EvaluateRequest();
-    EvaluateArguments args = new EvaluateArguments();
-    args.setExpression(expression);
-    args.setFrameId(frameId);
     request.setArguments(args);
     return request(request);
   }

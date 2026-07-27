@@ -361,6 +361,35 @@ public abstract class DapIntegrationTestBase {
     assertNotNull("initialized event", client.pollEvent(TIMEOUT));
   }
 
+  /** configurationDone + assert success: the step that lets the debuggee run. */
+  protected void configurationDone() throws Exception {
+    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+  }
+
+  /** An evaluate request in {@code frameId}; the caller decides what failure means. */
+  protected Response evaluateRaw(int frameId, String expression) throws Exception {
+    EvaluateRequest request = new EvaluateRequest();
+    EvaluateArguments arguments = new EvaluateArguments();
+
+    arguments.setExpression(expression);
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+
+    return request(request);
+  }
+
+  /** {@link #evaluateRaw} that must succeed. */
+  protected EvaluateResponse evaluate(int frameId, String expression) throws Exception {
+    Response response = evaluateRaw(frameId, expression);
+    assertTrue("evaluate '" + expression + "' succeeds: " + response.getMessage(), response.isSuccess());
+    return (EvaluateResponse)response;
+  }
+
+  /** The rendered value of {@code expression} — what the variables view would show. */
+  protected String evaluated(int frameId, String expression) throws Exception {
+    return evaluate(frameId, expression).getBody().getResult();
+  }
+
   protected Response launch() throws Exception {
     return launch(fixtureHl.toString());
   }
@@ -423,7 +452,7 @@ public abstract class DapIntegrationTestBase {
     initialize();
     assertTrue("launch succeeds", launch().isSuccess());
     assertTrue("setBreakpoints succeeds", setBreakpoint(fixtureFile, line).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
     return awaitStopped();
   }
 

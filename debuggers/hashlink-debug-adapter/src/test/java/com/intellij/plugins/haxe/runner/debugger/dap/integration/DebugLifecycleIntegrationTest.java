@@ -33,7 +33,7 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
     assertTrue("setBreakpoints succeeds", setBreakpoints.isSuccess());
     assertAllVerified(setBreakpoints);
 
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     // The loop body runs three times, so three breakpoint stops are expected.
     List<String> output = new ArrayList<>();

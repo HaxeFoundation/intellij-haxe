@@ -30,7 +30,7 @@ public class TypedExceptionBreakpointsIntegrationTest extends DapIntegrationTest
     // filter on the base class "Boom" — the first throw (haxe.Exception) is not a
     // Boom and must be skipped; the Kaboom throw (a Boom subclass) must stop
     assertTrue("type filter set", request(exceptionTypeFilter("Boom")).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitStopped();
     assertEquals("stopped for an exception", "exception", stopped.getBody().getReason());

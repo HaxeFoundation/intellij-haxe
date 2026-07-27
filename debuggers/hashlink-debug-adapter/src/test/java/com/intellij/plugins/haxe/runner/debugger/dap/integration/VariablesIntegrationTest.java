@@ -494,13 +494,13 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("plain local", "2", evaluate(frameId, "n").getBody().getResult());
-    assertEquals("array index", "5", evaluate(frameId, "ints[1]").getBody().getResult());
-    assertEquals("dynobj field path", "\"d2\"", evaluate(frameId, "dynObj.label").getBody().getResult());
-    assertEquals("packed struct path", "1.5", evaluate(frameId, "holder.pos.x").getBody().getResult());
+    assertEquals("plain local", "2", evaluated(frameId, "n"));
+    assertEquals("array index", "5", evaluated(frameId, "ints[1]"));
+    assertEquals("dynobj field path", "\"d2\"", evaluated(frameId, "dynObj.label"));
+    assertEquals("packed struct path", "1.5", evaluated(frameId, "holder.pos.x"));
     // a trailing ';' (e.g. pasted from source) is ignored on a single-line expr
-    assertEquals("trailing semicolon ignored", "2", evaluate(frameId, "n;").getBody().getResult());
-    assertEquals("trailing semicolon + spaces ignored", "5", evaluate(frameId, "ints[1] ; ").getBody().getResult());
+    assertEquals("trailing semicolon ignored", "2", evaluated(frameId, "n;"));
+    assertEquals("trailing semicolon + spaces ignored", "5", evaluated(frameId, "ints[1] ; "));
 
     request(new DisconnectRequest());
   }
@@ -514,16 +514,16 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("string element length", "2", evaluate(frameId, "names[0].length").getBody().getResult());
-    assertEquals("array length (bytes-backed)", "3", evaluate(frameId, "ints.length").getBody().getResult());
-    assertEquals("array length (object-backed)", "2", evaluate(frameId, "names.length").getBody().getResult());
-    assertEquals("array length (dynamic)", "2", evaluate(frameId, "dynArray.length").getBody().getResult());
+    assertEquals("string element length", "2", evaluated(frameId, "names[0].length"));
+    assertEquals("array length (bytes-backed)", "3", evaluated(frameId, "ints.length"));
+    assertEquals("array length (object-backed)", "2", evaluated(frameId, "names.length"));
+    assertEquals("array length (dynamic)", "2", evaluated(frameId, "dynArray.length"));
     // a push-built Array<String> (not a literal) — the everyday shape
-    assertEquals("pushed array length", "2", evaluate(frameId, "pushed.length").getBody().getResult());
-    assertEquals("pushed string element length", "2", evaluate(frameId, "pushed[0].length").getBody().getResult());
+    assertEquals("pushed array length", "2", evaluated(frameId, "pushed.length"));
+    assertEquals("pushed string element length", "2", evaluated(frameId, "pushed[0].length"));
     // a String element behind a DYNAMIC slot: the static element type says
     // nothing, the value's own header does — dynArray[1] is "s2"
-    assertEquals("dynamic-slot string length", "2", evaluate(frameId, "dynArray[1].length").getBody().getResult());
+    assertEquals("dynamic-slot string length", "2", evaluated(frameId, "dynArray[1].length"));
 
     // a genuinely missing member still fails, with the walk's message
     Response missing = evaluateRaw(frameId, "names[0].nope");
@@ -538,8 +538,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("string local length", "6", evaluate(frameId, "s.length").getBody().getResult());
-    assertEquals("length inside an expression", "7", evaluate(frameId, "s.length + 1").getBody().getResult());
+    assertEquals("string local length", "6", evaluated(frameId, "s.length"));
+    assertEquals("length inside an expression", "7", evaluated(frameId, "s.length + 1"));
 
     request(new DisconnectRequest());
   }
@@ -550,10 +550,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // implicit this.field inside Point.move
-    assertEquals("implicit this field", "10", evaluate(frameId, "x").getBody().getResult());
-    assertEquals("explicit this path", "20", evaluate(frameId, "this.y").getBody().getResult());
+    assertEquals("implicit this field", "10", evaluated(frameId, "x"));
+    assertEquals("explicit this path", "20", evaluated(frameId, "this.y"));
     // static of the owning class
-    assertEquals("class static", "2", evaluate(frameId, "axes").getBody().getResult());
+    assertEquals("class static", "2", evaluated(frameId, "axes"));
 
     request(new DisconnectRequest());
   }
@@ -566,10 +566,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // top-level class statics read from another class's frame
-    assertEquals("Config.version", "7", evaluate(frameId, "Config.version").getBody().getResult());
-    assertEquals("Config.title", "\"cfg\"", evaluate(frameId, "Config.title").getBody().getResult());
+    assertEquals("Config.version", "7", evaluated(frameId, "Config.version"));
+    assertEquals("Config.title", "\"cfg\"", evaluated(frameId, "Config.title"));
     // a PACKAGED class: the dotted class prefix spans path segments
-    assertEquals("pkg.Deep.marker", "99", evaluate(frameId, "pkg.Deep.marker").getBody().getResult());
+    assertEquals("pkg.Deep.marker", "99", evaluated(frameId, "pkg.Deep.marker"));
     // a function-typed static var (Null<Int->Void>) resolves by FQN — regression:
     // HFun statics were dropped as if they were methods, so this used to fail with
     // `"...Config" has no field "onBump"`
@@ -578,7 +578,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // writes resolve through the same prefix (restored right after: the
     // fixture's own output depends on Config.version)
     assertTrue("Config.version = 41", evaluate(frameId, "Config.version = 41").isSuccess());
-    assertEquals("written static reads back", "41", evaluate(frameId, "Config.version").getBody().getResult());
+    assertEquals("written static reads back", "41", evaluated(frameId, "Config.version"));
     assertTrue("Config.version restored", evaluate(frameId, "Config.version = 7").isSuccess());
 
     // a bare class name evaluates to its expandable statics container
@@ -628,32 +628,32 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // arithmetic on locals, precedence, parentheses
-    assertEquals("n + 1", "6", evaluate(frameId, "n + 1").getBody().getResult());
-    assertEquals("n * 2 + 1", "11", evaluate(frameId, "n * 2 + 1").getBody().getResult());
-    assertEquals("(n + 1) * 2", "12", evaluate(frameId, "(n + 1) * 2").getBody().getResult());
-    assertEquals("division is Float (Haxe)", "2.5", evaluate(frameId, "n / 2").getBody().getResult());
-    assertEquals("unary minus", "-5", evaluate(frameId, "-n").getBody().getResult());
-    assertEquals("shift", "20", evaluate(frameId, "n << 2").getBody().getResult());
+    assertEquals("n + 1", "6", evaluated(frameId, "n + 1"));
+    assertEquals("n * 2 + 1", "11", evaluated(frameId, "n * 2 + 1"));
+    assertEquals("(n + 1) * 2", "12", evaluated(frameId, "(n + 1) * 2"));
+    assertEquals("division is Float (Haxe)", "2.5", evaluated(frameId, "n / 2"));
+    assertEquals("unary minus", "-5", evaluated(frameId, "-n"));
+    assertEquals("shift", "20", evaluated(frameId, "n << 2"));
 
     // fields, statics and class-qualified statics as operands
-    assertEquals("obj.x + obj.y", "3", evaluate(frameId, "obj.x + obj.y").getBody().getResult());
+    assertEquals("obj.x + obj.y", "3", evaluated(frameId, "obj.x + obj.y"));
     // Config.bump() already ran by this point, so version is 8 (not the initial 7)
-    assertEquals("Config.version + n", "13", evaluate(frameId, "Config.version + n").getBody().getResult());
+    assertEquals("Config.version + n", "13", evaluated(frameId, "Config.version + n"));
 
     // array elements, including a COMPUTED index
-    assertEquals("arr[1] + 1", "11", evaluate(frameId, "arr[1] + 1").getBody().getResult());
-    assertEquals("computed index arr[idx]", "10", evaluate(frameId, "arr[idx]").getBody().getResult());
-    assertEquals("computed index arr[idx + 1]", "15", evaluate(frameId, "arr[idx + 1]").getBody().getResult());
+    assertEquals("arr[1] + 1", "11", evaluated(frameId, "arr[1] + 1"));
+    assertEquals("computed index arr[idx]", "10", evaluated(frameId, "arr[idx]"));
+    assertEquals("computed index arr[idx + 1]", "15", evaluated(frameId, "arr[idx + 1]"));
 
     // comparisons + logic (short-circuit)
-    assertEquals("n > 4", "true", evaluate(frameId, "n > 4").getBody().getResult());
-    assertEquals("n == 5 && !flag", "true", evaluate(frameId, "n == 5 && !flag").getBody().getResult());
-    assertEquals("flag || n < 3", "false", evaluate(frameId, "flag || n < 3").getBody().getResult());
-    assertEquals("string content compare", "true", evaluate(frameId, "obj.label == \"p\"").getBody().getResult());
+    assertEquals("n > 4", "true", evaluated(frameId, "n > 4"));
+    assertEquals("n == 5 && !flag", "true", evaluated(frameId, "n == 5 && !flag"));
+    assertEquals("flag || n < 3", "false", evaluated(frameId, "flag || n < 3"));
+    assertEquals("string content compare", "true", evaluated(frameId, "obj.label == \"p\""));
 
     // string concat
-    assertEquals("\"n=\" + n", "\"n=5\"", evaluate(frameId, "\"n=\" + n").getBody().getResult());
-    assertEquals("label concat", "\"p!\"", evaluate(frameId, "obj.label + \"!\"").getBody().getResult());
+    assertEquals("\"n=\" + n", "\"n=5\"", evaluated(frameId, "\"n=\" + n"));
+    assertEquals("label concat", "\"p!\"", evaluated(frameId, "obj.label + \"!\""));
 
     request(new DisconnectRequest());
   }
@@ -665,25 +665,25 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // ternary — condition selects the branch, branches are full expressions
-    assertEquals("n > 0 ? ... : ...", "\"pos\"", evaluate(frameId, "n > 0 ? \"pos\" : \"neg\"").getBody().getResult());
-    assertEquals("false condition takes else", "2", evaluate(frameId, "flag ? 1 : 2").getBody().getResult());
-    assertEquals("branch is an expression", "10", evaluate(frameId, "n > 3 ? n * 2 : 0").getBody().getResult());
+    assertEquals("n > 0 ? ... : ...", "\"pos\"", evaluated(frameId, "n > 0 ? \"pos\" : \"neg\""));
+    assertEquals("false condition takes else", "2", evaluated(frameId, "flag ? 1 : 2"));
+    assertEquals("branch is an expression", "10", evaluated(frameId, "n > 3 ? n * 2 : 0"));
     assertEquals("ternary right-assoc chain", "\"mid\"",
-                 evaluate(frameId, "n < 0 ? \"lo\" : n > 100 ? \"hi\" : \"mid\"").getBody().getResult());
+                 evaluated(frameId, "n < 0 ? \"lo\" : n > 100 ? \"hi\" : \"mid\""));
     // only the taken branch is evaluated: the untaken branch names an unknown
     // variable, which would ERROR if it ran
-    assertEquals("untaken branch is not evaluated", "5", evaluate(frameId, "true ? n : nosuchvar").getBody().getResult());
+    assertEquals("untaken branch is not evaluated", "5", evaluated(frameId, "true ? n : nosuchvar"));
 
     // `is` type checks
-    assertEquals("object is its class", "true", evaluate(frameId, "obj is Point").getBody().getResult());
-    assertEquals("object is not another class", "false", evaluate(frameId, "obj is String").getBody().getResult());
-    assertEquals("int is Int", "true", evaluate(frameId, "n is Int").getBody().getResult());
-    assertEquals("int is Float (Haxe)", "true", evaluate(frameId, "n is Float").getBody().getResult());
-    assertEquals("int is not Bool", "false", evaluate(frameId, "n is Bool").getBody().getResult());
-    assertEquals("field is String", "true", evaluate(frameId, "obj.label is String").getBody().getResult());
+    assertEquals("object is its class", "true", evaluated(frameId, "obj is Point"));
+    assertEquals("object is not another class", "false", evaluated(frameId, "obj is String"));
+    assertEquals("int is Int", "true", evaluated(frameId, "n is Int"));
+    assertEquals("int is Float (Haxe)", "true", evaluated(frameId, "n is Float"));
+    assertEquals("int is not Bool", "false", evaluated(frameId, "n is Bool"));
+    assertEquals("field is String", "true", evaluated(frameId, "obj.label is String"));
 
     // combined with logic
-    assertEquals("is in a boolean expression", "true", evaluate(frameId, "obj is Point && n is Int").getBody().getResult());
+    assertEquals("is in a boolean expression", "true", evaluated(frameId, "obj is Point && n is Int"));
 
     // an unknown type name is a user error, not a silent false
     Response unknownType = evaluateRaw(frameId, "obj is Nonexistent");
@@ -700,15 +700,15 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     // expression RHS on a local
     assertTrue("n = n * 2 + 1", evaluate(frameId, "n = n * 2 + 1").isSuccess());
-    assertEquals("n now 11", "11", evaluate(frameId, "n").getBody().getResult());
+    assertEquals("n now 11", "11", evaluated(frameId, "n"));
 
     // expression RHS on an array element with a COMPUTED index (idx=1)
     assertTrue("arr[idx] = n + 89", evaluate(frameId, "arr[idx] = n + 89").isSuccess());
-    assertEquals("arr[1] now 100", "100", evaluate(frameId, "arr[1]").getBody().getResult());
+    assertEquals("arr[1] now 100", "100", evaluated(frameId, "arr[1]"));
 
     // boolean expression into a Bool local
     assertTrue("flag = n > 10", evaluate(frameId, "flag = n > 10").isSuccess());
-    assertEquals("flag now true", "true", evaluate(frameId, "flag").getBody().getResult());
+    assertEquals("flag now true", "true", evaluated(frameId, "flag"));
 
     request(new DisconnectRequest());
   }
@@ -722,10 +722,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     // arr[i] = x directly (element address is writable) — ints is [2,5,10]
     assertTrue("ints[0] = 99", evaluate(frameId, "ints[0] = 99").isSuccess());
-    assertEquals("ints[0] now 99", "99", evaluate(frameId, "ints[0]").getBody().getResult());
+    assertEquals("ints[0] now 99", "99", evaluated(frameId, "ints[0]"));
     // a path RHS into another element
     assertTrue("ints[2] = n", evaluate(frameId, "ints[2] = n").isSuccess());
-    assertEquals("ints[2] now n (=2)", "2", evaluate(frameId, "ints[2]").getBody().getResult());
+    assertEquals("ints[2] now n (=2)", "2", evaluated(frameId, "ints[2]"));
 
     request(new DisconnectRequest());
   }
@@ -736,18 +736,18 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // read via a method call: stringMap has "a2"->2, "b"->6
-    assertEquals("stringMap.get(\"b\")", "6", evaluate(frameId, "stringMap.get(\"b\")").getBody().getResult());
+    assertEquals("stringMap.get(\"b\")", "6", evaluated(frameId, "stringMap.get(\"b\")"));
     // intMap has 2->"v2"; String values are pointers (no boxing needed)
-    assertEquals("intMap.get(2)", "\"v2\"", evaluate(frameId, "intMap.get(2)").getBody().getResult());
+    assertEquals("intMap.get(2)", "\"v2\"", evaluated(frameId, "intMap.get(2)"));
 
     // MUTATE the map via its own method — the value-manipulation prize. A
     // String value is dynamic-compatible, so no boxing is required. The
     // insertion is proven by reading the new key back through get() (a missing
     // key returns null), the honest end-to-end signal.
-    assertEquals("absent key is null before insert", "null", evaluate(frameId, "intMap.get(5)").getBody().getResult());
+    assertEquals("absent key is null before insert", "null", evaluated(frameId, "intMap.get(5)"));
     assertTrue("intMap.set(5, \"hi\")", evaluate(frameId, "intMap.set(5, \"hi\")").isSuccess());
-    assertEquals("the inserted entry reads back", "\"hi\"", evaluate(frameId, "intMap.get(5)").getBody().getResult());
-    assertEquals("pre-existing entry intact", "\"v2\"", evaluate(frameId, "intMap.get(2)").getBody().getResult());
+    assertEquals("the inserted entry reads back", "\"hi\"", evaluated(frameId, "intMap.get(5)"));
+    assertEquals("pre-existing entry intact", "\"v2\"", evaluated(frameId, "intMap.get(2)"));
 
     request(new DisconnectRequest());
   }
@@ -760,20 +760,20 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // read: stringMap["b"]==6 (String key), intMap[2]=="v2" (Int key)
-    assertEquals("stringMap[\"b\"]", "6", evaluate(frameId, "stringMap[\"b\"]").getBody().getResult());
-    assertEquals("intMap[2]", "\"v2\"", evaluate(frameId, "intMap[2]").getBody().getResult());
-    assertEquals("absent key reads null", "null", evaluate(frameId, "stringMap[\"zz\"]").getBody().getResult());
+    assertEquals("stringMap[\"b\"]", "6", evaluated(frameId, "stringMap[\"b\"]"));
+    assertEquals("intMap[2]", "\"v2\"", evaluated(frameId, "intMap[2]"));
+    assertEquals("absent key reads null", "null", evaluated(frameId, "stringMap[\"zz\"]"));
 
     // write: string key with a boxed int value, and int key with a string value
-    assertEquals("stringMap[\"c\"] = 9 returns the value", "9", evaluate(frameId, "stringMap[\"c\"] = 9").getBody().getResult());
-    assertEquals("stringMap[\"c\"] reads back", "9", evaluate(frameId, "stringMap[\"c\"]").getBody().getResult());
+    assertEquals("stringMap[\"c\"] = 9 returns the value", "9", evaluated(frameId, "stringMap[\"c\"] = 9"));
+    assertEquals("stringMap[\"c\"] reads back", "9", evaluated(frameId, "stringMap[\"c\"]"));
     assertTrue("intMap[7] = \"seven\"", evaluate(frameId, "intMap[7] = \"seven\"").isSuccess());
-    assertEquals("intMap[7] reads back", "\"seven\"", evaluate(frameId, "intMap[7]").getBody().getResult());
+    assertEquals("intMap[7] reads back", "\"seven\"", evaluated(frameId, "intMap[7]"));
 
     // arrays are NOT maps: arr[i] stays a real indexed slot (read + write)
-    assertEquals("ints[1] index read", "5", evaluate(frameId, "ints[1]").getBody().getResult());
+    assertEquals("ints[1] index read", "5", evaluated(frameId, "ints[1]"));
     assertTrue("ints[1] = 42 index write", evaluate(frameId, "ints[1] = 42").isSuccess());
-    assertEquals("ints[1] reads back the written index", "42", evaluate(frameId, "ints[1]").getBody().getResult());
+    assertEquals("ints[1] reads back the written index", "42", evaluated(frameId, "ints[1]"));
 
     request(new DisconnectRequest());
   }
@@ -786,11 +786,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("absent before insert", "null", evaluate(frameId, "stringMap.get(\"c\")").getBody().getResult());
+    assertEquals("absent before insert", "null", evaluated(frameId, "stringMap.get(\"c\")"));
     assertTrue("stringMap.set(\"c\", 9) with boxing", evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess());
-    assertEquals("boxed int reads back", "9", evaluate(frameId, "stringMap.get(\"c\")").getBody().getResult());
+    assertEquals("boxed int reads back", "9", evaluated(frameId, "stringMap.get(\"c\")"));
     // a pre-existing boxed value is unaffected
-    assertEquals("existing entry intact", "6", evaluate(frameId, "stringMap.get(\"b\")").getBody().getResult());
+    assertEquals("existing entry intact", "6", evaluated(frameId, "stringMap.get(\"b\")"));
 
     request(new DisconnectRequest());
   }
@@ -807,21 +807,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertTrue("arity message", wrongArity.getMessage().contains("argument"));
 
     request(new DisconnectRequest());
-  }
-
-  private EvaluateResponse evaluate(int frameId, String expression) throws Exception {
-    Response response = evaluateRaw(frameId, expression);
-    assertTrue("evaluate '" + expression + "' succeeds: " + response.getMessage(), response.isSuccess());
-    return (EvaluateResponse)response;
-  }
-
-  private Response evaluateRaw(int frameId, String expression) throws Exception {
-    EvaluateRequest request = new EvaluateRequest();
-    EvaluateArguments arguments = new EvaluateArguments();
-    arguments.setExpression(expression);
-    arguments.setFrameId(frameId);
-    request.setArguments(arguments);
-    return request(request);
   }
 
   // --- instance methods ---

@@ -31,7 +31,7 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
   public void pauseInterruptsRunningDebuggeeInHaxeCodeThenResumesToExit() throws Exception {
     initialize();
     assertTrue("launch succeeds", launch(spinFixtureHl.toString()).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     // wait until the busy loop is actually running so the pause interrupts a
     // running process rather than racing the launch

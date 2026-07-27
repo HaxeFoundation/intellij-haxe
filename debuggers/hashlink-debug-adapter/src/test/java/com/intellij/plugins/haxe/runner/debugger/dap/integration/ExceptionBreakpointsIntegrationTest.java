@@ -26,7 +26,7 @@ public class ExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase 
     initialize();
     assertTrue("launch succeeds", launch().isSuccess());
     assertTrue("exception filter enabled", request(exceptionBreakpoints("all")).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     // the fixture's `throw "boom"` stops the debuggee with reason "exception"
     StoppedEvent stopped = awaitStopped();
