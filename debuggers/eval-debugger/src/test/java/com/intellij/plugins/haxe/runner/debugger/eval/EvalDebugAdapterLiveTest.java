@@ -159,7 +159,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -205,7 +204,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -220,7 +218,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
 
     StoppedEvent atCall = awaitStopped();
     int threadId = atCall.getBody().getThreadId();
-
     StepIntoFunctionRequest smartStep = new StepIntoFunctionRequest();
     StepIntoFunctionArguments ssArgs = new StepIntoFunctionArguments();
     ssArgs.setThreadId(threadId);
@@ -254,7 +251,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -324,7 +320,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -372,7 +367,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);

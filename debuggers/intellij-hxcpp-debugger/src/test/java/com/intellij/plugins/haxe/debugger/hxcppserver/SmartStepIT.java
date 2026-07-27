@@ -16,45 +16,6 @@ import static org.junit.Assert.assertTrue;
  * that never runs, and the no-op stop for a class name the runtime rejects.
  */
 public class SmartStepIT {
-
-  private void stepIntoFunction(FixtureSession session, int threadId,
-                                String className, String functionName) throws Exception {
-    stepIntoFunction(session, threadId, className, functionName, 1);
-  }
-
-  private void stepIntoFunction(FixtureSession session, int threadId,
-                                String className, String functionName, int occurrence) throws Exception {
-    StepIntoFunctionRequest request = new StepIntoFunctionRequest();
-    StepIntoFunctionArguments arguments = new StepIntoFunctionArguments();
-    arguments.setThreadId(threadId);
-    arguments.setClassName(className);
-    arguments.setFunctionName(functionName);
-    arguments.setOccurrence(occurrence);
-    request.setArguments(arguments);
-    assertTrue("stepIntoFunction " + className + "." + functionName + " #" + occurrence,
-               session.request(request).isSuccess());
-  }
-
-  // stop at the smart line, remove line breakpoints so only the temp can fire
-  private int stopAtSmartLine(FixtureSession session) throws Exception {
-    session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.SMART_LINE}, null);
-    StoppedEvent stopped = session.awaitStopped();
-    int threadId = session.stoppedThread(stopped);
-    assertEquals(FixtureSession.SMART_LINE, session.topFrame(threadId).getLine());
-    session.clearBreakpoints(FixtureSession.EX_SOURCE);
-    return threadId;
-  }
-
-  private int rearmAndStop(FixtureSession session, int threadId) throws Exception {
-    session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.SMART_LINE}, null);
-    session.resume(threadId);
-    StoppedEvent stopped = session.awaitStopped();
-    int stoppedThread = session.stoppedThread(stopped);
-    assertEquals(FixtureSession.SMART_LINE, session.topFrame(stoppedThread).getLine());
-    session.clearBreakpoints(FixtureSession.EX_SOURCE);
-    return stoppedThread;
-  }
-
   @Test
   public void entersTheChosenCalleeIncludingLaterAndPackagedOnes() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
@@ -166,5 +127,43 @@ public class SmartStepIT {
       assertEquals("did not move (and did not run away)",
                    FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(unmoved)).getLine());
     }
+  }
+
+  private void stepIntoFunction(FixtureSession session, int threadId,
+                                String className, String functionName) throws Exception {
+    stepIntoFunction(session, threadId, className, functionName, 1);
+  }
+
+  private void stepIntoFunction(FixtureSession session, int threadId,
+                                String className, String functionName, int occurrence) throws Exception {
+    StepIntoFunctionRequest request = new StepIntoFunctionRequest();
+    StepIntoFunctionArguments arguments = new StepIntoFunctionArguments();
+    arguments.setThreadId(threadId);
+    arguments.setClassName(className);
+    arguments.setFunctionName(functionName);
+    arguments.setOccurrence(occurrence);
+    request.setArguments(arguments);
+    assertTrue("stepIntoFunction " + className + "." + functionName + " #" + occurrence,
+               session.request(request).isSuccess());
+  }
+
+  // stop at the smart line, remove line breakpoints so only the temp can fire
+  private int stopAtSmartLine(FixtureSession session) throws Exception {
+    session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.SMART_LINE}, null);
+    StoppedEvent stopped = session.awaitStopped();
+    int threadId = session.stoppedThread(stopped);
+    assertEquals(FixtureSession.SMART_LINE, session.topFrame(threadId).getLine());
+    session.clearBreakpoints(FixtureSession.EX_SOURCE);
+    return threadId;
+  }
+
+  private int rearmAndStop(FixtureSession session, int threadId) throws Exception {
+    session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.SMART_LINE}, null);
+    session.resume(threadId);
+    StoppedEvent stopped = session.awaitStopped();
+    int stoppedThread = session.stoppedThread(stopped);
+    assertEquals(FixtureSession.SMART_LINE, session.topFrame(stoppedThread).getLine());
+    session.clearBreakpoints(FixtureSession.EX_SOURCE);
+    return stoppedThread;
   }
 }

@@ -34,27 +34,13 @@ import org.junit.Test;
 public class EvalLiveTest {
   private static final int BREAK_LINE = 10;
   private static final long TIMEOUT_MS = 15_000;
+  private final StringBuilder haxeOutput = new StringBuilder();
 
   private ServerSocket listener;
   private Process haxe;
   private Socket vm;
   private EvalConnection connection;
   private Thread outputGobbler;
-  private final StringBuilder haxeOutput = new StringBuilder();
-
-  private static boolean haxeOnPath() {
-    try {
-      Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
-      return probe.waitFor(10, TimeUnit.SECONDS) && probe.exitValue() == 0;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  private static Path fixtureDir() {
-    String fromGradle = System.getProperty("eval.fixture.src.dir");
-    return fromGradle != null ? Path.of(fromGradle) : Path.of("test-fixtures").toAbsolutePath();
-  }
 
   @Before
   public void launch() throws IOException {
@@ -171,5 +157,19 @@ public class EvalLiveTest {
       output = haxeOutput.toString();
     }
     assertTrue("fixture output arrived (was: " + output + ")", output.contains("eval-fixture:hello:7"));
+  }
+
+  private static boolean haxeOnPath() {
+    try {
+      Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
+      return probe.waitFor(10, TimeUnit.SECONDS) && probe.exitValue() == 0;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  private static Path fixtureDir() {
+    String fromGradle = System.getProperty("eval.fixture.src.dir");
+    return fromGradle != null ? Path.of(fromGradle) : Path.of("test-fixtures").toAbsolutePath();
   }
 }

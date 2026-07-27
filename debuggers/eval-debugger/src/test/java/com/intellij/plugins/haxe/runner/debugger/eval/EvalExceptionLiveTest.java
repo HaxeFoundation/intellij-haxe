@@ -78,4 +78,9 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
     awaitTerminated();
     assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
   }
+
+  @Override
+  protected String fixtureMain() {
+    return "EvalThrow";
+  }
 }

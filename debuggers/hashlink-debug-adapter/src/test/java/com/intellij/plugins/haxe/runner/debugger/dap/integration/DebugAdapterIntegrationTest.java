@@ -24,12 +24,6 @@ import org.junit.Test;
  * clean shutdown. One protocol behaviour per test.
  */
 public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
-
-  @Override
-  protected boolean needsFixture() {
-    return false; // these tests never launch a program
-  }
-
   @Test
   public void initializeRepliesWithCapabilitiesAndInitializedEvent() throws Exception {
     Response response = sendInitialize();
@@ -137,6 +131,11 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
 
     assertTrue("adapter should exit after disconnect", adapterProcess.waitFor(5, TimeUnit.SECONDS));
     assertEquals(0, adapterProcess.exitValue());
+  }
+
+  @Override
+  protected boolean needsFixture() {
+    return false; // these tests never launch a program
   }
 
   // Raw initialize without draining the initialized event — the first test
