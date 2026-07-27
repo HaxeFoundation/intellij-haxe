@@ -3,11 +3,14 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.assertStoppedInHx;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.awaitStopped;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.continueRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.exceptionBreakpointsRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.nextRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.pauseRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.probe;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.scopesRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stackTraceRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stepInRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stepInTargetsRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.variablesRequest;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -362,12 +365,7 @@ public class JsDebugAdapterLiveProbe {
 
     atStop = (child, top) -> {
       // --- stepInTargets on the two-call line ---
-      StepInTargetsRequest targetsRequest =
-        new StepInTargetsRequest();
-      StepInTargetsArguments targetsArgs =
-        new StepInTargetsArguments();
-      targetsArgs.setFrameId(top.getId());
-      targetsRequest.setArguments(targetsArgs);
+      StepInTargetsRequest targetsRequest = stepInTargetsRequest(top.getId());
 
       Response targetsResponse = child.sendRequest(targetsRequest, TIMEOUT);
       assertTrue("stepInTargets", targetsResponse.isSuccess());
@@ -409,13 +407,7 @@ public class JsDebugAdapterLiveProbe {
       assertTrue("expected 'document' among runtime completions", anyMatch);
 
       // --- smart step INTO f2 (the outer call) ---
-      StepInRequest stepIn =
-        new StepInRequest();
-      StepInArguments stepInArgs =
-        new StepInArguments();
-      stepInArgs.setThreadId(currentThreadId);
-      stepInArgs.setTargetId(f2Target.getId());
-      stepIn.setArguments(stepInArgs);
+      StepInRequest stepIn = stepInRequest(currentThreadId, f2Target.getId());
       assertTrue("targeted stepIn", child.sendRequest(stepIn, TIMEOUT).isSuccess());
 
       StoppedEvent landed = null;
@@ -500,12 +492,7 @@ public class JsDebugAdapterLiveProbe {
         assertTrue("child setBreakpoints", child.sendRequest(setBreakpoints, TIMEOUT).isSuccess());
 
         // exception filters as the IDE's exceptionFiltersRequest would send
-        SetExceptionBreakpointsRequest filters =
-          new SetExceptionBreakpointsRequest();
-        SetExceptionBreakpointsArguments filterArgs =
-          new SetExceptionBreakpointsArguments();
-        filterArgs.setFilters(List.of("uncaught"));
-        filters.setArguments(filterArgs);
+        SetExceptionBreakpointsRequest filters = exceptionBreakpointsRequest(List.of("uncaught"));
         probe("ide-seq setExceptionBreakpoints success=" + child.sendRequest(filters, TIMEOUT).isSuccess());
 
         assertTrue("child configurationDone", child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
@@ -945,12 +932,7 @@ public class JsDebugAdapterLiveProbe {
   }
 
   private int stepInTargetsCount(DapClient child, int frameId, String stage) throws Exception {
-    StepInTargetsRequest request =
-      new StepInTargetsRequest();
-    StepInTargetsArguments arguments =
-      new StepInTargetsArguments();
-    arguments.setFrameId(frameId);
-    request.setArguments(arguments);
+    StepInTargetsRequest request = stepInTargetsRequest(frameId);
 
     Response response = child.sendRequest(request, TIMEOUT);
 

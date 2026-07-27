@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
 import org.junit.Test;
 
+import static com.intellij.plugins.haxe.debugger.hxcppserver.FixtureSession.setVariableRequest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -139,12 +140,7 @@ public class BreakpointsAndEvaluateIT {
       int threadId = session.stoppedThread(hit);
       int reference = session.localsReference(session.topFrame(threadId).getId());
 
-      SetVariableRequest request = new SetVariableRequest();
-      SetVariableArguments arguments = new SetVariableArguments();
-      arguments.setVariablesReference(reference);
-      arguments.setName("current");
-      arguments.setValue("41");
-      request.setArguments(arguments);
+      SetVariableRequest request = setVariableRequest(reference, "current", "41");
       assertTrue("setVariable", session.request(request).isSuccess());
 
       assertEquals("41", session.variable(session.variables(reference), "current").getValue());

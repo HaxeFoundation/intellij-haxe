@@ -77,7 +77,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     assertFalse("assigning a string literal is rejected", newString.isSuccess());
 
     // a boolean word into an int slot is a type error, reported clearly
-    Response mistyped = setVariableRaw(locals, "n", "true");
+    Response mistyped = request(setVariableRequest(locals, "n", "true"));
     assertFalse("bool into an int slot is rejected", mistyped.isSuccess());
     assertNotNull("rejection carries a message", mistyped.getMessage());
 
@@ -140,19 +140,9 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   // --- helpers ---
 
   private String setVariable(int containerReference, String name, String value) throws Exception {
-    Response response = setVariableRaw(containerReference, name, value);
+    Response response = request(setVariableRequest(containerReference, name, value));
     assertTrue("setVariable " + name + "=" + value + " succeeds: " + response.getMessage(), response.isSuccess());
     return ((SetVariableResponse)response).getBody().getValue();
-  }
-
-  private Response setVariableRaw(int containerReference, String name, String value) throws Exception {
-    SetVariableRequest request = new SetVariableRequest();
-    SetVariableArguments args = new SetVariableArguments();
-    args.setVariablesReference(containerReference);
-    args.setName(name);
-    args.setValue(value);
-    request.setArguments(args);
-    return request(request);
   }
 
   private String continueToExit(int threadId) throws Exception {

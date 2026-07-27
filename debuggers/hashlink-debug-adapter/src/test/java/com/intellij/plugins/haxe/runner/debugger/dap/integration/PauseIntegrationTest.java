@@ -38,10 +38,7 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
     awaitOutputContaining("spin-start");
 
     // interrupt the running debuggee
-    PauseRequest pause = new PauseRequest();
-    PauseArguments args = new PauseArguments();
-    args.setThreadId(1);
-    pause.setArguments(args);
+    PauseRequest pause = pauseRequest(1);
     assertTrue("pause is acknowledged", request(pause).isSuccess());
 
     // a stop with reason "pause" arrives on a real thread

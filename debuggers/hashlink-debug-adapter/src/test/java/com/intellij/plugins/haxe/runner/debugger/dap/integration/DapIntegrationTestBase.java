@@ -507,6 +507,16 @@ public abstract class DapIntegrationTestBase {
     return request;
   }
 
+  /** Smart step into: enter the chosen call on the line rather than the first one. */
+  protected static StepInRequest stepInRequest(int threadId, int targetId) {
+    StepInRequest request = new StepInRequest();
+    StepInArguments args = new StepInArguments();
+    args.setThreadId(threadId);
+    args.setTargetId(targetId);
+    request.setArguments(args);
+    return request;
+  }
+
   protected static StepOutRequest stepOutRequest(int threadId) {
     StepOutRequest request = new StepOutRequest();
     StepOutArguments args = new StepOutArguments();
@@ -515,14 +525,68 @@ public abstract class DapIntegrationTestBase {
     return request;
   }
 
-  // --- stack / scopes / variables ---
+  protected static PauseRequest pauseRequest(int threadId) {
+    PauseRequest request = new PauseRequest();
+    PauseArguments args = new PauseArguments();
+    args.setThreadId(threadId);
+    request.setArguments(args);
+    return request;
+  }
 
-  protected StackTraceResponse stackTrace(int threadId) throws Exception {
+  protected static StackTraceRequest stackTraceRequest(int threadId) {
     StackTraceRequest request = new StackTraceRequest();
     StackTraceArguments args = new StackTraceArguments();
     args.setThreadId(threadId);
     request.setArguments(args);
-    StackTraceResponse response = (StackTraceResponse)request(request);
+    return request;
+  }
+
+  protected static ScopesRequest scopesRequest(int frameId) {
+    ScopesRequest request = new ScopesRequest();
+    ScopesArguments args = new ScopesArguments();
+    args.setFrameId(frameId);
+    request.setArguments(args);
+    return request;
+  }
+
+  protected static VariablesRequest variablesRequest(int variablesReference) {
+    VariablesRequest request = new VariablesRequest();
+    VariablesArguments args = new VariablesArguments();
+    args.setVariablesReference(variablesReference);
+    request.setArguments(args);
+    return request;
+  }
+
+  protected static StepInTargetsRequest stepInTargetsRequest(int frameId) {
+    StepInTargetsRequest request = new StepInTargetsRequest();
+    StepInTargetsArguments args = new StepInTargetsArguments();
+    args.setFrameId(frameId);
+    request.setArguments(args);
+    return request;
+  }
+
+  protected static SetVariableRequest setVariableRequest(int variablesReference, String name, String value) {
+    SetVariableRequest request = new SetVariableRequest();
+    SetVariableArguments args = new SetVariableArguments();
+    args.setVariablesReference(variablesReference);
+    args.setName(name);
+    args.setValue(value);
+    request.setArguments(args);
+    return request;
+  }
+
+  protected static SetExceptionBreakpointsRequest exceptionBreakpointsRequest(List<String> filters) {
+    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
+    SetExceptionBreakpointsArguments args = new SetExceptionBreakpointsArguments();
+    args.setFilters(filters);
+    request.setArguments(args);
+    return request;
+  }
+
+  // --- stack / scopes / variables ---
+
+  protected StackTraceResponse stackTrace(int threadId) throws Exception {
+    StackTraceResponse response = (StackTraceResponse)request(stackTraceRequest(threadId));
     assertTrue("has a top frame", response.getBody().getStackFrames().size() >= 1);
     return response;
   }
@@ -564,11 +628,7 @@ public abstract class DapIntegrationTestBase {
   }
 
   protected List<Variable> variables(int reference) throws Exception {
-    VariablesRequest request = new VariablesRequest();
-    VariablesArguments args = new VariablesArguments();
-    args.setVariablesReference(reference);
-    request.setArguments(args);
-    return ((VariablesResponse)request(request)).getBody().getVariables();
+    return ((VariablesResponse)request(variablesRequest(reference))).getBody().getVariables();
   }
 
   protected Map<String, String> variablesByName(int reference) throws Exception {

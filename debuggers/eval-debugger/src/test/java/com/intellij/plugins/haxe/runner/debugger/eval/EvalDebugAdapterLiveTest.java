@@ -433,12 +433,8 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     }
     assertNotNull("found the scope holding 'greeting'", greetingScope);
 
-    SetVariableRequest setVariable = new SetVariableRequest();
-    SetVariableArguments svArgs = new SetVariableArguments();
-    svArgs.setVariablesReference(greetingScope);
-    svArgs.setName("greeting");
-    svArgs.setValue("\"edited\";"); // trailing ';' must be cleaned like evaluate's
-    setVariable.setArguments(svArgs);
+    // the trailing ';' must be cleaned like evaluate's
+    SetVariableRequest setVariable = setVariableRequest(greetingScope, "greeting", "\"edited\";");
     SetVariableResponse svResponse = (SetVariableResponse)request(setVariable);
     assertTrue("setVariable succeeded: " + svResponse.getMessage(), svResponse.isSuccess());
     assertTrue("response carries the NEW value (was " + svResponse.getBody().getValue() + ")",
@@ -517,7 +513,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // FRESH variablesReference whose children are the new elements — the
     // view adopts it, or an expanded row keeps showing the old array
     Integer itemsScope = null;
-    for (Scope scope : ((ScopesResponse)request(scopesRequestFor(top.getId()))).getBody().getScopes()) {
+    for (Scope scope : ((ScopesResponse)request(scopesRequest(top.getId()))).getBody().getScopes()) {
       for (Variable variable : requestChildren(scope.getVariablesReference())) {
         if ("items".equals(variable.getName())) {
           itemsScope = scope.getVariablesReference();
@@ -581,11 +577,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // and the VM survived: a normal request still answers
     EvaluateResponse after = (EvaluateResponse)request(evaluate);
     assertTrue("VM still healthy after the refused write", after.isSuccess());
-  }
-
-  private ScopesRequest scopesRequestFor(int frameId) {
-    ScopesRequest scopes = scopesRequest(frameId);
-    return scopes;
   }
 
   private List<Variable> requestChildren(int variablesReference) throws Exception {

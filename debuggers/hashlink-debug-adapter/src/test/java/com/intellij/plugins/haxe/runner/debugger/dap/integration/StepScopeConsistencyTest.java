@@ -61,10 +61,7 @@ public class StepScopeConsistencyTest extends DapIntegrationTestBase {
   }
 
   private List<Scope> scopesOf(int frameId) throws Exception {
-    ScopesRequest request = new ScopesRequest();
-    ScopesArguments args = new ScopesArguments();
-    args.setFrameId(frameId);
-    request.setArguments(args);
+    ScopesRequest request = scopesRequest(frameId);
     return ((ScopesResponse)request(request)).getBody().getScopes();
   }
 

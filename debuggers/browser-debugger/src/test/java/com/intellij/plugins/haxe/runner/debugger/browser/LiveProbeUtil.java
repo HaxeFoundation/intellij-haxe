@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -89,6 +90,32 @@ final class LiveProbeUtil {
     NextRequest request = new NextRequest();
     NextArguments arguments = new NextArguments();
     arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static StepInTargetsRequest stepInTargetsRequest(int frameId) {
+    StepInTargetsRequest request = new StepInTargetsRequest();
+    StepInTargetsArguments arguments = new StepInTargetsArguments();
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  /** Smart step into: enter the chosen call on the line rather than the first one. */
+  static StepInRequest stepInRequest(int threadId, int targetId) {
+    StepInRequest request = new StepInRequest();
+    StepInArguments arguments = new StepInArguments();
+    arguments.setThreadId(threadId);
+    arguments.setTargetId(targetId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static SetExceptionBreakpointsRequest exceptionBreakpointsRequest(List<String> filters) {
+    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
+    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
+    arguments.setFilters(filters);
     request.setArguments(arguments);
     return request;
   }

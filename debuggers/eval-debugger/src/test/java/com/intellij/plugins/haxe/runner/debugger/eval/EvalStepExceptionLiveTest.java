@@ -83,22 +83,12 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
   @Test(timeout = 60_000)
   public void steppingOverAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
-    stepUntilTerminated(this::nextRequestFor);
+    stepUntilTerminated(EvalLiveTestBase::nextRequest);
   }
 
   @Test(timeout = 60_000)
   public void steppingIntoAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
-    stepUntilTerminated(this::stepInRequestFor);
-  }
-
-  private Request nextRequestFor(int threadId) {
-    NextRequest next = nextRequest(threadId);
-    return next;
-  }
-
-  private Request stepInRequestFor(int threadId) {
-    StepInRequest stepIn = stepInRequest(threadId);
-    return stepIn;
+    stepUntilTerminated(EvalLiveTestBase::stepInRequest);
   }
 
   /**
@@ -199,7 +189,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
     for (int press = 0; press < 6; press++) {
       long before = System.currentTimeMillis();
-      Response step = request(stepInRequestFor(threadId));
+      Response step = request(stepInRequest(threadId));
       long elapsed = System.currentTimeMillis() - before;
       assertTrue("step press #" + press + " answered promptly, no stall (was " + elapsed + "ms)",
                  elapsed < 8_000);
@@ -276,7 +266,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
     for (int press = 0; press < 2; press++) {
       long before = System.currentTimeMillis();
-      Response step = request(stepInRequestFor(threadId));
+      Response step = request(stepInRequest(threadId));
       long elapsed = System.currentTimeMillis() - before;
       assertTrue("step press #" + press + " answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
       assertTrue("step press #" + press + " answered (success)", step.isSuccess());
