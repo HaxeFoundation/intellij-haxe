@@ -29,48 +29,6 @@ public class EvalConnectionTest {
   private EvalConnection connection;
   private Thread fakeVm;
 
-  /**
-   * Starts a fake VM whose reply is computed from each decoded request: the
-   * function returns the JSON messages to send back (each framed on its own),
-   * or null to stay silent.
-   */
-  private void startFake(Function<JsonNode, List<String>> replyFor) throws IOException {
-    PipedInputStream vmSees = new PipedInputStream(1 << 16);
-    PipedOutputStream toVm = new PipedOutputStream(vmSees);
-    PipedInputStream weSee = new PipedInputStream(1 << 16);
-    PipedOutputStream fromVm = new PipedOutputStream(weSee);
-
-    fakeVm = new Thread(() -> {
-      try {
-        while (true) {
-          int low = vmSees.read();
-          if (low < 0) {
-            return;
-          }
-          int high = vmSees.read();
-          byte[] body = vmSees.readNBytes(low | (high << 8));
-          JsonNode request = MAPPER.readTree(new String(body, StandardCharsets.UTF_8));
-          List<String> reply = replyFor.apply(request);
-          if (reply != null) {
-            for (String message : reply) {
-              byte[] replyBody = message.getBytes(StandardCharsets.UTF_8);
-              fromVm.write(new byte[]{(byte)replyBody.length, (byte)(replyBody.length >>> 8),
-                                      (byte)(replyBody.length >>> 16), (byte)(replyBody.length >>> 24)});
-              fromVm.write(replyBody);
-            }
-            fromVm.flush();
-          }
-        }
-      } catch (IOException ignored) {
-        // pipe closed: test over
-      }
-    }, "fake-eval-vm");
-    fakeVm.setDaemon(true);
-    fakeVm.start();
-
-    connection = new EvalConnection(weSee, toVm);
-  }
-
   @After
   public void tearDown() {
     if (connection != null) {
@@ -155,5 +113,47 @@ public class EvalConnectionTest {
     killer.setDaemon(true);
     killer.start();
     assertThrows(IOException.class, () -> connection.request("getThreads", null, 10_000));
+  }
+
+  /**
+   * Starts a fake VM whose reply is computed from each decoded request: the
+   * function returns the JSON messages to send back (each framed on its own),
+   * or null to stay silent.
+   */
+  private void startFake(Function<JsonNode, List<String>> replyFor) throws IOException {
+    PipedInputStream vmSees = new PipedInputStream(1 << 16);
+    PipedOutputStream toVm = new PipedOutputStream(vmSees);
+    PipedInputStream weSee = new PipedInputStream(1 << 16);
+    PipedOutputStream fromVm = new PipedOutputStream(weSee);
+
+    fakeVm = new Thread(() -> {
+      try {
+        while (true) {
+          int low = vmSees.read();
+          if (low < 0) {
+            return;
+          }
+          int high = vmSees.read();
+          byte[] body = vmSees.readNBytes(low | (high << 8));
+          JsonNode request = MAPPER.readTree(new String(body, StandardCharsets.UTF_8));
+          List<String> reply = replyFor.apply(request);
+          if (reply != null) {
+            for (String message : reply) {
+              byte[] replyBody = message.getBytes(StandardCharsets.UTF_8);
+              fromVm.write(new byte[]{(byte)replyBody.length, (byte)(replyBody.length >>> 8),
+                                      (byte)(replyBody.length >>> 16), (byte)(replyBody.length >>> 24)});
+              fromVm.write(replyBody);
+            }
+            fromVm.flush();
+          }
+        }
+      } catch (IOException ignored) {
+        // pipe closed: test over
+      }
+    }, "fake-eval-vm");
+    fakeVm.setDaemon(true);
+    fakeVm.start();
+
+    connection = new EvalConnection(weSee, toVm);
   }
 }

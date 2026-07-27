@@ -38,13 +38,99 @@ import org.junit.Test;
  * cleanly. These tests would HANG (and hit the method timeout) if it regressed.
  */
 public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
+  private static final int THROW_LINE = 9;
+
+  @Test(timeout = 60_000)
+  public void steppingOverAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
+    stepUntilTerminated(EvalLiveTestBase::nextRequest);
+  }
+
+  @Test(timeout = 60_000)
+  public void steppingIntoAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
+    stepUntilTerminated(EvalLiveTestBase::stepInRequest);
+  }
+
+  /**
+   * From the exception stop, every step press must be answered PROMPTLY (the
+   * reported stall was ~50s per press: a coalescing loop spinning its 4096
+   * cap against a VM that cannot advance) and the session must wind down to
+   * terminated within a few presses. Mirrors the IDE: after each stop it also
+   * asks for threads, like reportStopped does.
+   */
+  @Test(timeout = 60_000)
+  public void steppingAtTheExceptionStopAnswersPromptlyAndTerminates() throws Exception {
+    int threadId = runIntoExceptionStop().getBody().getThreadId();
+    hydrateStopLikeTheIde(threadId, "exception stop");
+
+    for (int press = 0; press < 6; press++) {
+      long before = System.currentTimeMillis();
+      Response step = request(stepInRequest(threadId));
+      long elapsed = System.currentTimeMillis() - before;
+      assertTrue("step press #" + press + " answered promptly, no stall (was " + elapsed + "ms)",
+                 elapsed < 8_000);
+      assertTrue("step press #" + press + " answered (success)", step.isSuccess());
+
+      long deadline = System.currentTimeMillis() + 4_000;
+      boolean stoppedAgain = false;
+      while (System.currentTimeMillis() < deadline) {
+        Event event = dapClient.pollEvent(200);
+        if (event instanceof TerminatedEvent) {
+          assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
+          return;
+        }
+        if (event instanceof StoppedEvent stopped) {
+          threadId = stopped.getBody().getThreadId();
+          hydrateStopLikeTheIde(threadId, "press #" + press);
+          stoppedAgain = true;
+          break;
+        }
+      }
+      if (!stoppedAgain && haxe.waitFor(2, TimeUnit.SECONDS)) {
+        return; // exited; terminated event raced us
+      }
+    }
+    throw new AssertionError("stepping at the exception stop never terminated the session");
+  }
+
+  /**
+   * The user's exact report: step at the exception stop a couple of times,
+   * THEN resume — the resume must be answered promptly and end the session,
+   * not sit wedged behind stalled step loops until timeouts kill it.
+   */
+  @Test(timeout = 60_000)
+  public void resumeAfterSteppingAtTheExceptionStopTerminatesPromptly() throws Exception {
+    int threadId = runIntoExceptionStop().getBody().getThreadId();
+
+    for (int press = 0; press < 2; press++) {
+      long before = System.currentTimeMillis();
+      Response step = request(stepInRequest(threadId));
+      long elapsed = System.currentTimeMillis() - before;
+      assertTrue("step press #" + press + " answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
+      assertTrue("step press #" + press + " answered (success)", step.isSuccess());
+      Event event = dapClient.pollEvent(1_500);
+      if (event instanceof TerminatedEvent) {
+        return; // wound down before we even resumed - fine
+      }
+      if (event instanceof StoppedEvent stopped) {
+        threadId = stopped.getBody().getThreadId();
+      }
+    }
+
+    ContinueRequest resume = continueRequest(threadId);
+    long before = System.currentTimeMillis();
+    Response resumed = request(resume);
+    long elapsed = System.currentTimeMillis() - before;
+    assertTrue("resume answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
+    assertTrue("resume answered (success)", resumed.isSuccess());
+
+    awaitTerminated();
+    assertTrue("haxe exited after the resume", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
+  }
+
   @Override
   protected String fixtureMain() {
     return "EvalThrow";
   }
-
-  private static final int THROW_LINE = 9;
-
 
   /** Runs to the breakpoint on the throw line and returns the stopped thread id. */
   private int stopOnThrowLine() throws Exception {
@@ -68,16 +154,6 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
     return stopped.getBody().getThreadId();
-  }
-
-  @Test(timeout = 60_000)
-  public void steppingOverAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
-    stepUntilTerminated(EvalLiveTestBase::nextRequest);
-  }
-
-  @Test(timeout = 60_000)
-  public void steppingIntoAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
-    stepUntilTerminated(EvalLiveTestBase::stepInRequest);
   }
 
   /**
@@ -130,7 +206,6 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     // That is not a wedge — the invariant is that the session stays
     // CONTROLLABLE: a continue from anywhere in that walk must end it.
     ContinueRequest resume = continueRequest(threadId);
-
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
     long elapsed = System.currentTimeMillis() - before;
@@ -165,48 +240,6 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   }
 
   /**
-   * From the exception stop, every step press must be answered PROMPTLY (the
-   * reported stall was ~50s per press: a coalescing loop spinning its 4096
-   * cap against a VM that cannot advance) and the session must wind down to
-   * terminated within a few presses. Mirrors the IDE: after each stop it also
-   * asks for threads, like reportStopped does.
-   */
-  @Test(timeout = 60_000)
-  public void steppingAtTheExceptionStopAnswersPromptlyAndTerminates() throws Exception {
-    int threadId = runIntoExceptionStop().getBody().getThreadId();
-    hydrateStopLikeTheIde(threadId, "exception stop");
-
-    for (int press = 0; press < 6; press++) {
-      long before = System.currentTimeMillis();
-      Response step = request(stepInRequest(threadId));
-      long elapsed = System.currentTimeMillis() - before;
-      assertTrue("step press #" + press + " answered promptly, no stall (was " + elapsed + "ms)",
-                 elapsed < 8_000);
-      assertTrue("step press #" + press + " answered (success)", step.isSuccess());
-
-      long deadline = System.currentTimeMillis() + 4_000;
-      boolean stoppedAgain = false;
-      while (System.currentTimeMillis() < deadline) {
-        Event event = dapClient.pollEvent(200);
-        if (event instanceof TerminatedEvent) {
-          assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
-          return;
-        }
-        if (event instanceof StoppedEvent stopped) {
-          threadId = stopped.getBody().getThreadId();
-          hydrateStopLikeTheIde(threadId, "press #" + press);
-          stoppedAgain = true;
-          break;
-        }
-      }
-      if (!stoppedAgain && haxe.waitFor(2, TimeUnit.SECONDS)) {
-        return; // exited; terminated event raced us
-      }
-    }
-    throw new AssertionError("stepping at the exception stop never terminated the session");
-  }
-
-  /**
    * Everything the IDE requests on a stop (reportStopped + the variables
    * view): threads, stackTrace, scopes of the top frame, variables of every
    * scope. Each must answer promptly — a single wedged one burns a 10s VM
@@ -223,7 +256,6 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
     if (!frames.isEmpty()) {
       ScopesRequest scopes = scopesRequest(frames.get(0).getId());
-
       Response scopesResponse = request(scopes);
 
       // a mid-unwind frame may legitimately have nothing to show, but the
@@ -242,40 +274,5 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     }
     long elapsed = System.currentTimeMillis() - before;
     assertTrue(label + ": full stop hydration stayed prompt (was " + elapsed + "ms)", elapsed < 8_000);
-  }
-
-  /**
-   * The user's exact report: step at the exception stop a couple of times,
-   * THEN resume — the resume must be answered promptly and end the session,
-   * not sit wedged behind stalled step loops until timeouts kill it.
-   */
-  @Test(timeout = 60_000)
-  public void resumeAfterSteppingAtTheExceptionStopTerminatesPromptly() throws Exception {
-    int threadId = runIntoExceptionStop().getBody().getThreadId();
-
-    for (int press = 0; press < 2; press++) {
-      long before = System.currentTimeMillis();
-      Response step = request(stepInRequest(threadId));
-      long elapsed = System.currentTimeMillis() - before;
-      assertTrue("step press #" + press + " answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
-      assertTrue("step press #" + press + " answered (success)", step.isSuccess());
-      Event event = dapClient.pollEvent(1_500);
-      if (event instanceof TerminatedEvent) {
-        return; // wound down before we even resumed - fine
-      }
-      if (event instanceof StoppedEvent stopped) {
-        threadId = stopped.getBody().getThreadId();
-      }
-    }
-
-    ContinueRequest resume = continueRequest(threadId);
-    long before = System.currentTimeMillis();
-    Response resumed = request(resume);
-    long elapsed = System.currentTimeMillis() - before;
-    assertTrue("resume answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
-    assertTrue("resume answered (success)", resumed.isSuccess());
-
-    awaitTerminated();
-    assertTrue("haxe exited after the resume", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
   }
 }

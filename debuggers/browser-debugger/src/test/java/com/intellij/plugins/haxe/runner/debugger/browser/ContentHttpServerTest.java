@@ -21,10 +21,11 @@ public class ContentHttpServerTest {
   private static final List<String> UNPARSEABLE_PATHS =
     List.of("/C:secret.txt", "/app.js::$DATA", "/%00secret");
 
+  private final HttpClient http = HttpClient.newHttpClient();
+
   private Path root;
   private Path outside;
   private ContentHttpServer server;
-  private final HttpClient http = HttpClient.newHttpClient();
 
   @Before
   public void serveFixture() throws IOException {
@@ -42,12 +43,6 @@ public class ContentHttpServerTest {
     if (server != null) {
       server.close();
     }
-  }
-
-  private HttpResponse<String> get(String path) throws Exception {
-    // strip one trailing slash so baseUrl + path never doubles it
-    return http.send(HttpRequest.newBuilder(URI.create(server.getBaseUrl().replaceAll("/$", "") + path)).build(),
-                     HttpResponse.BodyHandlers.ofString());
   }
 
   @Test
@@ -164,5 +159,11 @@ public class ContentHttpServerTest {
       HttpResponse.BodyHandlers.ofString());
     assertEquals(200, response.statusCode());
     assertEquals("", response.body());
+  }
+
+  private HttpResponse<String> get(String path) throws Exception {
+    // strip one trailing slash so baseUrl + path never doubles it
+    return http.send(HttpRequest.newBuilder(URI.create(server.getBaseUrl().replaceAll("/$", "") + path)).build(),
+                     HttpResponse.BodyHandlers.ofString());
   }
 }

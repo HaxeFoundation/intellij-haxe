@@ -30,8 +30,9 @@ import org.junit.Test;
  *   so the debuggee runs to completion on its own.
  */
 public class AttachModeIntegrationTest extends DapIntegrationTestBase {
-  private Process debuggee;
   private final StringBuilder debuggeeOutput = new StringBuilder();
+
+  private Process debuggee;
   private Thread debuggeeGobbler;
 
   @After

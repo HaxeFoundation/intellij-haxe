@@ -41,13 +41,11 @@ public class HxcppDebugAdapterTest {
   @Before
   public void setUp() throws IOException {
     adapter = new HxcppDebugAdapter("127.0.0.1", 0, TIMEOUT);
-
     dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     Socket clientSide = new Socket("127.0.0.1", dapListener.getLocalPort());
     Socket adapterSide = dapListener.accept();
     adapter.start(new DapConnection(adapterSide));
     dapClient = new DapClient(new DapConnection(clientSide));
-
     server = new FakeHxcppServer(adapter.getDebuggeePort());
   }
 
@@ -57,24 +55,6 @@ public class HxcppDebugAdapterTest {
     server.close();
     adapter.close();
     dapListener.close();
-  }
-
-  private Event awaitEvent(Class<? extends Event> type) throws InterruptedException {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (event != null && type.isInstance(event)) {
-        return event;
-      }
-    }
-    throw new AssertionError("No " + type.getSimpleName() + " within " + TIMEOUT + " ms");
-  }
-
-  private void stopAtBreakpoint(int threadId) throws Exception {
-    server.notify("breakpointStop", """
-        {"threadId": %d}
-        """.formatted(threadId));
-    awaitEvent(StoppedEvent.class);
   }
 
   @Test
@@ -703,6 +683,24 @@ public class HxcppDebugAdapterTest {
     StoppedEvent stopped = (StoppedEvent)awaitEvent(StoppedEvent.class);
     assertNotNull(stopped);
     assertNull(stopped.getBody().getDescription());
+  }
+
+  private Event awaitEvent(Class<? extends Event> type) throws InterruptedException {
+    long deadline = System.currentTimeMillis() + TIMEOUT;
+    while (System.currentTimeMillis() < deadline) {
+      Event event = dapClient.pollEvent(250);
+      if (event != null && type.isInstance(event)) {
+        return event;
+      }
+    }
+    throw new AssertionError("No " + type.getSimpleName() + " within " + TIMEOUT + " ms");
+  }
+
+  private void stopAtBreakpoint(int threadId) throws Exception {
+    server.notify("breakpointStop", """
+        {"threadId": %d}
+        """.formatted(threadId));
+    awaitEvent(StoppedEvent.class);
   }
 
   /** The request failed, and its message names the cause. */

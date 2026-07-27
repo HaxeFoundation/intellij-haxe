@@ -52,10 +52,6 @@ public class AdapterStoreTest {
     }
   }
 
-  private AdapterPin pin(String sha) {
-    return new AdapterPin("test-adapter", "1.0.0", server.getBaseUrl() + "adapter.vsix", sha, ENTRY);
-  }
-
   @Test
   public void downloadsVerifiesUnpacksAndCaches() throws Exception {
     AdapterStore store = new AdapterStore(storeRoot);
@@ -159,6 +155,10 @@ public class AdapterStoreTest {
     }
     assertTrue("nothing escaped the store",
                !Files.exists(storeRoot.resolve("test-tgz").resolve("escaped.txt")));
+  }
+
+  private AdapterPin pin(String sha) {
+    return new AdapterPin("test-adapter", "1.0.0", server.getBaseUrl() + "adapter.vsix", sha, ENTRY);
   }
 
   private static byte[] tarGzWith(String entryName, String content) throws IOException {

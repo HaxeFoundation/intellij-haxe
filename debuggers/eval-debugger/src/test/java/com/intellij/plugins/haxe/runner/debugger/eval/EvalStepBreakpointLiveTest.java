@@ -38,54 +38,11 @@ import org.junit.Test;
  * these tests pin the adapter's step-emulation loops to the same contract.
  */
 public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
-  @Override
-  protected String fixtureMain() {
-    return "EvalStepBp";
-  }
-
   // EvalStepBp.hx load-bearing lines
   private static final int HELPER_BP_LINE = 11;
   private static final int WORK_START_LINE = 16;
   private static final int HELPER_CALL_LINE = 18;
   private static final int WORK_LATER_BP_LINE = 19;
-
-
-
-  /** Sets the given breakpoints, runs to the first stop, returns the thread id. */
-  private int runToFirstBreakpoint(int... lines) throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue("initialize", request(initialize).isSuccess());
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixtureDir().resolve("EvalStepBp.hx").toString());
-    bpArgs.setSource(source);
-    List<SourceBreakpoint> breakpoints = new ArrayList<>();
-    for (int line : lines) {
-      SourceBreakpoint breakpoint = new SourceBreakpoint();
-      breakpoint.setLine(line);
-      breakpoints.add(breakpoint);
-    }
-    bpArgs.setBreakpoints(breakpoints);
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
-    configurationDone();
-
-    StoppedEvent stopped = awaitStopped();
-    assertEquals("first stop is the breakpoint", "breakpoint", stopped.getBody().getReason());
-    return stopped.getBody().getThreadId();
-  }
-
-  private StackFrame topFrame(int threadId) throws Exception {
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackTraceResponse response = (StackTraceResponse)request(stackTrace);
-    assertTrue("stackTrace", response.isSuccess());
-    return response.getBody().getStackFrames().get(0);
-  }
 
   @Test(timeout = 60_000)
   public void stepOutStopsAtABreakpointFurtherDownTheFunction() throws Exception {
@@ -132,5 +89,46 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
     int landedLine = topFrame(stopped.getBody().getThreadId()).getLine();
     assertTrue("landed past the breakpoint line (was " + landedLine + ")",
                landedLine > WORK_START_LINE);
+  }
+
+  @Override
+  protected String fixtureMain() {
+    return "EvalStepBp";
+  }
+
+  /** Sets the given breakpoints, runs to the first stop, returns the thread id. */
+  private int runToFirstBreakpoint(int... lines) throws Exception {
+    InitializeRequest initialize = new InitializeRequest();
+    initialize.setArguments(new InitializeRequestArguments());
+    assertTrue("initialize", request(initialize).isSuccess());
+    dapClient.pollEvent(TIMEOUT);
+    launch();
+
+    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
+    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+    Source source = new Source();
+    source.setPath(fixtureDir().resolve("EvalStepBp.hx").toString());
+    bpArgs.setSource(source);
+    List<SourceBreakpoint> breakpoints = new ArrayList<>();
+    for (int line : lines) {
+      SourceBreakpoint breakpoint = new SourceBreakpoint();
+      breakpoint.setLine(line);
+      breakpoints.add(breakpoint);
+    }
+    bpArgs.setBreakpoints(breakpoints);
+    setBreakpoints.setArguments(bpArgs);
+    assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
+    configurationDone();
+
+    StoppedEvent stopped = awaitStopped();
+    assertEquals("first stop is the breakpoint", "breakpoint", stopped.getBody().getReason());
+    return stopped.getBody().getThreadId();
+  }
+
+  private StackFrame topFrame(int threadId) throws Exception {
+    StackTraceRequest stackTrace = stackTraceRequest(threadId);
+    StackTraceResponse response = (StackTraceResponse)request(stackTrace);
+    assertTrue("stackTrace", response.isSuccess());
+    return response.getBody().getStackFrames().get(0);
   }
 }

@@ -40,10 +40,6 @@ import org.junit.Test;
  * the fixture in test-fixtures/EvalMain.hx. Skips when haxe is not on PATH.
  */
 public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
-  @Override
-  protected String fixtureMain() {
-    return "EvalMain";
-  }
 
   private static final int BREAK_LINE = 10;
   private static final int NESTED_CALL_LINE = 11; // `var nested = outer(inner(3));`
@@ -52,7 +48,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   private static final int CHAIN_LINE = 25;       // `cfg.test1(1).test2().test3().test1(2);`
   private static final int CHAIN_AFTER_LINE = 26; // the println after the chain
   private static final int COLL_LINE = 51;        // Coll.collections println (items array live)
-
 
   @Test
   public void fullSessionBreakpointInspectStepAndFinish() throws Exception {
@@ -87,7 +82,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     assertTrue("threads", request(new ThreadsRequest()).isSuccess());
 
     StackTraceRequest stackTrace = stackTraceRequest(threadId);
-
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
     assertTrue("stackTrace", stResponse.isSuccess());
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
@@ -108,7 +102,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
 
     for (Scope scope : scResponse.getBody().getScopes()) {
       VariablesRequest variables = variablesRequest(scope.getVariablesReference());
-
       VariablesResponse vResponse = (VariablesResponse)request(variables);
       assertTrue("variables of scope " + scope.getName(), vResponse.isSuccess());
 
@@ -159,7 +152,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -205,7 +197,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -220,7 +211,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
 
     StoppedEvent atCall = awaitStopped();
     int threadId = atCall.getBody().getThreadId();
-
     StepIntoFunctionRequest smartStep = new StepIntoFunctionRequest();
     StepIntoFunctionArguments ssArgs = new StepIntoFunctionArguments();
     ssArgs.setThreadId(threadId);
@@ -254,7 +244,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -324,7 +313,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -372,7 +360,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
@@ -389,7 +376,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     int threadId = stopped.getBody().getThreadId();
     StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackFrame top = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
-
     ScopesRequest scopes = scopesRequest(top.getId());
     ScopesResponse scResponse = (ScopesResponse)request(scopes);
     assertTrue("scopes", scResponse.isSuccess());
@@ -399,7 +385,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
 
     for (Scope scope : scResponse.getBody().getScopes()) {
       VariablesRequest variables = variablesRequest(scope.getVariablesReference());
-
       VariablesResponse vResponse = (VariablesResponse)request(variables);
       assertTrue("variables of scope " + scope.getName(), vResponse.isSuccess());
 
@@ -454,7 +439,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     int threadId = stopped.getBody().getThreadId();
     StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackFrame top = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
-
     ScopesRequest scopes = scopesRequest(top.getId());
     ScopesResponse scResponse = (ScopesResponse)request(scopes);
     assertTrue("scopes", scResponse.isSuccess());
@@ -555,6 +539,11 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // and the VM survived: a normal request still answers
     EvaluateResponse after = (EvaluateResponse)request(evaluate);
     assertTrue("VM still healthy after the refused write", after.isSuccess());
+  }
+
+  @Override
+  protected String fixtureMain() {
+    return "EvalMain";
   }
 
   private List<Variable> requestChildren(int variablesReference) throws Exception {

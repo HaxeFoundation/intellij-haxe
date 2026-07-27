@@ -34,13 +34,7 @@ import org.junit.Test;
  * bounded requests here would time out and FAIL rather than hang forever.
  */
 public class EvalExceptionLiveTest extends EvalLiveTestBase {
-  @Override
-  protected String fixtureMain() {
-    return "EvalThrow";
-  }
-
   private static final int THROW_LINE = 9;
-
 
   @Test(timeout = 60_000)
   public void uncaughtExceptionStopsInspectsAndTerminatesWithoutStalling() throws Exception {
@@ -77,5 +71,10 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
     assertTrue("continue past the exception", request(resume).isSuccess());
     awaitTerminated();
     assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
+  }
+
+  @Override
+  protected String fixtureMain() {
+    return "EvalThrow";
   }
 }
