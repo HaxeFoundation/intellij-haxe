@@ -54,28 +54,6 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   private static final int COLL_LINE = 51;        // Coll.collections println (items array live)
 
 
-  private StoppedEvent awaitStopped() throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (event instanceof StoppedEvent stopped) {
-        return stopped;
-      }
-    }
-    throw new AssertionError("no stopped event within " + TIMEOUT + "ms");
-  }
-
-  private boolean awaitTerminated() throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (event instanceof TerminatedEvent) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @Test
   public void fullSessionBreakpointInspectStepAndFinish() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
@@ -161,7 +139,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     Response resumeResponse = request(resume);
     assertTrue("continue failed: " + resumeResponse.getMessage(), resumeResponse.isSuccess());
 
-    assertTrue("terminated event when the script finishes", awaitTerminated());
+    awaitTerminated();
     assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
     assertEquals("clean exit", 0, haxe.exitValue());
   }

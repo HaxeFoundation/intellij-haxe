@@ -5,6 +5,9 @@ import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.assertStoppedInHx;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.awaitInitialized;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.continueRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.haxeOnPath;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.nodeExe;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.nodeRoot;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.probe;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.scopesRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stackTraceRequest;
@@ -60,18 +63,6 @@ public class FirefoxAdapterLiveProbe {
   private DapClient client;
 
   /** {@code <root>/node} — provided by the gradle test task; falls back for IDE runs. */
-  private static Path nodeRoot() {
-    String override = System.getProperty("web.debug.node.root");
-    return override != null ? Path.of(override) : Path.of("../../node").toAbsolutePath().normalize();
-  }
-
-  private static Path nodeExe() {
-    // the compat-matrix web lanes point each cell at a provisioned node
-    String override = System.getProperty("web.debug.node.exe");
-    return override != null ? Path.of(override)
-                            : nodeRoot().resolve("node-v24.18.0-win-x64/node.exe");
-  }
-
   private static Path adapterBundle() {
     return nodeRoot().resolve("adapters/vscode-firefox-debug-2.15.0/extension/dist/adapter.bundle.js");
   }
@@ -237,10 +228,6 @@ public class FirefoxAdapterLiveProbe {
       }
     }
     return null;
-  }
-
-  private static boolean haxeOnPath() {
-    return LiveProbeUtil.haxeOnPath();
   }
 
   // fixture file names; the .hx names come back in reported breakpoint source paths

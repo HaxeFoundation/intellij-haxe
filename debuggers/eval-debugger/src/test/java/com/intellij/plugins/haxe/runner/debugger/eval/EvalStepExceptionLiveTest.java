@@ -46,17 +46,6 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   private static final int THROW_LINE = 9;
 
 
-  private <T extends Event> T awaitEvent(Class<T> type) throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (type.isInstance(event)) {
-        return type.cast(event);
-      }
-    }
-    throw new AssertionError("no " + type.getSimpleName() + " within " + TIMEOUT + "ms");
-  }
-
   /** Runs to the breakpoint on the throw line and returns the stopped thread id. */
   private int stopOnThrowLine() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
@@ -149,7 +138,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     assertTrue("continue after the walk answered (success), was: " + resumed.getMessage(),
                resumed.isSuccess());
 
-    awaitEvent(TerminatedEvent.class);
+    awaitTerminated();
     haxe.waitFor(3, TimeUnit.SECONDS);
   }
 
@@ -286,7 +275,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     assertTrue("resume answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
     assertTrue("resume answered (success)", resumed.isSuccess());
 
-    awaitEvent(TerminatedEvent.class);
+    awaitTerminated();
     assertTrue("haxe exited after the resume", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
   }
 }

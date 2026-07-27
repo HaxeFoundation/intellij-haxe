@@ -142,6 +142,19 @@ final class LiveProbeUtil {
     return null;
   }
 
+  /** Where the provisioned node + adapters live; the matrix lanes point elsewhere. */
+  static Path nodeRoot() {
+    String override = System.getProperty("web.debug.node.root");
+    return override != null ? Path.of(override) : Path.of("../../node").toAbsolutePath().normalize();
+  }
+
+  static Path nodeExe() {
+    // the compat-matrix web lanes point each cell at a provisioned node
+    String override = System.getProperty("web.debug.node.exe");
+    return override != null ? Path.of(override)
+                            : nodeRoot().resolve("node-v24.18.0-win-x64/node.exe");
+  }
+
   static boolean haxeOnPath() {
     try {
       Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();

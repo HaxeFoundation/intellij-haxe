@@ -42,17 +42,6 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
   private static final int THROW_LINE = 9;
 
 
-  private <T extends Event> T awaitEvent(Class<T> type) throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (type.isInstance(event)) {
-        return type.cast(event);
-      }
-    }
-    throw new AssertionError("no " + type.getSimpleName() + " within " + TIMEOUT + "ms");
-  }
-
   @Test(timeout = 60_000)
   public void uncaughtExceptionStopsInspectsAndTerminatesWithoutStalling() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
@@ -86,7 +75,7 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
     // resume: the program runs off the uncaught exception and the session ends
     ContinueRequest resume = continueRequest(threadId);
     assertTrue("continue past the exception", request(resume).isSuccess());
-    awaitEvent(TerminatedEvent.class);
+    awaitTerminated();
     assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
   }
 }

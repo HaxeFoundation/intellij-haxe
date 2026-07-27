@@ -4,7 +4,10 @@ import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.as
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.awaitStopped;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.continueRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.exceptionBreakpointsRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.haxeOnPath;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.nextRequest;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.nodeExe;
+import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.nodeRoot;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.pauseRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.probe;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.scopesRequest;
@@ -93,18 +96,6 @@ public class JsDebugAdapterLiveProbe {
   private int adapterPort;
   private DapClient parent;
 
-  private static Path nodeRoot() {
-    String override = System.getProperty("web.debug.node.root");
-    return override != null ? Path.of(override) : Path.of("../../node").toAbsolutePath().normalize();
-  }
-
-  private static Path nodeExe() {
-    // the compat-matrix web lanes point each cell at a provisioned node
-    String override = System.getProperty("web.debug.node.exe");
-    return override != null ? Path.of(override)
-                            : nodeRoot().resolve("node-v24.18.0-win-x64/node.exe");
-  }
-
   private static Path dapServerJs() {
     return nodeRoot().resolve("adapters/js-debug-1.117.0/js-debug/src/dapDebugServer.js");
   }
@@ -140,10 +131,6 @@ public class JsDebugAdapterLiveProbe {
       }
     }
     return null;
-  }
-
-  private static boolean haxeOnPath() {
-    return LiveProbeUtil.haxeOnPath();
   }
 
   @Before

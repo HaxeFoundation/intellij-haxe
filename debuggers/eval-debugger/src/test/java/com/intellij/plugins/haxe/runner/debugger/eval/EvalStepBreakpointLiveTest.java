@@ -51,17 +51,6 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
 
 
 
-  private StoppedEvent awaitStopped() throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (event instanceof StoppedEvent stopped) {
-        return stopped;
-      }
-    }
-    throw new AssertionError("no StoppedEvent within " + TIMEOUT + "ms");
-  }
-
   /** Sets the given breakpoints, runs to the first stop, returns the thread id. */
   private int runToFirstBreakpoint(int... lines) throws Exception {
     InitializeRequest initialize = new InitializeRequest();
