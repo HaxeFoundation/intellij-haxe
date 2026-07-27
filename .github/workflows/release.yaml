@@ -80,7 +80,9 @@ jobs:
         run: |
           ARTIFACT_PATHNAME=$(ls *.zip | head -n 1)
           ASSET_NAME="intellij-haxe-${{ matrix.IDEA_VERSION }}.zip"
-          cp "$ARTIFACT_PATHNAME" "$ASSET_NAME"
+          if [ "$ARTIFACT_PATHNAME" != "$ASSET_NAME" ]; then
+            cp "$ARTIFACT_PATHNAME" "$ASSET_NAME"
+          fi
           gh release upload "${{ github.ref_name }}" "$ASSET_NAME" --clobber
 
   # tag pushes never trigger the path-filtered debugger-*.yaml workflows, so
