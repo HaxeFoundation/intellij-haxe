@@ -59,14 +59,17 @@ public final class EvalFraming {
     if (first < 0) {
       return null;
     }
-    byte[] rest = in.readNBytes(3);
-    if (rest.length < 3) {
+    // the first byte is already consumed (it distinguishes a clean end of
+    // stream from a truncated prefix), so the rest is read in behind it
+    byte[] prefix = new byte[Integer.BYTES];
+    prefix[0] = (byte)first;
+    if (in.readNBytes(prefix, 1, prefix.length - 1) < prefix.length - 1) {
       throw new EOFException("Stream ended inside eval frame length prefix");
     }
-    int length = first
-                 | (rest[0] & 0xFF) << 8
-                 | (rest[1] & 0xFF) << 16
-                 | (rest[2] & 0xFF) << 24;
+    int length = ByteBuffer.wrap(prefix)
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .getInt();
+    // a prefix with the top bit set decodes to a negative int
     if (length < 0 || length > MAX_RESPONSE_BYTES) {
       throw new IOException("Implausible eval frame length " + (length & 0xFFFFFFFFL)
                             + " - stream is corrupt or misaligned");
