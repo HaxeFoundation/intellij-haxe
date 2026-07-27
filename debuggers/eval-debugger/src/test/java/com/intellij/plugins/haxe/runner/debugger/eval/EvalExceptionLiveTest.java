@@ -63,10 +63,7 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
 
     // the IDE sends exception filters (the backend reports it can't honor
     // them, but the request must still not wedge the session)
-    SetExceptionBreakpointsRequest exceptions = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments exArgs = new SetExceptionBreakpointsArguments();
-    exArgs.setFilters(List.of("uncaught"));
-    exceptions.setArguments(exArgs);
+    SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(List.of("uncaught"));
     assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
 
     configurationDone();
@@ -79,10 +76,7 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
 
     // EXACTLY the IDE's reportStopped sequence — this is where a stall shows
     assertTrue("threads answered at the exception stop", request(new ThreadsRequest()).isSuccess());
-    StackTraceRequest stackTrace = new StackTraceRequest();
-    StackTraceArguments stArgs = new StackTraceArguments();
-    stArgs.setThreadId(threadId);
-    stackTrace.setArguments(stArgs);
+    StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
     assertTrue("stackTrace answered at the exception stop", stResponse.isSuccess());
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
@@ -90,10 +84,7 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
     assertEquals("top frame is the throwing line", THROW_LINE, frames.get(0).getLine());
 
     // resume: the program runs off the uncaught exception and the session ends
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments cArgs = new ContinueArguments();
-    cArgs.setThreadId(threadId);
-    resume.setArguments(cArgs);
+    ContinueRequest resume = continueRequest(threadId);
     assertTrue("continue past the exception", request(resume).isSuccess());
     awaitEvent(TerminatedEvent.class);
     assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));

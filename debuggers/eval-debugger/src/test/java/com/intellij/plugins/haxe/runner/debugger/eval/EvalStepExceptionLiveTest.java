@@ -92,18 +92,12 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   }
 
   private Request nextRequestFor(int threadId) {
-    NextRequest next = new NextRequest();
-    NextArguments args = new NextArguments();
-    args.setThreadId(threadId);
-    next.setArguments(args);
+    NextRequest next = nextRequest(threadId);
     return next;
   }
 
   private Request stepInRequestFor(int threadId) {
-    StepInRequest stepIn = new StepInRequest();
-    StepInArguments args = new StepInArguments();
-    args.setThreadId(threadId);
-    stepIn.setArguments(args);
+    StepInRequest stepIn = stepInRequest(threadId);
     return stepIn;
   }
 
@@ -156,10 +150,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     // code, so a step-into walk can visit more stops than any fixed budget.
     // That is not a wedge — the invariant is that the session stays
     // CONTROLLABLE: a continue from anywhere in that walk must end it.
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments cArgs = new ContinueArguments();
-    cArgs.setThreadId(threadId);
-    resume.setArguments(cArgs);
+    ContinueRequest resume = continueRequest(threadId);
 
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
@@ -184,10 +175,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     dapClient.pollEvent(TIMEOUT);
     launch();
 
-    SetExceptionBreakpointsRequest exceptions = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments exArgs = new SetExceptionBreakpointsArguments();
-    exArgs.setFilters(List.of("uncaught"));
-    exceptions.setArguments(exArgs);
+    SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(List.of("uncaught"));
     assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
     configurationDone();
 
@@ -249,19 +237,13 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     long before = System.currentTimeMillis();
     assertTrue(label + ": threads answered", request(new ThreadsRequest()).isSuccess());
 
-    StackTraceRequest stackTrace = new StackTraceRequest();
-    StackTraceArguments stArgs = new StackTraceArguments();
-    stArgs.setThreadId(threadId);
-    stackTrace.setArguments(stArgs);
+    StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
     assertTrue(label + ": stackTrace answered", stResponse.isSuccess());
 
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
     if (!frames.isEmpty()) {
-      ScopesRequest scopes = new ScopesRequest();
-      ScopesArguments scArgs = new ScopesArguments();
-      scArgs.setFrameId(frames.get(0).getId());
-      scopes.setArguments(scArgs);
+      ScopesRequest scopes = scopesRequest(frames.get(0).getId());
 
       Response scopesResponse = request(scopes);
 
@@ -269,21 +251,14 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       // request must come back rather than sit on the VM timeout
       if (scopesResponse.isSuccess()) {
         for (Scope scope : ((ScopesResponse)scopesResponse).getBody().getScopes()) {
-          VariablesRequest variables = new VariablesRequest();
-          VariablesArguments vArgs = new VariablesArguments();
-          vArgs.setVariablesReference(scope.getVariablesReference());
-          variables.setArguments(vArgs);
+          VariablesRequest variables = variablesRequest(scope.getVariablesReference());
           request(variables); // success optional; promptness is the contract
         }
       }
       // watches / inline values: the IDE re-EVALUATES these on every stop —
       // a wedged evaluate burns a full VM timeout per watch, which is the
       // multi-10s freeze shape the user reported
-      EvaluateRequest watch = new EvaluateRequest();
-      EvaluateArguments evArgs = new EvaluateArguments();
-      evArgs.setExpression("1 + 1");
-      evArgs.setFrameId(frames.get(0).getId());
-      watch.setArguments(evArgs);
+      EvaluateRequest watch = evaluateRequest(frames.get(0).getId(), "1 + 1");
       request(watch); // success optional; promptness is the contract
     }
     long elapsed = System.currentTimeMillis() - before;
@@ -314,10 +289,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       }
     }
 
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments cArgs = new ContinueArguments();
-    cArgs.setThreadId(threadId);
-    resume.setArguments(cArgs);
+    ContinueRequest resume = continueRequest(threadId);
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
     long elapsed = System.currentTimeMillis() - before;

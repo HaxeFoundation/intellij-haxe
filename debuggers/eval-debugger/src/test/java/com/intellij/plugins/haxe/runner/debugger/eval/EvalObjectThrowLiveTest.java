@@ -51,10 +51,7 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
     dapClient.pollEvent(TIMEOUT);
     launch();
 
-    SetExceptionBreakpointsRequest exceptions = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments exArgs = new SetExceptionBreakpointsArguments();
-    exArgs.setFilters(filters);
-    exceptions.setArguments(exArgs);
+    SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(filters);
     assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
     configurationDone();
   }
@@ -98,10 +95,7 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
     String description = stopped.getBody().getDescription();
     assertTrue("stop carries the thrown text", description != null && description.contains("uncaught-object"));
 
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments cArgs = new ContinueArguments();
-    cArgs.setThreadId(stopped.getBody().getThreadId());
-    resume.setArguments(cArgs);
+    ContinueRequest resume = continueRequest(stopped.getBody().getThreadId());
     assertTrue("resume at the uncaught stop", request(resume).isSuccess());
     awaitNaturalDeath();
   }
@@ -111,10 +105,7 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
 
-    StepInRequest stepIn = new StepInRequest();
-    StepInArguments siArgs = new StepInArguments();
-    siArgs.setThreadId(stopped.getBody().getThreadId());
-    stepIn.setArguments(siArgs);
+    StepInRequest stepIn = stepInRequest(stopped.getBody().getThreadId());
     assertTrue("stepIn at the uncaught stop", request(stepIn).isSuccess());
     awaitNaturalDeath();
   }

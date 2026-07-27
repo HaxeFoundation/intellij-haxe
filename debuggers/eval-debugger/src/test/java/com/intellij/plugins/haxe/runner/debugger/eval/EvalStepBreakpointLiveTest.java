@@ -92,10 +92,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
   }
 
   private StackFrame topFrame(int threadId) throws Exception {
-    StackTraceRequest stackTrace = new StackTraceRequest();
-    StackTraceArguments args = new StackTraceArguments();
-    args.setThreadId(threadId);
-    stackTrace.setArguments(args);
+    StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse response = (StackTraceResponse)request(stackTrace);
     assertTrue("stackTrace", response.isSuccess());
     return response.getBody().getStackFrames().get(0);
@@ -106,10 +103,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
     int threadId = runToFirstBreakpoint(WORK_START_LINE, WORK_LATER_BP_LINE);
     assertEquals("parked at the top of work", WORK_START_LINE, topFrame(threadId).getLine());
 
-    StepOutRequest stepOut = new StepOutRequest();
-    StepOutArguments args = new StepOutArguments();
-    args.setThreadId(threadId);
-    stepOut.setArguments(args);
+    StepOutRequest stepOut = stepOutRequest(threadId);
     assertTrue("stepOut", request(stepOut).isSuccess());
 
     StoppedEvent stopped = awaitStopped();
@@ -123,10 +117,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
     int threadId = runToFirstBreakpoint(HELPER_CALL_LINE, HELPER_BP_LINE);
     assertEquals("parked on the helper() call", HELPER_CALL_LINE, topFrame(threadId).getLine());
 
-    NextRequest next = new NextRequest();
-    NextArguments args = new NextArguments();
-    args.setThreadId(threadId);
-    next.setArguments(args);
+    NextRequest next = nextRequest(threadId);
     assertTrue("next", request(next).isSuccess());
 
     StoppedEvent stopped = awaitStopped();
@@ -141,10 +132,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
     int threadId = runToFirstBreakpoint(WORK_START_LINE);
     assertEquals("parked at the top of work", WORK_START_LINE, topFrame(threadId).getLine());
 
-    NextRequest next = new NextRequest();
-    NextArguments args = new NextArguments();
-    args.setThreadId(threadId);
-    next.setArguments(args);
+    NextRequest next = nextRequest(threadId);
     assertTrue("next", request(next).isSuccess());
 
     StoppedEvent stopped = awaitStopped();
