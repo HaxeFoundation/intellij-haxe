@@ -152,9 +152,8 @@ public class EvalObjectThrowLiveTest {
   public void resumeAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
-    assertTrue("stop carries the thrown text",
-               stopped.getBody().getDescription() != null
-               && stopped.getBody().getDescription().contains("uncaught-object"));
+    String description = stopped.getBody().getDescription();
+    assertTrue("stop carries the thrown text", description != null && description.contains("uncaught-object"));
 
     ContinueRequest resume = new ContinueRequest();
     ContinueArguments cArgs = new ContinueArguments();

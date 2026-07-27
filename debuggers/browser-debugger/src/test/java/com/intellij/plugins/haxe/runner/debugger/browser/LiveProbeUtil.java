@@ -4,10 +4,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
+import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.util.net.NetUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +44,65 @@ final class LiveProbeUtil {
     assertTrue("wrong line: " + top.getLine(), top.getLine() == line);
   }
 
+  static StackTraceRequest stackTraceRequest(int threadId) {
+    StackTraceRequest request = new StackTraceRequest();
+    StackTraceArguments arguments = new StackTraceArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static ScopesRequest scopesRequest(int frameId) {
+    ScopesRequest request = new ScopesRequest();
+    ScopesArguments arguments = new ScopesArguments();
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static VariablesRequest variablesRequest(int variablesReference) {
+    VariablesRequest request = new VariablesRequest();
+    VariablesArguments arguments = new VariablesArguments();
+    arguments.setVariablesReference(variablesReference);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static ContinueRequest continueRequest(int threadId) {
+    ContinueRequest request = new ContinueRequest();
+    ContinueArguments arguments = new ContinueArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static PauseRequest pauseRequest(int threadId) {
+    PauseRequest request = new PauseRequest();
+    PauseArguments arguments = new PauseArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static NextRequest nextRequest(int threadId) {
+    NextRequest request = new NextRequest();
+    NextArguments arguments = new NextArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  /** The next stopped event, or null when none arrives before the timeout. */
+  static StoppedEvent awaitStopped(DapEndpoint endpoint, long millis) throws Exception {
+    long deadline = System.currentTimeMillis() + millis;
+    while (System.currentTimeMillis() < deadline) {
+      if (endpoint.pollEvent(250) instanceof StoppedEvent stopped) {
+        return stopped;
+      }
+    }
+    return null;
+  }
+
   static boolean haxeOnPath() {
     try {
       Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
@@ -47,6 +110,12 @@ final class LiveProbeUtil {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  /** The host page plus its compiled app.js — the two files every probe fixture needs. */
+  static void writePageAndCompile(Path dir, String mainClass) throws Exception {
+    Files.writeString(dir.resolve("index.html"), INDEX_HTML);
+    compileHaxeJs(dir, mainClass, "app.js");
   }
 
   /**

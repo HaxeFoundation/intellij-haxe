@@ -53,9 +53,9 @@ public class ToStringRenderingIT {
       // haxe version ([k => v] on 4.3+, { k => v } on 4.1/4.2), so assert only
       // that the entries' keys and values are present — never the separators.
       String mapPreview = session.variable(on, "meta").getValue();
-      assertTrue("on: a map renders its entries as a content preview, got: " + mapPreview,
-                 mapPreview.contains("build") && mapPreview.contains("92")
-                 && mapPreview.contains("name") && mapPreview.contains("7"));
+      boolean showsEveryEntry = mapPreview.contains("build") && mapPreview.contains("92")
+                                && mapPreview.contains("name") && mapPreview.contains("7");
+      assertTrue("on: a map renders its entries as a content preview, got: " + mapPreview, showsEveryEntry);
 
       // toggle OFF again: back to class names - the flag is truly live
       assertTrue("toggle off accepted",

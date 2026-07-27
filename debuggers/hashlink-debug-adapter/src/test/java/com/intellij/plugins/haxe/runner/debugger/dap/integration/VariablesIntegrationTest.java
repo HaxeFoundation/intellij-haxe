@@ -114,8 +114,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     Variable element = findVariable(variables(callbacks.getVariablesReference()), "0");
     assertNotNull("element 0 present", element);
-    assertTrue("the element names its function (was " + element.getValue() + ")",
-               element.getValue().startsWith("function ") && element.getValue().contains("grab"));
+    String rendered = element.getValue();
+    assertTrue("the element names its function (was " + rendered + ")",
+               rendered.startsWith("function ") && rendered.contains("grab"));
     assertEquals("with the reconstructed signature as its type", "() -> Int", element.getType());
 
     request(new DisconnectRequest());

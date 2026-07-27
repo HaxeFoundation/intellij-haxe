@@ -203,9 +203,9 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // ONew site to mine — construction must fail with a clear, honest message
     Response rejected = evaluateRaw(frameId, "new Config()");
     assertFalse("uninstantiated class rejected", rejected.isSuccess());
-    assertTrue("message explains the limitation (was: " + rejected.getMessage() + ")",
-               rejected.getMessage().toLowerCase().contains("experimental")
-               || rejected.getMessage().toLowerCase().contains("construct"));
+    String rejection = rejected.getMessage().toLowerCase();
+    boolean namesTheLimit = rejection.contains("experimental") || rejection.contains("construct");
+    assertTrue("message explains the limitation (was: " + rejected.getMessage() + ")", namesTheLimit);
 
     request(new DisconnectRequest());
   }

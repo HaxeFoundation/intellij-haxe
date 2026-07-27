@@ -128,8 +128,8 @@ public class EvalExceptionLiveTest {
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
     assertEquals("stopped for an exception", "exception", stopped.getBody().getReason());
-    assertTrue("carries the thrown text", stopped.getBody().getDescription() != null
-                                          && stopped.getBody().getDescription().contains("uncaught-boom"));
+    String description = stopped.getBody().getDescription();
+    assertTrue("carries the thrown text", description != null && description.contains("uncaught-boom"));
     int threadId = stopped.getBody().getThreadId();
 
     // EXACTLY the IDE's reportStopped sequence — this is where a stall shows

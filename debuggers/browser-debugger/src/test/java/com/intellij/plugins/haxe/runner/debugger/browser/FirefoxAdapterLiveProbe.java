@@ -266,8 +266,7 @@ public class FirefoxAdapterLiveProbe {
   private static Path buildFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-web-probe");
     Files.writeString(dir.resolve(MAIN_HX), WEB_MAIN_HX);
-    Files.writeString(dir.resolve(INDEX_FILE), LiveProbeUtil.INDEX_HTML);
-    LiveProbeUtil.compileHaxeJs(dir, "WebMain", APP_JS);
+    LiveProbeUtil.writePageAndCompile(dir, "WebMain");
     return dir;
   }
 
@@ -850,8 +849,7 @@ public class FirefoxAdapterLiveProbe {
   private static Path buildLoadFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-web-load-probe");
     Files.writeString(dir.resolve("WebLoad.hx"), WEB_LOAD_HX);
-    Files.writeString(dir.resolve(INDEX_FILE), LiveProbeUtil.INDEX_HTML);
-    LiveProbeUtil.compileHaxeJs(dir, "WebLoad", APP_JS);
+    LiveProbeUtil.writePageAndCompile(dir, "WebLoad");
     return dir;
   }
 
