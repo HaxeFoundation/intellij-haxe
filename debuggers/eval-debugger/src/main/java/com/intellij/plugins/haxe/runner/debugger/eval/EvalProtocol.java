@@ -29,21 +29,16 @@ public final class EvalProtocol {
     this.connection = connection;
   }
 
-  public record EvalThread(int id, String name) {
-  }
+  public record EvalThread(int id, String name) {}
 
   public record EvalStackFrame(int id, String name, String source, int line, int column,
-                               int endLine, int endColumn, boolean artificial) {
-  }
+                               int endLine, int endColumn, boolean artificial) {}
 
-  public record EvalScope(int id, String name) {
-  }
+  public record EvalScope(int id, String name) {}
 
-  public record EvalVar(int id, String name, String type, String value, int numChildren) {
-  }
+  public record EvalVar(int id, String name, String type, String value, int numChildren) {}
 
-  public record EvalBreakpoint(int id) {
-  }
+  public record EvalBreakpoint(int id) {}
 
   // --- run control ---
 

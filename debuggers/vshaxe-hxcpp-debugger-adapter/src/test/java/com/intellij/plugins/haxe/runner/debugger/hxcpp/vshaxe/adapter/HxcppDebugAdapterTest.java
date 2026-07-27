@@ -103,8 +103,7 @@ public class HxcppDebugAdapterTest {
 
       try (DapClient client = new DapClient(new DapConnection(clientSide))) {
         Response response = client.sendRequest(new LaunchRequest(), TIMEOUT);
-        assertFalse(response.isSuccess());
-        assertTrue(response.getMessage(), response.getMessage().contains("did not connect"));
+        assertFailedWith(response, "did not connect");
       } finally {
         listener.close();
       }
@@ -434,8 +433,7 @@ public class HxcppDebugAdapterTest {
     SetVariableRequest setRequest = new SetVariableRequest();
     setRequest.setArguments(setArguments);
     Response response = dapClient.sendRequest(setRequest, TIMEOUT);
-    assertFalse(response.isSuccess());
-    assertTrue(response.getMessage(), response.getMessage().contains("Stale"));
+    assertFailedWith(response, "Stale");
   }
 
   @Test
@@ -556,8 +554,7 @@ public class HxcppDebugAdapterTest {
     EvaluateRequest request = new EvaluateRequest();
     request.setArguments(arguments);
     Response response = dapClient.sendRequest(request, TIMEOUT);
-    assertFalse(response.isSuccess());
-    assertTrue(response.getMessage(), response.getMessage().contains("TOP stack frame"));
+    assertFailedWith(response, "TOP stack frame");
   }
 
   @Test
@@ -667,8 +664,7 @@ public class HxcppDebugAdapterTest {
       throw new RuntimeException("boom");
     });
     Response response = dapClient.sendRequest(new ThreadsRequest(), TIMEOUT);
-    assertFalse(response.isSuccess());
-    assertTrue(response.getMessage(), response.getMessage().contains("boom"));
+    assertFailedWith(response, "boom");
   }
 
   @Test
@@ -707,5 +703,11 @@ public class HxcppDebugAdapterTest {
     StoppedEvent stopped = (StoppedEvent)awaitEvent(StoppedEvent.class);
     assertNotNull(stopped);
     assertNull(stopped.getBody().getDescription());
+  }
+
+  /** The request failed, and its message names the cause. */
+  private static void assertFailedWith(Response response, String expected) {
+    assertFalse("expected failure, got success", response.isSuccess());
+    assertTrue(response.getMessage(), response.getMessage().contains(expected));
   }
 }

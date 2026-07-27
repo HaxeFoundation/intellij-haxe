@@ -28,10 +28,10 @@ public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
-    assertEquals("qualified static in an operator expression", "3", evaluate(frameId, "Point.axes + 1"));
-    assertEquals("two qualified statics", "4", evaluate(frameId, "Point.axes + Point.axes"));
-    assertEquals("unqualified static in an operator expression", "3", evaluate(frameId, "axes + 1"));
-    assertEquals("mixed with an instance field", "12", evaluate(frameId, "x + Point.axes"));
+    assertEquals("qualified static in an operator expression", "3", evaluated(frameId, "Point.axes + 1"));
+    assertEquals("two qualified statics", "4", evaluated(frameId, "Point.axes + Point.axes"));
+    assertEquals("unqualified static in an operator expression", "3", evaluated(frameId, "axes + 1"));
+    assertEquals("mixed with an instance field", "12", evaluated(frameId, "x + Point.axes"));
   }
 
   /** The packaged shape the user hits: a dotted class path as the root. */
@@ -40,9 +40,9 @@ public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
-    assertEquals("dotted class path + literal", "100", evaluate(frameId, "pkg.Deep.marker + 1"));
-    assertEquals("two dotted class paths", "141", evaluate(frameId, "pkg.Deep.marker + pkg.Deep.CONSTANT"));
-    assertEquals("unqualified statics", "141", evaluate(frameId, "marker + CONSTANT"));
+    assertEquals("dotted class path + literal", "100", evaluated(frameId, "pkg.Deep.marker + 1"));
+    assertEquals("two dotted class paths", "141", evaluated(frameId, "pkg.Deep.marker + pkg.Deep.CONSTANT"));
+    assertEquals("unqualified statics", "141", evaluated(frameId, "marker + CONSTANT"));
   }
 
   /** A static frame has no `this`, so these always worked — keep them working. */
@@ -51,18 +51,7 @@ public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
-    assertEquals("qualified", "8", evaluate(frameId, "Config.version + 1"));
-    assertEquals("unqualified", "8", evaluate(frameId, "version + 1"));
-  }
-
-  private String evaluate(int frameId, String expression) throws Exception {
-    EvaluateRequest request = new EvaluateRequest();
-    EvaluateArguments args = new EvaluateArguments();
-    args.setExpression(expression);
-    args.setFrameId(frameId);
-    request.setArguments(args);
-    Response response = request(request);
-    assertTrue("evaluate '" + expression + "': " + response.getMessage(), response.isSuccess());
-    return ((EvaluateResponse)response).getBody().getResult();
+    assertEquals("qualified", "8", evaluated(frameId, "Config.version + 1"));
+    assertEquals("unqualified", "8", evaluated(frameId, "version + 1"));
   }
 }
