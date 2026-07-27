@@ -26,7 +26,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void stepInTargetsListsTheCallsOnTheLineInExecutionOrder() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
-    int frameId = newestFrameId(atDemo.getBody().getThreadId());
+    int frameId = topFrameId(atDemo.getBody().getThreadId());
 
     List<StepInTarget> targets = requestStepInTargets(frameId);
 
@@ -46,7 +46,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
     // `fn()` has no static callee (OCallClosure): the target list resolves
     // the closure's RUNTIME fun pointer and labels it with the actual function
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_CALL_LINE);
-    List<StepInTarget> targets = requestStepInTargets(newestFrameId(atCall.getBody().getThreadId()));
+    List<StepInTarget> targets = requestStepInTargets(topFrameId(atCall.getBody().getThreadId()));
 
     assertTrue("the closure's runtime target is offered (targets: " + targets + ")",
                targets.stream().anyMatch(t -> t.getLabel().endsWith("Holder.grab")));
@@ -58,18 +58,14 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
   public void stepInWithATargetIdEntersTheChosenCallSkippingTheOnesBefore() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();
-    List<StepInTarget> targets = requestStepInTargets(newestFrameId(threadId));
+    List<StepInTarget> targets = requestStepInTargets(topFrameId(threadId));
 
     StepInTarget richDemo = targets.stream()
       .filter(t -> t.getLabel().endsWith("Rich.demo"))
       .findFirst()
       .orElseThrow();
 
-    StepInRequest stepIn = new StepInRequest();
-    StepInArguments arguments = new StepInArguments();
-    arguments.setThreadId(threadId);
-    arguments.setTargetId(richDemo.getId());
-    stepIn.setArguments(arguments);
+    StepInRequest stepIn = stepInRequest(threadId, richDemo.getId());
     assertTrue("targeted stepIn accepted", request(stepIn).isSuccess());
     StoppedEvent landed = awaitStopped();
 
@@ -91,25 +87,18 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
   public void aFinishedCallIsNotOfferedAgainAfterSteppingOut() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();
-    List<StepInTarget> targets = requestStepInTargets(newestFrameId(threadId));
+    List<StepInTarget> targets = requestStepInTargets(topFrameId(threadId));
     StepInTarget first = targets.get(0); // Main.throwDemo, per the ordering test
 
-    StepInRequest stepIn = new StepInRequest();
-    StepInArguments stepInArguments = new StepInArguments();
-    stepInArguments.setThreadId(threadId);
-    stepInArguments.setTargetId(first.getId());
-    stepIn.setArguments(stepInArguments);
+    StepInRequest stepIn = stepInRequest(threadId, first.getId());
     assertTrue("targeted stepIn accepted", request(stepIn).isSuccess());
     awaitStopped(); // inside the chosen callee
 
-    StepOutRequest stepOut = new StepOutRequest();
-    StepOutArguments stepOutArguments = new StepOutArguments();
-    stepOutArguments.setThreadId(threadId);
-    stepOut.setArguments(stepOutArguments);
+    StepOutRequest stepOut = stepOutRequest(threadId);
     assertTrue("stepOut accepted", request(stepOut).isSuccess());
     StoppedEvent back = awaitStopped(); // back on the demo line, at the finished call's return
 
-    List<StepInTarget> after = requestStepInTargets(newestFrameId(back.getBody().getThreadId()));
+    List<StepInTarget> after = requestStepInTargets(topFrameId(back.getBody().getThreadId()));
     assertFalse("the finished call is not offered again (targets: " + after + ")",
                 after.stream().anyMatch(t -> t.getLabel().equals(first.getLabel())));
     assertTrue("the later calls on the line are still offered (targets: " + after + ")",
@@ -118,16 +107,8 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  private int newestFrameId(int threadId) throws Exception {
-    return stackTrace(threadId).getBody().getStackFrames().get(0).getId();
-  }
-
   private List<StepInTarget> requestStepInTargets(int frameId) throws Exception {
-    StepInTargetsRequest request = new StepInTargetsRequest();
-    StepInTargetsArguments arguments = new StepInTargetsArguments();
-    arguments.setFrameId(frameId);
-    request.setArguments(arguments);
-    var response = request(request);
+    var response = request(stepInTargetsRequest(frameId));
     assertTrue("stepInTargets succeeds", response.isSuccess());
     assertTrue("typed response", response instanceof StepInTargetsResponse);
     return ((StepInTargetsResponse)response).getBody().getTargets();

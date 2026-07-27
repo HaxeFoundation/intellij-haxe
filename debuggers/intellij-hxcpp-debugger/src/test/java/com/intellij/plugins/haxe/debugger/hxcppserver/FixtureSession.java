@@ -220,12 +220,70 @@ final class FixtureSession implements AutoCloseable {
     return stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 0;
   }
 
-  void resume(int threadId) throws IOException, InterruptedException {
+  // --- request factories: the build/set/assign dance, named once each -------
+
+  static ContinueRequest continueRequest(int threadId) {
     ContinueRequest request = new ContinueRequest();
     ContinueArguments arguments = new ContinueArguments();
     arguments.setThreadId(threadId);
     request.setArguments(arguments);
-    assertTrue("continue", request(request).isSuccess());
+    return request;
+  }
+
+  static NextRequest nextRequest(int threadId) {
+    NextRequest request = new NextRequest();
+    NextArguments arguments = new NextArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static StepInRequest stepInRequest(int threadId) {
+    StepInRequest request = new StepInRequest();
+    StepInArguments arguments = new StepInArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static StackTraceRequest stackTraceRequest(int threadId) {
+    StackTraceRequest request = new StackTraceRequest();
+    StackTraceArguments arguments = new StackTraceArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static ScopesRequest scopesRequest(int frameId) {
+    ScopesRequest request = new ScopesRequest();
+    ScopesArguments arguments = new ScopesArguments();
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static VariablesRequest variablesRequest(int variablesReference) {
+    VariablesRequest request = new VariablesRequest();
+    VariablesArguments arguments = new VariablesArguments();
+    arguments.setVariablesReference(variablesReference);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  static SetVariableRequest setVariableRequest(int variablesReference, String name, String value) {
+    SetVariableRequest request = new SetVariableRequest();
+    SetVariableArguments arguments = new SetVariableArguments();
+    arguments.setVariablesReference(variablesReference);
+    arguments.setName(name);
+    arguments.setValue(value);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  // --- run control ---
+
+  void resume(int threadId) throws IOException, InterruptedException {
+    assertTrue("continue", request(continueRequest(threadId)).isSuccess());
   }
 
   void pause() throws IOException, InterruptedException {
@@ -233,29 +291,17 @@ final class FixtureSession implements AutoCloseable {
   }
 
   void next(int threadId) throws IOException, InterruptedException {
-    NextRequest request = new NextRequest();
-    NextArguments arguments = new NextArguments();
-    arguments.setThreadId(threadId);
-    request.setArguments(arguments);
-    assertTrue("next", request(request).isSuccess());
+    assertTrue("next", request(nextRequest(threadId)).isSuccess());
   }
 
   void stepIn(int threadId) throws IOException, InterruptedException {
-    StepInRequest request = new StepInRequest();
-    StepInArguments arguments = new StepInArguments();
-    arguments.setThreadId(threadId);
-    request.setArguments(arguments);
-    assertTrue("stepIn", request(request).isSuccess());
+    assertTrue("stepIn", request(stepInRequest(threadId)).isSuccess());
   }
 
   // --- inspection ---
 
   List<StackFrame> stackTrace(int threadId) throws IOException, InterruptedException {
-    StackTraceRequest request = new StackTraceRequest();
-    StackTraceArguments arguments = new StackTraceArguments();
-    arguments.setThreadId(threadId);
-    request.setArguments(arguments);
-    StackTraceResponse response = (StackTraceResponse)request(request);
+    StackTraceResponse response = (StackTraceResponse)request(stackTraceRequest(threadId));
     assertTrue("stackTrace", response.isSuccess());
     return response.getBody().getStackFrames();
   }
@@ -265,21 +311,13 @@ final class FixtureSession implements AutoCloseable {
   }
 
   int localsReference(int frameId) throws IOException, InterruptedException {
-    ScopesRequest request = new ScopesRequest();
-    ScopesArguments arguments = new ScopesArguments();
-    arguments.setFrameId(frameId);
-    request.setArguments(arguments);
-    ScopesResponse response = (ScopesResponse)request(request);
+    ScopesResponse response = (ScopesResponse)request(scopesRequest(frameId));
     assertTrue("scopes", response.isSuccess());
     return response.getBody().getScopes().get(0).getVariablesReference();
   }
 
   List<Variable> variables(int reference) throws IOException, InterruptedException {
-    VariablesRequest request = new VariablesRequest();
-    VariablesArguments arguments = new VariablesArguments();
-    arguments.setVariablesReference(reference);
-    request.setArguments(arguments);
-    VariablesResponse response = (VariablesResponse)request(request);
+    VariablesResponse response = (VariablesResponse)request(variablesRequest(reference));
     assertTrue("variables", response.isSuccess());
     return response.getBody().getVariables();
   }

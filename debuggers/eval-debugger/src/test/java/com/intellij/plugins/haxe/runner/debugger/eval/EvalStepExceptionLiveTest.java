@@ -37,80 +37,14 @@ import org.junit.Test;
  * stack. The fix resumes the VM off the uncaught exception, ending the session
  * cleanly. These tests would HANG (and hit the method timeout) if it regressed.
  */
-public class EvalStepExceptionLiveTest {
+public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
+  @Override
+  protected String fixtureMain() {
+    return "EvalThrow";
+  }
+
   private static final int THROW_LINE = 9;
-  private static final long TIMEOUT = 15_000;
 
-  private EvalDebugAdapter adapter;
-  private DapClient dapClient;
-  private ServerSocket dapListener;
-  private Process haxe;
-
-  private static boolean haxeOnPath() {
-    try {
-      Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
-      return probe.waitFor(10, TimeUnit.SECONDS) && probe.exitValue() == 0;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  private static Path fixtureDir() {
-    String fromGradle = System.getProperty("eval.fixture.src.dir");
-    return fromGradle != null ? Path.of(fromGradle) : Path.of("test-fixtures").toAbsolutePath();
-  }
-
-  @Before
-  public void wire() throws IOException {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
-    Path fixtures = fixtureDir();
-    Assume.assumeTrue("throw fixture missing - skipping", Files.isRegularFile(fixtures.resolve("EvalThrow.hx")));
-
-    adapter = new EvalDebugAdapter(TIMEOUT);
-    haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", "EvalThrow",
-                              "-D", "eval-debugger=127.0.0.1:" + adapter.getVmPort(), "--interp")
-      .redirectErrorStream(true).start();
-    dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
-    Socket clientSide = new Socket(InetAddress.getLoopbackAddress(), dapListener.getLocalPort());
-    adapter.start(new DapConnection(dapListener.accept()));
-    dapClient = new DapClient(new DapConnection(clientSide));
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (dapClient != null) {
-      try {
-        dapClient.close();
-      } catch (IOException ignored) {
-      }
-    }
-    if (adapter != null) {
-      adapter.close();
-    }
-    if (haxe != null && !haxe.waitFor(3, TimeUnit.SECONDS)) {
-      haxe.descendants().forEach(ProcessHandle::destroyForcibly);
-      haxe.destroyForcibly();
-      haxe.waitFor(5, TimeUnit.SECONDS);
-    }
-    if (dapListener != null) {
-      dapListener.close();
-    }
-  }
-
-  private Response request(Request request) throws Exception {
-    return dapClient.sendRequest(request, TIMEOUT);
-  }
-
-  private <T extends Event> T awaitEvent(Class<T> type) throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = dapClient.pollEvent(250);
-      if (type.isInstance(event)) {
-        return type.cast(event);
-      }
-    }
-    throw new AssertionError("no " + type.getSimpleName() + " within " + TIMEOUT + "ms");
-  }
 
   /** Runs to the breakpoint on the throw line and returns the stopped thread id. */
   private int stopOnThrowLine() throws Exception {
@@ -118,7 +52,7 @@ public class EvalStepExceptionLiveTest {
     initialize.setArguments(new InitializeRequestArguments());
     assertTrue("initialize", request(initialize).isSuccess());
     dapClient.pollEvent(TIMEOUT);
-    assertTrue("launch", request(new LaunchRequest()).isSuccess());
+    launch();
 
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
@@ -130,7 +64,7 @@ public class EvalStepExceptionLiveTest {
     bpArgs.setBreakpoints(List.of(breakpoint));
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
     return stopped.getBody().getThreadId();
@@ -138,28 +72,12 @@ public class EvalStepExceptionLiveTest {
 
   @Test(timeout = 60_000)
   public void steppingOverAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
-    stepUntilTerminated(this::nextRequestFor);
+    stepUntilTerminated(EvalLiveTestBase::nextRequest);
   }
 
   @Test(timeout = 60_000)
   public void steppingIntoAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
-    stepUntilTerminated(this::stepInRequestFor);
-  }
-
-  private Request nextRequestFor(int threadId) {
-    NextRequest next = new NextRequest();
-    NextArguments args = new NextArguments();
-    args.setThreadId(threadId);
-    next.setArguments(args);
-    return next;
-  }
-
-  private Request stepInRequestFor(int threadId) {
-    StepInRequest stepIn = new StepInRequest();
-    StepInArguments args = new StepInArguments();
-    args.setThreadId(threadId);
-    stepIn.setArguments(args);
-    return stepIn;
+    stepUntilTerminated(EvalLiveTestBase::stepInRequest);
   }
 
   /**
@@ -211,10 +129,7 @@ public class EvalStepExceptionLiveTest {
     // code, so a step-into walk can visit more stops than any fixed budget.
     // That is not a wedge — the invariant is that the session stays
     // CONTROLLABLE: a continue from anywhere in that walk must end it.
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments cArgs = new ContinueArguments();
-    cArgs.setThreadId(threadId);
-    resume.setArguments(cArgs);
+    ContinueRequest resume = continueRequest(threadId);
 
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
@@ -223,7 +138,7 @@ public class EvalStepExceptionLiveTest {
     assertTrue("continue after the walk answered (success), was: " + resumed.getMessage(),
                resumed.isSuccess());
 
-    awaitEvent(TerminatedEvent.class);
+    awaitTerminated();
     haxe.waitFor(3, TimeUnit.SECONDS);
   }
 
@@ -237,14 +152,11 @@ public class EvalStepExceptionLiveTest {
     initialize.setArguments(new InitializeRequestArguments());
     assertTrue("initialize", request(initialize).isSuccess());
     dapClient.pollEvent(TIMEOUT);
-    assertTrue("launch", request(new LaunchRequest()).isSuccess());
+    launch();
 
-    SetExceptionBreakpointsRequest exceptions = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments exArgs = new SetExceptionBreakpointsArguments();
-    exArgs.setFilters(List.of("uncaught"));
-    exceptions.setArguments(exArgs);
+    SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(List.of("uncaught"));
     assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
     assertTrue("stopped for the exception, was: " + stopped.getBody().getReason(),
@@ -266,7 +178,7 @@ public class EvalStepExceptionLiveTest {
 
     for (int press = 0; press < 6; press++) {
       long before = System.currentTimeMillis();
-      Response step = request(stepInRequestFor(threadId));
+      Response step = request(stepInRequest(threadId));
       long elapsed = System.currentTimeMillis() - before;
       assertTrue("step press #" + press + " answered promptly, no stall (was " + elapsed + "ms)",
                  elapsed < 8_000);
@@ -304,19 +216,13 @@ public class EvalStepExceptionLiveTest {
     long before = System.currentTimeMillis();
     assertTrue(label + ": threads answered", request(new ThreadsRequest()).isSuccess());
 
-    StackTraceRequest stackTrace = new StackTraceRequest();
-    StackTraceArguments stArgs = new StackTraceArguments();
-    stArgs.setThreadId(threadId);
-    stackTrace.setArguments(stArgs);
+    StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
     assertTrue(label + ": stackTrace answered", stResponse.isSuccess());
 
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
     if (!frames.isEmpty()) {
-      ScopesRequest scopes = new ScopesRequest();
-      ScopesArguments scArgs = new ScopesArguments();
-      scArgs.setFrameId(frames.get(0).getId());
-      scopes.setArguments(scArgs);
+      ScopesRequest scopes = scopesRequest(frames.get(0).getId());
 
       Response scopesResponse = request(scopes);
 
@@ -324,21 +230,14 @@ public class EvalStepExceptionLiveTest {
       // request must come back rather than sit on the VM timeout
       if (scopesResponse.isSuccess()) {
         for (Scope scope : ((ScopesResponse)scopesResponse).getBody().getScopes()) {
-          VariablesRequest variables = new VariablesRequest();
-          VariablesArguments vArgs = new VariablesArguments();
-          vArgs.setVariablesReference(scope.getVariablesReference());
-          variables.setArguments(vArgs);
+          VariablesRequest variables = variablesRequest(scope.getVariablesReference());
           request(variables); // success optional; promptness is the contract
         }
       }
       // watches / inline values: the IDE re-EVALUATES these on every stop —
       // a wedged evaluate burns a full VM timeout per watch, which is the
       // multi-10s freeze shape the user reported
-      EvaluateRequest watch = new EvaluateRequest();
-      EvaluateArguments evArgs = new EvaluateArguments();
-      evArgs.setExpression("1 + 1");
-      evArgs.setFrameId(frames.get(0).getId());
-      watch.setArguments(evArgs);
+      EvaluateRequest watch = evaluateRequest(frames.get(0).getId(), "1 + 1");
       request(watch); // success optional; promptness is the contract
     }
     long elapsed = System.currentTimeMillis() - before;
@@ -356,7 +255,7 @@ public class EvalStepExceptionLiveTest {
 
     for (int press = 0; press < 2; press++) {
       long before = System.currentTimeMillis();
-      Response step = request(stepInRequestFor(threadId));
+      Response step = request(stepInRequest(threadId));
       long elapsed = System.currentTimeMillis() - before;
       assertTrue("step press #" + press + " answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
       assertTrue("step press #" + press + " answered (success)", step.isSuccess());
@@ -369,17 +268,14 @@ public class EvalStepExceptionLiveTest {
       }
     }
 
-    ContinueRequest resume = new ContinueRequest();
-    ContinueArguments cArgs = new ContinueArguments();
-    cArgs.setThreadId(threadId);
-    resume.setArguments(cArgs);
+    ContinueRequest resume = continueRequest(threadId);
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
     long elapsed = System.currentTimeMillis() - before;
     assertTrue("resume answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
     assertTrue("resume answered (success)", resumed.isSuccess());
 
-    awaitEvent(TerminatedEvent.class);
+    awaitTerminated();
     assertTrue("haxe exited after the resume", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
   }
 }

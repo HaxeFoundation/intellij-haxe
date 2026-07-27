@@ -27,8 +27,8 @@ public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {
   public void uncaughtOnlySkipsCaughtAndStopsOnUncaught() throws Exception {
     initialize();
     assertTrue("launch succeeds", launch(uncaughtFixtureHl.toString()).isSuccess());
-    assertTrue("uncaught filter enabled", request(exceptionBreakpoints("uncaught")).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue("uncaught filter enabled", request(exceptionBreakpointsRequest(List.of("uncaught"))).isSuccess());
+    configurationDone();
 
     // "caught-one" (thrown inside a try) is skipped; the stop is on "uncaught-one"
     StoppedEvent stopped = awaitStopped();
@@ -38,13 +38,5 @@ public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {
                description != null && description.contains("uncaught-one"));
 
     request(new DisconnectRequest());
-  }
-
-  private static SetExceptionBreakpointsRequest exceptionBreakpoints(String... filters) {
-    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
-    arguments.setFilters(List.of(filters));
-    request.setArguments(arguments);
-    return request;
   }
 }

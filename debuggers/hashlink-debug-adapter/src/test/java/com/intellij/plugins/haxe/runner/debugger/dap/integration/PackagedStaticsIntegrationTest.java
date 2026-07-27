@@ -30,9 +30,9 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
-    assertEquals("static var, unqualified", "99", evaluate(frameId, "marker"));
-    assertEquals("static final, unqualified", "42", evaluate(frameId, "CONSTANT"));
-    assertEquals("still resolvable qualified", "99", evaluate(frameId, "pkg.Deep.marker"));
+    assertEquals("static var, unqualified", "99", evaluated(frameId, "marker"));
+    assertEquals("static final, unqualified", "42", evaluated(frameId, "CONSTANT"));
+    assertEquals("still resolvable qualified", "99", evaluated(frameId, "pkg.Deep.marker"));
   }
 
   /** The same mapping drives the Statics scope, so it must appear here too. */
@@ -53,21 +53,10 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
   public void unqualifiedStaticsKeepWorkingElsewhere() throws Exception {
     StoppedEvent atInstance = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
     assertEquals("top-level class, instance frame", "2",
-                 evaluate(topFrameId(atInstance.getBody().getThreadId()), "axes"));
+                 evaluated(topFrameId(atInstance.getBody().getThreadId()), "axes"));
 
     StoppedEvent atStatic = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
     assertEquals("top-level class, static frame", "7",
-                 evaluate(topFrameId(atStatic.getBody().getThreadId()), "version"));
-  }
-
-  private String evaluate(int frameId, String expression) throws Exception {
-    EvaluateRequest request = new EvaluateRequest();
-    EvaluateArguments args = new EvaluateArguments();
-    args.setExpression(expression);
-    args.setFrameId(frameId);
-    request.setArguments(args);
-    Response response = request(request);
-    assertTrue("evaluate '" + expression + "': " + response.getMessage(), response.isSuccess());
-    return ((EvaluateResponse)response).getBody().getResult();
+                 evaluated(topFrameId(atStatic.getBody().getThreadId()), "version"));
   }
 }

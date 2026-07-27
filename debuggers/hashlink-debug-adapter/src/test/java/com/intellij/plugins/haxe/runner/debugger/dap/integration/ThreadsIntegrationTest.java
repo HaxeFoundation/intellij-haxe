@@ -37,7 +37,7 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     initialize();
     assertTrue("launch succeeds", launch(threadsFixtureHl.toString()).isSuccess());
     assertTrue("breakpoint set", setBreakpoint("Threads.hx", WORKER_LINE).isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
     StoppedEvent stopped = awaitStopped();
     int stoppedThreadId = stopped.getBody().getThreadId();
 
@@ -73,7 +73,7 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     initialize();
     assertTrue("launch succeeds", launch(threadsFixtureHl.toString()).isSuccess());
     assertTrue("breakpoint set", setBreakpoint("Threads.hx", BLOCK_LINE).isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     int threadId = awaitStopped().getBody().getThreadId(); // stopped ON gate.wait()
 

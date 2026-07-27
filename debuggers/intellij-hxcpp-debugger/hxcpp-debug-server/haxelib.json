@@ -9,7 +9,7 @@
 	"contributors": ["m0rkeulv"],
 	"classPath": "src",
 	"dependencies": {
-		"intellij-dap-protocol": "0.1.0",
+		"intellij-dap-protocol": "",
 		"hscript": "2.7.0"
 	}
 }

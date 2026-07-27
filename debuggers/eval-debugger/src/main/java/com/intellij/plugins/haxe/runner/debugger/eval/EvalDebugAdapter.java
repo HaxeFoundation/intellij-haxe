@@ -17,6 +17,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
+import com.intellij.plugins.haxe.runner.debugger.eval.EvalProtocol.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -295,7 +296,7 @@ public class EvalDebugAdapter implements Closeable {
       lines[i] = requested.get(i).getLine();
       lineSet.add(requested.get(i).getLine());
     }
-    List<EvalProtocol.EvalBreakpoint> registered = vm().setBreakpoints(file, lines);
+    List<EvalBreakpoint> registered = vm().setBreakpoints(file, lines);
     // mirror for the step loops; setBreakpoints REPLACES the file's set
     breakpointLines.put(DapPaths.toMatchKey(file), lineSet);
 
@@ -454,7 +455,7 @@ public class EvalDebugAdapter implements Closeable {
 
   private void handleThreads(ThreadsRequest request) throws IOException {
     List<DapThread> dapThreads = new ArrayList<>();
-    for (EvalProtocol.EvalThread thread : vm().getThreads()) {
+    for (EvalThread thread : vm().getThreads()) {
       DapThread dapThread = new DapThread();
       dapThread.setId(thread.id());
       dapThread.setName(thread.name());
@@ -470,7 +471,7 @@ public class EvalDebugAdapter implements Closeable {
   private void handleStackTrace(StackTraceRequest request) throws IOException {
     int threadId = request.getArguments().getThreadId();
     List<StackFrame> stackFrames = new ArrayList<>();
-    for (EvalProtocol.EvalStackFrame frame : vm().stackTrace(threadId)) {
+    for (EvalStackFrame frame : vm().stackTrace(threadId)) {
       if (frame.artificial()) {
         continue; // interpreter-internal frames are noise to the user
       }
@@ -497,7 +498,7 @@ public class EvalDebugAdapter implements Closeable {
 
   private void handleScopes(ScopesRequest request) throws IOException {
     List<Scope> scopes = new ArrayList<>();
-    for (EvalProtocol.EvalScope scopeInfo : vm().getScopes(request.getArguments().getFrameId())) {
+    for (EvalScope scopeInfo : vm().getScopes(request.getArguments().getFrameId())) {
       Scope scope = new Scope();
       scope.setName(scopeInfo.name());
       scope.setVariablesReference(scopeInfo.id());
@@ -513,7 +514,7 @@ public class EvalDebugAdapter implements Closeable {
 
   private void handleVariables(VariablesRequest request) throws IOException {
     List<Variable> variables = new ArrayList<>();
-    for (EvalProtocol.EvalVar var : vm().getVariables(request.getArguments().getVariablesReference())) {
+    for (EvalVar var : vm().getVariables(request.getArguments().getVariablesReference())) {
       rememberReferenceType(var);
       variables.add(toVariable(var));
     }
@@ -667,7 +668,7 @@ public class EvalDebugAdapter implements Closeable {
       FrameSignature start = topFrame(thread);
       for (int step = 0; step < MAX_STEP_IN_SUBSTEPS; step++) {
         vm().stepIn();
-        EvalProtocol.EvalStackFrame top = topStackFrame(thread);
+        EvalStackFrame top = topStackFrame(thread);
         FrameSignature now = signatureOf(top);
         if (exceptionDuringStepText != null) {
           return StepOutcome.STEPPED; // the caller reports the exception stop
@@ -748,11 +749,11 @@ public class EvalDebugAdapter implements Closeable {
         for (int step = 0; step < MAX_SMART_STEP_SUBSTEPS && outcome == StepOutcome.STEPPED; step++) {
           try {
             vm().stepIn();
-            List<EvalProtocol.EvalStackFrame> frames = vm().stackTrace(thread);
+            List<EvalStackFrame> frames = vm().stackTrace(thread);
             if (exceptionDuringStepText != null || frames.isEmpty()) {
               break;
             }
-            EvalProtocol.EvalStackFrame top = frames.get(0);
+            EvalStackFrame top = frames.get(0);
             // even a smart-step walk yields to a user breakpoint on its way
             if (landedOnBreakpoint(top, start)) {
               outcome = StepOutcome.HIT_BREAKPOINT;
@@ -821,7 +822,7 @@ public class EvalDebugAdapter implements Closeable {
       FrameSignature start = topFrame(thread);
       for (int step = 0; step < MAX_SMART_STEP_SUBSTEPS; step++) {
         vm().next();
-        List<EvalProtocol.EvalStackFrame> frames = vm().stackTrace(thread);
+        List<EvalStackFrame> frames = vm().stackTrace(thread);
         if (exceptionDuringStepText != null) {
           return StepOutcome.STEPPED; // the caller reports the exception stop
         }
@@ -836,7 +837,7 @@ public class EvalDebugAdapter implements Closeable {
         if (frames.size() > startDepth) {
           continue; // mid-call bookkeeping frame; keep going
         }
-        EvalProtocol.EvalStackFrame top = frames.get(0);
+        EvalStackFrame top = frames.get(0);
         if (frames.size() < startDepth || reachedNewPosition(top, start)) {
           return StepOutcome.STEPPED; // reached a new line (or returned out of the function)
         }
@@ -863,14 +864,14 @@ public class EvalDebugAdapter implements Closeable {
    */
   private StepOutcome emulatedStepOut(int thread) throws IOException {
     try {
-      List<EvalProtocol.EvalStackFrame> startFrames = vm().stackTrace(thread);
+      List<EvalStackFrame> startFrames = vm().stackTrace(thread);
       int startDepth = startFrames.size();
       String startFunction = startFrames.isEmpty() ? null : startFrames.get(0).name();
       FrameSignature start = startFrames.isEmpty() ? null : signatureOf(startFrames.get(0));
 
       for (int step = 0; step < MAX_SMART_STEP_SUBSTEPS; step++) {
         vm().stepIn();
-        List<EvalProtocol.EvalStackFrame> frames = vm().stackTrace(thread);
+        List<EvalStackFrame> frames = vm().stackTrace(thread);
         if (exceptionDuringStepText != null) {
           return StepOutcome.STEPPED; // the caller reports the exception stop
         }
@@ -916,7 +917,7 @@ public class EvalDebugAdapter implements Closeable {
       // the verb's breakpointStop/exceptionStop right after the verb's
       // response, so it precedes this stackTrace's response on the wire and
       // the single reader thread has dispatched it before this returns
-      EvalProtocol.EvalStackFrame top = topStackFrame(thread);
+      EvalStackFrame top = topStackFrame(thread);
       if (exceptionDuringStepText != null) {
         return StepOutcome.STEPPED; // the caller reports the exception stop
       }
@@ -932,8 +933,8 @@ public class EvalDebugAdapter implements Closeable {
   }
 
   /** The stopped thread's top frame, or null if the stack is unavailable. */
-  private EvalProtocol.EvalStackFrame topStackFrame(int thread) throws IOException {
-    List<EvalProtocol.EvalStackFrame> frames = vm().stackTrace(thread);
+  private EvalStackFrame topStackFrame(int thread) throws IOException {
+    List<EvalStackFrame> frames = vm().stackTrace(thread);
     return frames.isEmpty() ? null : frames.get(0);
   }
 
@@ -942,7 +943,7 @@ public class EvalDebugAdapter implements Closeable {
     return signatureOf(topStackFrame(thread));
   }
 
-  private static FrameSignature signatureOf(EvalProtocol.EvalStackFrame frame) {
+  private static FrameSignature signatureOf(EvalStackFrame frame) {
     return frame == null ? null : new FrameSignature(frame.name(), frame.line());
   }
 
@@ -959,7 +960,7 @@ public class EvalDebugAdapter implements Closeable {
    * report the landing" test used by the step-over / step-into loops and by the
    * breakpoint-landing check (which exempts the step's own starting line).
    */
-  private static boolean reachedNewPosition(EvalProtocol.EvalStackFrame top, FrameSignature start) {
+  private static boolean reachedNewPosition(EvalStackFrame top, FrameSignature start) {
     return start == null || top == null || !start.sameStop(signatureOf(top));
   }
 
@@ -971,7 +972,7 @@ public class EvalDebugAdapter implements Closeable {
    * flag). The step's own STARTING line is exempt either way, so stepping off
    * a line the debuggee is already parked on cannot insta-stop.
    */
-  private boolean landedOnBreakpoint(EvalProtocol.EvalStackFrame top, FrameSignature start) {
+  private boolean landedOnBreakpoint(EvalStackFrame top, FrameSignature start) {
     if (top == null) {
       return false;
     }
@@ -1007,7 +1008,7 @@ public class EvalDebugAdapter implements Closeable {
       sendErrorResponse(request, "String contents are read-only");
       return;
     }
-    EvalProtocol.EvalVar updated = vm().setVariable(
+    EvalVar updated = vm().setVariable(
       arguments.getVariablesReference(), arguments.getName(),
       stripTrailingSemicolons(arguments.getValue()));
     rememberReferenceType(updated);
@@ -1031,7 +1032,7 @@ public class EvalDebugAdapter implements Closeable {
       sendErrorResponse(request, "evaluate requires a frameId (no frame context without a stopped stack)");
       return;
     }
-    EvalProtocol.EvalVar result = vm().evaluate(stripTrailingSemicolons(request.getArguments().getExpression()), frameId);
+    EvalVar result = vm().evaluate(stripTrailingSemicolons(request.getArguments().getExpression()), frameId);
     rememberReferenceType(result);
     EvaluateResponseBody body = new EvaluateResponseBody();
     body.setResult(result.value());
@@ -1122,7 +1123,7 @@ public class EvalDebugAdapter implements Closeable {
   }
 
   /** Remembers the runtime type behind a handed-out variablesReference. */
-  private void rememberReferenceType(EvalProtocol.EvalVar var) {
+  private void rememberReferenceType(EvalVar var) {
     if (var.id() > 0 && var.numChildren() > 0 && var.type() != null) {
       referenceTypes.put(var.id(), var.type());
     }
@@ -1163,7 +1164,7 @@ public class EvalDebugAdapter implements Closeable {
     }
   }
 
-  private static Variable toVariable(EvalProtocol.EvalVar var) {
+  private static Variable toVariable(EvalVar var) {
     Variable variable = new Variable();
     variable.setName(var.name());
     variable.setValue(var.value());

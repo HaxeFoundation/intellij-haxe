@@ -25,7 +25,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
     initialize();
     assertTrue("launch", launch().isSuccess());
     assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i == 2").isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitStopped();
     Map<String, String> locals = localsInTopFrame(stopped.getBody().getThreadId());
@@ -43,7 +43,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
     assertTrue("launch", launch().isSuccess());
     // true on i==1 and i==2 → two stops (total is 0 then 1)
     assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i >= 1 && total < 5").isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     StoppedEvent first = awaitStopped();
     assertEquals("first stop at i==1", "1", localsInTopFrame(first.getBody().getThreadId()).get("i"));
@@ -61,7 +61,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
     initialize();
     assertTrue("launch", launch().isSuccess());
     assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i == 99").isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     // never stops: the program runs straight through to its exit
     boolean exited = false;
@@ -88,7 +88,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
     // `nope` is not in scope: the adapter cannot evaluate the condition and must
     // FAIL SAFE by stopping (a note explains why), never silently skip the hit
     assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "nope > 0").isSuccess());
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     boolean stopped = false;
     boolean sawNote = false;

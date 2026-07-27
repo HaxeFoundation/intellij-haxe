@@ -47,7 +47,7 @@ public class AttachModeIntegrationTest extends DapIntegrationTestBase {
     initialize();
     assertTrue("attach-mode launch succeeds", request(attachLaunch(port)).isSuccess());
     assertTrue("setBreakpoints succeeds", setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
 
     // the loop body runs three times; variables must be readable at a stop
     int stops = 0;
@@ -85,7 +85,7 @@ public class AttachModeIntegrationTest extends DapIntegrationTestBase {
     initialize();
     assertTrue("attach-mode launch succeeds", request(attachLaunch(port)).isSuccess());
     assertTrue("setBreakpoints succeeds", setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    configurationDone();
     awaitStopped();
 
     // disconnect while stopped at a breakpoint: the adapter must restore every

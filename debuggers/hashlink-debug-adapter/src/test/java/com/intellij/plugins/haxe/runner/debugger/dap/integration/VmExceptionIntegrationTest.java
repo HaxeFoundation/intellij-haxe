@@ -34,8 +34,8 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
   public void vmFilterStopsAtTheNullAccessWithTheRealMessageAndLocals() throws Exception {
     initialize();
     assertTrue("launch succeeds", launch(vmFixtureHl.toString()).isSuccess());
-    assertTrue("vm filter enabled", request(exceptionBreakpoints("vm")).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue("vm filter enabled", request(exceptionBreakpointsRequest(List.of("vm"))).isSuccess());
+    configurationDone();
 
     StoppedEvent stopped = awaitStopped();
     assertEquals("stopped for exception", "exception", stopped.getBody().getReason());
@@ -70,8 +70,8 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
     initialize();
     assertTrue("launch succeeds", launch(vmFixtureHl.toString()).isSuccess());
     // the OThrow-based "all" filter has no bytecode throw site to trap here
-    assertTrue("all filter enabled", request(exceptionBreakpoints("all")).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue("all filter enabled", request(exceptionBreakpointsRequest(List.of("all"))).isSuccess());
+    configurationDone();
 
     // the program runs to termination (the null access escapes the OThrow traps)
     // rather than stopping — the very point the vm filter exists to fix
@@ -101,13 +101,5 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
       }
     }
     throw new AssertionError("no '// bp:nullaccess' marker in VmError.hx");
-  }
-
-  private static SetExceptionBreakpointsRequest exceptionBreakpoints(String... filters) {
-    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
-    arguments.setFilters(List.of(filters));
-    request.setArguments(arguments);
-    return request;
   }
 }

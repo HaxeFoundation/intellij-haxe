@@ -25,8 +25,8 @@ public class ExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase 
     assumeFixtureHaxe43Plus();
     initialize();
     assertTrue("launch succeeds", launch().isSuccess());
-    assertTrue("exception filter enabled", request(exceptionBreakpoints("all")).isSuccess());
-    assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue("exception filter enabled", request(exceptionBreakpointsRequest(List.of("all"))).isSuccess());
+    configurationDone();
 
     // the fixture's `throw "boom"` stops the debuggee with reason "exception"
     StoppedEvent stopped = awaitStopped();
@@ -40,13 +40,5 @@ public class ExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase 
     assertEquals("paused in the throwing function", "Main.throwDemo", topFrameName(threadId));
 
     request(new DisconnectRequest());
-  }
-
-  private static SetExceptionBreakpointsRequest exceptionBreakpoints(String... filters) {
-    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
-    arguments.setFilters(List.of(filters));
-    request.setArguments(arguments);
-    return request;
   }
 }
