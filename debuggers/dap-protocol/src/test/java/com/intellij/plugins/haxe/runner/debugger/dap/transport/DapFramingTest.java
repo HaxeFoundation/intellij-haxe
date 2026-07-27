@@ -1,8 +1,9 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.transport;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,7 +11,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DapFramingTest {
   private static final String CRLF = new String(new char[]{13, 10});
@@ -55,12 +56,12 @@ public class DapFramingTest {
     assertNull(DapFraming.readPayload(new ByteArrayInputStream(new byte[0])));
   }
 
-  @Test(expected = EOFException.class)
+  @Test
   public void endOfStreamInsideBodyThrows() throws IOException {
     byte[] frame = DapFraming.encode("{\"seq\":1}");
     byte[] truncated = new byte[frame.length - 4];
     System.arraycopy(frame, 0, truncated, 0, truncated.length);
-    DapFraming.readPayload(new ByteArrayInputStream(truncated));
+    assertThrows(EOFException.class, () -> DapFraming.readPayload(new ByteArrayInputStream(truncated)));
   }
 
   @Test

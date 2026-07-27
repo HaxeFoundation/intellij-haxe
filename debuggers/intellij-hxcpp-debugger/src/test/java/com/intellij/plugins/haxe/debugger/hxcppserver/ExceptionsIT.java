@@ -3,11 +3,11 @@ package com.intellij.plugins.haxe.debugger.hxcppserver;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The M6 exception matrix against the scenario fixture: an uncatchable throw
@@ -26,11 +26,9 @@ public class ExceptionsIT {
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
       assertEquals("Uncaught exception", stopped.getBody().getDescription());
-      assertTrue("the runtime message names the thrown value",
-                 stopped.getBody().getText().contains("boom-uncaught"));
+      assertTrue(stopped.getBody().getText().contains("boom-uncaught"), "the runtime message names the thrown value");
       int threadId = session.stoppedThread(stopped);
-      assertEquals("stopped AT the throw, before unwinding",
-                   FixtureSession.EX_THROW_LINE, session.topFrame(threadId).getLine());
+      assertEquals(FixtureSession.EX_THROW_LINE, session.topFrame(threadId).getLine(), "stopped AT the throw, before unwinding");
 
       // locals at the throw site are inspectable
       assertEquals("42", session.evaluate("marker", session.topFrame(threadId).getId()));
@@ -40,13 +38,13 @@ public class ExceptionsIT {
       arguments.setThreadId(threadId);
       info.setArguments(arguments);
       ExceptionInfoResponse response = (ExceptionInfoResponse)session.request(info);
-      assertTrue("exceptionInfo", response.isSuccess());
+      assertTrue(response.isSuccess(), "exceptionInfo");
       assertEquals("unhandled", response.getBody().getBreakMode());
       assertTrue(response.getBody().getDescription().contains("boom-uncaught"));
 
       // resuming an uncatchable throw unwinds and terminates normally
       session.resume(threadId);
-      assertNotEquals("the program terminated with the error", 0, session.awaitExit());
+      assertNotEquals(0, session.awaitExit(), "the program terminated with the error");
     }
   }
 
@@ -56,8 +54,8 @@ public class ExceptionsIT {
       session.initialize("uncaught", "critical");
       session.configurationDone();
       assertEquals(0, session.awaitExit());
-      assertTrue("the catch ran", session.outputSnapshot().contains("caught:boom-caught"));
-      assertTrue("the program completed", session.outputSnapshot().contains("ex-end"));
+      assertTrue(session.outputSnapshot().contains("caught:boom-caught"), "the catch ran");
+      assertTrue(session.outputSnapshot().contains("ex-end"), "the program completed");
     }
   }
 
@@ -91,7 +89,7 @@ public class ExceptionsIT {
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
       assertEquals("Thrown exception", stopped.getBody().getDescription());
-      assertTrue(stopped.getBody().getText(), stopped.getBody().getText().contains("AppError"));
+      assertTrue(stopped.getBody().getText().contains("AppError"), stopped.getBody().getText());
       assertTrue(stopped.getBody().getText().contains("kaboom"));
 
       // the Exception ctor frames are trimmed: the TOP frame is the throw site
@@ -101,7 +99,7 @@ public class ExceptionsIT {
 
       session.resume(session.stoppedThread(stopped));
       assertEquals(0, session.awaitExit());
-      assertTrue("the catch still ran", session.outputSnapshot().contains("caught-app:kaboom"));
+      assertTrue(session.outputSnapshot().contains("caught-app:kaboom"), "the catch still ran");
     }
   }
 
@@ -120,7 +118,7 @@ public class ExceptionsIT {
 
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
-      assertTrue(stopped.getBody().getText(), stopped.getBody().getText().contains("AppError: kaboom"));
+      assertTrue(stopped.getBody().getText().contains("AppError: kaboom"), stopped.getBody().getText());
 
       session.resume(session.stoppedThread(stopped));
       assertEquals(0, session.awaitExit());
@@ -133,8 +131,8 @@ public class ExceptionsIT {
       session.initialize("uncaught", "critical");
       session.setExceptionFilters(java.util.List.of("uncaught", "critical"), java.util.List.of("SomeOtherError"));
       session.configurationDone();
-      assertEquals("the non-matching construction was resumed silently", 0, session.awaitExit());
-      assertTrue("the catch ran", session.outputSnapshot().contains("caught-app:kaboom"));
+      assertEquals(0, session.awaitExit(), "the non-matching construction was resumed silently");
+      assertTrue(session.outputSnapshot().contains("caught-app:kaboom"), "the catch ran");
     }
   }
 
@@ -154,7 +152,7 @@ public class ExceptionsIT {
       session.setExceptionFilters(java.util.List.of("uncaught", "critical", "thrown"), java.util.List.of());
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
-      assertTrue(stopped.getBody().getText(), stopped.getBody().getText().contains("AppError"));
+      assertTrue(stopped.getBody().getText().contains("AppError"), stopped.getBody().getText());
       session.resume(session.stoppedThread(stopped));
     }
   }
@@ -182,7 +180,7 @@ public class ExceptionsIT {
       assertEquals("breakpoint", insideCatch.getBody().getReason());
       assertEquals(28, session.topFrame(session.stoppedThread(insideCatch)).getLine());
       session.resume(session.stoppedThread(insideCatch));
-      assertEquals("program completes normally", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "program completes normally");
     }
   }
 
@@ -193,7 +191,7 @@ public class ExceptionsIT {
       session.configurationDone();
       // no stop: the program unwinds and dies on its own
       assertNotEquals(0, session.awaitExit());
-      assertTrue("it reached the throw", session.outputSnapshot().contains("ex-start:uncaught"));
+      assertTrue(session.outputSnapshot().contains("ex-start:uncaught"), "it reached the throw");
     }
   }
 }

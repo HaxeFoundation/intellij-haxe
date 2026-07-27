@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class IfTest extends StatementTestBase {
   public IfTest() {

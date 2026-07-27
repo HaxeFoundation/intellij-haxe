@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.ide.inlay.all;
 
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
 import com.intellij.plugins.haxe.ide.inlay.HaxeInlayTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeAllInlayTest extends HaxeInlayTestBase {
 

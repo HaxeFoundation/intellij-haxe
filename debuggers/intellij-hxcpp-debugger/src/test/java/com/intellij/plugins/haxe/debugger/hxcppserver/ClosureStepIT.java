@@ -1,9 +1,9 @@
 package com.intellij.plugins.haxe.debugger.hxcppserver;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Step into a CLOSURE call (`var fn = grab; fn()`), where the callee is only
@@ -28,11 +28,11 @@ public class ClosureStepIT {
       int steppedThread = session.stoppedThread(session.awaitStopped());
       StackFrame top = session.topFrame(steppedThread);
 
-      assertEquals("stepped into the closure's target grab", FixtureSession.CLOSURE_BODY_LINE, top.getLine());
+      assertEquals(FixtureSession.CLOSURE_BODY_LINE, top.getLine(), "stepped into the closure's target grab");
 
       // the session stays healthy: run to a clean exit
       session.resume(steppedThread);
-      assertEquals("clean exit", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "clean exit");
     }
   }
 
@@ -50,11 +50,10 @@ public class ClosureStepIT {
       int steppedThread = session.stoppedThread(session.awaitStopped());
       StackFrame top = session.topFrame(steppedThread);
 
-      assertEquals("stepped into the array element's target grab",
-                   FixtureSession.CLOSURE_BODY_LINE, top.getLine());
+      assertEquals(FixtureSession.CLOSURE_BODY_LINE, top.getLine(), "stepped into the array element's target grab");
 
       session.resume(steppedThread);
-      assertEquals("clean exit", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "clean exit");
     }
   }
 }

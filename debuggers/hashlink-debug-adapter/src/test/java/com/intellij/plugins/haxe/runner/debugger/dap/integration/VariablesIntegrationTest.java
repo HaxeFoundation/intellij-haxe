@@ -1,9 +1,9 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
@@ -14,7 +14,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariableKind;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Reads variable values from a real HashLink debug session and asserts the KNOWN
@@ -31,13 +31,13 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     // first iteration: i=0, count=3, total not yet updated on this line
     Map<String, String> locals = localsInTopFrame(stopped.getBody().getThreadId());
-    assertEquals("count is 3", "3", locals.get("count"));
-    assertEquals("i is 0 on first iteration", "0", locals.get("i"));
-    assertEquals("total is 0 before first add", "0", locals.get("total"));
+    assertEquals("3", locals.get("count"), "count is 3");
+    assertEquals("0", locals.get("i"), "i is 0 on first iteration");
+    assertEquals("0", locals.get("total"), "total is 0 before first add");
 
     // Main.main takes no parameters, so these are classified plain locals (icon hint)
     List<Variable> raw = topFrameVariables(stopped.getBody().getThreadId());
-    assertEquals("count is a local", VariableKind.LOCAL, findVariable(raw, "count").getKind());
+    assertEquals(VariableKind.LOCAL, findVariable(raw, "count").getKind(), "count is a local");
 
     request(new DisconnectRequest());
   }
@@ -47,16 +47,16 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
     // step into add(total, i): its args are stack-passed on Windows x64
-    assertTrue("stepIn accepted", request(stepInRequest(stopped.getBody().getThreadId())).isSuccess());
+    assertTrue(request(stepInRequest(stopped.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     int addThread = awaitStopped().getBody().getThreadId();
     Map<String, String> args = localsInTopFrame(addThread);
-    assertEquals("current arg", "0", args.get("current"));
-    assertEquals("amount arg", "0", args.get("amount"));
+    assertEquals("0", args.get("current"), "current arg");
+    assertEquals("0", args.get("amount"), "amount arg");
 
     // parameters carry the "argument" classification (drives the parameter icon)
     List<Variable> rawArgs = topFrameVariables(addThread);
-    assertEquals("current is an argument", VariableKind.ARGUMENT, findVariable(rawArgs, "current").getKind());
-    assertEquals("amount is an argument", VariableKind.ARGUMENT, findVariable(rawArgs, "amount").getKind());
+    assertEquals(VariableKind.ARGUMENT, findVariable(rawArgs, "current").getKind(), "current is an argument");
+    assertEquals(VariableKind.ARGUMENT, findVariable(rawArgs, "amount").getKind(), "amount is an argument");
 
     request(new DisconnectRequest());
   }
@@ -66,11 +66,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
     Map<String, String> secondStop = localsInTopFrame(continueToNextStop().getBody().getThreadId());
-    assertEquals("i is 1 on second iteration", "1", secondStop.get("i"));
+    assertEquals("1", secondStop.get("i"), "i is 1 on second iteration");
 
     Map<String, String> thirdStop = localsInTopFrame(continueToNextStop().getBody().getThreadId());
-    assertEquals("i is 2 on third iteration", "2", thirdStop.get("i"));
-    assertEquals("total is 1 after two adds", "1", thirdStop.get("total"));
+    assertEquals("2", thirdStop.get("i"), "i is 2 on third iteration");
+    assertEquals("1", thirdStop.get("total"), "total is 1 after two adds");
 
     request(new DisconnectRequest());
   }
@@ -81,18 +81,18 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void expandsObjectFields() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
     Variable p = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "p");
-    assertNotNull("local p present", p);
-    assertTrue("Point is expandable", p.getVariablesReference() > 0);
-    assertEquals("p typed as Point", "Point", p.getType());
-    assertEquals("a frame local is classified local", VariableKind.LOCAL, p.getKind());
+    assertNotNull(p, "local p present");
+    assertTrue(p.getVariablesReference() > 0, "Point is expandable");
+    assertEquals("Point", p.getType(), "p typed as Point");
+    assertEquals(VariableKind.LOCAL, p.getKind(), "a frame local is classified local");
 
     Map<String, String> fields = variablesByName(p.getVariablesReference());
-    assertEquals("Point.x", "10", fields.get("x"));
-    assertEquals("Point.y", "20", fields.get("y"));
-    assertEquals("Point.label", "\"origin\"", fields.get("label"));
+    assertEquals("10", fields.get("x"), "Point.x");
+    assertEquals("20", fields.get("y"), "Point.y");
+    assertEquals("\"origin\"", fields.get("label"), "Point.label");
 
     // an object's members carry the "field" classification (drives the field icon)
-    assertEquals("Point.x is a field", VariableKind.FIELD, findVariable(variables(p.getVariablesReference()), "x").getKind());
+    assertEquals(VariableKind.FIELD, findVariable(variables(p.getVariablesReference()), "x").getKind(), "Point.x is a field");
 
     request(new DisconnectRequest());
   }
@@ -106,15 +106,14 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
     Variable callbacks = findVariable(locals, "callbacks");
-    assertNotNull("local callbacks present in " + locals, callbacks);
-    assertTrue("the array expands", callbacks.getVariablesReference() > 0);
+    assertNotNull(callbacks, "local callbacks present in " + locals);
+    assertTrue(callbacks.getVariablesReference() > 0, "the array expands");
 
     Variable element = findVariable(variables(callbacks.getVariablesReference()), "0");
-    assertNotNull("element 0 present", element);
+    assertNotNull(element, "element 0 present");
     String rendered = element.getValue();
-    assertTrue("the element names its function (was " + rendered + ")",
-               rendered.startsWith("function ") && rendered.contains("grab"));
-    assertEquals("with the reconstructed signature as its type", "() -> Int", element.getType());
+    assertTrue(rendered.startsWith("function ") && rendered.contains("grab"), "the element names its function (was " + rendered + ")");
+    assertEquals("() -> Int", element.getType(), "with the reconstructed signature as its type");
 
     request(new DisconnectRequest());
   }
@@ -128,12 +127,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // faults is unrecoverable, the debug API cannot continue past it.
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
 
-    assertTrue("toggle on accepted",
-               request(SetToStringRenderingRequest.of(true)).isSuccess());
+    assertTrue(request(SetToStringRenderingRequest.of(true)).isSuccess(), "toggle on accepted");
     Variable p = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "p");
-    assertEquals("labels unchanged until the safe rendering lands", "Point", p.getValue());
-    assertTrue("toggle off accepted",
-               request(SetToStringRenderingRequest.of(false)).isSuccess());
+    assertEquals("Point", p.getValue(), "labels unchanged until the safe rendering lands");
+    assertTrue(request(SetToStringRenderingRequest.of(false)).isSuccess(), "toggle off accepted");
 
     request(new DisconnectRequest());
   }
@@ -147,16 +144,16 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // the frame is Config.bump — its Statics scope holds version=7, title="cfg"
     int staticsRef = staticsScopeReference(topFrameId(stopped.getBody().getThreadId()));
     Map<String, String> statics = variablesByName(staticsRef);
-    assertEquals("Config.version", "7", statics.get("version"));
-    assertEquals("Config.title", "\"cfg\"", statics.get("title"));
+    assertEquals("7", statics.get("version"), "Config.version");
+    assertEquals("\"cfg\"", statics.get("title"), "Config.title");
     // the static method sharing the container must not leak into the scope
-    assertFalse("bump() hidden from Statics", statics.containsKey("bump"));
+    assertFalse(statics.containsKey("bump"), "bump() hidden from Statics");
     // ...but a function-TYPED static var (Null<Int->Void>, HFun at runtime) is
     // data, not a method binding, and must stay visible
-    assertTrue("function-typed static var onBump shown", statics.containsKey("onBump"));
+    assertTrue(statics.containsKey("onBump"), "function-typed static var onBump shown");
 
     // static fields carry the "static" classification (drives the static icon)
-    assertEquals("Config.version is static", VariableKind.STATIC, findVariable(variables(staticsRef), "version").getKind());
+    assertEquals(VariableKind.STATIC, findVariable(variables(staticsRef), "version").getKind(), "Config.version is static");
 
     request(new DisconnectRequest());
   }
@@ -167,12 +164,12 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void readsIntArrayElements() throws Exception {
     // Array<Int> -> hl.types.ArrayBytes_Int: elements straight from the bytes
     Variable ints = findVariable(richLocals(), "ints");
-    assertNotNull("local ints present", ints);
-    assertEquals("ints preview", "Array(3)", ints.getValue());
+    assertNotNull(ints, "local ints present");
+    assertEquals("Array(3)", ints.getValue(), "ints preview");
     Map<String, String> elements = variablesByName(ints.getVariablesReference());
-    assertEquals("ints[0]", "2", elements.get("0"));
-    assertEquals("ints[1]", "5", elements.get("1"));
-    assertEquals("ints[2]", "10", elements.get("2"));
+    assertEquals("2", elements.get("0"), "ints[0]");
+    assertEquals("5", elements.get("1"), "ints[1]");
+    assertEquals("10", elements.get("2"), "ints[2]");
 
     request(new DisconnectRequest());
   }
@@ -181,11 +178,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void readsStringArrayElements() throws Exception {
     // Array<String> -> hl.types.ArrayObj: elements typed via the varray's runtime type
     Variable names = findVariable(richLocals(), "names");
-    assertNotNull("local names present", names);
-    assertEquals("names preview", "Array(2)", names.getValue());
+    assertNotNull(names, "local names present");
+    assertEquals("Array(2)", names.getValue(), "names preview");
     Map<String, String> elements = variablesByName(names.getVariablesReference());
-    assertEquals("names[0]", "\"a2\"", elements.get("0"));
-    assertEquals("names[1]", "\"b\"", elements.get("1"));
+    assertEquals("\"a2\"", elements.get("0"), "names[0]");
+    assertEquals("\"b\"", elements.get("1"), "names[1]");
 
     request(new DisconnectRequest());
   }
@@ -194,8 +191,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void unboxesDynamicHoldingAnInt() throws Exception {
     // vdynamic: runtime type @ +0, payload @ +8
     Variable dyn = findVariable(richLocals(), "dyn");
-    assertNotNull("local dyn present", dyn);
-    assertEquals("dyn unboxes via runtime type", "42", dyn.getValue());
+    assertNotNull(dyn, "local dyn present");
+    assertEquals("42", dyn.getValue(), "dyn unboxes via runtime type");
 
     request(new DisconnectRequest());
   }
@@ -203,11 +200,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void readsEnumConstructorAndParams() throws Exception {
     Variable shade = findVariable(richLocals(), "shade");
-    assertNotNull("local shade present", shade);
-    assertEquals("enum inline preview", "Tinted(2, \"red\")", shade.getValue());
+    assertNotNull(shade, "local shade present");
+    assertEquals("Tinted(2, \"red\")", shade.getValue(), "enum inline preview");
     Map<String, String> params = variablesByName(shade.getVariablesReference());
-    assertEquals("Tinted param 0", "2", params.get("0"));
-    assertEquals("Tinted param 1", "\"red\"", params.get("1"));
+    assertEquals("2", params.get("0"), "Tinted param 0");
+    assertEquals("\"red\"", params.get("1"), "Tinted param 1");
 
     request(new DisconnectRequest());
   }
@@ -216,11 +213,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void readsAnonymousStructureFields() throws Exception {
     // anonymous structure (virtual): fields via the indirect pointers
     Variable anon = findVariable(richLocals(), "anon");
-    assertNotNull("local anon present", anon);
-    assertTrue("anon is expandable", anon.getVariablesReference() > 0);
+    assertNotNull(anon, "local anon present");
+    assertTrue(anon.getVariablesReference() > 0, "anon is expandable");
     Map<String, String> fields = variablesByName(anon.getVariablesReference());
-    assertEquals("anon.width", "2", fields.get("width"));
-    assertEquals("anon.tag", "\"t2\"", fields.get("tag"));
+    assertEquals("2", fields.get("width"), "anon.width");
+    assertEquals("\"t2\"", fields.get("tag"), "anon.tag");
 
     request(new DisconnectRequest());
   }
@@ -228,9 +225,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void rendersClosureAsFunction() throws Exception {
     Variable f = findVariable(richLocals(), "f");
-    assertNotNull("local f present", f);
-    assertTrue("closure renders as a function (was " + f.getValue() + ")",
-               f.getValue().startsWith("function"));
+    assertNotNull(f, "local f present");
+    assertTrue(f.getValue().startsWith("function"), "closure renders as a function (was " + f.getValue() + ")");
 
     request(new DisconnectRequest());
   }
@@ -240,10 +236,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // a local mutated by a closure is boxed by genhl into a 1-element array;
     // it must stay inspectable (expand to the current value), not render raw
     Variable captured = findVariable(richLocals(), "captured");
-    assertNotNull("local captured present", captured);
-    assertEquals("capture box preview", "Array(1)", captured.getValue());
+    assertNotNull(captured, "local captured present");
+    assertEquals("Array(1)", captured.getValue(), "capture box preview");
     Map<String, String> box = variablesByName(captured.getVariablesReference());
-    assertEquals("boxed value", "20", box.get("0"));
+    assertEquals("20", box.get("0"), "boxed value");
 
     request(new DisconnectRequest());
   }
@@ -253,8 +249,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // hl.Ref.make(n) yields an HRef(i32) local: the value must read through
     // the indirection, not render as a raw pointer
     Variable byRef = findVariable(richLocals(), "byRef");
-    assertNotNull("local byRef present", byRef);
-    assertEquals("ref-typed local reads its target", "2", byRef.getValue());
+    assertNotNull(byRef, "local byRef present");
+    assertEquals("2", byRef.getValue(), "ref-typed local reads its target");
 
     request(new DisconnectRequest());
   }
@@ -263,11 +259,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void readsDynamicArrayElements() throws Exception {
     // Array<Dynamic> -> hl.types.ArrayDyn: elements via the wrapped ArrayBase
     Variable dynArray = findVariable(richLocals(), "dynArray");
-    assertNotNull("local dynArray present", dynArray);
-    assertEquals("dynArray preview", "Array(2)", dynArray.getValue());
+    assertNotNull(dynArray, "local dynArray present");
+    assertEquals("Array(2)", dynArray.getValue(), "dynArray preview");
     Map<String, String> elements = variablesByName(dynArray.getVariablesReference());
-    assertEquals("dynArray[0] unboxes an Int", "2", elements.get("0"));
-    assertEquals("dynArray[1] is a String", "\"s2\"", elements.get("1"));
+    assertEquals("2", elements.get("0"), "dynArray[0] unboxes an Int");
+    assertEquals("\"s2\"", elements.get("1"), "dynArray[1] is a String");
 
     request(new DisconnectRequest());
   }
@@ -277,11 +273,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // a Dynamic with dynamic field writes is a runtime dynobj: fields are
     // resolved through the hashed lookup table (typedef/anon-through-Dynamic case)
     Variable dynObj = findVariable(richLocals(), "dynObj");
-    assertNotNull("local dynObj present", dynObj);
-    assertTrue("dynObj is expandable (was " + dynObj.getValue() + ")", dynObj.getVariablesReference() > 0);
+    assertNotNull(dynObj, "local dynObj present");
+    assertTrue(dynObj.getVariablesReference() > 0, "dynObj is expandable (was " + dynObj.getValue() + ")");
     Map<String, String> fields = variablesByName(dynObj.getVariablesReference());
-    assertEquals("dynObj.score", "2", fields.get("score"));
-    assertEquals("dynObj.label", "\"d2\"", fields.get("label"));
+    assertEquals("2", fields.get("score"), "dynObj.score");
+    assertEquals("\"d2\"", fields.get("label"), "dynObj.label");
 
     request(new DisconnectRequest());
   }
@@ -289,11 +285,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void readsStringMapEntries() throws Exception {
     Variable map = findVariable(richLocals(), "stringMap");
-    assertNotNull("local stringMap present", map);
-    assertEquals("stringMap preview", "Map(2)", map.getValue());
+    assertNotNull(map, "local stringMap present");
+    assertEquals("Map(2)", map.getValue(), "stringMap preview");
     Map<String, String> entries = variablesByName(map.getVariablesReference());
-    assertEquals("stringMap[a2]", "2", entries.get("\"a2\""));
-    assertEquals("stringMap[b]", "6", entries.get("\"b\""));
+    assertEquals("2", entries.get("\"a2\""), "stringMap[a2]");
+    assertEquals("6", entries.get("\"b\""), "stringMap[b]");
 
     request(new DisconnectRequest());
   }
@@ -301,10 +297,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void readsIntMapEntries() throws Exception {
     Variable map = findVariable(richLocals(), "intMap");
-    assertNotNull("local intMap present", map);
-    assertEquals("intMap preview", "Map(1)", map.getValue());
+    assertNotNull(map, "local intMap present");
+    assertEquals("Map(1)", map.getValue(), "intMap preview");
     Map<String, String> entries = variablesByName(map.getVariablesReference());
-    assertEquals("intMap[2]", "\"v2\"", entries.get("2"));
+    assertEquals("\"v2\"", entries.get("2"), "intMap[2]");
 
     request(new DisconnectRequest());
   }
@@ -313,11 +309,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void readsEnumValueMapEntries() throws Exception {
     // haxe.ds.EnumValueMap is a pure-Haxe balanced tree, walked in order
     Variable map = findVariable(richLocals(), "enumMap");
-    assertNotNull("local enumMap present", map);
-    assertEquals("enumMap preview", "Map(2)", map.getValue());
+    assertNotNull(map, "local enumMap present");
+    assertEquals("Map(2)", map.getValue(), "enumMap preview");
     Map<String, String> entries = variablesByName(map.getVariablesReference());
-    assertEquals("enumMap[Plain]", "2", entries.get("Plain"));
-    assertEquals("enumMap[Tinted(2, \"x\")]", "4", entries.get("Tinted(2, \"x\")"));
+    assertEquals("2", entries.get("Plain"), "enumMap[Plain]");
+    assertEquals("4", entries.get("Tinted(2, \"x\")"), "enumMap[Tinted(2, \"x\")]");
 
     request(new DisconnectRequest());
   }
@@ -327,11 +323,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // a raw hl_bytes_map abstract (StringMap internals, no wrapper): the
     // abstract pointer IS the native map and lists its entries directly
     Variable nativeMap = findVariable(richLocals(), "nativeMap");
-    assertNotNull("local nativeMap present", nativeMap);
-    assertEquals("nativeMap preview", "Map(2)", nativeMap.getValue());
+    assertNotNull(nativeMap, "local nativeMap present");
+    assertEquals("Map(2)", nativeMap.getValue(), "nativeMap preview");
     Map<String, String> entries = variablesByName(nativeMap.getVariablesReference());
-    assertEquals("nativeMap[a2]", "2", entries.get("\"a2\""));
-    assertEquals("nativeMap[b]", "6", entries.get("\"b\""));
+    assertEquals("2", entries.get("\"a2\""), "nativeMap[a2]");
+    assertEquals("6", entries.get("\"b\""), "nativeMap[b]");
 
     request(new DisconnectRequest());
   }
@@ -341,8 +337,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // a Dynamic holding an abstract: the runtime HABSTRACT kind resolves the
     // abstract's name, so the map decodes instead of showing "Dynamic @ 0x…"
     Variable dynAbstract = findVariable(richLocals(), "dynAbstract");
-    assertNotNull("local dynAbstract present", dynAbstract);
-    assertEquals("dynAbstract preview", "Map(2)", dynAbstract.getValue());
+    assertNotNull(dynAbstract, "local dynAbstract present");
+    assertEquals("Map(2)", dynAbstract.getValue(), "dynAbstract preview");
 
     request(new DisconnectRequest());
   }
@@ -352,18 +348,18 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // @:packed field: the Vec2 struct is inlined into the PackedHolder
     // instance — wrong packed offsets would corrupt id/tail too
     Variable holder = findVariable(richLocals(), "holder");
-    assertNotNull("local holder present", holder);
+    assertNotNull(holder, "local holder present");
     Map<String, String> fields = variablesByName(holder.getVariablesReference());
-    assertEquals("holder.id", "2", fields.get("id"));
-    assertEquals("holder.tail", "4", fields.get("tail"));
+    assertEquals("2", fields.get("id"), "holder.id");
+    assertEquals("4", fields.get("tail"), "holder.tail");
 
     Variable pos = findVariable(variables(holder.getVariablesReference()), "pos");
-    assertNotNull("packed field present", pos);
-    assertEquals("packed field typed as the struct", "Vec2", pos.getType());
-    assertTrue("packed field is expandable", pos.getVariablesReference() > 0);
+    assertNotNull(pos, "packed field present");
+    assertEquals("Vec2", pos.getType(), "packed field typed as the struct");
+    assertTrue(pos.getVariablesReference() > 0, "packed field is expandable");
     Map<String, String> vec = variablesByName(pos.getVariablesReference());
-    assertEquals("holder.pos.x", "1.5", vec.get("x"));
-    assertEquals("holder.pos.y", "2.5", vec.get("y"));
+    assertEquals("1.5", vec.get("x"), "holder.pos.x");
+    assertEquals("2.5", vec.get("y"), "holder.pos.y");
 
     request(new DisconnectRequest());
   }
@@ -372,11 +368,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void readsStructLocal() throws Exception {
     // a @:struct class local (HStruct): fields at base 0, no hl_type* header
     Variable vec = findVariable(richLocals(), "vec");
-    assertNotNull("local vec present", vec);
-    assertTrue("struct is expandable", vec.getVariablesReference() > 0);
+    assertNotNull(vec, "local vec present");
+    assertTrue(vec.getVariablesReference() > 0, "struct is expandable");
     Map<String, String> fields = variablesByName(vec.getVariablesReference());
-    assertEquals("vec.x", "3.25", fields.get("x"));
-    assertEquals("vec.y", "7", fields.get("y"));
+    assertEquals("3.25", fields.get("x"), "vec.x");
+    assertEquals("7", fields.get("y"), "vec.y");
 
     request(new DisconnectRequest());
   }
@@ -386,15 +382,15 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // a bound closure (hasValue == 1): the capture environment is a child;
     // here f captures one mutated local, boxed by genhl into a 1-element array
     Variable f = findVariable(richLocals(), "f");
-    assertNotNull("local f present", f);
-    assertTrue("bound closure is expandable", f.getVariablesReference() > 0);
+    assertNotNull(f, "local f present");
+    assertTrue(f.getVariablesReference() > 0, "bound closure is expandable");
 
     Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
-    assertNotNull("captured child present", captured);
-    assertEquals("capture box preview", "Array(1)", captured.getValue());
+    assertNotNull(captured, "captured child present");
+    assertEquals("Array(1)", captured.getValue(), "capture box preview");
 
     Map<String, String> box = variablesByName(captured.getVariablesReference());
-    assertEquals("captured value inside the box", "20", box.get("0"));
+    assertEquals("20", box.get("0"), "captured value inside the box");
 
     request(new DisconnectRequest());
   }
@@ -407,8 +403,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // must be exactly ONE x row, and it is the loop Int
     StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_LOOP_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
-    assertEquals("exactly one x inside the loop", 1, countByName(locals, "x"));
-    assertEquals("the loop Int shadows the outer String", "0", findVariable(locals, "x").getValue());
+    assertEquals(1, countByName(locals, "x"), "exactly one x inside the loop");
+    assertEquals("0", findVariable(locals, "x").getValue(), "the loop Int shadows the outer String");
 
     request(new DisconnectRequest());
   }
@@ -419,9 +415,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // no ghost row tracking the recycled loop register
     StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_AFTER_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
-    assertEquals("exactly one x after the loop", 1, countByName(locals, "x"));
-    assertEquals("the outer String is back", "\"outer3\"", findVariable(locals, "x").getValue());
-    assertEquals("total accumulated across the loop", "3", findVariable(locals, "total").getValue());
+    assertEquals(1, countByName(locals, "x"), "exactly one x after the loop");
+    assertEquals("\"outer3\"", findVariable(locals, "x").getValue(), "the outer String is back");
+    assertEquals("3", findVariable(locals, "total").getValue(), "total accumulated across the loop");
 
     request(new DisconnectRequest());
   }
@@ -433,23 +429,23 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_LOOP_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
     Scope registers = scopeByPrefix(frameId, "Registers");
-    assertNotNull("Registers scope present", registers);
-    assertEquals("DAP presentation hint", "registers", registers.getPresentationHint());
+    assertNotNull(registers, "Registers scope present");
+    assertEquals("registers", registers.getPresentationHint(), "DAP presentation hint");
 
     List<Variable> rows = variables(registers.getVariablesReference());
     // the architecture-neutral CPU subset leads the top frame's list
     Variable sp = findVariable(rows, "SP");
-    assertNotNull("SP present", sp);
-    assertTrue("SP is a hex pointer (was " + sp.getValue() + ")", sp.getValue().startsWith("0x"));
-    assertNotNull("BP present", findVariable(rows, "BP"));
-    assertNotNull("IP present", findVariable(rows, "IP"));
-    assertNotNull("FLAGS present", findVariable(rows, "FLAGS"));
+    assertNotNull(sp, "SP present");
+    assertTrue(sp.getValue().startsWith("0x"), "SP is a hex pointer (was " + sp.getValue() + ")");
+    assertNotNull(findVariable(rows, "BP"), "BP present");
+    assertNotNull(findVariable(rows, "IP"), "IP present");
+    assertNotNull(findVariable(rows, "FLAGS"), "FLAGS present");
 
     // VM registers, annotated with the local currently bound to them
     Variable loopX = findByNameSuffix(rows, "(x)");
-    assertNotNull("a VM register is annotated with the bound local x", loopX);
-    assertEquals("the loop x register holds the iteration value", "0", loopX.getValue());
-    assertNotNull("total's register annotated too", findByNameSuffix(rows, "(total)"));
+    assertNotNull(loopX, "a VM register is annotated with the bound local x");
+    assertEquals("0", loopX.getValue(), "the loop x register holds the iteration value");
+    assertNotNull(findByNameSuffix(rows, "(total)"), "total's register annotated too");
 
     request(new DisconnectRequest());
   }
@@ -461,11 +457,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_ADD_LINE);
     int callerFrameId = stackTrace(stopped.getBody().getThreadId()).getBody().getStackFrames().get(1).getId();
     Scope registers = scopeByPrefix(callerFrameId, "Registers");
-    assertNotNull("caller frame has a Registers scope", registers);
+    assertNotNull(registers, "caller frame has a Registers scope");
 
     List<Variable> rows = variables(registers.getVariablesReference());
-    assertEquals("no thread CPU rows on a caller frame", null, findVariable(rows, "SP"));
-    assertNotNull("caller VM register bound to total", findByNameSuffix(rows, "(total)"));
+    assertEquals(null, findVariable(rows, "SP"), "no thread CPU rows on a caller frame");
+    assertNotNull(findByNameSuffix(rows, "(total)"), "caller VM register bound to total");
 
     request(new DisconnectRequest());
   }
@@ -477,13 +473,13 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("plain local", "2", evaluated(frameId, "n"));
-    assertEquals("array index", "5", evaluated(frameId, "ints[1]"));
-    assertEquals("dynobj field path", "\"d2\"", evaluated(frameId, "dynObj.label"));
-    assertEquals("packed struct path", "1.5", evaluated(frameId, "holder.pos.x"));
+    assertEquals("2", evaluated(frameId, "n"), "plain local");
+    assertEquals("5", evaluated(frameId, "ints[1]"), "array index");
+    assertEquals("\"d2\"", evaluated(frameId, "dynObj.label"), "dynobj field path");
+    assertEquals("1.5", evaluated(frameId, "holder.pos.x"), "packed struct path");
     // a trailing ';' (e.g. pasted from source) is ignored on a single-line expr
-    assertEquals("trailing semicolon ignored", "2", evaluated(frameId, "n;"));
-    assertEquals("trailing semicolon + spaces ignored", "5", evaluated(frameId, "ints[1] ; "));
+    assertEquals("2", evaluated(frameId, "n;"), "trailing semicolon ignored");
+    assertEquals("5", evaluated(frameId, "ints[1] ; "), "trailing semicolon + spaces ignored");
 
     request(new DisconnectRequest());
   }
@@ -497,20 +493,20 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("string element length", "2", evaluated(frameId, "names[0].length"));
-    assertEquals("array length (bytes-backed)", "3", evaluated(frameId, "ints.length"));
-    assertEquals("array length (object-backed)", "2", evaluated(frameId, "names.length"));
-    assertEquals("array length (dynamic)", "2", evaluated(frameId, "dynArray.length"));
+    assertEquals("2", evaluated(frameId, "names[0].length"), "string element length");
+    assertEquals("3", evaluated(frameId, "ints.length"), "array length (bytes-backed)");
+    assertEquals("2", evaluated(frameId, "names.length"), "array length (object-backed)");
+    assertEquals("2", evaluated(frameId, "dynArray.length"), "array length (dynamic)");
     // a push-built Array<String> (not a literal) — the everyday shape
-    assertEquals("pushed array length", "2", evaluated(frameId, "pushed.length"));
-    assertEquals("pushed string element length", "2", evaluated(frameId, "pushed[0].length"));
+    assertEquals("2", evaluated(frameId, "pushed.length"), "pushed array length");
+    assertEquals("2", evaluated(frameId, "pushed[0].length"), "pushed string element length");
     // a String element behind a DYNAMIC slot: the static element type says
     // nothing, the value's own header does — dynArray[1] is "s2"
-    assertEquals("dynamic-slot string length", "2", evaluated(frameId, "dynArray[1].length"));
+    assertEquals("2", evaluated(frameId, "dynArray[1].length"), "dynamic-slot string length");
 
     // a genuinely missing member still fails, with the walk's message
     Response missing = evaluateRaw(frameId, "names[0].nope");
-    assertFalse("bogus member rejected", missing.isSuccess());
+    assertFalse(missing.isSuccess(), "bogus member rejected");
 
     request(new DisconnectRequest());
   }
@@ -521,8 +517,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("string local length", "6", evaluated(frameId, "s.length"));
-    assertEquals("length inside an expression", "7", evaluated(frameId, "s.length + 1"));
+    assertEquals("6", evaluated(frameId, "s.length"), "string local length");
+    assertEquals("7", evaluated(frameId, "s.length + 1"), "length inside an expression");
 
     request(new DisconnectRequest());
   }
@@ -533,10 +529,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // implicit this.field inside Point.move
-    assertEquals("implicit this field", "10", evaluated(frameId, "x"));
-    assertEquals("explicit this path", "20", evaluated(frameId, "this.y"));
+    assertEquals("10", evaluated(frameId, "x"), "implicit this field");
+    assertEquals("20", evaluated(frameId, "this.y"), "explicit this path");
     // static of the owning class
-    assertEquals("class static", "2", evaluated(frameId, "axes"));
+    assertEquals("2", evaluated(frameId, "axes"), "class static");
 
     request(new DisconnectRequest());
   }
@@ -549,36 +545,35 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // top-level class statics read from another class's frame
-    assertEquals("Config.version", "7", evaluated(frameId, "Config.version"));
-    assertEquals("Config.title", "\"cfg\"", evaluated(frameId, "Config.title"));
+    assertEquals("7", evaluated(frameId, "Config.version"), "Config.version");
+    assertEquals("\"cfg\"", evaluated(frameId, "Config.title"), "Config.title");
     // a PACKAGED class: the dotted class prefix spans path segments
-    assertEquals("pkg.Deep.marker", "99", evaluated(frameId, "pkg.Deep.marker"));
+    assertEquals("99", evaluated(frameId, "pkg.Deep.marker"), "pkg.Deep.marker");
     // a function-typed static var (Null<Int->Void>) resolves by FQN — regression:
     // HFun statics were dropped as if they were methods, so this used to fail with
     // `"...Config" has no field "onBump"`
-    assertTrue("Config.onBump resolves", evaluate(frameId, "Config.onBump").isSuccess());
+    assertTrue(evaluate(frameId, "Config.onBump").isSuccess(), "Config.onBump resolves");
 
     // writes resolve through the same prefix (restored right after: the
     // fixture's own output depends on Config.version)
-    assertTrue("Config.version = 41", evaluate(frameId, "Config.version = 41").isSuccess());
-    assertEquals("written static reads back", "41", evaluated(frameId, "Config.version"));
-    assertTrue("Config.version restored", evaluate(frameId, "Config.version = 7").isSuccess());
+    assertTrue(evaluate(frameId, "Config.version = 41").isSuccess(), "Config.version = 41");
+    assertEquals("41", evaluated(frameId, "Config.version"), "written static reads back");
+    assertTrue(evaluate(frameId, "Config.version = 7").isSuccess(), "Config.version restored");
 
     // a bare class name evaluates to its expandable statics container
     EvaluateResponse cls = evaluate(frameId, "Config");
-    assertTrue("class itself is expandable", cls.getBody().getVariablesReference() > 0);
-    assertEquals("version listed under the class", "7",
-                 variablesByName(cls.getBody().getVariablesReference()).get("version"));
+    assertTrue(cls.getBody().getVariablesReference() > 0, "class itself is expandable");
+    assertEquals("7", variablesByName(cls.getBody().getVariablesReference()).get("version"), "version listed under the class");
 
     // unknown roots still fail clearly
     Response unknown = evaluateRaw(frameId, "NoSuchClass.value");
-    assertFalse("unknown class root rejected", unknown.isSuccess());
-    assertTrue("message names the root", unknown.getMessage().contains("NoSuchClass"));
+    assertFalse(unknown.isSuccess(), "unknown class root rejected");
+    assertTrue(unknown.getMessage().contains("NoSuchClass"), "message names the root");
     // machine-readable: the UnresolvedName code + the offending token, so a client
     // can resolve `NoSuchClass` against its own imports and re-issue qualified
     ErrorResponse err = (ErrorResponse)unknown;
-    assertEquals("UnresolvedName code", DebugErrorCode.UNRESOLVED_NAME.id(), err.getBody().getError().getId());
-    assertEquals("offending name in variables", "NoSuchClass", err.getBody().getError().getVariables().get("name"));
+    assertEquals(DebugErrorCode.UNRESOLVED_NAME.id(), err.getBody().getError().getId(), "UnresolvedName code");
+    assertEquals("NoSuchClass", err.getBody().getError().getVariables().get("name"), "offending name in variables");
 
     request(new DisconnectRequest());
   }
@@ -588,15 +583,15 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
     Response unknown = evaluateRaw(frameId, "nosuch");
-    assertFalse("unknown name must be rejected", unknown.isSuccess());
-    assertTrue("message names the variable", unknown.getMessage().contains("nosuch"));
+    assertFalse(unknown.isSuccess(), "unknown name must be rejected");
+    assertTrue(unknown.getMessage().contains("nosuch"), "message names the variable");
 
     Response unknownInExpr = evaluateRaw(frameId, "nosuch + 1");
-    assertFalse("unknown name inside an expression must be rejected", unknownInExpr.isSuccess());
-    assertTrue("message names the variable", unknownInExpr.getMessage().contains("nosuch"));
+    assertFalse(unknownInExpr.isSuccess(), "unknown name inside an expression must be rejected");
+    assertTrue(unknownInExpr.getMessage().contains("nosuch"), "message names the variable");
 
     Response malformed = evaluateRaw(frameId, "n +");
-    assertFalse("malformed expression must be rejected", malformed.isSuccess());
+    assertFalse(malformed.isSuccess(), "malformed expression must be rejected");
 
     request(new DisconnectRequest());
   }
@@ -610,32 +605,32 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // arithmetic on locals, precedence, parentheses
-    assertEquals("n + 1", "6", evaluated(frameId, "n + 1"));
-    assertEquals("n * 2 + 1", "11", evaluated(frameId, "n * 2 + 1"));
-    assertEquals("(n + 1) * 2", "12", evaluated(frameId, "(n + 1) * 2"));
-    assertEquals("division is Float (Haxe)", "2.5", evaluated(frameId, "n / 2"));
-    assertEquals("unary minus", "-5", evaluated(frameId, "-n"));
-    assertEquals("shift", "20", evaluated(frameId, "n << 2"));
+    assertEquals("6", evaluated(frameId, "n + 1"), "n + 1");
+    assertEquals("11", evaluated(frameId, "n * 2 + 1"), "n * 2 + 1");
+    assertEquals("12", evaluated(frameId, "(n + 1) * 2"), "(n + 1) * 2");
+    assertEquals("2.5", evaluated(frameId, "n / 2"), "division is Float (Haxe)");
+    assertEquals("-5", evaluated(frameId, "-n"), "unary minus");
+    assertEquals("20", evaluated(frameId, "n << 2"), "shift");
 
     // fields, statics and class-qualified statics as operands
-    assertEquals("obj.x + obj.y", "3", evaluated(frameId, "obj.x + obj.y"));
+    assertEquals("3", evaluated(frameId, "obj.x + obj.y"), "obj.x + obj.y");
     // Config.bump() already ran by this point, so version is 8 (not the initial 7)
-    assertEquals("Config.version + n", "13", evaluated(frameId, "Config.version + n"));
+    assertEquals("13", evaluated(frameId, "Config.version + n"), "Config.version + n");
 
     // array elements, including a COMPUTED index
-    assertEquals("arr[1] + 1", "11", evaluated(frameId, "arr[1] + 1"));
-    assertEquals("computed index arr[idx]", "10", evaluated(frameId, "arr[idx]"));
-    assertEquals("computed index arr[idx + 1]", "15", evaluated(frameId, "arr[idx + 1]"));
+    assertEquals("11", evaluated(frameId, "arr[1] + 1"), "arr[1] + 1");
+    assertEquals("10", evaluated(frameId, "arr[idx]"), "computed index arr[idx]");
+    assertEquals("15", evaluated(frameId, "arr[idx + 1]"), "computed index arr[idx + 1]");
 
     // comparisons + logic (short-circuit)
-    assertEquals("n > 4", "true", evaluated(frameId, "n > 4"));
-    assertEquals("n == 5 && !flag", "true", evaluated(frameId, "n == 5 && !flag"));
-    assertEquals("flag || n < 3", "false", evaluated(frameId, "flag || n < 3"));
-    assertEquals("string content compare", "true", evaluated(frameId, "obj.label == \"p\""));
+    assertEquals("true", evaluated(frameId, "n > 4"), "n > 4");
+    assertEquals("true", evaluated(frameId, "n == 5 && !flag"), "n == 5 && !flag");
+    assertEquals("false", evaluated(frameId, "flag || n < 3"), "flag || n < 3");
+    assertEquals("true", evaluated(frameId, "obj.label == \"p\""), "string content compare");
 
     // string concat
-    assertEquals("\"n=\" + n", "\"n=5\"", evaluated(frameId, "\"n=\" + n"));
-    assertEquals("label concat", "\"p!\"", evaluated(frameId, "obj.label + \"!\""));
+    assertEquals("\"n=5\"", evaluated(frameId, "\"n=\" + n"), "\"n=\" + n");
+    assertEquals("\"p!\"", evaluated(frameId, "obj.label + \"!\""), "label concat");
 
     request(new DisconnectRequest());
   }
@@ -647,30 +642,29 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // ternary — condition selects the branch, branches are full expressions
-    assertEquals("n > 0 ? ... : ...", "\"pos\"", evaluated(frameId, "n > 0 ? \"pos\" : \"neg\""));
-    assertEquals("false condition takes else", "2", evaluated(frameId, "flag ? 1 : 2"));
-    assertEquals("branch is an expression", "10", evaluated(frameId, "n > 3 ? n * 2 : 0"));
-    assertEquals("ternary right-assoc chain", "\"mid\"",
-                 evaluated(frameId, "n < 0 ? \"lo\" : n > 100 ? \"hi\" : \"mid\""));
+    assertEquals("\"pos\"", evaluated(frameId, "n > 0 ? \"pos\" : \"neg\""), "n > 0 ? ... : ...");
+    assertEquals("2", evaluated(frameId, "flag ? 1 : 2"), "false condition takes else");
+    assertEquals("10", evaluated(frameId, "n > 3 ? n * 2 : 0"), "branch is an expression");
+    assertEquals("\"mid\"", evaluated(frameId, "n < 0 ? \"lo\" : n > 100 ? \"hi\" : \"mid\""), "ternary right-assoc chain");
     // only the taken branch is evaluated: the untaken branch names an unknown
     // variable, which would ERROR if it ran
-    assertEquals("untaken branch is not evaluated", "5", evaluated(frameId, "true ? n : nosuchvar"));
+    assertEquals("5", evaluated(frameId, "true ? n : nosuchvar"), "untaken branch is not evaluated");
 
     // `is` type checks
-    assertEquals("object is its class", "true", evaluated(frameId, "obj is Point"));
-    assertEquals("object is not another class", "false", evaluated(frameId, "obj is String"));
-    assertEquals("int is Int", "true", evaluated(frameId, "n is Int"));
-    assertEquals("int is Float (Haxe)", "true", evaluated(frameId, "n is Float"));
-    assertEquals("int is not Bool", "false", evaluated(frameId, "n is Bool"));
-    assertEquals("field is String", "true", evaluated(frameId, "obj.label is String"));
+    assertEquals("true", evaluated(frameId, "obj is Point"), "object is its class");
+    assertEquals("false", evaluated(frameId, "obj is String"), "object is not another class");
+    assertEquals("true", evaluated(frameId, "n is Int"), "int is Int");
+    assertEquals("true", evaluated(frameId, "n is Float"), "int is Float (Haxe)");
+    assertEquals("false", evaluated(frameId, "n is Bool"), "int is not Bool");
+    assertEquals("true", evaluated(frameId, "obj.label is String"), "field is String");
 
     // combined with logic
-    assertEquals("is in a boolean expression", "true", evaluated(frameId, "obj is Point && n is Int"));
+    assertEquals("true", evaluated(frameId, "obj is Point && n is Int"), "is in a boolean expression");
 
     // an unknown type name is a user error, not a silent false
     Response unknownType = evaluateRaw(frameId, "obj is Nonexistent");
-    assertFalse("unknown type rejected", unknownType.isSuccess());
-    assertTrue("names the unknown type", unknownType.getMessage().contains("Nonexistent"));
+    assertFalse(unknownType.isSuccess(), "unknown type rejected");
+    assertTrue(unknownType.getMessage().contains("Nonexistent"), "names the unknown type");
 
     request(new DisconnectRequest());
   }
@@ -681,16 +675,16 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // expression RHS on a local
-    assertTrue("n = n * 2 + 1", evaluate(frameId, "n = n * 2 + 1").isSuccess());
-    assertEquals("n now 11", "11", evaluated(frameId, "n"));
+    assertTrue(evaluate(frameId, "n = n * 2 + 1").isSuccess(), "n = n * 2 + 1");
+    assertEquals("11", evaluated(frameId, "n"), "n now 11");
 
     // expression RHS on an array element with a COMPUTED index (idx=1)
-    assertTrue("arr[idx] = n + 89", evaluate(frameId, "arr[idx] = n + 89").isSuccess());
-    assertEquals("arr[1] now 100", "100", evaluated(frameId, "arr[1]"));
+    assertTrue(evaluate(frameId, "arr[idx] = n + 89").isSuccess(), "arr[idx] = n + 89");
+    assertEquals("100", evaluated(frameId, "arr[1]"), "arr[1] now 100");
 
     // boolean expression into a Bool local
-    assertTrue("flag = n > 10", evaluate(frameId, "flag = n > 10").isSuccess());
-    assertEquals("flag now true", "true", evaluated(frameId, "flag"));
+    assertTrue(evaluate(frameId, "flag = n > 10").isSuccess(), "flag = n > 10");
+    assertEquals("true", evaluated(frameId, "flag"), "flag now true");
 
     request(new DisconnectRequest());
   }
@@ -703,11 +697,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // arr[i] = x directly (element address is writable) — ints is [2,5,10]
-    assertTrue("ints[0] = 99", evaluate(frameId, "ints[0] = 99").isSuccess());
-    assertEquals("ints[0] now 99", "99", evaluated(frameId, "ints[0]"));
+    assertTrue(evaluate(frameId, "ints[0] = 99").isSuccess(), "ints[0] = 99");
+    assertEquals("99", evaluated(frameId, "ints[0]"), "ints[0] now 99");
     // a path RHS into another element
-    assertTrue("ints[2] = n", evaluate(frameId, "ints[2] = n").isSuccess());
-    assertEquals("ints[2] now n (=2)", "2", evaluated(frameId, "ints[2]"));
+    assertTrue(evaluate(frameId, "ints[2] = n").isSuccess(), "ints[2] = n");
+    assertEquals("2", evaluated(frameId, "ints[2]"), "ints[2] now n (=2)");
 
     request(new DisconnectRequest());
   }
@@ -718,18 +712,18 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // read via a method call: stringMap has "a2"->2, "b"->6
-    assertEquals("stringMap.get(\"b\")", "6", evaluated(frameId, "stringMap.get(\"b\")"));
+    assertEquals("6", evaluated(frameId, "stringMap.get(\"b\")"), "stringMap.get(\"b\")");
     // intMap has 2->"v2"; String values are pointers (no boxing needed)
-    assertEquals("intMap.get(2)", "\"v2\"", evaluated(frameId, "intMap.get(2)"));
+    assertEquals("\"v2\"", evaluated(frameId, "intMap.get(2)"), "intMap.get(2)");
 
     // MUTATE the map via its own method — the value-manipulation prize. A
     // String value is dynamic-compatible, so no boxing is required. The
     // insertion is proven by reading the new key back through get() (a missing
     // key returns null), the honest end-to-end signal.
-    assertEquals("absent key is null before insert", "null", evaluated(frameId, "intMap.get(5)"));
-    assertTrue("intMap.set(5, \"hi\")", evaluate(frameId, "intMap.set(5, \"hi\")").isSuccess());
-    assertEquals("the inserted entry reads back", "\"hi\"", evaluated(frameId, "intMap.get(5)"));
-    assertEquals("pre-existing entry intact", "\"v2\"", evaluated(frameId, "intMap.get(2)"));
+    assertEquals("null", evaluated(frameId, "intMap.get(5)"), "absent key is null before insert");
+    assertTrue(evaluate(frameId, "intMap.set(5, \"hi\")").isSuccess(), "intMap.set(5, \"hi\")");
+    assertEquals("\"hi\"", evaluated(frameId, "intMap.get(5)"), "the inserted entry reads back");
+    assertEquals("\"v2\"", evaluated(frameId, "intMap.get(2)"), "pre-existing entry intact");
 
     request(new DisconnectRequest());
   }
@@ -742,20 +736,20 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(lastStoppedThreadId());
 
     // read: stringMap["b"]==6 (String key), intMap[2]=="v2" (Int key)
-    assertEquals("stringMap[\"b\"]", "6", evaluated(frameId, "stringMap[\"b\"]"));
-    assertEquals("intMap[2]", "\"v2\"", evaluated(frameId, "intMap[2]"));
-    assertEquals("absent key reads null", "null", evaluated(frameId, "stringMap[\"zz\"]"));
+    assertEquals("6", evaluated(frameId, "stringMap[\"b\"]"), "stringMap[\"b\"]");
+    assertEquals("\"v2\"", evaluated(frameId, "intMap[2]"), "intMap[2]");
+    assertEquals("null", evaluated(frameId, "stringMap[\"zz\"]"), "absent key reads null");
 
     // write: string key with a boxed int value, and int key with a string value
-    assertEquals("stringMap[\"c\"] = 9 returns the value", "9", evaluated(frameId, "stringMap[\"c\"] = 9"));
-    assertEquals("stringMap[\"c\"] reads back", "9", evaluated(frameId, "stringMap[\"c\"]"));
-    assertTrue("intMap[7] = \"seven\"", evaluate(frameId, "intMap[7] = \"seven\"").isSuccess());
-    assertEquals("intMap[7] reads back", "\"seven\"", evaluated(frameId, "intMap[7]"));
+    assertEquals("9", evaluated(frameId, "stringMap[\"c\"] = 9"), "stringMap[\"c\"] = 9 returns the value");
+    assertEquals("9", evaluated(frameId, "stringMap[\"c\"]"), "stringMap[\"c\"] reads back");
+    assertTrue(evaluate(frameId, "intMap[7] = \"seven\"").isSuccess(), "intMap[7] = \"seven\"");
+    assertEquals("\"seven\"", evaluated(frameId, "intMap[7]"), "intMap[7] reads back");
 
     // arrays are NOT maps: arr[i] stays a real indexed slot (read + write)
-    assertEquals("ints[1] index read", "5", evaluated(frameId, "ints[1]"));
-    assertTrue("ints[1] = 42 index write", evaluate(frameId, "ints[1] = 42").isSuccess());
-    assertEquals("ints[1] reads back the written index", "42", evaluated(frameId, "ints[1]"));
+    assertEquals("5", evaluated(frameId, "ints[1]"), "ints[1] index read");
+    assertTrue(evaluate(frameId, "ints[1] = 42").isSuccess(), "ints[1] = 42 index write");
+    assertEquals("42", evaluated(frameId, "ints[1]"), "ints[1] reads back the written index");
 
     request(new DisconnectRequest());
   }
@@ -768,11 +762,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
-    assertEquals("absent before insert", "null", evaluated(frameId, "stringMap.get(\"c\")"));
-    assertTrue("stringMap.set(\"c\", 9) with boxing", evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess());
-    assertEquals("boxed int reads back", "9", evaluated(frameId, "stringMap.get(\"c\")"));
+    assertEquals("null", evaluated(frameId, "stringMap.get(\"c\")"), "absent before insert");
+    assertTrue(evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess(), "stringMap.set(\"c\", 9) with boxing");
+    assertEquals("9", evaluated(frameId, "stringMap.get(\"c\")"), "boxed int reads back");
     // a pre-existing boxed value is unaffected
-    assertEquals("existing entry intact", "6", evaluated(frameId, "stringMap.get(\"b\")"));
+    assertEquals("6", evaluated(frameId, "stringMap.get(\"b\")"), "existing entry intact");
 
     request(new DisconnectRequest());
   }
@@ -782,10 +776,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
     Response noSuch = evaluateRaw(frameId, "stringMap.nope(1)");
-    assertFalse("unknown method rejected", noSuch.isSuccess());
+    assertFalse(noSuch.isSuccess(), "unknown method rejected");
     Response wrongArity = evaluateRaw(frameId, "stringMap.set(\"c\")");
-    assertFalse("wrong arity rejected", wrongArity.isSuccess());
-    assertTrue("arity message", wrongArity.getMessage().contains("argument"));
+    assertFalse(wrongArity.isSuccess(), "wrong arity rejected");
+    assertTrue(wrongArity.getMessage().contains("argument"), "arity message");
 
     request(new DisconnectRequest());
   }
@@ -799,11 +793,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // stopped inside Point.move (an instance method): Point's statics must show
     int staticsRef = staticsScopeReference(topFrameId(stopped.getBody().getThreadId()));
     Map<String, String> statics = variablesByName(staticsRef);
-    assertEquals("Point.axes", "2", statics.get("axes"));
+    assertEquals("2", statics.get("axes"), "Point.axes");
     // compiler bookkeeping like __name__ must be hidden
     for (String name : statics.keySet()) {
-      assertFalse("compiler field leaked into Statics: " + name,
-                  name.startsWith("__") && name.endsWith("__"));
+      assertFalse(name.startsWith("__") && name.endsWith("__"), "compiler field leaked into Statics: " + name);
     }
 
     request(new DisconnectRequest());
@@ -815,11 +808,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     // stopped inside Point.move: `this` must be listed and expand to the Point
     Variable self = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "this");
-    assertNotNull("`this` present in an instance-method frame", self);
-    assertTrue("`this` is expandable", self.getVariablesReference() > 0);
+    assertNotNull(self, "`this` present in an instance-method frame");
+    assertTrue(self.getVariablesReference() > 0, "`this` is expandable");
     Map<String, String> fields = variablesByName(self.getVariablesReference());
-    assertEquals("this.x (move not applied yet)", "10", fields.get("x"));
-    assertEquals("this.y", "20", fields.get("y"));
+    assertEquals("10", fields.get("x"), "this.x (move not applied yet)");
+    assertEquals("20", fields.get("y"), "this.y");
 
     request(new DisconnectRequest());
   }

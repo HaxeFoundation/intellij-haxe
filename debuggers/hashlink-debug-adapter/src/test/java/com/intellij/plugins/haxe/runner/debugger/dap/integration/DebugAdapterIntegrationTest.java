@@ -1,10 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Breakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
@@ -16,7 +16,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Protocol-level tests against the real adapter WITHOUT a debuggee: initialize
@@ -34,7 +34,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
     assertEquals(Boolean.TRUE, ((InitializeResponse)response).getBody().getSupportsConfigurationDoneRequest());
 
     Event event = client.pollEvent(TIMEOUT);
-    assertNotNull("expected an event after the initialize response", event);
+    assertNotNull(event, "expected an event after the initialize response");
     assertTrue(event instanceof InitializedEvent);
   }
 
@@ -63,7 +63,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
     assertEquals(Integer.valueOf(10), breakpoints.get(0).getLine());
     assertEquals(Integer.valueOf(30), breakpoints.get(2).getLine());
     for (Breakpoint breakpoint : breakpoints) {
-      assertTrue("breakpoint should be unverified before launch", !breakpoint.isVerified());
+      assertTrue(!breakpoint.isVerified(), "breakpoint should be unverified before launch");
     }
     assertNotEquals(breakpoints.get(0).getId(), breakpoints.get(1).getId());
   }
@@ -81,7 +81,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
     sendInitialize();
     // a launch with no 'program' argument must fail validation rather than hang
     Response response = request(new LaunchRequest());
-    assertTrue("launch without a program should fail", !response.isSuccess());
+    assertTrue(!response.isSuccess(), "launch without a program should fail");
   }
 
   @Test
@@ -119,8 +119,8 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
     assertEquals(1, first.getRequest_seq());
     assertEquals(2, second.getRequest_seq());
     assertEquals(3, third.getRequest_seq());
-    assertTrue("adapter seq must increase", first.getSeq() < second.getSeq());
-    assertTrue("adapter seq must increase", second.getSeq() < third.getSeq());
+    assertTrue(first.getSeq() < second.getSeq(), "adapter seq must increase");
+    assertTrue(second.getSeq() < third.getSeq(), "adapter seq must increase");
   }
 
   @Test
@@ -129,7 +129,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
     Response response = request(new DisconnectRequest());
     assertTrue(response.isSuccess());
 
-    assertTrue("adapter should exit after disconnect", adapterProcess.waitFor(5, TimeUnit.SECONDS));
+    assertTrue(adapterProcess.waitFor(5, TimeUnit.SECONDS), "adapter should exit after disconnect");
     assertEquals(0, adapterProcess.exitValue());
   }
 

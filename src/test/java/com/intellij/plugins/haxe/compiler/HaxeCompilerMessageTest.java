@@ -17,13 +17,14 @@ package com.intellij.plugins.haxe.compiler;
 
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
-import com.intellij.testFramework.UsefulTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by ebishton on 10/29/16.
  */
-public class HaxeCompilerMessageTest extends UsefulTestCase {
+public class HaxeCompilerMessageTest {
 
   private void doTest(String output, Category cat, String msg, String path, int line, int col) throws Throwable {
     HaxeCompilerMessage e = HaxeCompilerMessage.create("", output);

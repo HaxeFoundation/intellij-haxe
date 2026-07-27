@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.lang.completion;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ModuleCompletionTest extends HaxeCompletionTestBase {
   public ModuleCompletionTest() {

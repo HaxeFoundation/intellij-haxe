@@ -24,7 +24,7 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.surroundWith.*;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov

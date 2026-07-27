@@ -1,10 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.jsonrpc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -35,7 +35,7 @@ public class JsonRpcClientTest {
   private InputStream serverIn;
   private OutputStream serverOut;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     listener = new ServerSocket(0);
     Socket clientSocket = new Socket("127.0.0.1", listener.getLocalPort());
@@ -45,7 +45,7 @@ public class JsonRpcClientTest {
     client = new JsonRpcClient(new JsonRpcConnection(clientSocket));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     client.close();
     serverSide.close();
@@ -167,7 +167,7 @@ public class JsonRpcClientTest {
       client.sendRequest("threads", null, 100);
       fail("expected timeout IOException");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("threads"));
+      assertTrue(e.getMessage().contains("threads"), e.getMessage());
     }
     // drain the unanswered request so teardown doesn't race the reader
     JsonNode unanswered = serverReceive();
@@ -192,9 +192,8 @@ public class JsonRpcClientTest {
     serverSide.close(); // the debuggee dies mid-request
 
     Exception e = failure.get(2, TimeUnit.SECONDS); // must beat the 60s timer by far
-    assertNotNull("the in-flight request must fail, not report success", e);
-    assertTrue("an honest message, not a timeout: " + e.getMessage(),
-               e.getMessage().contains("connection"));
+    assertNotNull(e, "the in-flight request must fail, not report success");
+    assertTrue(e.getMessage().contains("connection"), "an honest message, not a timeout: " + e.getMessage());
     caller.join(TIMEOUT);
   }
 
@@ -205,16 +204,16 @@ public class JsonRpcClientTest {
     while (!client.isConnectionFinished() && System.currentTimeMillis() < deadline) {
       Thread.sleep(10);
     }
-    assertTrue("reader noticed the death", client.isConnectionFinished());
+    assertTrue(client.isConnectionFinished(), "reader noticed the death");
 
     long start = System.currentTimeMillis();
     try {
       client.sendRequest("threads", null, 60_000);
       fail("expected IOException");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("connection"));
+      assertTrue(e.getMessage().contains("connection"), e.getMessage());
     }
-    assertTrue("failed by the flag, not the timer", System.currentTimeMillis() - start < 5_000);
+    assertTrue(System.currentTimeMillis() - start < 5_000, "failed by the flag, not the timer");
   }
 
   @Test
@@ -243,7 +242,7 @@ public class JsonRpcClientTest {
 
   private JsonNode serverReceive() throws IOException {
     String payload = JsonRpcFraming.readPayload(serverIn);
-    assertNotNull("server side saw EOF", payload);
+    assertNotNull(payload, "server side saw EOF");
     return JsonMapper.builder()
       .build()
       .readTree(payload);

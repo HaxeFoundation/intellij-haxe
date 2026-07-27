@@ -18,13 +18,10 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov

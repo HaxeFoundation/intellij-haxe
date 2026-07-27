@@ -1,8 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -13,8 +13,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -29,7 +29,7 @@ public class EvalConnectionTest {
   private EvalConnection connection;
   private Thread fakeVm;
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (connection != null) {
       connection.close();
@@ -39,7 +39,7 @@ public class EvalConnectionTest {
   @Test
   public void correlatesResponsesByIdAndUnwrapsResult() throws Exception {
     startFake(request -> {
-      assertEquals("strict envelope", "2.0", request.path("jsonrpc").asString());
+      assertEquals("2.0", request.path("jsonrpc").asString(), "strict envelope");
       int id = request.path("id").asInt();
       return List.of("""
           {

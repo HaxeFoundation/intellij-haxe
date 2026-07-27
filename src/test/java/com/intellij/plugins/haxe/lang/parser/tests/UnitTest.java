@@ -15,7 +15,7 @@
  */
 package com.intellij.plugins.haxe.lang.parser.tests;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class UnitTest extends TestsTestBase {
   public UnitTest() {

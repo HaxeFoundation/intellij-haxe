@@ -1,13 +1,13 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Uncaught-exception behaviour of the real server, pinned empirically: the
@@ -19,7 +19,7 @@ import org.junit.Test;
  */
 public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestBase {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     launchFixture("hxcpp.fixture.uncaught.exe", "Uncaught.hx");
   }
@@ -47,8 +47,7 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
       if (event instanceof StoppedEvent following && "exception".equals(following.getBody().getReason())) {
         sawExceptionStop = true;
         String description = following.getBody().getDescription();
-        assertTrue("exception stop should carry the thrown text, got: " + description,
-                   description != null && description.contains("kaboom"));
+        assertTrue(description != null && description.contains("kaboom"), "exception stop should carry the thrown text, got: " + description);
         // releasing the final stop races the process's death — a failed
         // continue IS the expected outcome here
         continueQuietly(following.getBody().getThreadId());
@@ -56,9 +55,8 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
     }
 
     debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
-    assertTrue("the thrown text should surface somewhere (exception stop or Critical Error output); "
-               + "sawExceptionStop=" + sawExceptionStop + ", output:\n" + output(),
-               sawExceptionStop || output().contains("kaboom"));
+    assertTrue(sawExceptionStop || output().contains("kaboom"), "the thrown text should surface somewhere (exception stop or Critical Error output); "
+               + "sawExceptionStop=" + sawExceptionStop + ", output:\n" + output());
   }
 
   private void continueQuietly(int threadId) {

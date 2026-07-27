@@ -1,5 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
+
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
@@ -33,7 +38,7 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
         function update() { trace<caret>(count); }
         static function main() { new Widget().update(); } }""");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
     return context;
   }
 
@@ -47,14 +52,17 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
     return lookups != null ? lookups : List.of();
   }
 
+  @Test
   public void testThisCompletionListsOwnMembers() {
     assertContainsElements(fragmentCompletions("this."), "count", "update");
   }
 
+  @Test
   public void testThisCompletionListsInheritedMembers() {
     assertContainsElements(fragmentCompletions("this."), "inherited", "baseAction");
   }
 
+  @Test
   public void testSuperCompletionListsSuperClassMembers() {
     assertContainsElements(fragmentCompletions("super."), "inherited", "baseAction");
   }

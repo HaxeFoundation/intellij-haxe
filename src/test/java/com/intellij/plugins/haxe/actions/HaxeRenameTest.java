@@ -17,6 +17,10 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.intellij.testFramework.UsefulTestCase.assertNotEmpty;
+
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.ui.MessageConstants;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -30,7 +34,7 @@ import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.util.ArrayUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,7 +102,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
 
     for (Map.Entry<String, String> entry : expectedRename.entrySet()) {
       String key = entry.getKey();
-      assertTrue("no rename entry found for " + key, renameMap.containsKey(key));
+      assertTrue(renameMap.containsKey(key), "no rename entry found for " + key);
       assertEquals(entry.getValue(), renameMap.get(key));
     }
 

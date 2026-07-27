@@ -1,5 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -53,6 +58,7 @@ public class HaxeSetValueCompletionSuppressionTest extends HaxeCodeInsightFixtur
   }
 
   /** A set-value expression (present in the "setValue" history) gets its fragment tagged. */
+  @Test
   public void testSetValueFragmentSuppressesAutopopup() {
     XExpression expression = expression("42");
     XDebuggerHistoryManager.getInstance(getProject()).addRecentExpression("setValue", expression);
@@ -61,6 +67,7 @@ public class HaxeSetValueCompletionSuppressionTest extends HaxeCodeInsightFixtur
   }
 
   /** An evaluate/watches expression (not in that history) keeps completion. */
+  @Test
   public void testEvaluateFragmentKeepsAutopopup() {
     XDebuggerHistoryManager.getInstance(getProject()).addRecentExpression("setValue", expression("42"));
     PsiFile fragment = createFragment(expression("someIdentifier"));

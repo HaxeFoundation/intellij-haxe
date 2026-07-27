@@ -1,9 +1,11 @@
 package com.intellij.plugins.haxe.ide.inlay;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.intellij.codeInsight.daemon.impl.ParameterHintsPresentationManager;
 import com.intellij.openapi.editor.Inlay;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

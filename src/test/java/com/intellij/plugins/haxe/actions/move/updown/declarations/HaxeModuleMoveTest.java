@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.actions.move.updown.declarations;
 
 import com.intellij.plugins.haxe.actions.move.updown.HaxeMoveTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeModuleMoveTest extends HaxeMoveTestBase {
 

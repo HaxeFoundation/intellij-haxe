@@ -16,14 +16,16 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.google.gson.*;
-import com.intellij.testFramework.UsefulTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
 import static com.intellij.plugins.haxe.haxelib.HaxelibMetadata.*;
 
-public class MetadataTest extends UsefulTestCase {
+public class MetadataTest {
 
   public static final String NAME_DATA = "useless_lib";
   public static final String URL_DATA = "https://github.com/jasononeil/useless/";

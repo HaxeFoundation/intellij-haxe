@@ -19,7 +19,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.introduceVariable;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov

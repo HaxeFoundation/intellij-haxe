@@ -15,9 +15,9 @@ import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.st
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stepInRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.stepInTargetsRequest;
 import static com.intellij.plugins.haxe.runner.debugger.browser.LiveProbeUtil.variablesRequest;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
@@ -36,10 +36,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * M2 wire probe for vscode-js-debug's standalone DAP server (pinned
@@ -133,12 +134,11 @@ public class JsDebugAdapterLiveProbe {
     return null;
   }
 
-  @Before
+  @BeforeEach
   public void spawnAdapter() throws IOException {
-    Assume.assumeTrue("portable node not provisioned - skipping", Files.isRegularFile(nodeExe()));
-    Assume.assumeTrue("js-debug adapter not provisioned - skipping", Files.isRegularFile(dapServerJs()));
-    Assume.assumeTrue("no chromium-family browser found (set WEB_DEBUG_CHROMIUM_EXE or install Chrome/Edge) - skipping",
-                      chromiumExe() != null);
+    Assumptions.assumeTrue(Files.isRegularFile(nodeExe()), "portable node not provisioned - skipping");
+    Assumptions.assumeTrue(Files.isRegularFile(dapServerJs()), "js-debug adapter not provisioned - skipping");
+    Assumptions.assumeTrue(chromiumExe() != null, "no chromium-family browser found (set WEB_DEBUG_CHROMIUM_EXE or install Chrome/Edge) - skipping");
 
     adapterPort = LiveProbeUtil.freePort();
     adapter = new ProcessBuilder(nodeExe().toString(), dapServerJs().toString(),
@@ -151,8 +151,8 @@ public class JsDebugAdapterLiveProbe {
       new InputStreamReader(adapter.getInputStream(), StandardCharsets.UTF_8));
     String line = stdout.readLine();
     System.out.println("[adapter] " + line);
-    assertNotNull("adapter announced nothing (died?)", line);
-    assertTrue("unexpected announcement: " + line, line.contains("Debug server listening"));
+    assertNotNull(line, "adapter announced nothing (died?)");
+    assertTrue(line.contains("Debug server listening"), "unexpected announcement: " + line);
 
     Thread gobbler = new Thread(() -> {
       try {
@@ -173,7 +173,7 @@ public class JsDebugAdapterLiveProbe {
     return LiveProbeUtil.connectWithRetry(port, (int)TIMEOUT);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (parent != null) {
       try {
@@ -304,16 +304,16 @@ public class JsDebugAdapterLiveProbe {
    * stop, with no serving tricks. Guards the family split in the backend
    * (no refreshFirstPage for chromium).
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void loadTimeBreakpointHitsOnFirstLoad() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-load");
     Files.writeString(fixture.resolve("WebLoad.hx"), WEB_LOAD_HX);
     LiveProbeUtil.writePageAndCompile(fixture, "WebLoad");
 
     StackFrame top = driveSessionToStop(fixture, "WebLoad.hx", LOAD_BP_LINE);
-    assertTrue("stopped in the load-time .hx line: " + top.getSource().getPath() + ":" + top.getLine(),
-               top.getSource().getPath().endsWith("WebLoad.hx") && top.getLine() == LOAD_BP_LINE);
+    assertTrue(top.getSource().getPath().endsWith("WebLoad.hx") && top.getLine() == LOAD_BP_LINE, "stopped in the load-time .hx line: " + top.getSource().getPath() + ":" + top.getLine());
   }
 
   // WebSmart.hx line numbers are load-bearing: CALLS_LINE has TWO calls, the
@@ -343,9 +343,10 @@ public class JsDebugAdapterLiveProbe {
    * the runtime-truth fallback for identifiers the Haxe PSI cannot resolve
    * (browser globals behind incomplete externs).
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void stepInTargetsAndRuntimeCompletions() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-smart");
     Files.writeString(fixture.resolve(SMART_HX), WEB_SMART_HX);
     LiveProbeUtil.writePageAndCompile(fixture, "WebSmart");
@@ -355,14 +356,14 @@ public class JsDebugAdapterLiveProbe {
       StepInTargetsRequest targetsRequest = stepInTargetsRequest(top.getId());
 
       Response targetsResponse = child.sendRequest(targetsRequest, TIMEOUT);
-      assertTrue("stepInTargets", targetsResponse.isSuccess());
+      assertTrue(targetsResponse.isSuccess(), "stepInTargets");
       var targets = ((StepInTargetsResponse)
                        targetsResponse).getBody().getTargets();
 
       for (var target : targets) {
         probe("stepInTarget id=" + target.getId() + " label=" + target.getLabel());
       }
-      assertTrue("expected at least 2 step-in targets, got " + targets.size(), targets.size() >= 2);
+      assertTrue(targets.size() >= 2, "expected at least 2 step-in targets, got " + targets.size());
       var f2Target = targets.stream().filter(t -> t.getLabel() != null && t.getLabel().contains("f2"))
         .findFirst()
         .orElseThrow(() -> new AssertionError("no f2 target among the labels"));
@@ -378,7 +379,7 @@ public class JsDebugAdapterLiveProbe {
       completions.setArguments(completionsArgs);
 
       Response completionsResponse = child.sendRequest(completions, TIMEOUT);
-      assertTrue("completions", completionsResponse.isSuccess());
+      assertTrue(completionsResponse.isSuccess(), "completions");
 
       var items = ((CompletionsResponse)
                      completionsResponse).getBody().getTargets();
@@ -391,11 +392,11 @@ public class JsDebugAdapterLiveProbe {
       probe("completions for 'docum': " + labels);
 
       boolean anyMatch = items.stream().anyMatch(i -> "document".equals(i.getLabel()));
-      assertTrue("expected 'document' among runtime completions", anyMatch);
+      assertTrue(anyMatch, "expected 'document' among runtime completions");
 
       // --- smart step INTO f2 (the outer call) ---
       StepInRequest stepIn = stepInRequest(currentThreadId, f2Target.getId());
-      assertTrue("targeted stepIn", child.sendRequest(stepIn, TIMEOUT).isSuccess());
+      assertTrue(child.sendRequest(stepIn, TIMEOUT).isSuccess(), "targeted stepIn");
 
       StoppedEvent landed = null;
       long deadline = System.currentTimeMillis() + 20_000;
@@ -404,7 +405,7 @@ public class JsDebugAdapterLiveProbe {
           landed = s;
         }
       }
-      assertNotNull("no stop after targeted stepIn", landed);
+      assertNotNull(landed, "no stop after targeted stepIn");
 
       Response stResponse = child.sendRequest(stackTraceRequest(currentThreadId), TIMEOUT);
       StackFrame landedTop = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
@@ -412,8 +413,7 @@ public class JsDebugAdapterLiveProbe {
       probe("smart-step landed: " + landedTop.getName() + " @ "
             + (landedTop.getSource() != null ? landedTop.getSource().getPath() : "?")
             + ":" + landedTop.getLine());
-      assertTrue("landed in f2's body line, got line " + landedTop.getLine(),
-                 landedTop.getLine() == F2_BODY_LINE);
+      assertTrue(landedTop.getLine() == F2_BODY_LINE, "landed in f2's body line, got line " + landedTop.getLine());
     };
     try {
       driveSessionToStop(fixture, SMART_HX, CALLS_LINE);
@@ -431,16 +431,17 @@ public class JsDebugAdapterLiveProbe {
    * Exists because the IDE reported no step-in chooser while the probe's own
    * sequence got targets fine — this pins whether the SEQUENCE is the culprit.
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void stepInTargetsUnderTheIdeExactSequence() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-idelike");
     Files.writeString(fixture.resolve(SMART_HX), WEB_SMART_HX);
     LiveProbeUtil.writePageAndCompile(fixture, "WebSmart");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       // --- parent exactly as BrowserDebugBackend.runParentHandshake ---
-      assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
+      assertTrue(parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "parent initialize");
 
       Map<String, Object> parentConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
       parentConfig.put("name", "IntelliJ Haxe browser session");
@@ -448,12 +449,12 @@ public class JsDebugAdapterLiveProbe {
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
 
       StartDebuggingRequest startDebugging = awaitStartDebugging(20_000);
-      assertNotNull("no startDebugging", startDebugging);
+      assertNotNull(startDebugging, "no startDebugging");
 
       try (DapClient child = connectWithRetry(adapterPort)) {
         // --- child exactly as DapDebugProcess.initializeSession ---
         InitializeRequest initialize = InitializeRequest.standard("intellij-haxe", false);
-        assertTrue("child initialize", child.sendRequest(initialize, TIMEOUT).isSuccess());
+        assertTrue(child.sendRequest(initialize, TIMEOUT).isSuccess(), "child initialize");
         child.sendRequestNoWait(ConfiguredLaunchRequest.of(startDebugging.getArguments().getConfiguration()));
 
         // awaitInitializedEvent
@@ -462,7 +463,7 @@ public class JsDebugAdapterLiveProbe {
         while (System.currentTimeMillis() < deadline && !initialized) {
           initialized = child.pollEvent(250) instanceof InitializedEvent;
         }
-        assertTrue("child initialized", initialized);
+        assertTrue(initialized, "child initialized");
 
         // flushAll
         SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
@@ -476,13 +477,13 @@ public class JsDebugAdapterLiveProbe {
         bpArgs.setBreakpoints(List.of(bp));
         setBreakpoints.setArguments(bpArgs);
 
-        assertTrue("child setBreakpoints", child.sendRequest(setBreakpoints, TIMEOUT).isSuccess());
+        assertTrue(child.sendRequest(setBreakpoints, TIMEOUT).isSuccess(), "child setBreakpoints");
 
         // exception filters as the IDE's exceptionFiltersRequest would send
         SetExceptionBreakpointsRequest filters = exceptionBreakpointsRequest(List.of("uncaught"));
         probe("ide-seq setExceptionBreakpoints success=" + child.sendRequest(filters, TIMEOUT).isSuccess());
 
-        assertTrue("child configurationDone", child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
+        assertTrue(child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess(), "child configurationDone");
 
         StoppedEvent stopped = null;
         deadline = System.currentTimeMillis() + 20_000;
@@ -491,11 +492,11 @@ public class JsDebugAdapterLiveProbe {
             stopped = s;
           }
         }
-        assertNotNull("breakpoint never hit", stopped);
+        assertNotNull(stopped, "breakpoint never hit");
         int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
 
         // reportStopped order: threads THEN stackTrace
-        assertTrue("threads", child.sendRequest(new ThreadsRequest(), TIMEOUT).isSuccess());
+        assertTrue(child.sendRequest(new ThreadsRequest(), TIMEOUT).isSuccess(), "threads");
         StackTraceRequest stackTrace = stackTraceRequest(threadId);
         Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
         StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
@@ -527,15 +528,15 @@ public class JsDebugAdapterLiveProbe {
 
         probe("ide-seq counts: immediate=" + n1 + " hydrated=" + n2
               + " freshId=" + n3 + " oldIdAfterRefresh=" + n3old + " delayed=" + n4);
-        assertTrue("immediate stepInTargets must find the calls", n1 >= 2);
+        assertTrue(n1 >= 2, "immediate stepInTargets must find the calls");
 
         // stage 5: SECOND pause (the user's failing case had frameId=3 - ids
         // increment across pauses, so their stop was not the first). continue,
         // let the ticking fixture re-hit the same line, ask again.
-        assertTrue("continue", child.sendRequest(continueRequest(threadId), TIMEOUT).isSuccess());
+        assertTrue(child.sendRequest(continueRequest(threadId), TIMEOUT).isSuccess(), "continue");
 
         StoppedEvent second = awaitStopped(child, 15_000);
-        assertNotNull("no second stop", second);
+        assertNotNull(second, "no second stop");
         int threadId2 = second.getBody().getThreadId() != null ? second.getBody().getThreadId() : threadId;
 
         Response stResponse3 = child.sendRequest(stackTraceRequest(threadId2), TIMEOUT);
@@ -546,7 +547,7 @@ public class JsDebugAdapterLiveProbe {
               + ":" + top3.getLine());
         int n5 = stepInTargetsCount(child, top3.getId(), "5:second pause");
         probe("ide-seq second-pause targets=" + n5);
-        assertTrue("second-pause stepInTargets must find the calls too (user's failing case)", n5 >= 2);
+        assertTrue(n5 >= 2, "second-pause stepInTargets must find the calls too (user's failing case)");
 
         child.sendRequest(new DisconnectRequest(), TIMEOUT);
       }
@@ -600,9 +601,10 @@ public class JsDebugAdapterLiveProbe {
     }
     """;
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void stepInTargetsOnABareExpressionStatement() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-expr");
     Files.writeString(fixture.resolve("WebExpr.hx"), WEB_EXPR_HX);
     LiveProbeUtil.writePageAndCompile(fixture, "WebExpr");
@@ -633,9 +635,10 @@ public class JsDebugAdapterLiveProbe {
    * plain step into. If a future js-debug pin fixes this, THIS TEST FAILS -
    * celebrate and delete it.
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void stepInTargetsKnownLimitationOnLastStatementOfFunction() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-lastline");
     Files.writeString(fixture.resolve("WebClick.hx"), WEB_CLICK_LAST_HX);
     LiveProbeUtil.writePageAndCompile(fixture, "WebClick");
@@ -648,18 +651,18 @@ public class JsDebugAdapterLiveProbe {
       atStop = null;
     }
     probe("last-statement stepInTargets count=" + targetsAtStop[0]);
-    assertTrue("js-debug currently yields NO targets for a last-statement line (upstream limitation);"
-               + " if this failed with a count >= 2, the pin fixed it - remove the limitation",
-               targetsAtStop[0] == 0);
+    assertTrue(targetsAtStop[0] == 0, "js-debug currently yields NO targets for a last-statement line (upstream limitation);"
+               + " if this failed with a count >= 2, the pin fixed it - remove the limitation");
   }
 
   /**
    * Smart-step INSIDE A DOM EVENT HANDLER works when the call line is
    * followed by another mapped statement (the general case).
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void stepInTargetsInsideADomEventHandler() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-click");
     Files.writeString(fixture.resolve("WebClick.hx"), WEB_CLICK_HX);
     LiveProbeUtil.writePageAndCompile(fixture, "WebClick");
@@ -668,13 +671,13 @@ public class JsDebugAdapterLiveProbe {
     atStop = (child, top) -> targetsAtStop[0] = stepInTargetsCount(child, top.getId(), "event-handler stop");
     try {
       StackFrame top = driveSessionToStop(fixture, "WebClick.hx", CLICK_CALLS_LINE);
-      assertTrue("stopped on the handler's call line", top.getLine() == CLICK_CALLS_LINE);
+      assertTrue(top.getLine() == CLICK_CALLS_LINE, "stopped on the handler's call line");
     } finally {
       atStop = null;
     }
     probe("event-handler stepInTargets count=" + targetsAtStop[0]);
-    assertTrue("stepInTargets inside a DOM event handler must find the calls (user's case), got "
-               + targetsAtStop[0], targetsAtStop[0] >= 2);
+    assertTrue(targetsAtStop[0] >= 2, "stepInTargets inside a DOM event handler must find the calls (user's case), got "
+               + targetsAtStop[0]);
   }
 
   // WorkerMain.hx line numbers are load-bearing: WORKER_BP_LINE ticks forever,
@@ -719,9 +722,10 @@ public class JsDebugAdapterLiveProbe {
    * frameId/variablesReference, merged threads listing both targets, and
    * continue routed back to the worker.
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void workerAppearsAsAdditionalThreadThroughTheMux() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-worker");
     Files.writeString(fixture.resolve("WebPage.hx"), WEB_PAGE_HX);
     Files.writeString(fixture.resolve(WORKER_HX), WORKER_MAIN_HX);
@@ -730,28 +734,28 @@ public class JsDebugAdapterLiveProbe {
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       // --- parent handshake exactly as BrowserDebugBackend.runParentHandshake ---
-      assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
+      assertTrue(parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "parent initialize");
 
       Map<String, Object> parentConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
 
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
 
       StartDebuggingRequest startDebugging = awaitStartDebugging(20_000);
-      assertNotNull("no startDebugging for the page", startDebugging);
+      assertNotNull(startDebugging, "no startDebugging for the page");
 
       DapClient page = connectWithRetry(adapterPort);
       try (JsDebugSessionMux mux = new JsDebugSessionMux(parent, page, adapterPort)) {
         mux.setLogSink(line -> System.out.println("[mux] " + line));
 
         // --- page handshake THROUGH the mux, as DapDebugProcess drives it ---
-        assertTrue("page initialize", mux.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
+        assertTrue(mux.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "page initialize");
         mux.sendRequestNoWait(ConfiguredLaunchRequest.of(startDebugging.getArguments().getConfiguration()));
         boolean initialized = false;
         long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline && !initialized) {
           initialized = mux.pollEvent(250) instanceof InitializedEvent;
         }
-        assertTrue("page initialized", initialized);
+        assertTrue(initialized, "page initialized");
 
         // breakpoint in the WORKER's source while no worker session exists yet:
         // the mux must cache it and replay it into the worker as it attaches
@@ -769,14 +773,13 @@ public class JsDebugAdapterLiveProbe {
         setBreakpoints.setArguments(bpArgs);
 
         Response bpResponse = mux.sendRequest(setBreakpoints, TIMEOUT);
-        assertTrue("setBreakpoints via mux", bpResponse.isSuccess());
+        assertTrue(bpResponse.isSuccess(), "setBreakpoints via mux");
         var bpResult = ((SetBreakpointsResponse)
                           bpResponse).getBody().getBreakpoints().get(0);
         Integer pageBreakpointId = bpResult.getId();
         probe("worker-source bp before worker exists: id=" + pageBreakpointId + " verified=" + bpResult.isVerified());
 
-        assertTrue("configurationDone via mux",
-                   mux.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
+        assertTrue(mux.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess(), "configurationDone via mux");
 
         // page loads -> spawns the worker -> js-debug announces it on the page
         // connection -> the mux attaches it -> the replayed breakpoint stops it.
@@ -800,25 +803,23 @@ public class JsDebugAdapterLiveProbe {
             stopped = s;
           }
         }
-        assertNotNull("worker breakpoint never hit through the mux", stopped);
-        assertTrue("the worker's verification must surface as a breakpoint event on the PAGE id "
-                   + pageBreakpointId + " (gutter checkmark)", verifiedUpgradeSeen);
+        assertNotNull(stopped, "worker breakpoint never hit through the mux");
+        assertTrue(verifiedUpgradeSeen, "the worker's verification must surface as a breakpoint event on the PAGE id "
+                   + pageBreakpointId + " (gutter checkmark)");
         Integer threadId = stopped.getBody().getThreadId();
-        assertNotNull("stop without a thread id", threadId);
-        assertTrue("the stop must come from a WORKER session (composite thread id), got " + threadId,
-                   threadId >= COMPOSITE_FLOOR);
+        assertNotNull(threadId, "stop without a thread id");
+        assertTrue(threadId >= COMPOSITE_FLOOR, "the stop must come from a WORKER session (composite thread id), got " + threadId);
 
         assertCompositeIdsRoundTrip(mux, threadId);
         int pageThreadId = pageThreadIdFromMergedThreads(mux);
 
         // continue routes back to the worker's session
-        assertTrue("continue via composite thread id",
-                   mux.sendRequest(continueRequest(threadId), TIMEOUT).isSuccess());
+        assertTrue(mux.sendRequest(continueRequest(threadId), TIMEOUT).isSuccess(), "continue via composite thread id");
 
         // the ticking worker re-hits: the composite ids are stable across stops
         StoppedEvent second = awaitStopped(mux, 15_000);
-        assertNotNull("no second worker stop after continue", second);
-        assertTrue("second stop must be composite too", isWorkerStop(second));
+        assertNotNull(second, "no second worker stop after continue");
+        assertTrue(isWorkerStop(second), "second stop must be composite too");
 
         assertPageRoutingLeavesWorkerPaused(mux, pageThreadId, second.getBody().getThreadId());
 
@@ -827,202 +828,11 @@ public class JsDebugAdapterLiveProbe {
     }
   }
 
-  /**
-   * stackTrace -> scopes -> variables, every one routed by a COMPOSITE id: the
-   * mux has to map each id back to the worker session that owns it, and the
-   * ids it hands out must stay composited on the way back.
-   */
-  private static void assertCompositeIdsRoundTrip(JsDebugSessionMux mux, int threadId) throws Exception {
-    Response stResponse = mux.sendRequest(stackTraceRequest(threadId), TIMEOUT);
-    assertTrue("stackTrace via composite thread id", stResponse.isSuccess());
 
-    StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
-    probe("worker top frame: " + top.getName() + " @ "
-          + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
-
-    assertStoppedInHx(top, WORKER_HX, WORKER_BP_LINE);
-    assertTrue("frame id must be composited, got " + top.getId(), top.getId() >= COMPOSITE_FLOOR);
-
-    Response scResponse = mux.sendRequest(scopesRequest(top.getId()), TIMEOUT);
-    assertTrue("scopes via composite frame id", scResponse.isSuccess());
-
-    var scopeList = ((ScopesResponse)scResponse).getBody().getScopes();
-    assertTrue("no scopes", !scopeList.isEmpty());
-
-    int varRef = scopeList.get(0).getVariablesReference();
-    assertTrue("scope variablesReference must be composited, got " + varRef, varRef >= COMPOSITE_FLOOR);
-    assertTrue("variables via composite reference",
-               mux.sendRequest(variablesRequest(varRef), TIMEOUT).isSuccess());
-  }
-
-  /** The merged listing carries the page under its raw id and the worker under a composite one. */
-  private static int pageThreadIdFromMergedThreads(JsDebugSessionMux mux) throws Exception {
-    Response threadsResponse = mux.sendRequest(new ThreadsRequest(), TIMEOUT);
-    assertTrue("merged threads", threadsResponse.isSuccess());
-
-    var threads = ((ThreadsResponse)threadsResponse).getBody().getThreads();
-    for (var thread : threads) {
-      probe("merged thread id=" + thread.getId() + " name=" + thread.getName());
-    }
-    boolean pageListed = threads.stream().anyMatch(t -> t.getId() < COMPOSITE_FLOOR);
-    boolean workerListed = threads.stream().anyMatch(JsDebugAdapterLiveProbe::isWorkerThread);
-
-    assertTrue("merged threads must include the page (raw id)", pageListed);
-    assertTrue("merged threads must include the worker (composite id, named after its script)", workerListed);
-
-    return threads.stream()
-      .filter(t -> t.getId() < COMPOSITE_FLOOR)
-      .findFirst()
-      .orElseThrow()
-      .getId();
-  }
-
-  /**
-   * Pausing, stepping and resuming the PAGE must never disturb a worker that is
-   * already paused. The IDE holds the worker's stop back and presents it after
-   * the page resumes, so releasing it early would run it past the breakpoint
-   * before the user ever sees it. The ticking worker re-hits within ~250ms once
-   * resumed, so silence is what pins that it stayed put.
-   */
-  private static void assertPageRoutingLeavesWorkerPaused(JsDebugSessionMux mux, int pageThreadId,
-                                                          int workerThreadId) throws Exception {
-    assertTrue("pause the page thread",
-               mux.sendRequest(pauseRequest(pageThreadId), TIMEOUT).isSuccess());
-
-    StoppedEvent pageStop = awaitStopped(mux, 15_000);
-    assertNotNull("page never paused", pageStop);
-    assertTrue("the pause stop must be the PAGE's (raw thread id), got "
-               + pageStop.getBody().getThreadId(), isPageStop(pageStop));
-
-    // a step routed to the PAGE must stop in the PAGE, never the worker
-    // (the IDE bug this pins: stepping after switching threads)
-    assertTrue("step the page thread",
-               mux.sendRequest(nextRequest(pageThreadId), TIMEOUT).isSuccess());
-
-    StoppedEvent stepStop = awaitStopped(mux, 15_000);
-    assertNotNull("no stop after stepping the page", stepStop);
-    assertTrue("the step must land in the PAGE thread, got "
-               + stepStop.getBody().getThreadId(), isPageStop(stepStop));
-
-    assertTrue("resume via the page thread",
-               mux.sendRequest(continueRequest(pageThreadId), TIMEOUT).isSuccess());
-
-    assertNull("the page-routed continue must NOT release the paused worker,"
-               + " but its ticking breakpoint re-hit", awaitWorkerStop(mux, 4_000));
-
-    // a continue routed to the WORKER releases it - the bp re-hits
-    assertTrue("resume via the worker thread",
-               mux.sendRequest(continueRequest(workerThreadId), TIMEOUT).isSuccess());
-
-    assertNotNull("the worker-routed continue must release the worker (bp re-hit)",
-                  awaitWorkerStop(mux, 15_000));
-  }
-
-  private int stepInTargetsCount(DapClient child, int frameId, String stage) throws Exception {
-    StepInTargetsRequest request = stepInTargetsRequest(frameId);
-
-    Response response = child.sendRequest(request, TIMEOUT);
-
-    int count = response instanceof StepInTargetsResponse ok
-                && ok.isSuccess() && ok.getBody() != null && ok.getBody().getTargets() != null
-                ? ok.getBody().getTargets().size() : -1;
-    probe("ide-seq stage " + stage + " frameId=" + frameId + " -> targets=" + count
-          + (response.isSuccess() ? "" : " message=" + response.getMessage()));
-    return count;
-  }
-
-  /** Optional at-stop hook for probes needing extra requests before disconnect. */
-  private interface AtStop {
-    void run(DapClient child, StackFrame top) throws Exception;
-  }
-
-  private volatile AtStop atStop;
-  /** When set, launch configs carry js-debug's "trace": true and output events are printed. */
-  private volatile boolean traceAdapter;
-  private volatile int currentThreadId;
-
-  /** The parent+child flow, shared by the probes; returns the stop's top frame. */
-  private StackFrame driveSessionToStop(Path fixture, String bpFileName, int bpLine) throws Exception {
-    try (ContentHttpServer content = new ContentHttpServer(fixture)) {
-      assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
-
-      Map<String, Object> launchConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
-      if (traceAdapter) {
-        launchConfig.put("trace", true);
-      }
-      parent.sendRequestNoWait(ConfiguredLaunchRequest.of(launchConfig));
-
-      StartDebuggingRequest startDebugging = awaitStartDebugging(20_000);
-      assertNotNull("no startDebugging reverse request", startDebugging);
-
-      try (DapClient child = connectWithRetry(adapterPort)) {
-        Response childInit = child.sendRequest(initializeRequest(), TIMEOUT);
-        assertTrue("child initialize", childInit.isSuccess());
-        if (childInit instanceof InitializeResponse ir
-            && ir.getBody() != null) {
-          probe("CHILD caps: completions=" + ir.getBody().getSupportsCompletionsRequest()
-                + " stepInTargets=" + ir.getBody().getSupportsStepInTargetsRequest());
-        }
-        Map<String, Object> childConfig = new LinkedHashMap<>(startDebugging.getArguments().getConfiguration());
-        if (traceAdapter) {
-          childConfig.put("trace", true);
-        }
-        child.sendRequestNoWait(ConfiguredLaunchRequest.of(childConfig));
-
-        boolean childConfigured = false;
-        StoppedEvent stopped = null;
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (System.currentTimeMillis() < deadline && stopped == null) {
-          Event event = child.pollEvent(100);
-          if (traceAdapter && event instanceof OutputEvent o && o.getBody() != null) {
-            System.out.println("[trace-out] " + String.valueOf(o.getBody().getOutput()).trim());
-          }
-          if (event instanceof InitializedEvent && !childConfigured) {
-            childConfigured = true;
-            SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-            SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-            Source source = new Source();
-            source.setPath(fixture.resolve(bpFileName).toString());
-            source.setName(bpFileName);
-            bpArgs.setSource(source);
-            SourceBreakpoint bp = new SourceBreakpoint();
-            bp.setLine(bpLine);
-            bpArgs.setBreakpoints(List.of(bp));
-            setBreakpoints.setArguments(bpArgs);
-
-            assertTrue("child setBreakpoints", child.sendRequest(setBreakpoints, TIMEOUT).isSuccess());
-            assertTrue("child configurationDone",
-                       child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
-          }
-          if (event instanceof StoppedEvent s) {
-            stopped = s;
-          }
-        }
-        assertNotNull("breakpoint never hit", stopped);
-        int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
-        currentThreadId = threadId;
-
-        Response stResponse = child.sendRequest(stackTraceRequest(threadId), TIMEOUT);
-        assertTrue("child stackTrace", stResponse.isSuccess());
-
-        List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
-        assertTrue("no frames", !frames.isEmpty());
-        StackFrame top = frames.get(0);
-        probe("top frame: " + top.getName() + " @ "
-              + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
-        assertNotNull("top frame has no source", top.getSource());
-        if (atStop != null) {
-          atStop.run(child, top);
-        }
-        child.sendRequest(new DisconnectRequest(), TIMEOUT);
-        return top;
-      }
-    }
-  }
-
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
   public void fullSessionWithChildViaStartDebugging() throws Exception {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = buildFixture();
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
@@ -1031,7 +841,7 @@ public class JsDebugAdapterLiveProbe {
       // --- parent session ---
       Response initResponse = parent.sendRequest(initializeRequest(), TIMEOUT);
       probe("parent initialize success=" + initResponse.isSuccess());
-      assertTrue("parent initialize", initResponse.isSuccess());
+      assertTrue(initResponse.isSuccess(), "parent initialize");
 
       Map<String, Object> launchConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
 
@@ -1080,13 +890,13 @@ public class JsDebugAdapterLiveProbe {
         }
       }
       probe("launch settled=" + launchFuture.isDone() + " startDebugging=" + (startDebugging != null));
-      assertNotNull("no startDebugging reverse request from js-debug", startDebugging);
+      assertNotNull(startDebugging, "no startDebugging reverse request from js-debug");
       Map<String, Object> childConfig = startDebugging.getArguments().getConfiguration();
       probe("child config keys=" + childConfig.keySet());
 
       // --- child session (second connection, config from the reverse request) ---
       try (DapClient child = connectWithRetry(adapterPort)) {
-        assertTrue("child initialize", child.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
+        assertTrue(child.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "child initialize");
 
         CompletableFuture<Response> childLaunchFuture = new CompletableFuture<>();
         Thread childLauncher = new Thread(() -> {
@@ -1120,14 +930,14 @@ public class JsDebugAdapterLiveProbe {
             stopped = s;
           }
         }
-        assertNotNull("breakpoint never hit in the child session", stopped);
+        assertNotNull(stopped, "breakpoint never hit in the child session");
         probe("at stop: parent launch settled=" + launchFuture.isDone() + " child launch settled=" + childLaunchFuture.isDone());
         int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
 
         Response stResponse = child.sendRequest(stackTraceRequest(threadId), TIMEOUT);
-        assertTrue("child stackTrace", stResponse.isSuccess());
+        assertTrue(stResponse.isSuccess(), "child stackTrace");
         List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
-        assertTrue("no frames", !frames.isEmpty());
+        assertTrue(!frames.isEmpty(), "no frames");
         StackFrame top = frames.get(0);
         probe("child top frame: " + top.getName() + " @ "
               + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
@@ -1138,4 +948,192 @@ public class JsDebugAdapterLiveProbe {
       parent.sendRequest(new DisconnectRequest(), TIMEOUT);
     }
   }
+
+  /**
+   * stackTrace -> scopes -> variables, every one routed by a COMPOSITE id: the
+   * mux has to map each id back to the worker session that owns it, and the
+   * ids it hands out must stay composited on the way back.
+   */
+  private static void assertCompositeIdsRoundTrip(JsDebugSessionMux mux, int threadId) throws Exception {
+    Response stResponse = mux.sendRequest(stackTraceRequest(threadId), TIMEOUT);
+    assertTrue(stResponse.isSuccess(), "stackTrace via composite thread id");
+
+    StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
+    probe("worker top frame: " + top.getName() + " @ "
+          + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
+
+    assertStoppedInHx(top, WORKER_HX, WORKER_BP_LINE);
+    assertTrue(top.getId() >= COMPOSITE_FLOOR, "frame id must be composited, got " + top.getId());
+
+    Response scResponse = mux.sendRequest(scopesRequest(top.getId()), TIMEOUT);
+    assertTrue(scResponse.isSuccess(), "scopes via composite frame id");
+
+    var scopeList = ((ScopesResponse)scResponse).getBody().getScopes();
+    assertTrue(!scopeList.isEmpty(), "no scopes");
+
+    int varRef = scopeList.get(0).getVariablesReference();
+    assertTrue(varRef >= COMPOSITE_FLOOR, "scope variablesReference must be composited, got " + varRef);
+    assertTrue(mux.sendRequest(variablesRequest(varRef), TIMEOUT).isSuccess(), "variables via composite reference");
+  }
+
+  /** The merged listing carries the page under its raw id and the worker under a composite one. */
+  private static int pageThreadIdFromMergedThreads(JsDebugSessionMux mux) throws Exception {
+    Response threadsResponse = mux.sendRequest(new ThreadsRequest(), TIMEOUT);
+    assertTrue(threadsResponse.isSuccess(), "merged threads");
+
+    var threads = ((ThreadsResponse)threadsResponse).getBody().getThreads();
+    for (var thread : threads) {
+      probe("merged thread id=" + thread.getId() + " name=" + thread.getName());
+    }
+    boolean pageListed = threads.stream().anyMatch(t -> t.getId() < COMPOSITE_FLOOR);
+    boolean workerListed = threads.stream().anyMatch(JsDebugAdapterLiveProbe::isWorkerThread);
+
+    assertTrue(pageListed, "merged threads must include the page (raw id)");
+    assertTrue(workerListed, "merged threads must include the worker (composite id, named after its script)");
+
+    return threads.stream()
+      .filter(t -> t.getId() < COMPOSITE_FLOOR)
+      .findFirst()
+      .orElseThrow()
+      .getId();
+  }
+
+  /**
+   * Pausing, stepping and resuming the PAGE must never disturb a worker that is
+   * already paused. The IDE holds the worker's stop back and presents it after
+   * the page resumes, so releasing it early would run it past the breakpoint
+   * before the user ever sees it. The ticking worker re-hits within ~250ms once
+   * resumed, so silence is what pins that it stayed put.
+   */
+  private static void assertPageRoutingLeavesWorkerPaused(JsDebugSessionMux mux, int pageThreadId,
+                                                          int workerThreadId) throws Exception {
+    assertTrue(mux.sendRequest(pauseRequest(pageThreadId), TIMEOUT).isSuccess(), "pause the page thread");
+
+    StoppedEvent pageStop = awaitStopped(mux, 15_000);
+    assertNotNull(pageStop, "page never paused");
+    assertTrue(isPageStop(pageStop), "the pause stop must be the PAGE's (raw thread id), got "
+               + pageStop.getBody().getThreadId());
+
+    // a step routed to the PAGE must stop in the PAGE, never the worker
+    // (the IDE bug this pins: stepping after switching threads)
+    assertTrue(mux.sendRequest(nextRequest(pageThreadId), TIMEOUT).isSuccess(), "step the page thread");
+
+    StoppedEvent stepStop = awaitStopped(mux, 15_000);
+    assertNotNull(stepStop, "no stop after stepping the page");
+    assertTrue(isPageStop(stepStop), "the step must land in the PAGE thread, got "
+               + stepStop.getBody().getThreadId());
+
+    assertTrue(mux.sendRequest(continueRequest(pageThreadId), TIMEOUT).isSuccess(), "resume via the page thread");
+
+    assertNull(awaitWorkerStop(mux, 4_000), "the page-routed continue must NOT release the paused worker,"
+               + " but its ticking breakpoint re-hit");
+
+    // a continue routed to the WORKER releases it - the bp re-hits
+    assertTrue(mux.sendRequest(continueRequest(workerThreadId), TIMEOUT).isSuccess(), "resume via the worker thread");
+
+    assertNotNull(awaitWorkerStop(mux, 15_000), "the worker-routed continue must release the worker (bp re-hit)");
+  }
+
+  private int stepInTargetsCount(DapClient child, int frameId, String stage) throws Exception {
+    StepInTargetsRequest request = stepInTargetsRequest(frameId);
+
+    Response response = child.sendRequest(request, TIMEOUT);
+
+    int count = response instanceof StepInTargetsResponse ok
+                && ok.isSuccess() && ok.getBody() != null && ok.getBody().getTargets() != null
+                ? ok.getBody().getTargets().size() : -1;
+    probe("ide-seq stage " + stage + " frameId=" + frameId + " -> targets=" + count
+          + (response.isSuccess() ? "" : " message=" + response.getMessage()));
+    return count;
+  }
+
+  /** Optional at-stop hook for probes needing extra requests before disconnect. */
+  private interface AtStop {
+    void run(DapClient child, StackFrame top) throws Exception;
+  }
+
+  private volatile AtStop atStop;
+  /** When set, launch configs carry js-debug's "trace": true and output events are printed. */
+  private volatile boolean traceAdapter;
+  private volatile int currentThreadId;
+
+  /** The parent+child flow, shared by the probes; returns the stop's top frame. */
+  private StackFrame driveSessionToStop(Path fixture, String bpFileName, int bpLine) throws Exception {
+    try (ContentHttpServer content = new ContentHttpServer(fixture)) {
+      assertTrue(parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "parent initialize");
+
+      Map<String, Object> launchConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
+      if (traceAdapter) {
+        launchConfig.put("trace", true);
+      }
+      parent.sendRequestNoWait(ConfiguredLaunchRequest.of(launchConfig));
+
+      StartDebuggingRequest startDebugging = awaitStartDebugging(20_000);
+      assertNotNull(startDebugging, "no startDebugging reverse request");
+
+      try (DapClient child = connectWithRetry(adapterPort)) {
+        Response childInit = child.sendRequest(initializeRequest(), TIMEOUT);
+        assertTrue(childInit.isSuccess(), "child initialize");
+        if (childInit instanceof InitializeResponse ir
+            && ir.getBody() != null) {
+          probe("CHILD caps: completions=" + ir.getBody().getSupportsCompletionsRequest()
+                + " stepInTargets=" + ir.getBody().getSupportsStepInTargetsRequest());
+        }
+        Map<String, Object> childConfig = new LinkedHashMap<>(startDebugging.getArguments().getConfiguration());
+        if (traceAdapter) {
+          childConfig.put("trace", true);
+        }
+        child.sendRequestNoWait(ConfiguredLaunchRequest.of(childConfig));
+
+        boolean childConfigured = false;
+        StoppedEvent stopped = null;
+        long deadline = System.currentTimeMillis() + 20_000;
+        while (System.currentTimeMillis() < deadline && stopped == null) {
+          Event event = child.pollEvent(100);
+          if (traceAdapter && event instanceof OutputEvent o && o.getBody() != null) {
+            System.out.println("[trace-out] " + String.valueOf(o.getBody().getOutput()).trim());
+          }
+          if (event instanceof InitializedEvent && !childConfigured) {
+            childConfigured = true;
+            SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
+            SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+            Source source = new Source();
+            source.setPath(fixture.resolve(bpFileName).toString());
+            source.setName(bpFileName);
+            bpArgs.setSource(source);
+            SourceBreakpoint bp = new SourceBreakpoint();
+            bp.setLine(bpLine);
+            bpArgs.setBreakpoints(List.of(bp));
+            setBreakpoints.setArguments(bpArgs);
+
+            assertTrue(child.sendRequest(setBreakpoints, TIMEOUT).isSuccess(), "child setBreakpoints");
+            assertTrue(child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess(), "child configurationDone");
+          }
+          if (event instanceof StoppedEvent s) {
+            stopped = s;
+          }
+        }
+        assertNotNull(stopped, "breakpoint never hit");
+        int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
+        currentThreadId = threadId;
+
+        Response stResponse = child.sendRequest(stackTraceRequest(threadId), TIMEOUT);
+        assertTrue(stResponse.isSuccess(), "child stackTrace");
+
+        List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
+        assertTrue(!frames.isEmpty(), "no frames");
+        StackFrame top = frames.get(0);
+        probe("top frame: " + top.getName() + " @ "
+              + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
+        assertNotNull(top.getSource(), "top frame has no source");
+        if (atStop != null) {
+          atStop.run(child, top);
+        }
+        child.sendRequest(new DisconnectRequest(), TIMEOUT);
+        return top;
+      }
+    }
+  }
+
+
 }

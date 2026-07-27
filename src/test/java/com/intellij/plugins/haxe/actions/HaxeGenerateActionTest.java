@@ -21,14 +21,14 @@ package com.intellij.plugins.haxe.actions;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.generation.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
+import com.intellij.plugins.haxe.HaxeLightCodeInsightTestBase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
+public class HaxeGenerateActionTest extends HaxeLightCodeInsightTestBase {
 
   @Override
   protected void tearDown() throws Exception {

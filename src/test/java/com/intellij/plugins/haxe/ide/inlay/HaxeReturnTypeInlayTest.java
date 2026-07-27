@@ -1,9 +1,8 @@
 package com.intellij.plugins.haxe.ide.inlay;
 
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
-import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayReturnTypeHintsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeReturnTypeInlayTest extends HaxeInlayTestBase {
 

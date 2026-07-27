@@ -1,14 +1,14 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Re-sending setBreakpoints for a file while stopped on a breakpoint in it (what
@@ -23,17 +23,16 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
   public void reflushWhileStoppedDoesNotReHitTheCurrentBreakpoint() throws Exception {
     // stop at the loop line on the first iteration (i == 0)
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
-    assertEquals("first iteration", "0", localsInTopFrame(stopped.getBody().getThreadId()).get("i"));
+    assertEquals("0", localsInTopFrame(stopped.getBody().getThreadId()).get("i"), "first iteration");
 
     // re-send this file's breakpoints WHILE stopped on one — re-arms the INT3 at the
     // current instruction pointer, the exact situation that used to cause a re-hit
-    assertTrue("reflush while stopped succeeds", setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE).isSuccess());
+    assertTrue(setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE).isSuccess(), "reflush while stopped succeeds");
 
     // continue: the loop body must actually run (i advances to 1), proving the session
     // stepped over the current breakpoint instead of re-hitting it at i == 0
     StoppedEvent next = continueToNextStop();
-    assertEquals("continue made progress past the current breakpoint",
-                 "1", localsInTopFrame(next.getBody().getThreadId()).get("i"));
+    assertEquals("1", localsInTopFrame(next.getBody().getThreadId()).get("i"), "continue made progress past the current breakpoint");
 
     request(new DisconnectRequest());
   }
@@ -52,17 +51,16 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
     int threadId = stopped.getBody().getThreadId();
 
     // remove every breakpoint in the file while standing on one of them
-    assertTrue("breakpoint removal succeeds",
-               setBreakpoints(fixtureSrcDir.resolve(FIXTURE_MAIN).toString()).isSuccess());
+    assertTrue(setBreakpoints(fixtureSrcDir.resolve(FIXTURE_MAIN).toString()).isSuccess(), "breakpoint removal succeeds");
 
     // the loop line executes twice more; with the stale INT3 re-armed this
     // faulted ("Low-level runtime error") instead of running to a clean exit
-    assertTrue("continue succeeds", request(continueRequest(threadId)).isSuccess());
+    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue succeeds");
     boolean exited = false;
     Integer exitCode = null;
     while (!exited) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected a debug event (run-to-exit after breakpoint removal)", event);
+      assertNotNull(event, "expected a debug event (run-to-exit after breakpoint removal)");
       if (event instanceof StoppedEvent unexpected) {
         fail("no further stop expected after removing all breakpoints, got: "
              + unexpected.getBody().getReason() + " / " + unexpected.getBody().getDescription());
@@ -72,6 +70,6 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
         exitCode = exit.getBody().getExitCode();
       }
     }
-    assertEquals("clean exit", Integer.valueOf(0), exitCode);
+    assertEquals(Integer.valueOf(0), exitCode, "clean exit");
   }
 }

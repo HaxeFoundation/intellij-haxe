@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for the HaxeDeprecatedInspection.

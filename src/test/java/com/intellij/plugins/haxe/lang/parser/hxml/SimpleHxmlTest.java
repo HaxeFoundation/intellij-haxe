@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.lang.parser.hxml;
 
 import com.intellij.plugins.haxe.lang.parser.HxmlParsingTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SimpleHxmlTest extends HxmlParsingTestBase {
 

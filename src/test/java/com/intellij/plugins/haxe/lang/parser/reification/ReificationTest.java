@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.lang.parser.reification;
 
 import com.intellij.plugins.haxe.lang.parser.statements.StatementTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ReificationTest extends StatementTestBase {
   public ReificationTest() {

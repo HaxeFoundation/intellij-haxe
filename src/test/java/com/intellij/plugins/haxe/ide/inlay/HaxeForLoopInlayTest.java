@@ -1,9 +1,8 @@
 package com.intellij.plugins.haxe.ide.inlay;
 
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
-import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayEnumExtractorHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayForLoopHintsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeForLoopInlayTest extends HaxeInlayTestBase {
 

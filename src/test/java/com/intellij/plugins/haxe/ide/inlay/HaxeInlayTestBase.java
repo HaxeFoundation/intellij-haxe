@@ -11,24 +11,41 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.builders.ModuleFixtureBuilder;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.junit5.RunInEdt;
 import com.intellij.testFramework.utils.inlays.declarative.DeclarativeInlayHintsProviderTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-public abstract class HaxeInlayTestBase extends DeclarativeInlayHintsProviderTestCase {
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-  private final IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
-  private ModuleFixtureBuilder moduleFixtureBuilder;
+/**
+ * Jupiter front for the platform's JUnit3-style
+ * {@link DeclarativeInlayHintsProviderTestCase}. The engine keeps the platform
+ * comparison logic but swaps its light fixture for the same heavy Haxe module
+ * fixture the other code-insight tests use. Lifecycle stays template-method
+ * shaped so subclasses keep their {@code useHaxeToolkit(); super.setUp();}
+ * ordering; everything runs on the EDT like the JUnit3-era dispatch.
+ */
+@RunInEdt(writeIntent = true)
+public abstract class HaxeInlayTestBase {
+  private final Engine engine = new Engine();
+  private String testName;
 
+  protected CodeInsightTestFixture myFixture;
+  protected String myHaxeToolkit = null;
 
   protected HaxeInlayTestBase() {
-    super();
     Logger.setUnitTestMode();
     Logger.setFactory(category -> {
       DefaultLogger logger = new DefaultLogger(category);
@@ -37,7 +54,18 @@ public abstract class HaxeInlayTestBase extends DeclarativeInlayHintsProviderTes
     });
   }
 
-  @Override
+  @BeforeEach
+  final void runSetUp(TestInfo info) throws Exception {
+    testName = info.getTestMethod().orElseThrow().getName();
+    engine.setName(testName);
+    setUp();
+  }
+
+  @AfterEach
+  final void runTearDown() throws Exception {
+    tearDown();
+  }
+
   protected abstract String getBasePath();
 
   protected boolean toAddSourceRoot() {
@@ -48,54 +76,34 @@ public abstract class HaxeInlayTestBase extends DeclarativeInlayHintsProviderTes
     return null != myHaxeToolkit;
   }
 
-
-  @Override
-  protected void setUp() throws Exception {
-    testFixtureFactory.registerFixtureBuilder(HaxeCodeInsightFixtureTestCase.MyHaxeModuleFixtureBuilderImpl.class,
-                                              HaxeCodeInsightFixtureTestCase.MyHaxeModuleFixtureBuilderImpl.class);
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = testFixtureFactory.createFixtureBuilder(getName());
-    myFixture = testFixtureFactory.createCodeInsightFixture(projectBuilder.getFixture());
-    moduleFixtureBuilder = projectBuilder.addModule(HaxeCodeInsightFixtureTestCase.MyHaxeModuleFixtureBuilderImpl.class);
-
-    if (toAddSourceRoot()) {
-      moduleFixtureBuilder.addSourceContentRoot(myFixture.getTempDirPath());
-    }
-    else {
-      moduleFixtureBuilder.addContentRoot(myFixture.getTempDirPath());
-    }
-
-    if (usingHaxeToolkit()) {
-      moduleFixtureBuilder.addSourceContentRoot(myHaxeToolkit);
-    }
-    myFixture.setTestDataPath(getTestDataPath());
-    myFixture.setUp();
-
-    // disable RecursionPrevention assert as type inference will cause several RecursionPrevention events,
-    // and want to be able to test inlays for inferred types
-    RecursionManager.disableAssertOnRecursionPrevention(myFixture.getProjectDisposable());
-    RecursionManager.disableMissedCacheAssertions(myFixture.getProjectDisposable());
-
+  public void setUp() throws Exception {
+    engine.start();
+    myFixture = engine.fixture();
   }
 
-  @Override
   protected void tearDown() throws Exception {
     try {
-      HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
-      myFixture.tearDown();
+      engine.stop();
     }
-    catch (Throwable e) {
-      addSuppressedException(e);
+    finally {
+      myFixture = null;
     }
   }
 
+  public String getName() {
+    return testName;
+  }
+
+  public String getTestName(boolean lowercaseFirstLetter) {
+    return PlatformTestUtil.getTestName(testName, lowercaseFirstLetter);
+  }
 
   public String getTestDataPath() {
     return HaxeTestUtils.BASE_TEST_DATA_PATH + getBasePath();
   }
 
-
   public void setTestStyleSettings(int indent) {
-    Project project = getProject();
+    Project project = myFixture.getProject();
     CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
     assertNotNull(currSettings);
     CodeStyleSettings tempSettings = currSettings.clone();
@@ -109,23 +117,79 @@ public abstract class HaxeInlayTestBase extends DeclarativeInlayHintsProviderTes
     useHaxeToolkit(HaxeTestUtils.LATEST);
   }
 
-  protected String myHaxeToolkit = null;
-
   public void useHaxeToolkit(String version) {
     String relativeParent = HaxeTestUtils.getAbsoluteToolkitPath(version);
     assert (null != relativeParent);
     myHaxeToolkit = relativeParent;
   }
 
-
   protected void doTest(InlayHintsProvider inlayHintsProvider) throws Exception {
-
     String name = getTestDataPath() + getTestName(false) + ".hx";
     String data = Files.readString(Path.of(name));
     //seems to be an issue with windows line endings and inlays so to avoid any issues we replace them here.
     data = data.replaceAll("\\r\\n?", "\n");
 
-//    doTestProvider("testFile.hx", data, inlayHintsProvider, Map.of(),  true);
-    doTestProvider("testFile.hx", data, inlayHintsProvider, Map.of(), null, true);
+    engine.run(data, inlayHintsProvider);
+  }
+
+  private final class Engine extends DeclarativeInlayHintsProviderTestCase {
+    private final IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
+    private ModuleFixtureBuilder moduleFixtureBuilder;
+
+    // replaces the platform light fixture with the heavy Haxe module fixture;
+    // deliberately no super.setUp()/tearDown(), matching the pre-jupiter code
+    @Override
+    protected void setUp() throws Exception {
+      testFixtureFactory.registerFixtureBuilder(HaxeCodeInsightFixtureTestCase.MyHaxeModuleFixtureBuilderImpl.class,
+                                                HaxeCodeInsightFixtureTestCase.MyHaxeModuleFixtureBuilderImpl.class);
+      final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = testFixtureFactory.createFixtureBuilder(getName());
+      myFixture = testFixtureFactory.createCodeInsightFixture(projectBuilder.getFixture());
+      moduleFixtureBuilder = projectBuilder.addModule(HaxeCodeInsightFixtureTestCase.MyHaxeModuleFixtureBuilderImpl.class);
+
+      if (toAddSourceRoot()) {
+        moduleFixtureBuilder.addSourceContentRoot(myFixture.getTempDirPath());
+      }
+      else {
+        moduleFixtureBuilder.addContentRoot(myFixture.getTempDirPath());
+      }
+
+      if (usingHaxeToolkit()) {
+        moduleFixtureBuilder.addSourceContentRoot(myHaxeToolkit);
+      }
+      myFixture.setTestDataPath(getTestDataPath());
+      myFixture.setUp();
+
+      // disable RecursionPrevention assert as type inference will cause several RecursionPrevention events,
+      // and want to be able to test inlays for inferred types
+      RecursionManager.disableAssertOnRecursionPrevention(myFixture.getProjectDisposable());
+      RecursionManager.disableMissedCacheAssertions(myFixture.getProjectDisposable());
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+      try {
+        HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+        myFixture.tearDown();
+      }
+      catch (Throwable e) {
+        addSuppressedException(e);
+      }
+    }
+
+    void start() throws Exception {
+      setUp();
+    }
+
+    void stop() throws Exception {
+      tearDown();
+    }
+
+    CodeInsightTestFixture fixture() {
+      return myFixture;
+    }
+
+    void run(String data, InlayHintsProvider provider) {
+      doTestProvider("testFile.hx", data, provider, Map.of(), null, true);
+    }
   }
 }

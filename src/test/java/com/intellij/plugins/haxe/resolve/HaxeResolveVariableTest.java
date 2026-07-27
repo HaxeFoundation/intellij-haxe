@@ -17,11 +17,13 @@
  */
 package com.intellij.plugins.haxe.resolve;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -58,6 +60,6 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
     HaxeExpression expression1 = assignExpression.getExpressionList().get(0);
     HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)expression1;
     PsiElement resolve = referenceExpression.resolve();
-    assertTrue("list variable should be local var declaration part ", resolve instanceof HaxeFieldDeclaration);
+    assertTrue(resolve instanceof HaxeFieldDeclaration, "list variable should be local var declaration part ");
   }
 }

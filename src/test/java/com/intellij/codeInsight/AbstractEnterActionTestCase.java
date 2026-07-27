@@ -20,24 +20,19 @@
 //
 package com.intellij.codeInsight;
 
+import com.intellij.plugins.haxe.HaxeLightCodeInsightTestBase;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import org.jetbrains.annotations.NonNls;
 
 import java.io.IOException;
 
-/**
- * Created by IntelliJ IDEA.
- * User: lesya
- * Date: Sep 21, 2005
- * Time: 11:02:33 PM
- * To change this template use File | Settings | File Templates.
- */
-public abstract class AbstractEnterActionTestCase extends LightPlatformCodeInsightTestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public abstract class AbstractEnterActionTestCase extends HaxeLightCodeInsightTestBase {
   private static final String TEST_PATH = "/codeInsight/enterAction/";
 
   @Override

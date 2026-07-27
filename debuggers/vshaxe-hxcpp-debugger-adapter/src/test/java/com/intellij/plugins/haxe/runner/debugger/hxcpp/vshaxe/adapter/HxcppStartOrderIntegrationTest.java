@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
@@ -14,7 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression test for the IDE's startup ordering, which differs from the
@@ -29,8 +29,7 @@ public class HxcppStartOrderIntegrationTest {
   @Test
   public void debuggeeConnectingBeforeAdapterStartIsAccepted() throws Exception {
     String exeProperty = System.getProperty("hxcpp.fixture.exe");
-    assumeTrue("hxcpp fixture exe not built (haxe/hxcpp toolchain missing)",
-               exeProperty != null && Files.isRegularFile(Path.of(exeProperty)));
+    assumeTrue(exeProperty != null && Files.isRegularFile(Path.of(exeProperty)), "hxcpp fixture exe not built (haxe/hxcpp toolchain missing)");
     Path exe = Path.of(exeProperty);
     int port = Integer.getInteger("hxcpp.fixture.port", 6973);
 
@@ -61,7 +60,7 @@ public class HxcppStartOrderIntegrationTest {
           client.sendRequest(new InitializeRequest(), TIMEOUT);
           client.pollEvent(TIMEOUT); // initialized event
           Response launch = client.sendRequest(new LaunchRequest(), TIMEOUT);
-          assertTrue("launch failed: " + launch.getMessage(), launch.isSuccess());
+          assertTrue(launch.isSuccess(), "launch failed: " + launch.getMessage());
         }
       } finally {
         dapListener.close();

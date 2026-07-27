@@ -22,7 +22,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -143,6 +143,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }
+  @Test
   public void testAbstractClassMethodImplementation() throws Exception {
     doTestNoFixWithWarnings();
   }

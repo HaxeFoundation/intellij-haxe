@@ -1,8 +1,9 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.jsonrpc;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonRpcFramingTest {
 
@@ -64,34 +65,34 @@ public class JsonRpcFramingTest {
     assertNull(JsonRpcFraming.readPayload(new ByteArrayInputStream(new byte[0])));
   }
 
-  @Test(expected = EOFException.class)
-  public void endOfStreamInsideLengthPrefixThrows() throws IOException {
-    JsonRpcFraming.readPayload(new ByteArrayInputStream(new byte[]{5, 0}));
+  @Test
+  public void endOfStreamInsideLengthPrefixThrows() {
+    assertThrows(EOFException.class, () -> JsonRpcFraming.readPayload(new ByteArrayInputStream(new byte[]{5, 0})));
   }
 
-  @Test(expected = EOFException.class)
-  public void endOfStreamInsideBodyThrows() throws IOException {
+  @Test
+  public void endOfStreamInsideBodyThrows() {
     byte[] frame = JsonRpcFraming.encode("{\"id\":1}");
     byte[] truncated = Arrays.copyOf(frame, frame.length - 3);
-    JsonRpcFraming.readPayload(new ByteArrayInputStream(truncated));
+    assertThrows(EOFException.class, () -> JsonRpcFraming.readPayload(new ByteArrayInputStream(truncated)));
   }
 
-  @Test(expected = IOException.class)
-  public void implausibleLengthIsRejectedInsteadOfBuffered() throws IOException {
+  @Test
+  public void implausibleLengthIsRejectedInsteadOfBuffered() {
     // 0xFFFFFFFF as unsigned little-endian — a misaligned/corrupt prefix
     byte[] corrupt = {(byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, '{', '}'};
-    JsonRpcFraming.readPayload(new ByteArrayInputStream(corrupt));
+    assertThrows(IOException.class, () -> JsonRpcFraming.readPayload(new ByteArrayInputStream(corrupt)));
   }
 
   // The POSITIVE over-cap branch (a negative length is a different check):
   // this binary prefix always "parses", so the plausibility cap is the only
   // corruption detection the framing has — unlike the DAP framing, whose
   // ASCII header self-detects garbage by failing integer parsing.
-  @Test(expected = IOException.class)
-  public void aPositiveLengthAboveTheCapIsRejected() throws IOException {
+  @Test
+  public void aPositiveLengthAboveTheCapIsRejected() {
     // MAX_FRAME_BYTES + 1 = 0x04000001, little-endian
     byte[] oversized = {0x01, 0x00, 0x00, 0x04, '{', '}'};
-    JsonRpcFraming.readPayload(new ByteArrayInputStream(oversized));
+    assertThrows(IOException.class, () -> JsonRpcFraming.readPayload(new ByteArrayInputStream(oversized)));
   }
 
   @Test

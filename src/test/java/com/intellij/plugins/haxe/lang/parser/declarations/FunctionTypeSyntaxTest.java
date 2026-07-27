@@ -15,7 +15,7 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FunctionTypeSyntaxTest extends DeclarationTestBase {
   public FunctionTypeSyntaxTest() {

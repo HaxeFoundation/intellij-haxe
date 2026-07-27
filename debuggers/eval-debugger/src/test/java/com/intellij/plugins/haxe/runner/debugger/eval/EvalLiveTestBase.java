@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
@@ -18,9 +18,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Base for the live eval tests. Each drives the REAL adapter against a haxe
@@ -44,13 +44,12 @@ public abstract class EvalLiveTestBase {
   /** The fixture's main class; {@code <name>.hx} must sit in the eval fixture dir. */
   protected abstract String fixtureMain();
 
-  @Before
+  @BeforeEach
   public void wire() throws IOException {
-    Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
+    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
 
     Path fixtures = fixtureDir();
-    Assume.assumeTrue(fixtureMain() + " fixture missing - skipping",
-                      Files.isRegularFile(fixtures.resolve(fixtureMain() + ".hx")));
+    Assumptions.assumeTrue(Files.isRegularFile(fixtures.resolve(fixtureMain() + ".hx")), fixtureMain() + " fixture missing - skipping");
 
     adapter = new EvalDebugAdapter(TIMEOUT);
     haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", fixtureMain(),
@@ -65,7 +64,7 @@ public abstract class EvalLiveTestBase {
     dapClient = new DapClient(new DapConnection(clientSide));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (dapClient != null) {
       try {
@@ -92,12 +91,12 @@ public abstract class EvalLiveTestBase {
 
   /** launch + assert success. */
   protected void launch() throws Exception {
-    assertTrue("launch", request(new LaunchRequest()).isSuccess());
+    assertTrue(request(new LaunchRequest()).isSuccess(), "launch");
   }
 
   /** configurationDone + assert success: the step that lets the debuggee run. */
   protected void configurationDone() throws Exception {
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess(), "configurationDone");
   }
 
   /** The next event of {@code type}; fails rather than hanging when none arrives. */

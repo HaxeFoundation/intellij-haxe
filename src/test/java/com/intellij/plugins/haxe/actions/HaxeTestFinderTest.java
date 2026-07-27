@@ -17,11 +17,13 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.HaxeTestFinder;
 import com.intellij.psi.PsiFile;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov

@@ -22,16 +22,12 @@ import com.intellij.codeInsight.AbstractEnterActionTestCase;
 
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author winmain
  */
 public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
-
-    public void setUp() throws Exception {
-        super.setUp();
-    }
 
     @Override
     public void tearDown() throws Exception {

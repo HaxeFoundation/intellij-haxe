@@ -1,13 +1,13 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Exception breakpoints: with the "All Exceptions" filter enabled, the
@@ -24,20 +24,19 @@ public class ExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase 
     // the wrapper's class name) — not supported by the current adapter
     assumeFixtureHaxe43Plus();
     initialize();
-    assertTrue("launch succeeds", launch().isSuccess());
-    assertTrue("exception filter enabled", request(exceptionBreakpointsRequest(List.of("all"))).isSuccess());
+    assertTrue(launch().isSuccess(), "launch succeeds");
+    assertTrue(request(exceptionBreakpointsRequest(List.of("all"))).isSuccess(), "exception filter enabled");
     configurationDone();
 
     // the fixture's `throw "boom"` stops the debuggee with reason "exception"
     StoppedEvent stopped = awaitStopped();
-    assertEquals("stopped for exception", "exception", stopped.getBody().getReason());
-    assertNotNull("exception description", stopped.getBody().getDescription());
-    assertTrue("description names the thrown value (" + stopped.getBody().getDescription() + ")",
-               stopped.getBody().getDescription().contains("boom"));
+    assertEquals("exception", stopped.getBody().getReason(), "stopped for exception");
+    assertNotNull(stopped.getBody().getDescription(), "exception description");
+    assertTrue(stopped.getBody().getDescription().contains("boom"), "description names the thrown value (" + stopped.getBody().getDescription() + ")");
 
     // the throwing frame is inspectable
     int threadId = stopped.getBody().getThreadId();
-    assertEquals("paused in the throwing function", "Main.throwDemo", topFrameName(threadId));
+    assertEquals("Main.throwDemo", topFrameName(threadId), "paused in the throwing function");
 
     request(new DisconnectRequest());
   }

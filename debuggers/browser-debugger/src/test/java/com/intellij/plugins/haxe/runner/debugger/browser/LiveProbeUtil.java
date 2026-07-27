@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
@@ -40,10 +40,9 @@ final class LiveProbeUtil {
    * pointing at the generated app.js means the source map was not applied.
    */
   static void assertStoppedInHx(StackFrame top, String hxFile, int line) {
-    assertNotNull("top frame has no source", top.getSource());
-    assertTrue("top frame is not the .hx original: " + top.getSource().getPath(),
-               top.getSource().getPath() != null && top.getSource().getPath().endsWith(hxFile));
-    assertTrue("wrong line: " + top.getLine(), top.getLine() == line);
+    assertNotNull(top.getSource(), "top frame has no source");
+    assertTrue(top.getSource().getPath() != null && top.getSource().getPath().endsWith(hxFile), "top frame is not the .hx original: " + top.getSource().getPath());
+    assertTrue(top.getLine() == line, "wrong line: " + top.getLine());
   }
 
   static StackTraceRequest stackTraceRequest(int threadId) {

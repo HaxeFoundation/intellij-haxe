@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.ide;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInspection.InspectionToolProvider;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
@@ -12,7 +14,7 @@ import com.intellij.plugins.haxe.ide.inspections.*;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;

@@ -1,14 +1,14 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Uncaught-only exception breakpoints: with only the "uncaught" filter, a
@@ -18,24 +18,23 @@ import org.junit.Test;
  */
 public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {
 
-  @Before
+  @BeforeEach
   public void requireUncaughtFixture() {
-    Assume.assumeTrue("uncaught fixture not built - skipping", uncaughtFixtureHl != null);
+    Assumptions.assumeTrue(uncaughtFixtureHl != null, "uncaught fixture not built - skipping");
   }
 
   @Test
   public void uncaughtOnlySkipsCaughtAndStopsOnUncaught() throws Exception {
     initialize();
-    assertTrue("launch succeeds", launch(uncaughtFixtureHl.toString()).isSuccess());
-    assertTrue("uncaught filter enabled", request(exceptionBreakpointsRequest(List.of("uncaught"))).isSuccess());
+    assertTrue(launch(uncaughtFixtureHl.toString()).isSuccess(), "launch succeeds");
+    assertTrue(request(exceptionBreakpointsRequest(List.of("uncaught"))).isSuccess(), "uncaught filter enabled");
     configurationDone();
 
     // "caught-one" (thrown inside a try) is skipped; the stop is on "uncaught-one"
     StoppedEvent stopped = awaitStopped();
-    assertEquals("stopped for exception", "exception", stopped.getBody().getReason());
+    assertEquals("exception", stopped.getBody().getReason(), "stopped for exception");
     String description = stopped.getBody().getDescription();
-    assertTrue("stopped on the UNCAUGHT throw, not the caught one (" + description + ")",
-               description != null && description.contains("uncaught-one"));
+    assertTrue(description != null && description.contains("uncaught-one"), "stopped on the UNCAUGHT throw, not the caught one (" + description + ")");
 
     request(new DisconnectRequest());
   }

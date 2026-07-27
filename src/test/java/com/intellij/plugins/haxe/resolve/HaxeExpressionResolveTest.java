@@ -21,7 +21,7 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
 

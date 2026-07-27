@@ -19,7 +19,7 @@
 package com.intellij.plugins.haxe.lang.parser.expressions;
 
 import com.intellij.plugins.haxe.lang.parser.HaxeParsingTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov

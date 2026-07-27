@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.ide.inlay;
 
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
 

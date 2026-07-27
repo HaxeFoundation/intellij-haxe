@@ -1,20 +1,19 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** hxml/argument scanning for the HashLink-bytecode gate. */
 public class HlBuildSnifferTest {
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  Path temp;
 
   @Test
   public void findsHlOutputInArguments() {
@@ -31,7 +30,7 @@ public class HlBuildSnifferTest {
   @Test
   public void hlCNativeOutputIsNotBytecode() {
     HlBuildSniffer.HlBuild build = HlBuildSniffer.fromArguments("-hl out/main.c");
-    assertFalse("HL/C native output cannot be debugged as bytecode", build.hlBytecode());
+    assertFalse(build.hlBytecode(), "HL/C native output cannot be debugged as bytecode");
     assertEquals("out/main.c", build.output());
   }
 
@@ -70,11 +69,11 @@ public class HlBuildSnifferTest {
     Thread.sleep(20); // ensure a different modification stamp
     Files.writeString(hxml, "-hl out.hl\n");
     Files.setLastModifiedTime(hxml, java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis() + 1000));
-    assertTrue("cache must notice the changed file", HlBuildSniffer.fromHxml(hxml).hlBytecode());
+    assertTrue(HlBuildSniffer.fromHxml(hxml).hlBytecode(), "cache must notice the changed file");
   }
 
   private Path write(String name, String content) throws IOException {
-    Path file = temp.getRoot().toPath().resolve(name);
+    Path file = temp.resolve(name);
     Files.writeString(file, content);
     return file;
   }

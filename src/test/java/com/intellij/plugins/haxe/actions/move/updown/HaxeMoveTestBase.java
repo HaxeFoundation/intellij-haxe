@@ -3,15 +3,14 @@ package com.intellij.plugins.haxe.actions.move.updown;
 import com.intellij.codeInsight.editorActions.moveUpDown.MoveStatementDownAction;
 import com.intellij.codeInsight.editorActions.moveUpDown.MoveStatementUpAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
-import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
+import com.intellij.plugins.haxe.HaxeLightCodeInsightTestBase;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 
 @CustomLog
-public abstract class HaxeMoveTestBase extends LightPlatformCodeInsightTestCase {
+public abstract class HaxeMoveTestBase extends HaxeLightCodeInsightTestBase {
 
     protected void doTest() throws Exception {
         doTest("hx", 1, 1);
@@ -71,19 +70,12 @@ public abstract class HaxeMoveTestBase extends LightPlatformCodeInsightTestCase 
     }
 
     private void performAction(final String fileName, final EditorActionHandler handler, final String afterFileName, int actionCount) throws Exception {
-        if (handler.isEnabled(getEditor(), null, null)) {
-            WriteCommandAction.runWriteCommandAction(null, () -> handler.execute(getEditor(), null, null));
+        Editor editor = getEditor();
+        if (handler.isEnabled(editor, null, null)) {
+            WriteCommandAction.runWriteCommandAction(null, () -> handler.execute(editor, null, null));
         }
         checkResultByFile(afterFileName);
     }
 
     protected abstract String getBasePath();
-
-    @NotNull
-    @Override
-    protected String getTestDataPath() {
-        return HaxeTestUtils.BASE_TEST_DATA_PATH;
-    }
-
-
 }

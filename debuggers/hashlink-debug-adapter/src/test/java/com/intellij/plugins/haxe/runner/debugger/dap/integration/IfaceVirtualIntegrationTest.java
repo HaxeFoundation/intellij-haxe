@@ -1,15 +1,15 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Interfaces and virtuals. genhl gives a class one EMPTY-NAMED HVirtual field
@@ -28,16 +28,16 @@ public class IfaceVirtualIntegrationTest extends DapIntegrationTestBase {
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
 
     Variable asIface = findVariable(locals, "asIface");
-    assertNotNull("local asIface present", asIface);
-    assertEquals("the interface view resolves to the runtime class", "AnimTask", asIface.getValue());
-    assertTrue("the instance is expandable", asIface.getVariablesReference() > 0);
+    assertNotNull(asIface, "local asIface present");
+    assertEquals("AnimTask", asIface.getValue(), "the interface view resolves to the runtime class");
+    assertTrue(asIface.getVariablesReference() > 0, "the instance is expandable");
 
     // the instance's own fields, with real values - not the interface's
     // properties/methods, which carry none
     Map<String, String> fields = variablesByName(asIface.getVariablesReference());
-    assertEquals("inherited field", "8", fields.get("baseId"));
-    assertEquals("own field", "4", fields.get("count"));
-    assertEquals("own field", "\"anim4\"", fields.get("name"));
+    assertEquals("8", fields.get("baseId"), "inherited field");
+    assertEquals("4", fields.get("count"), "own field");
+    assertEquals("\"anim4\"", fields.get("name"), "own field");
   }
 
   /** The per-interface cache field is compiler-internal and stays hidden. */
@@ -47,14 +47,13 @@ public class IfaceVirtualIntegrationTest extends DapIntegrationTestBase {
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
 
     Variable task = findVariable(locals, "task");
-    assertNotNull("local task present", task);
+    assertNotNull(task, "local task present");
     List<Variable> children = variables(task.getVariablesReference());
     for (Variable child : children) {
-      assertFalse("no empty-named field is shown (" + child.getValue() + ")",
-                  child.getName() == null || child.getName().isEmpty());
+      assertFalse(child.getName() == null || child.getName().isEmpty(), "no empty-named field is shown (" + child.getValue() + ")");
     }
     Map<String, String> fields = variablesByName(task.getVariablesReference());
-    assertEquals("the object's own fields still decode", "4", fields.get("count"));
-    assertEquals("including the inherited one", "8", fields.get("baseId"));
+    assertEquals("4", fields.get("count"), "the object's own fields still decode");
+    assertEquals("8", fields.get("baseId"), "including the inherited one");
   }
 }

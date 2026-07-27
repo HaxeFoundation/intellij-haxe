@@ -89,10 +89,13 @@ dependencies {
     annotationProcessor (libs.lombok)
     testAnnotationProcessor (libs.lombok)
 
-    // TODO upgrade to junit5 (testFramework(TestFrameworkType.JUnit5))
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
+    // junit4 is a need of the platform test framework itself, not of our tests: the
+    // JUnit3-style fixture classes (UsefulTestCase, ParsingTestCase, ...) our test
+    // engines wrap extend junit.framework.TestCase, which lives in the junit4 jar,
+    // so javac needs it on the classpath to resolve the engine supertypes
     testImplementation(libs.junit)
-    // https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1663#issuecomment-2182516044
-    testImplementation(libs.opentest4j)
 
     intellijPlatform {
         pluginVerifier()
@@ -106,8 +109,10 @@ dependencies {
         bundledModules(providers.gradleProperty("platformBundledModules").map { it.split(',') })
 
 
-        // TODO upgrade to JUnit5
+        // Platform stays even with JUnit5 in place: the fixture classes the tests build
+        // on (UsefulTestCase, ParsingTestCase, CodeInsightTestFixture) live there
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Bundled)
         testFramework(TestFrameworkType.Plugin.Java)
 
@@ -165,6 +170,12 @@ changelog {
 tasks {
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
+    }
+
+    test {
+        useJUnitPlatform()
+        // watchdog-extension tuning lives in src/test/resources/junit-platform.properties;
+        // a system property set here would be overwritten by the IJ launcher session listener
     }
 
     buildPlugin {

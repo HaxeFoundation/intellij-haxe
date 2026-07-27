@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.navigation.NavigationItem;
@@ -170,7 +172,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
           System.out.println(s);
         }
       }
-      assertTrue("Missing variants: " + variants, variants.isEmpty());
+      assertTrue(variants.isEmpty(), "Missing variants: " + variants);
     }
     else if (checkType == CheckType.EXCLUDES) {
       variants.retainAll(stringList);
@@ -180,7 +182,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
           System.out.println(s);
         }
       }
-      assertTrue("Unexpected variants: " + variants, variants.isEmpty());
+      assertTrue(variants.isEmpty(), "Unexpected variants: " + variants);
     }
   }
 }

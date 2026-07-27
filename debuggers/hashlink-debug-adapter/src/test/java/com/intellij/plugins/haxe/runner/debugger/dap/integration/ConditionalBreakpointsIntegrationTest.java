@@ -1,8 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
@@ -10,7 +10,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Conditional breakpoints: the adapter evaluates the IDE's breakpoint
@@ -23,44 +23,44 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
   @Test
   public void stopsOnlyWhenTheConditionIsTrue() throws Exception {
     initialize();
-    assertTrue("launch", launch().isSuccess());
-    assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i == 2").isSuccess());
+    assertTrue(launch().isSuccess(), "launch");
+    assertTrue(setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i == 2").isSuccess(), "conditional breakpoint set");
     configurationDone();
 
     StoppedEvent stopped = awaitStopped();
     Map<String, String> locals = localsInTopFrame(stopped.getBody().getThreadId());
-    assertEquals("stopped on the i==2 iteration", "2", locals.get("i"));
-    assertEquals("total accumulated 0+1 by then", "1", locals.get("total"));
+    assertEquals("2", locals.get("i"), "stopped on the i==2 iteration");
+    assertEquals("1", locals.get("total"), "total accumulated 0+1 by then");
 
     // no further hit (i only reaches 2): the program runs to completion
     String output = continueToExit(stopped.getBody().getThreadId());
-    assertTrue("ran to completion (" + output + ")", output.contains("fixture-total:3"));
+    assertTrue(output.contains("fixture-total:3"), "ran to completion (" + output + ")");
   }
 
   @Test
   public void conditionCanBeAnExpressionOverSeveralLocals() throws Exception {
     initialize();
-    assertTrue("launch", launch().isSuccess());
+    assertTrue(launch().isSuccess(), "launch");
     // true on i==1 and i==2 → two stops (total is 0 then 1)
-    assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i >= 1 && total < 5").isSuccess());
+    assertTrue(setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i >= 1 && total < 5").isSuccess(), "conditional breakpoint set");
     configurationDone();
 
     StoppedEvent first = awaitStopped();
-    assertEquals("first stop at i==1", "1", localsInTopFrame(first.getBody().getThreadId()).get("i"));
+    assertEquals("1", localsInTopFrame(first.getBody().getThreadId()).get("i"), "first stop at i==1");
 
-    assertTrue("continue", request(continueRequest(first.getBody().getThreadId())).isSuccess());
+    assertTrue(request(continueRequest(first.getBody().getThreadId())).isSuccess(), "continue");
     StoppedEvent second = awaitStopped();
-    assertEquals("second stop at i==2", "2", localsInTopFrame(second.getBody().getThreadId()).get("i"));
+    assertEquals("2", localsInTopFrame(second.getBody().getThreadId()).get("i"), "second stop at i==2");
 
     String output = continueToExit(second.getBody().getThreadId());
-    assertTrue("ran to completion (" + output + ")", output.contains("fixture-total:3"));
+    assertTrue(output.contains("fixture-total:3"), "ran to completion (" + output + ")");
   }
 
   @Test
   public void anAlwaysFalseConditionNeverStops() throws Exception {
     initialize();
-    assertTrue("launch", launch().isSuccess());
-    assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i == 99").isSuccess());
+    assertTrue(launch().isSuccess(), "launch");
+    assertTrue(setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "i == 99").isSuccess(), "conditional breakpoint set");
     configurationDone();
 
     // never stops: the program runs straight through to its exit
@@ -69,7 +69,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
 
     while (!exited) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected an event before exit", event);
+      assertNotNull(event, "expected an event before exit");
       if (event instanceof StoppedEvent) {
         throw new AssertionError("a false condition must not stop the debuggee");
       } else if (event instanceof OutputEvent out) {
@@ -78,23 +78,23 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
         exited = true;
       }
     }
-    assertTrue("ran to completion (" + output + ")", String.join("", output).contains("fixture-total:3"));
+    assertTrue(String.join("", output).contains("fixture-total:3"), "ran to completion (" + output + ")");
   }
 
   @Test
   public void abrokenConditionFailsSafeByStopping() throws Exception {
     initialize();
-    assertTrue("launch", launch().isSuccess());
+    assertTrue(launch().isSuccess(), "launch");
     // `nope` is not in scope: the adapter cannot evaluate the condition and must
     // FAIL SAFE by stopping (a note explains why), never silently skip the hit
-    assertTrue("conditional breakpoint set", setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "nope > 0").isSuccess());
+    assertTrue(setConditionalBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE, "nope > 0").isSuccess(), "conditional breakpoint set");
     configurationDone();
 
     boolean stopped = false;
     boolean sawNote = false;
     while (!stopped) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected a stop from the fail-safe", event);
+      assertNotNull(event, "expected a stop from the fail-safe");
       if (event instanceof OutputEvent out) {
         String text = out.getBody().getOutput();
         if (text != null && text.contains("could not be evaluated")) {
@@ -104,17 +104,17 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
         stopped = true;
       }
     }
-    assertTrue("a note explained the failed condition", sawNote);
+    assertTrue(sawNote, "a note explained the failed condition");
 
     request(new DisconnectRequest());
   }
 
   private String continueToExit(int threadId) throws Exception {
-    assertTrue("continue", request(continueRequest(threadId)).isSuccess());
+    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue");
     List<String> output = new ArrayList<>();
     while (true) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected an event before exit", event);
+      assertNotNull(event, "expected an event before exit");
       if (event instanceof OutputEvent out) {
         output.add(out.getBody().getOutput());
       } else if (event instanceof StoppedEvent stopped) {

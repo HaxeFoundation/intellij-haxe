@@ -17,6 +17,10 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -27,7 +31,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 
@@ -404,10 +408,9 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     myFixture.configureByFiles("ObjectLiteralKey.hx");
     PsiElement target = singleGotoTarget();
     assertEquals("name", resolvedName(target));
-    assertNull("should navigate to the typedef field, not stay on the object literal key",
-               PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false));
+    assertNull(PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false), "should navigate to the typedef field, not stay on the object literal key");
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
+    assertNotNull(typedef, "target should be declared inside a typedef");
     assertEquals("Config", typedef.getComponentName().getText());
   }
 
@@ -417,8 +420,8 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     PsiElement target = singleGotoTarget();
     assertEquals("label", resolvedName(target));
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
-    assertEquals("label is declared in the parent typedef Base", "Base", typedef.getComponentName().getText());
+    assertNotNull(typedef, "target should be declared inside a typedef");
+    assertEquals("Base", typedef.getComponentName().getText(), "label is declared in the parent typedef Base");
   }
 
   @Test
@@ -426,10 +429,9 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     myFixture.configureByFiles("ObjectLiteralKeyIntersection.hx");
     PsiElement target = singleGotoTarget();
     assertEquals("alpha", resolvedName(target));
-    assertNull("should navigate to the typedef field, not stay on the object literal key",
-               PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false));
+    assertNull(PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false), "should navigate to the typedef field, not stay on the object literal key");
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
+    assertNotNull(typedef, "target should be declared inside a typedef");
     assertEquals("Combo", typedef.getComponentName().getText());
   }
 
@@ -439,7 +441,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     PsiElement target = singleGotoTarget();
     assertEquals("items", resolvedName(target));
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
+    assertNotNull(typedef, "target should be declared inside a typedef");
     assertEquals("ContainerConfig", typedef.getComponentName().getText());
   }
 
@@ -449,7 +451,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     PsiElement target = singleGotoTarget();
     assertEquals("itemId", resolvedName(target));
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
+    assertNotNull(typedef, "target should be declared inside a typedef");
     assertEquals("ItemConfig", typedef.getComponentName().getText());
   }
 
@@ -459,7 +461,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     PsiElement target = singleGotoTarget();
     assertEquals("flag", resolvedName(target));
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
+    assertNotNull(typedef, "target should be declared inside a typedef");
     assertEquals("ExtraConfig", typedef.getComponentName().getText());
   }
 
@@ -469,7 +471,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     PsiElement target = singleGotoTarget();
     assertEquals("key", resolvedName(target));
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull("target should be declared inside a typedef", typedef);
+    assertNotNull(typedef, "target should be declared inside a typedef");
     assertEquals("EntryConfig", typedef.getComponentName().getText());
   }
 
@@ -478,7 +480,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     PsiElement[] targets = GotoDeclarationAction.findAllTargetElements(
       myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
-    assertEquals("expected exactly one navigation target", 1, targets.length);
+    assertEquals(1, targets.length, "expected exactly one navigation target");
     return targets[0];
   }
 

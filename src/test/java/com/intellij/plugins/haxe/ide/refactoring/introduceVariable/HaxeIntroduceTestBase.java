@@ -18,6 +18,8 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.introduceVariable;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
@@ -34,7 +36,7 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
   protected void doTestSuggestions(Class<? extends HaxeExpression> parentClass, String... expectedNames) {
     final Collection<String> names = buildSuggestions(parentClass);
     for (String expectedName : expectedNames) {
-      assertTrue(StringUtil.join(names, ", "), names.contains(expectedName));
+      assertTrue(names.contains(expectedName), StringUtil.join(names, ", "));
     }
   }
 

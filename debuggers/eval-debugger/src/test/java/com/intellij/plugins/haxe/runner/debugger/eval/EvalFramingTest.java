@@ -1,16 +1,16 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Pins the ASYMMETRIC wire framing: requests carry a 2-byte LE prefix (the
@@ -23,19 +23,17 @@ public class EvalFramingTest {
   @Test
   public void requestFrameIsTwoByteLittleEndianPrefixed() {
     byte[] frame = EvalFraming.encodeRequest("{\"a\":1}");
-    assertEquals("prefix + body", 2 + 7, frame.length);
-    assertEquals("low length byte", 7, frame[0]);
-    assertEquals("high length byte", 0, frame[1]);
-    assertArrayEquals("body is the UTF-8 JSON",
-                      "{\"a\":1}".getBytes(StandardCharsets.UTF_8),
-                      Arrays.copyOfRange(frame, 2, frame.length));
+    assertEquals(2 + 7, frame.length, "prefix + body");
+    assertEquals(7, frame[0], "low length byte");
+    assertEquals(0, frame[1], "high length byte");
+    assertArrayEquals("{\"a\":1}".getBytes(StandardCharsets.UTF_8), Arrays.copyOfRange(frame, 2, frame.length), "body is the UTF-8 JSON");
   }
 
   @Test
   public void requestLengthCountsUtf8BytesNotCharacters() {
     String twoByteChar = "\"é\""; // é is 2 UTF-8 bytes
     byte[] frame = EvalFraming.encodeRequest(twoByteChar);
-    assertEquals("é counted as 2 bytes", 4, frame[0]);
+    assertEquals(4, frame[0], "é counted as 2 bytes");
   }
 
   @Test
@@ -70,7 +68,6 @@ public class EvalFramingTest {
   @Test
   public void implausibleResponseLengthIsRefused() {
     byte[] corrupt = {(byte)0xFF, (byte)0xFF, (byte)0xFF, 0x7F};
-    assertThrows("2GB frame refused", IOException.class,
-                 () -> EvalFraming.readResponse(new ByteArrayInputStream(corrupt)));
+    assertThrows(IOException.class, () -> EvalFraming.readResponse(new ByteArrayInputStream(corrupt)), "2GB frame refused");
   }
 }

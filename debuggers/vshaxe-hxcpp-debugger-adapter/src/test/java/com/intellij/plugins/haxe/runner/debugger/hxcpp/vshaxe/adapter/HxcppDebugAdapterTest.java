@@ -1,10 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
@@ -21,9 +21,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives {@link HxcppDebugAdapter} end to end: a real {@link DapClient} on
@@ -38,7 +38,7 @@ public class HxcppDebugAdapterTest {
   private FakeHxcppServer server;
   private ServerSocket dapListener;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     adapter = new HxcppDebugAdapter("127.0.0.1", 0, TIMEOUT);
     dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
@@ -49,7 +49,7 @@ public class HxcppDebugAdapterTest {
     server = new FakeHxcppServer(adapter.getDebuggeePort());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     dapClient.close();
     server.close();
@@ -321,14 +321,10 @@ public class HxcppDebugAdapterTest {
     request.setArguments(arguments);
     VariablesResponse response = (VariablesResponse)dapClient.sendRequest(request, TIMEOUT);
 
-    assertEquals("no toString: the class name once, not doubled",
-                 "ClassB", response.getBody().getVariables().get(0).getValue());
-    assertEquals("custom toString: its text (the type is already shown separately)",
-                 "Widget#3", response.getBody().getVariables().get(1).getValue());
-    assertEquals("primitives pass through untouched",
-                 "7", response.getBody().getVariables().get(2).getValue());
-    assertEquals("maps pass through untouched (no short-name prefix)",
-                 "{a => 1}", response.getBody().getVariables().get(3).getValue());
+    assertEquals("ClassB", response.getBody().getVariables().get(0).getValue(), "no toString: the class name once, not doubled");
+    assertEquals("Widget#3", response.getBody().getVariables().get(1).getValue(), "custom toString: its text (the type is already shown separately)");
+    assertEquals("7", response.getBody().getVariables().get(2).getValue(), "primitives pass through untouched");
+    assertEquals("{a => 1}", response.getBody().getVariables().get(3).getValue(), "maps pass through untouched (no short-name prefix)");
   }
 
   @Test
@@ -610,7 +606,7 @@ public class HxcppDebugAdapterTest {
     // not stopped at all
     Response notStopped = dapClient.sendRequest(request, TIMEOUT);
     assertFalse(notStopped.isSuccess());
-    assertTrue(notStopped.getMessage(), notStopped.getMessage().contains("not stopped"));
+    assertTrue(notStopped.getMessage().contains("not stopped"), notStopped.getMessage());
 
     stopAtBreakpoint(2);
 
@@ -621,7 +617,7 @@ public class HxcppDebugAdapterTest {
     wrongRequest.setArguments(wrongThread);
     Response wrong = dapClient.sendRequest(wrongRequest, TIMEOUT);
     assertFalse(wrong.isSuccess());
-    assertTrue(wrong.getMessage(), wrong.getMessage().contains("stopped thread"));
+    assertTrue(wrong.getMessage().contains("stopped thread"), wrong.getMessage());
 
     // right thread reaches the server
     NextRequest okRequest = new NextRequest();
@@ -705,7 +701,7 @@ public class HxcppDebugAdapterTest {
 
   /** The request failed, and its message names the cause. */
   private static void assertFailedWith(Response response, String expected) {
-    assertFalse("expected failure, got success", response.isSuccess());
-    assertTrue(response.getMessage(), response.getMessage().contains(expected));
+    assertFalse(response.isSuccess(), "expected failure, got success");
+    assertTrue(response.getMessage().contains(expected), response.getMessage());
   }
 }

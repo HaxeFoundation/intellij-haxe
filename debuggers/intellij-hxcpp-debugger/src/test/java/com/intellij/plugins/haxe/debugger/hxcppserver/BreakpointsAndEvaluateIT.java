@@ -6,12 +6,12 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.intellij.plugins.haxe.debugger.hxcppserver.FixtureSession.setVariableRequest;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Breakpoints, variables and the evaluate matrix against the plain fixture
@@ -29,8 +29,8 @@ public class BreakpointsAndEvaluateIT {
 
       StoppedEvent hit = session.awaitStopped();
       assertEquals("breakpoint", hit.getBody().getReason());
-      assertTrue("hitBreakpointIds present", hit.getBody().getHitBreakpointIds() != null
-                                             && !hit.getBody().getHitBreakpointIds().isEmpty());
+      assertTrue(hit.getBody().getHitBreakpointIds() != null
+                                             && !hit.getBody().getHitBreakpointIds().isEmpty(), "hitBreakpointIds present");
       int threadId = session.stoppedThread(hit);
       StackFrame top = session.topFrame(threadId);
       assertEquals(FixtureSession.MAIN_ADD_LINE, top.getLine());
@@ -60,20 +60,17 @@ public class BreakpointsAndEvaluateIT {
         .getBody().getBreakpoints();
 
       assertEquals(3, results.size());
-      assertFalse("comment line rejected", results.get(0).isVerified());
-      assertEquals("rejected result keeps the requested line",
-                   Integer.valueOf(FixtureSession.MAIN_COMMENT_LINE), results.get(0).getLine());
-      assertTrue("rejection names the reason (was: " + results.get(0).getMessage() + ")",
-                 results.get(0).getMessage() != null && results.get(0).getMessage().contains("no executable code"));
-      assertTrue("code line verified", results.get(1).isVerified());
-      assertFalse("blank line rejected", results.get(2).isVerified());
+      assertFalse(results.get(0).isVerified(), "comment line rejected");
+      assertEquals(Integer.valueOf(FixtureSession.MAIN_COMMENT_LINE), results.get(0).getLine(), "rejected result keeps the requested line");
+      assertTrue(results.get(0).getMessage() != null && results.get(0).getMessage().contains("no executable code"), "rejection names the reason (was: " + results.get(0).getMessage() + ")");
+      assertTrue(results.get(1).isVerified(), "code line verified");
+      assertFalse(results.get(2).isVerified(), "blank line rejected");
 
       session.configurationDone();
 
       StoppedEvent hit = session.awaitStopped();
       int threadId = session.stoppedThread(hit);
-      assertEquals("the verified line really fires",
-                   FixtureSession.MAIN_ADD_LINE, session.topFrame(threadId).getLine());
+      assertEquals(FixtureSession.MAIN_ADD_LINE, session.topFrame(threadId).getLine(), "the verified line really fires");
       session.resume(threadId);
     }
   }
@@ -91,7 +88,7 @@ public class BreakpointsAndEvaluateIT {
       // hits with amount 0 and 1 were silently resumed
       assertEquals("2", session.evaluate("amount", frameId));
       session.resume(threadId);
-      assertEquals("the program ran to completion", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "the program ran to completion");
     }
   }
 
@@ -123,8 +120,7 @@ public class BreakpointsAndEvaluateIT {
       assertEquals("10", session.evaluate("fix.PackCounter.total + Counter.total", frameId));
 
       // an unresolvable path errors instead of silently returning null
-      assertFalse("unknown identifier fails",
-                  session.evaluateRaw("nosuch.pack.Thing", frameId).isSuccess());
+      assertFalse(session.evaluateRaw("nosuch.pack.Thing", frameId).isSuccess(), "unknown identifier fails");
 
       session.resume(threadId);
     }
@@ -141,7 +137,7 @@ public class BreakpointsAndEvaluateIT {
       int reference = session.localsReference(session.topFrame(threadId).getId());
 
       SetVariableRequest request = setVariableRequest(reference, "current", "41");
-      assertTrue("setVariable", session.request(request).isSuccess());
+      assertTrue(session.request(request).isSuccess(), "setVariable");
 
       assertEquals("41", session.variable(session.variables(reference), "current").getValue());
       session.resume(threadId);

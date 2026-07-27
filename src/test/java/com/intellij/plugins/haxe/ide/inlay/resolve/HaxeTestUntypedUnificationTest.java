@@ -4,7 +4,7 @@ import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayFieldHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider;
 import com.intellij.plugins.haxe.ide.inlay.HaxeInlayTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HaxeTestUntypedUnificationTest extends HaxeInlayTestBase {
 

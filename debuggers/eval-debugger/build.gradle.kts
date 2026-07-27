@@ -30,7 +30,8 @@ dependencies {
     annotationProcessor(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 
-    testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
 // Debugger tests are OPT-IN (-PdebuggerTests=true): most plugin work does not
@@ -40,6 +41,10 @@ dependencies {
 val debuggerTests = providers.gradleProperty("debuggerTests").getOrElse("false").toBoolean()
 
 tasks.named<Test>("test") {
+    useJUnitPlatform()
+    // @Timeout kills a hung test from a watcher thread (JUnit4 timeout semantics);
+    // the default mode would merely wait for the test to come back on its own
+    systemProperty("junit.jupiter.execution.timeout.thread.mode.default", "SEPARATE_THREAD")
     onlyIf {
         if (!debuggerTests) {
             logger.lifecycle("SKIPPING eval debugger tests (opt in with -PdebuggerTests=true)")

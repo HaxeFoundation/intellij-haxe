@@ -22,10 +22,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Assume;
+import org.junit.jupiter.api.Assumptions;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * One live debug session against a gradle-built fixture, driving the REAL
@@ -88,8 +88,7 @@ final class FixtureSession implements AutoCloseable {
 
   private static FixtureSession launch(String fixture, String exeBaseName, String mode) throws IOException {
     Path exe = fixtureExe(fixture, exeBaseName);
-    Assume.assumeTrue("fixture not built: " + exe + " (gradle builds it when haxe is on PATH)",
-                      Files.isRegularFile(exe));
+    Assumptions.assumeTrue(Files.isRegularFile(exe), "fixture not built: " + exe + " (gradle builds it when haxe is on PATH)");
     ServerSocket listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     ProcessBuilder builder = new ProcessBuilder(exe.toString());
     builder.environment().put("HXCPP_DEBUG_HOST", "127.0.0.1");
@@ -148,7 +147,7 @@ final class FixtureSession implements AutoCloseable {
     arguments.setAdapterID("intellij-haxe");
     arguments.setClientID("intellij");
     initialize.setArguments(arguments);
-    assertTrue("initialize", request(initialize).isSuccess());
+    assertTrue(request(initialize).isSuccess(), "initialize");
     if (client.pollEvent(TIMEOUT_MILLIS) == null) {
       fail("no initialized event");
     }
@@ -162,11 +161,11 @@ final class FixtureSession implements AutoCloseable {
     arguments.setFilters(filters);
     arguments.setFilterTypes(filterTypes);
     request.setArguments(arguments);
-    assertTrue("setExceptionBreakpoints", request(request).isSuccess());
+    assertTrue(request(request).isSuccess(), "setExceptionBreakpoints");
   }
 
   void configurationDone() throws IOException, InterruptedException {
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess(), "configurationDone");
   }
 
   /** Replaces the source's breakpoints; a null condition is an unconditional breakpoint. */
@@ -194,7 +193,7 @@ final class FixtureSession implements AutoCloseable {
     arguments.setBreakpoints(breakpoints);
     request.setArguments(arguments);
     Response response = request(request);
-    assertTrue("setBreakpoints", response.isSuccess());
+    assertTrue(response.isSuccess(), "setBreakpoints");
     return (SetBreakpointsResponse)response;
   }
 
@@ -283,26 +282,26 @@ final class FixtureSession implements AutoCloseable {
   // --- run control ---
 
   void resume(int threadId) throws IOException, InterruptedException {
-    assertTrue("continue", request(continueRequest(threadId)).isSuccess());
+    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue");
   }
 
   void pause() throws IOException, InterruptedException {
-    assertTrue("pause", request(new PauseRequest()).isSuccess());
+    assertTrue(request(new PauseRequest()).isSuccess(), "pause");
   }
 
   void next(int threadId) throws IOException, InterruptedException {
-    assertTrue("next", request(nextRequest(threadId)).isSuccess());
+    assertTrue(request(nextRequest(threadId)).isSuccess(), "next");
   }
 
   void stepIn(int threadId) throws IOException, InterruptedException {
-    assertTrue("stepIn", request(stepInRequest(threadId)).isSuccess());
+    assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn");
   }
 
   // --- inspection ---
 
   List<StackFrame> stackTrace(int threadId) throws IOException, InterruptedException {
     StackTraceResponse response = (StackTraceResponse)request(stackTraceRequest(threadId));
-    assertTrue("stackTrace", response.isSuccess());
+    assertTrue(response.isSuccess(), "stackTrace");
     return response.getBody().getStackFrames();
   }
 
@@ -312,13 +311,13 @@ final class FixtureSession implements AutoCloseable {
 
   int localsReference(int frameId) throws IOException, InterruptedException {
     ScopesResponse response = (ScopesResponse)request(scopesRequest(frameId));
-    assertTrue("scopes", response.isSuccess());
+    assertTrue(response.isSuccess(), "scopes");
     return response.getBody().getScopes().get(0).getVariablesReference();
   }
 
   List<Variable> variables(int reference) throws IOException, InterruptedException {
     VariablesResponse response = (VariablesResponse)request(variablesRequest(reference));
-    assertTrue("variables", response.isSuccess());
+    assertTrue(response.isSuccess(), "variables");
     return response.getBody().getVariables();
   }
 
@@ -335,7 +334,7 @@ final class FixtureSession implements AutoCloseable {
   /** Evaluate, asserting success; returns the rendered result. */
   String evaluate(String expression, int frameId) throws IOException, InterruptedException {
     Response response = evaluateRaw(expression, frameId);
-    assertTrue("evaluate '" + expression + "': " + response.getMessage(), response.isSuccess());
+    assertTrue(response.isSuccess(), "evaluate '" + expression + "': " + response.getMessage());
     return ((EvaluateResponse)response).getBody().getResult();
   }
 
@@ -381,8 +380,7 @@ final class FixtureSession implements AutoCloseable {
     while (outputCount(prefix) <= floor && System.currentTimeMillis() < deadline) {
       Thread.sleep(50);
     }
-    assertTrue("output '" + prefix + "' never grew past " + floor + " — the program is not running",
-               outputCount(prefix) > floor);
+    assertTrue(outputCount(prefix) > floor, "output '" + prefix + "' never grew past " + floor + " — the program is not running");
   }
 
   /** Waits for the debuggee process to exit on its own; returns the exit code. */

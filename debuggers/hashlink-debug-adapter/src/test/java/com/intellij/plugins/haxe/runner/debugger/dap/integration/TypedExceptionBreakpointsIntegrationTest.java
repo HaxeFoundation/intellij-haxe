@@ -1,14 +1,14 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Type-specific exception breakpoints: a filter naming exception class
@@ -18,26 +18,25 @@ import org.junit.Test;
  */
 public class TypedExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase {
 
-  @Before
+  @BeforeEach
   public void requireTypedThrowFixture() {
-    Assume.assumeTrue("typedthrow fixture not built - skipping", typedThrowFixtureHl != null);
+    Assumptions.assumeTrue(typedThrowFixtureHl != null, "typedthrow fixture not built - skipping");
   }
 
   @Test
   public void stopsOnlyOnTheFilteredTypeAndItsSubclasses() throws Exception {
     initialize();
-    assertTrue("launch succeeds", launch(typedThrowFixtureHl.toString()).isSuccess());
+    assertTrue(launch(typedThrowFixtureHl.toString()).isSuccess(), "launch succeeds");
     // filter on the base class "Boom" — the first throw (haxe.Exception) is not a
     // Boom and must be skipped; the Kaboom throw (a Boom subclass) must stop
-    assertTrue("type filter set", request(exceptionTypeFilter("Boom")).isSuccess());
+    assertTrue(request(exceptionTypeFilter("Boom")).isSuccess(), "type filter set");
     configurationDone();
 
     StoppedEvent stopped = awaitStopped();
-    assertEquals("stopped for an exception", "exception", stopped.getBody().getReason());
+    assertEquals("exception", stopped.getBody().getReason(), "stopped for an exception");
     String description = stopped.getBody().getDescription();
     // the throwing value's runtime class is Kaboom (not the skipped haxe.Exception)
-    assertTrue("stopped on the Kaboom throw, not the unrelated one (" + description + ")",
-               description != null && description.contains("Kaboom"));
+    assertTrue(description != null && description.contains("Kaboom"), "stopped on the Kaboom throw, not the unrelated one (" + description + ")");
 
     request(new DisconnectRequest());
   }

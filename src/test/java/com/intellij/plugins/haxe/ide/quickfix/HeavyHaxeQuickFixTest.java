@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.ide.quickfix;
 
+import org.junit.jupiter.api.Test;
+
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -22,14 +24,17 @@ public class HeavyHaxeQuickFixTest extends HaxeCodeInsightFixtureTestCase {
         return "/quickfix/unresolved/heavy/method/";
     }
 
+    @Test
     public void testCreateMethodForArrayLiteral() throws Exception {
         doTestQuickFix("Create method 'unresolvedMethod'");
     }
 
+    @Test
     public void testCreateMethodForObjectLiteral() throws Exception {
         doTestQuickFix("Create method 'myMethod'");
     }
 
+    @Test
     public void testGenerateMethodInOtherClass() throws Exception {
         doTestQuickFix("Create method 'testMethodInDifferentClass'", "OtherClassForGeneration");
     }

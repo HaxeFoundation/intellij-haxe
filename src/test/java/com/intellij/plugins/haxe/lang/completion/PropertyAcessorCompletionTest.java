@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.lang.completion;
 
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -27,6 +27,7 @@ public class PropertyAcessorCompletionTest extends HaxeCompletionTestBase {
   public void testSet1() throws Throwable {
     doTest();
   }
+  @Test
   public void testSet2() throws Throwable {
     doTest();
   }

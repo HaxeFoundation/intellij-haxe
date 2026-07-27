@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.lang.parser.statements;
 
 import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Created by ebishton on 6/2/17.

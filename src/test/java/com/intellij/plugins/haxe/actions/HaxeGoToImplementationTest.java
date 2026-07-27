@@ -17,10 +17,13 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInsight.navigation.GotoTargetHandler;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -35,7 +38,7 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFile(getTestName(false) + ".hx");
     GotoTargetHandler.GotoData data = CodeInsightTestUtil.gotoImplementation(myFixture.getEditor(), myFixture.getFile());
 
-    assertNotNull(myFixture.getFile().toString(), data);
+    assertNotNull(data, myFixture.getFile().toString());
     // TODO: listen updater task?
     assertEquals(expectedLength, data.targets.length);
   }

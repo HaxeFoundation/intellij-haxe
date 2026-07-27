@@ -1,15 +1,16 @@
 package com.intellij.plugins.haxe.runner.debugger.dap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DapJsonTest {
 
@@ -19,7 +20,7 @@ public class DapJsonTest {
     request.setSeq(1);
 
     String json = DapJson.encode(request);
-    assertFalse("null arguments must be omitted", json.contains("arguments"));
+    assertFalse(json.contains("arguments"), "null arguments must be omitted");
     assertTrue(json.contains("\"command\":\"initialize\""));
     assertTrue(json.contains("\"type\":\"request\""));
   }
@@ -34,7 +35,7 @@ public class DapJsonTest {
 
     String json = DapJson.encode(request);
     assertTrue(json.contains("\"adapterID\":\"intellij-haxe\""));
-    assertFalse("unset optional argument fields must be omitted", json.contains("clientID"));
+    assertFalse(json.contains("clientID"), "unset optional argument fields must be omitted");
   }
 
   @Test
@@ -178,14 +179,14 @@ public class DapJsonTest {
     assertTrue(message instanceof Request);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void unknownMessageTypeIsRejected() {
-    DapJson.decode("""
+    assertThrows(IllegalArgumentException.class, () -> DapJson.decode("""
         {
           "seq": 1,
           "type": "telegram"
         }
-        """);
+        """));
   }
 
   @Test
@@ -200,7 +201,7 @@ public class DapJsonTest {
     String json = DapJson.encode(request);
     assertTrue(json.contains("\"program\":\"/project/out/app.hl\""));
     assertTrue(json.contains("\"args\":[\"--flag\"]"));
-    assertFalse("unset cwd must be omitted", json.contains("cwd"));
+    assertFalse(json.contains("cwd"), "unset cwd must be omitted");
   }
 
   @Test
@@ -214,7 +215,7 @@ public class DapJsonTest {
     String json = DapJson.encode(request);
     assertTrue(json.contains("\"command\":\"next\""));
     assertTrue(json.contains("\"threadId\":7"));
-    assertFalse("unset granularity omitted", json.contains("granularity"));
+    assertFalse(json.contains("granularity"), "unset granularity omitted");
   }
 
   @Test
@@ -343,8 +344,8 @@ public class DapJsonTest {
         """;
     VariablesResponse vm = (VariablesResponse)DapJson.decode(vars);
     assertEquals(VariableKind.ARGUMENT, vm.getBody().getVariables().get(0).getKind());
-    assertEquals("absent kind decodes to UNSPECIFIED", VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(1).getKind());
-    assertEquals("unknown kind decodes to UNSPECIFIED", VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(2).getKind());
+    assertEquals(VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(1).getKind(), "absent kind decodes to UNSPECIFIED");
+    assertEquals(VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(2).getKind(), "unknown kind decodes to UNSPECIFIED");
   }
 
   @Test

@@ -22,7 +22,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Created by fedorkorotkov.

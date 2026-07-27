@@ -17,12 +17,14 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.*;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.util.ArrayUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -76,7 +78,7 @@ public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCas
       for (String s : symbols) {
         System.out.println(s);
       }
-      assertTrue("Missing symbols: " + list, list.isEmpty());
+      assertTrue(list.isEmpty(), "Missing symbols: " + list);
     }
   }
 

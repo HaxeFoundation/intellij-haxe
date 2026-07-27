@@ -3,11 +3,11 @@ package com.intellij.plugins.haxe.debugger.hxcppserver;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Smart step into (the custom custom/stepIntoFunction request): a temporary
@@ -90,7 +90,7 @@ public class SmartStepIT {
       assertEquals("DupChainTarget.dup", top.getName());
       // no exact-line assert: the entry stop reports the signature line for
       // functions with parameters. The ARGUMENT proves which invocation.
-      assertEquals("the SECOND invocation passes v=2", "2", session.evaluate("v", top.getId()));
+      assertEquals("2", session.evaluate("v", top.getId()), "the SECOND invocation passes v=2");
     }
   }
 
@@ -104,8 +104,7 @@ public class SmartStepIT {
       stepIntoFunction(session, threadId, "SmartStepTarget", "nosuchfn");
       StoppedEvent landed = session.awaitStopped();
       assertEquals("step", landed.getBody().getReason());
-      assertNotEquals("moved off the line like a plain step over",
-                      FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(landed)).getLine());
+      assertNotEquals(FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(landed)).getLine(), "moved off the line like a plain step over");
     }
   }
 
@@ -124,8 +123,7 @@ public class SmartStepIT {
       stepIntoFunction(session, threadId, "MainEx.SmartStepTarget", "one");
       StoppedEvent unmoved = session.awaitStopped();
       assertEquals("step", unmoved.getBody().getReason());
-      assertEquals("did not move (and did not run away)",
-                   FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(unmoved)).getLine());
+      assertEquals(FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(unmoved)).getLine(), "did not move (and did not run away)");
     }
   }
 
@@ -143,8 +141,7 @@ public class SmartStepIT {
     arguments.setFunctionName(functionName);
     arguments.setOccurrence(occurrence);
     request.setArguments(arguments);
-    assertTrue("stepIntoFunction " + className + "." + functionName + " #" + occurrence,
-               session.request(request).isSuccess());
+    assertTrue(session.request(request).isSuccess(), "stepIntoFunction " + className + "." + functionName + " #" + occurrence);
   }
 
   // stop at the smart line, remove line breakpoints so only the temp can fire
