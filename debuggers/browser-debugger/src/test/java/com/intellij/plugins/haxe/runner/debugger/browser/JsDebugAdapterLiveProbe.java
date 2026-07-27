@@ -427,11 +427,7 @@ public class JsDebugAdapterLiveProbe {
       }
       assertNotNull("no stop after targeted stepIn", landed);
 
-      StackTraceRequest stackTrace = new StackTraceRequest();
-      StackTraceArguments stArgs = new StackTraceArguments();
-      stArgs.setThreadId(currentThreadId);
-      stackTrace.setArguments(stArgs);
-      Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
+      Response stResponse = child.sendRequest(stackTraceRequest(currentThreadId), TIMEOUT);
       StackFrame landedTop = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
 
       probe("smart-step landed: " + landedTop.getName() + " @ "
@@ -526,10 +522,7 @@ public class JsDebugAdapterLiveProbe {
 
         // reportStopped order: threads THEN stackTrace
         assertTrue("threads", child.sendRequest(new ThreadsRequest(), TIMEOUT).isSuccess());
-        StackTraceRequest stackTrace = new StackTraceRequest();
-        StackTraceArguments stArgs = new StackTraceArguments();
-        stArgs.setThreadId(threadId);
-        stackTrace.setArguments(stArgs);
+        StackTraceRequest stackTrace = stackTraceRequest(threadId);
         Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
         StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
 
@@ -538,24 +531,12 @@ public class JsDebugAdapterLiveProbe {
         int n1 = stepInTargetsCount(child, top.getId(), "1:immediately");
 
         // stage 2: hydrate the views like the IDE (scopes + variables)
-        ScopesRequest scopes =
-          new ScopesRequest();
-        ScopesArguments scArgs =
-          new ScopesArguments();
-        scArgs.setFrameId(top.getId());
-        scopes.setArguments(scArgs);
-
-        Response scResponse = child.sendRequest(scopes, TIMEOUT);
+        Response scResponse = child.sendRequest(scopesRequest(top.getId()), TIMEOUT);
 
         if (scResponse instanceof ScopesResponse okScopes
             && okScopes.getBody() != null && !okScopes.getBody().getScopes().isEmpty()) {
-          VariablesRequest variables =
-            new VariablesRequest();
-          VariablesArguments vArgs =
-            new VariablesArguments();
-          vArgs.setVariablesReference(okScopes.getBody().getScopes().get(0).getVariablesReference());
-          variables.setArguments(vArgs);
-          child.sendRequest(variables, TIMEOUT);
+          int reference = okScopes.getBody().getScopes().get(0).getVariablesReference();
+          child.sendRequest(variablesRequest(reference), TIMEOUT);
         }
         int n2 = stepInTargetsCount(child, top.getId(), "2:after scopes+variables");
 
@@ -577,30 +558,13 @@ public class JsDebugAdapterLiveProbe {
         // stage 5: SECOND pause (the user's failing case had frameId=3 - ids
         // increment across pauses, so their stop was not the first). continue,
         // let the ticking fixture re-hit the same line, ask again.
-        ContinueRequest resume =
-          new ContinueRequest();
-        ContinueArguments cArgs =
-          new ContinueArguments();
-        cArgs.setThreadId(threadId);
-        resume.setArguments(cArgs);
+        assertTrue("continue", child.sendRequest(continueRequest(threadId), TIMEOUT).isSuccess());
 
-        assertTrue("continue", child.sendRequest(resume, TIMEOUT).isSuccess());
-
-        StoppedEvent second = null;
-        deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline && second == null) {
-          if (child.pollEvent(250) instanceof StoppedEvent s) {
-            second = s;
-          }
-        }
+        StoppedEvent second = awaitStopped(child, 15_000);
         assertNotNull("no second stop", second);
         int threadId2 = second.getBody().getThreadId() != null ? second.getBody().getThreadId() : threadId;
 
-        StackTraceRequest stackTrace3 = new StackTraceRequest();
-        StackTraceArguments stArgs3 = new StackTraceArguments();
-        stArgs3.setThreadId(threadId2);
-        stackTrace3.setArguments(stArgs3);
-        Response stResponse3 = child.sendRequest(stackTrace3, TIMEOUT);
+        Response stResponse3 = child.sendRequest(stackTraceRequest(threadId2), TIMEOUT);
         StackFrame top3 = ((StackTraceResponse)stResponse3).getBody().getStackFrames().get(0);
 
         probe("ide-seq SECOND PAUSE top id=" + top3.getId()
@@ -870,41 +834,8 @@ public class JsDebugAdapterLiveProbe {
         assertTrue("the stop must come from a WORKER session (composite thread id), got " + threadId,
                    threadId >= COMPOSITE_FLOOR);
 
-        // stackTrace routed by the composite thread id
-        Response stResponse = mux.sendRequest(stackTraceRequest(threadId), TIMEOUT);
-        assertTrue("stackTrace via composite thread id", stResponse.isSuccess());
-
-        StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
-        probe("worker top frame: " + top.getName() + " @ "
-              + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
-
-        assertStoppedInHx(top, WORKER_HX, WORKER_BP_LINE);
-        assertTrue("frame id must be composited, got " + top.getId(), top.getId() >= COMPOSITE_FLOOR);
-
-        // scopes by composite frame id -> composited variablesReference -> variables
-        Response scResponse = mux.sendRequest(scopesRequest(top.getId()), TIMEOUT);
-        assertTrue("scopes via composite frame id", scResponse.isSuccess());
-
-        var scopeList = ((ScopesResponse)scResponse).getBody().getScopes();
-        assertTrue("no scopes", !scopeList.isEmpty());
-        int varRef = scopeList.get(0).getVariablesReference();
-        assertTrue("scope variablesReference must be composited, got " + varRef, varRef >= COMPOSITE_FLOOR);
-
-        assertTrue("variables via composite reference",
-                   mux.sendRequest(variablesRequest(varRef), TIMEOUT).isSuccess());
-
-        // the merged thread list carries the page AND the labelled worker
-        Response threadsResponse = mux.sendRequest(new ThreadsRequest(), TIMEOUT);
-        assertTrue("merged threads", threadsResponse.isSuccess());
-        var threads = ((ThreadsResponse)threadsResponse).getBody().getThreads();
-        for (var thread : threads) {
-          probe("merged thread id=" + thread.getId() + " name=" + thread.getName());
-        }
-        boolean pageListed = threads.stream().anyMatch(t -> t.getId() < COMPOSITE_FLOOR);
-        boolean workerListed = threads.stream().anyMatch(JsDebugAdapterLiveProbe::isWorkerThread);
-
-        assertTrue("merged threads must include the page (raw id)", pageListed);
-        assertTrue("merged threads must include the worker (composite id, named after its script)", workerListed);
+        assertCompositeIdsRoundTrip(mux, threadId);
+        int pageThreadId = pageThreadIdFromMergedThreads(mux);
 
         // continue routes back to the worker's session
         assertTrue("continue via composite thread id",
@@ -915,51 +846,102 @@ public class JsDebugAdapterLiveProbe {
         assertNotNull("no second worker stop after continue", second);
         assertTrue("second stop must be composite too", isWorkerStop(second));
 
-        // --- multi-pause routing: pause the PAGE while the worker stays paused ---
-        int pageThreadId = threads.stream().filter(t -> t.getId() < COMPOSITE_FLOOR)
-          .findFirst()
-          .orElseThrow()
-          .getId();
-
-        assertTrue("pause the page thread",
-                   mux.sendRequest(pauseRequest(pageThreadId), TIMEOUT).isSuccess());
-
-        StoppedEvent pageStop = awaitStopped(mux, 15_000);
-        assertNotNull("page never paused", pageStop);
-        assertTrue("the pause stop must be the PAGE's (raw thread id), got "
-                   + pageStop.getBody().getThreadId(), isPageStop(pageStop));
-
-        // a step routed to the PAGE must stop in the PAGE, never the worker
-        // (the IDE bug this pins: stepping after switching threads)
-        assertTrue("step the page thread",
-                   mux.sendRequest(nextRequest(pageThreadId), TIMEOUT).isSuccess());
-
-        StoppedEvent stepStop = awaitStopped(mux, 15_000);
-        assertNotNull("no stop after stepping the page", stepStop);
-        assertTrue("the step must land in the PAGE thread, got "
-                   + stepStop.getBody().getThreadId(), isPageStop(stepStop));
-
-        // continue routed to the PAGE must leave the paused worker untouched
-        // (the IDE holds the worker's stop back and presents it after this
-        // resume - releasing it here would run it away before the user sees
-        // its breakpoint). The ticking worker would re-hit within ~250ms if
-        // it were resumed; observing silence pins that it stayed paused.
-        assertTrue("resume via the page thread",
-                   mux.sendRequest(continueRequest(pageThreadId), TIMEOUT).isSuccess());
-
-        assertNull("the page-routed continue must NOT release the paused worker,"
-                   + " but its ticking breakpoint re-hit", awaitWorkerStop(mux, 4_000));
-
-        // a continue routed to the WORKER releases it - the bp re-hits
-        assertTrue("resume via the worker thread",
-                   mux.sendRequest(continueRequest(second.getBody().getThreadId()), TIMEOUT).isSuccess());
-
-        assertNotNull("the worker-routed continue must release the worker (bp re-hit)",
-                      awaitWorkerStop(mux, 15_000));
+        assertPageRoutingLeavesWorkerPaused(mux, pageThreadId, second.getBody().getThreadId());
 
         mux.sendRequest(new DisconnectRequest(), TIMEOUT);
       }
     }
+  }
+
+  /**
+   * stackTrace -> scopes -> variables, every one routed by a COMPOSITE id: the
+   * mux has to map each id back to the worker session that owns it, and the
+   * ids it hands out must stay composited on the way back.
+   */
+  private static void assertCompositeIdsRoundTrip(JsDebugSessionMux mux, int threadId) throws Exception {
+    Response stResponse = mux.sendRequest(stackTraceRequest(threadId), TIMEOUT);
+    assertTrue("stackTrace via composite thread id", stResponse.isSuccess());
+
+    StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
+    probe("worker top frame: " + top.getName() + " @ "
+          + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
+
+    assertStoppedInHx(top, WORKER_HX, WORKER_BP_LINE);
+    assertTrue("frame id must be composited, got " + top.getId(), top.getId() >= COMPOSITE_FLOOR);
+
+    Response scResponse = mux.sendRequest(scopesRequest(top.getId()), TIMEOUT);
+    assertTrue("scopes via composite frame id", scResponse.isSuccess());
+
+    var scopeList = ((ScopesResponse)scResponse).getBody().getScopes();
+    assertTrue("no scopes", !scopeList.isEmpty());
+
+    int varRef = scopeList.get(0).getVariablesReference();
+    assertTrue("scope variablesReference must be composited, got " + varRef, varRef >= COMPOSITE_FLOOR);
+    assertTrue("variables via composite reference",
+               mux.sendRequest(variablesRequest(varRef), TIMEOUT).isSuccess());
+  }
+
+  /** The merged listing carries the page under its raw id and the worker under a composite one. */
+  private static int pageThreadIdFromMergedThreads(JsDebugSessionMux mux) throws Exception {
+    Response threadsResponse = mux.sendRequest(new ThreadsRequest(), TIMEOUT);
+    assertTrue("merged threads", threadsResponse.isSuccess());
+
+    var threads = ((ThreadsResponse)threadsResponse).getBody().getThreads();
+    for (var thread : threads) {
+      probe("merged thread id=" + thread.getId() + " name=" + thread.getName());
+    }
+    boolean pageListed = threads.stream().anyMatch(t -> t.getId() < COMPOSITE_FLOOR);
+    boolean workerListed = threads.stream().anyMatch(JsDebugAdapterLiveProbe::isWorkerThread);
+
+    assertTrue("merged threads must include the page (raw id)", pageListed);
+    assertTrue("merged threads must include the worker (composite id, named after its script)", workerListed);
+
+    return threads.stream()
+      .filter(t -> t.getId() < COMPOSITE_FLOOR)
+      .findFirst()
+      .orElseThrow()
+      .getId();
+  }
+
+  /**
+   * Pausing, stepping and resuming the PAGE must never disturb a worker that is
+   * already paused. The IDE holds the worker's stop back and presents it after
+   * the page resumes, so releasing it early would run it past the breakpoint
+   * before the user ever sees it. The ticking worker re-hits within ~250ms once
+   * resumed, so silence is what pins that it stayed put.
+   */
+  private static void assertPageRoutingLeavesWorkerPaused(JsDebugSessionMux mux, int pageThreadId,
+                                                          int workerThreadId) throws Exception {
+    assertTrue("pause the page thread",
+               mux.sendRequest(pauseRequest(pageThreadId), TIMEOUT).isSuccess());
+
+    StoppedEvent pageStop = awaitStopped(mux, 15_000);
+    assertNotNull("page never paused", pageStop);
+    assertTrue("the pause stop must be the PAGE's (raw thread id), got "
+               + pageStop.getBody().getThreadId(), isPageStop(pageStop));
+
+    // a step routed to the PAGE must stop in the PAGE, never the worker
+    // (the IDE bug this pins: stepping after switching threads)
+    assertTrue("step the page thread",
+               mux.sendRequest(nextRequest(pageThreadId), TIMEOUT).isSuccess());
+
+    StoppedEvent stepStop = awaitStopped(mux, 15_000);
+    assertNotNull("no stop after stepping the page", stepStop);
+    assertTrue("the step must land in the PAGE thread, got "
+               + stepStop.getBody().getThreadId(), isPageStop(stepStop));
+
+    assertTrue("resume via the page thread",
+               mux.sendRequest(continueRequest(pageThreadId), TIMEOUT).isSuccess());
+
+    assertNull("the page-routed continue must NOT release the paused worker,"
+               + " but its ticking breakpoint re-hit", awaitWorkerStop(mux, 4_000));
+
+    // a continue routed to the WORKER releases it - the bp re-hits
+    assertTrue("resume via the worker thread",
+               mux.sendRequest(continueRequest(workerThreadId), TIMEOUT).isSuccess());
+
+    assertNotNull("the worker-routed continue must release the worker (bp re-hit)",
+                  awaitWorkerStop(mux, 15_000));
   }
 
   private int stepInTargetsCount(DapClient child, int frameId, String stage) throws Exception {
@@ -1051,11 +1033,7 @@ public class JsDebugAdapterLiveProbe {
         int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
         currentThreadId = threadId;
 
-        StackTraceRequest stackTrace = new StackTraceRequest();
-        StackTraceArguments stArgs = new StackTraceArguments();
-        stArgs.setThreadId(threadId);
-        stackTrace.setArguments(stArgs);
-        Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
+        Response stResponse = child.sendRequest(stackTraceRequest(threadId), TIMEOUT);
         assertTrue("child stackTrace", stResponse.isSuccess());
 
         List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
@@ -1177,11 +1155,7 @@ public class JsDebugAdapterLiveProbe {
         probe("at stop: parent launch settled=" + launchFuture.isDone() + " child launch settled=" + childLaunchFuture.isDone());
         int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
 
-        StackTraceRequest stackTrace = new StackTraceRequest();
-        StackTraceArguments stArgs = new StackTraceArguments();
-        stArgs.setThreadId(threadId);
-        stackTrace.setArguments(stArgs);
-        Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
+        Response stResponse = child.sendRequest(stackTraceRequest(threadId), TIMEOUT);
         assertTrue("child stackTrace", stResponse.isSuccess());
         List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
         assertTrue("no frames", !frames.isEmpty());
