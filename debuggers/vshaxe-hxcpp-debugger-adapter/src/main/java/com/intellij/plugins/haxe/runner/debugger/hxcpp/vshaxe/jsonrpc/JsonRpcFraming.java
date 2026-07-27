@@ -1,9 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.jsonrpc;
 
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -26,13 +27,11 @@ public final class JsonRpcFraming {
   /** Wraps a JSON payload in a length-prefixed frame. */
   public static byte[] encode(String json) {
     byte[] body = json.getBytes(StandardCharsets.UTF_8);
-    ByteArrayOutputStream frame = new ByteArrayOutputStream(4 + body.length);
-    frame.write(body.length & 0xFF);
-    frame.write((body.length >>> 8) & 0xFF);
-    frame.write((body.length >>> 16) & 0xFF);
-    frame.write((body.length >>> 24) & 0xFF);
-    frame.write(body, 0, body.length);
-    return frame.toByteArray();
+    return ByteBuffer.allocate(Integer.BYTES + body.length)
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .putInt(body.length)
+      .put(body)
+      .array();
   }
 
   /**
@@ -45,14 +44,17 @@ public final class JsonRpcFraming {
     if (first < 0) {
       return null;
     }
-    byte[] rest = in.readNBytes(3);
-    if (rest.length < 3) {
+    // the first byte is already consumed (it distinguishes a clean end of
+    // stream from a truncated prefix), so the rest is read in behind it
+    byte[] prefix = new byte[Integer.BYTES];
+    prefix[0] = (byte)first;
+    if (in.readNBytes(prefix, 1, prefix.length - 1) < prefix.length - 1) {
       throw new EOFException("Stream ended inside jsonrpc length prefix");
     }
-    int length = first
-                 | (rest[0] & 0xFF) << 8
-                 | (rest[1] & 0xFF) << 16
-                 | (rest[2] & 0xFF) << 24;
+    int length = ByteBuffer.wrap(prefix)
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .getInt();
+    // a prefix with the top bit set decodes to a negative int
     if (length < 0 || length > MAX_FRAME_BYTES) {
       throw new IOException("Implausible jsonrpc frame length " + (length & 0xFFFFFFFFL)
                             + " - stream is corrupt or misaligned");

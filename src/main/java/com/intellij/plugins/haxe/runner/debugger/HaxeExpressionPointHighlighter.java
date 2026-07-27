@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.runner.debugger.dap.DapPaths;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
@@ -83,10 +84,10 @@ public final class HaxeExpressionPointHighlighter {
   private static int offsetOf(Document document, int line, int column) {
     int lineStart = document.getLineStartOffset(line - 1);
     int lineEnd = document.getLineEndOffset(line - 1);
-    return Math.min(lineStart + Math.max(column - 1, 0), lineEnd);
+    return Math.clamp(lineStart + column - 1, lineStart, lineEnd);
   }
 
   private static boolean pathsMatch(String editorPath, String framePath) {
-    return editorPath.replace('\\', '/').equalsIgnoreCase(framePath.replace('\\', '/'));
+    return DapPaths.toMatchKey(editorPath).equals(DapPaths.toMatchKey(framePath));
   }
 }

@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.matrix;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -167,12 +169,8 @@ final class Provisioner {
   private static String sha256Of(Path file) throws IOException {
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      try (InputStream in = Files.newInputStream(file)) {
-        byte[] buffer = new byte[64 * 1024];
-        int read;
-        while ((read = in.read(buffer)) >= 0) {
-          digest.update(buffer, 0, read);
-        }
+      try (DigestInputStream in = new DigestInputStream(Files.newInputStream(file), digest)) {
+        in.transferTo(OutputStream.nullOutputStream());
       }
       return HexFormat.of().formatHex(digest.digest());
     } catch (NoSuchAlgorithmException e) {
