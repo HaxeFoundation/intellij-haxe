@@ -52,19 +52,6 @@ public class JsonRpcClientTest {
     listener.close();
   }
 
-  private void serverSend(String json) throws IOException {
-    serverOut.write(JsonRpcFraming.encode(json));
-    serverOut.flush();
-  }
-
-  private JsonNode serverReceive() throws IOException {
-    String payload = JsonRpcFraming.readPayload(serverIn);
-    assertNotNull("server side saw EOF", payload);
-    return JsonMapper.builder()
-      .build()
-      .readTree(payload);
-  }
-
   @Test
   public void requestGetsItsResponse() throws Exception {
     CountDownLatch requestSeen = new CountDownLatch(1);
@@ -114,14 +101,6 @@ public class JsonRpcClientTest {
     server.join(TIMEOUT);
     assertEquals("for-alpha", results[0]);
     assertEquals("for-beta", results[1]);
-  }
-
-  private String callQuietly(String method) {
-    try {
-      return client.call(method, null, TIMEOUT).asString();
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Test
@@ -255,5 +234,26 @@ public class JsonRpcClientTest {
                                   Map.of("expr", "æøå 🐛", "frameId", 0), TIMEOUT);
     assertEquals("rød grød", new String(result.asString().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
     server.join(TIMEOUT);
+  }
+
+  private void serverSend(String json) throws IOException {
+    serverOut.write(JsonRpcFraming.encode(json));
+    serverOut.flush();
+  }
+
+  private JsonNode serverReceive() throws IOException {
+    String payload = JsonRpcFraming.readPayload(serverIn);
+    assertNotNull("server side saw EOF", payload);
+    return JsonMapper.builder()
+      .build()
+      .readTree(payload);
+  }
+
+  private String callQuietly(String method) {
+    try {
+      return client.call(method, null, TIMEOUT).asString();
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

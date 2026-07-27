@@ -23,7 +23,6 @@ import org.junit.Test;
  * line where that value is in scope.
  */
 public class VariablesIntegrationTest extends DapIntegrationTestBase {
-
   // --- locals (frame offsets) ---
 
   @Test
@@ -81,7 +80,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void expandsObjectFields() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
-
     Variable p = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "p");
     assertNotNull("local p present", p);
     assertTrue("Point is expandable", p.getVariablesReference() > 0);
@@ -107,7 +105,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // instead of a bare "Dynamic" (user-reported).
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
-
     Variable callbacks = findVariable(locals, "callbacks");
     assertNotNull("local callbacks present in " + locals, callbacks);
     assertTrue("the array expands", callbacks.getVariablesReference() > 0);
@@ -429,14 +426,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  private static int countByName(List<Variable> variables, String name) {
-    int count = 0;
-    for (Variable variable : variables) {
-      if (name.equals(variable.getName())) count++;
-    }
-    return count;
-  }
-
   // --- registers scope ---
 
   @Test
@@ -479,13 +468,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertNotNull("caller VM register bound to total", findByNameSuffix(rows, "(total)"));
 
     request(new DisconnectRequest());
-  }
-
-  private static Variable findByNameSuffix(List<Variable> variables, String suffix) {
-    for (Variable variable : variables) {
-      if (variable.getName() != null && variable.getName().endsWith(suffix)) return variable;
-    }
-    return null;
   }
 
   // --- evaluate (variable paths) ---
@@ -605,7 +587,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void evaluateRejectsBadExpressionsWithAClearMessage() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
-
     Response unknown = evaluateRaw(frameId, "nosuch");
     assertFalse("unknown name must be rejected", unknown.isSuccess());
     assertTrue("message names the variable", unknown.getMessage().contains("nosuch"));
@@ -800,7 +781,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   public void methodCallRejectsUnknownMethodsClearly() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
-
     Response noSuch = evaluateRaw(frameId, "stringMap.nope(1)");
     assertFalse("unknown method rejected", noSuch.isSuccess());
     Response wrongArity = evaluateRaw(frameId, "stringMap.set(\"c\")");
@@ -842,6 +822,21 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("this.y", "20", fields.get("y"));
 
     request(new DisconnectRequest());
+  }
+
+  private static int countByName(List<Variable> variables, String name) {
+    int count = 0;
+    for (Variable variable : variables) {
+      if (name.equals(variable.getName())) count++;
+    }
+    return count;
+  }
+
+  private static Variable findByNameSuffix(List<Variable> variables, String suffix) {
+    for (Variable variable : variables) {
+      if (variable.getName() != null && variable.getName().endsWith(suffix)) return variable;
+    }
+    return null;
   }
 
   /** Stops at FIXTURE_RICH_LINE and returns Rich.demo's locals. */

@@ -26,19 +26,9 @@ import org.junit.Test;
  * and every stage depends on the previous one anyway.
  */
 public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
-
   @Before
   public void setUp() throws Exception {
     launchFixture("hxcpp.fixture.exe", "Main.hx");
-  }
-
-  private EvaluateResponse evaluate(String expression, int frameId) throws Exception {
-    EvaluateArguments arguments = new EvaluateArguments();
-    arguments.setExpression(expression);
-    arguments.setFrameId(frameId);
-    EvaluateRequest request = new EvaluateRequest();
-    request.setArguments(arguments);
-    return require(request);
   }
 
   @Test
@@ -57,7 +47,6 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     // --- first hit ----------------------------------------------------------
     Stop stop = awaitStopAtLine(accumulateLine);
     int threadId = stop.threadId();
-
     ThreadsResponse threads = require(new ThreadsRequest());
     assertFalse(threads.getBody().getThreads().isEmpty());
 
@@ -168,6 +157,15 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     assertTrue("debuggee did not exit", debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
     assertTrue("expected trace output, got:\n" + output(),
                output().contains("total=60 title=fixture"));
+  }
+
+  private EvaluateResponse evaluate(String expression, int frameId) throws Exception {
+    EvaluateArguments arguments = new EvaluateArguments();
+    arguments.setExpression(expression);
+    arguments.setFrameId(frameId);
+    EvaluateRequest request = new EvaluateRequest();
+    request.setArguments(arguments);
+    return require(request);
   }
 
   private EvaluateRequest assignmentRequest(String expression, int frameId) {

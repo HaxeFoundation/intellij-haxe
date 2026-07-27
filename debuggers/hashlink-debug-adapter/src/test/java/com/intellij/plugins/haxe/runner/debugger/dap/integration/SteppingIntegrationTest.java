@@ -14,15 +14,6 @@ import org.junit.Test;
  * the next statement is the call to add().
  */
 public class SteppingIntegrationTest extends DapIntegrationTestBase {
-
-  // stepOverALongRunningCallWaitsForTheLanding needs the fixture's slow call
-  // at its full 3s (it asserts elapsed >= 2500ms - which also fails loudly if
-  // this plumbing ever breaks). Everywhere else the sleep is near-instant.
-  @Override
-  protected Map<String, String> adapterEnv() {
-    return Map.of("FIXTURE_SLOW", "1");
-  }
-
   @Test
   public void stepIntoEntersCallee() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
@@ -158,7 +149,6 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     // "step watchdog" wrongly downgraded such steps to a resume after 2s,
     // losing the stop entirely (user-reported design flaw, verified here).
     StoppedEvent atSleep = runToBreakpoint(FIXTURE_MAIN, FIXTURE_SLOW_LINE);
-
     long start = System.currentTimeMillis();
     assertTrue("next accepted", request(nextRequest(atSleep.getBody().getThreadId())).isSuccess());
     StoppedEvent landed = awaitStopped();
@@ -206,5 +196,13 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
                frame.getLine() >= 12 && frame.getLine() <= 14);
 
     request(new DisconnectRequest());
+  }
+
+  // stepOverALongRunningCallWaitsForTheLanding needs the fixture's slow call
+  // at its full 3s (it asserts elapsed >= 2500ms - which also fails loudly if
+  // this plumbing ever breaks). Everywhere else the sleep is near-instant.
+  @Override
+  protected Map<String, String> adapterEnv() {
+    return Map.of("FIXTURE_SLOW", "1");
   }
 }
