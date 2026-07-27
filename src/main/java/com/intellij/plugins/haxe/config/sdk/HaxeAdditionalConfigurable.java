@@ -25,6 +25,7 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.config.sdk.ui.HaxeAdditionalConfigurablePanel;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
 
@@ -70,6 +71,7 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     final HaxeSdkData newData = haxeSdkData != null
                                 ? new HaxeSdkData(haxeSdkData.getHomePath(), haxeSdkData.getVersion())
                                 : new HaxeSdkData(mySdk.getHomePath(), mySdk.getVersionString());
+
     newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
     newData.setHlBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHlBinPath()));
     newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
@@ -95,17 +97,25 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
     if (haxeSdkData != null) {
       final String nekoBinPath = haxeSdkData.getNekoBinPath();
-      myHaxeAdditionalConfigurablePanel.setNekoBinPath(FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath));
+      myHaxeAdditionalConfigurablePanel.setNekoBinPath(toSystemDependentName(nekoBinPath));
+
       final String hlBinPath = haxeSdkData.getHlBinPath();
-      myHaxeAdditionalConfigurablePanel.setHlBinPath(FileUtil.toSystemDependentName(hlBinPath == null ? "" : hlBinPath));
+      myHaxeAdditionalConfigurablePanel.setHlBinPath(toSystemDependentName(hlBinPath));
+
       final String haxelibPath = haxeSdkData.getHaxelibPath();
-      myHaxeAdditionalConfigurablePanel.setHaxelibPath(FileUtil.toSystemDependentName(haxelibPath == null ? "" : haxelibPath));
+      myHaxeAdditionalConfigurablePanel.setHaxelibPath(toSystemDependentName(haxelibPath));
+
       final boolean bUseCompilerCompletion = haxeSdkData.getUseCompilerCompletionFlag();
       myHaxeAdditionalConfigurablePanel.setUseCompilerCompletionFlag(bUseCompilerCompletion);
+
       final boolean bRemoveDuplicates = haxeSdkData.getRemoveCompletionDuplicatesFlag();
       myHaxeAdditionalConfigurablePanel.setRemoveCompletionDuplicatesFlag(bRemoveDuplicates);
     }
     myHaxeAdditionalConfigurablePanel.getPanel().repaint();
+  }
+
+  private static @NonNull String toSystemDependentName(String nekoBinPath) {
+    return FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath);
   }
 
   @Override

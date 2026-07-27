@@ -134,20 +134,7 @@ public class FirefoxAdapterLiveProbe {
 
   @Test(timeout = 30_000)
   public void initializeHandshakeAndCapabilities() throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    InitializeRequestArguments arguments = new InitializeRequestArguments();
-
-    arguments.setClientID("intellij");
-    arguments.setAdapterID("firefox");
-    // the firefox adapter REJECTS initialize unless pathFormat=="path"
-    // ("debug adapter only supports native paths")
-    arguments.setPathFormat("path");
-    arguments.setLinesStartAt1(true);
-    arguments.setColumnsStartAt1(true);
-
-    initialize.setArguments(arguments);
-
-    Response response = client.sendRequest(initialize, TIMEOUT);
+    Response response = client.sendRequest(initializeRequest(), TIMEOUT);
     System.out.println("[probe] initialize success=" + response.isSuccess()
                        + " class=" + response.getClass().getSimpleName());
 
@@ -189,6 +176,40 @@ public class FirefoxAdapterLiveProbe {
     public Map<String, Object> getArguments() {
       return arguments;
     }
+  }
+
+  /** The handshake every probe here opens with. */
+  private static InitializeRequest initializeRequest() {
+    return InitializeRequest.standard("firefox", false);
+  }
+
+  /**
+   * The launch config every probe here starts from. The RDP port is always a
+   * fresh one: the adapter defaults to 6000, and a firefox surviving from an
+   * earlier session still holds it, so the adapter attaches to THAT instance
+   * instead of the one it just launched ("Not attaching to this thread" for
+   * every worker, and foreign processes' workers in the target list).
+   */
+  private static Map<String, Object> baseLaunchConfig(Path firefox) throws IOException {
+    Map<String, Object> config = new LinkedHashMap<>();
+
+    config.put("request", "launch");
+    config.put("firefoxExecutable", firefox.toString());
+    config.put("firefoxArgs", List.of("-headless"));
+    config.put("port", LiveProbeUtil.freePort());
+
+    return config;
+  }
+
+  /** {@link #baseLaunchConfig} for a page served over http rather than a file:// url. */
+  private static Map<String, Object> servedLaunchConfig(Path firefox, String baseUrl, Path fixture)
+    throws IOException {
+    Map<String, Object> config = baseLaunchConfig(firefox);
+
+    config.put("url", baseUrl);
+    config.put("webRoot", fixture.toString());
+
+    return config;
   }
 
   /**
@@ -251,22 +272,10 @@ public class FirefoxAdapterLiveProbe {
     Path fixture = buildFixture();
     System.out.println("[probe] fixture at " + fixture);
 
-    InitializeRequest initialize = new InitializeRequest();
-    InitializeRequestArguments initArgs = new InitializeRequestArguments();
-    initArgs.setClientID("intellij");
-    initArgs.setAdapterID("firefox");
-    initArgs.setPathFormat("path");
-    initArgs.setLinesStartAt1(true);
-    initArgs.setColumnsStartAt1(true);
-    initialize.setArguments(initArgs);
-    assertTrue("initialize", client.sendRequest(initialize, TIMEOUT).isSuccess());
+    assertTrue("initialize", client.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-    Map<String, Object> launchConfig = new LinkedHashMap<>();
-    launchConfig.put("request", "launch");
+    Map<String, Object> launchConfig = baseLaunchConfig(firefox);
     launchConfig.put("file", fixture.resolve("index.html").toString());
-    launchConfig.put("firefoxExecutable", firefox.toString());
-    launchConfig.put("firefoxArgs", List.of("-headless"));
-    launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
     Response launch = client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
     System.out.println("[probe] launch success=" + launch.isSuccess()
                        + (launch.isSuccess() ? "" : " message=" + launch.getMessage()));
@@ -391,23 +400,9 @@ public class FirefoxAdapterLiveProbe {
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       System.out.println("[probe] serving " + fixture + " at " + content.getBaseUrl());
 
-      InitializeRequest initialize = new InitializeRequest();
-      InitializeRequestArguments initArgs = new InitializeRequestArguments();
-      initArgs.setClientID("intellij");
-      initArgs.setAdapterID("firefox");
-      initArgs.setPathFormat("path");
-      initArgs.setLinesStartAt1(true);
-      initArgs.setColumnsStartAt1(true);
-      initialize.setArguments(initArgs);
-      assertTrue("initialize", client.sendRequest(initialize, TIMEOUT).isSuccess());
+      assertTrue("initialize", client.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-      Map<String, Object> launchConfig = new LinkedHashMap<>();
-      launchConfig.put("request", "launch");
-      launchConfig.put("url", content.getBaseUrl());
-      launchConfig.put("webRoot", fixture.toString());
-      launchConfig.put("firefoxExecutable", firefox.toString());
-      launchConfig.put("firefoxArgs", List.of("-headless"));
-      launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
+      Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
       Response launch = client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
       assertTrue("launch failed: " + launch.getMessage(), launch.isSuccess());
 
@@ -505,25 +500,10 @@ public class FirefoxAdapterLiveProbe {
     try {
       DapClient session = connectWithRetry(ownPort);
       try {
-        InitializeRequest initialize = new InitializeRequest();
-        InitializeRequestArguments initArgs = new InitializeRequestArguments();
-        initArgs.setClientID("intellij");
-        initArgs.setAdapterID("firefox");
-        initArgs.setPathFormat("path");
-        initArgs.setLinesStartAt1(true);
-        initArgs.setColumnsStartAt1(true);
-        initialize.setArguments(initArgs);
-
-        if (!session.sendRequest(initialize, TIMEOUT).isSuccess()) {
+        if (!session.sendRequest(initializeRequest(), TIMEOUT).isSuccess()) {
           return false;
         }
-        Map<String, Object> launchConfig = new LinkedHashMap<>();
-        launchConfig.put("request", "launch");
-        launchConfig.put("url", content.getBaseUrl());
-        launchConfig.put("webRoot", fixture.toString());
-        launchConfig.put("firefoxExecutable", firefox.toString());
-        launchConfig.put("firefoxArgs", List.of("-headless"));
-        launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
+        Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
         if (!session.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess()) {
           return false;
         }
@@ -642,28 +622,9 @@ public class FirefoxAdapterLiveProbe {
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       content.setRequestListener(line -> System.out.println("[server] " + line));
-      InitializeRequest initialize = new InitializeRequest();
-      InitializeRequestArguments initArgs = new InitializeRequestArguments();
-      initArgs.setClientID("intellij");
-      initArgs.setAdapterID("firefox");
-      initArgs.setPathFormat("path");
-      initArgs.setLinesStartAt1(true);
-      initArgs.setColumnsStartAt1(true);
-      initialize.setArguments(initArgs);
-      assertTrue("initialize", client.sendRequest(initialize, TIMEOUT).isSuccess());
+      assertTrue("initialize", client.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-      Map<String, Object> launchConfig = new LinkedHashMap<>();
-      launchConfig.put("request", "launch");
-      launchConfig.put("url", content.getBaseUrl());
-      launchConfig.put("webRoot", fixture.toString());
-      launchConfig.put("firefoxExecutable", firefox.toString());
-      launchConfig.put("firefoxArgs", List.of("-headless"));
-
-      // UNIQUE RDP port: the adapter's default 6000 makes it CONNECT TO A
-      // LEFTOVER firefox from an earlier session/probe instead of the one it
-      // just launched ("Not attaching to this thread" for
-      // every worker, foreign processes' workers in the target list)
-      launchConfig.put("port", LiveProbeUtil.freePort());
+      Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
 
       Path adapterLog = fixture.resolve("adapter.log");
       launchConfig.put("log", Map.of(
@@ -741,24 +702,9 @@ public class FirefoxAdapterLiveProbe {
       content.setRequestListener(line -> System.out.println("[server] " + line));
       content.refreshFirstPage(2);
 
-      InitializeRequest initialize = new InitializeRequest();
-      InitializeRequestArguments initArgs = new InitializeRequestArguments();
-      initArgs.setClientID("intellij");
-      initArgs.setAdapterID("firefox");
-      initArgs.setPathFormat("path");
-      initArgs.setLinesStartAt1(true);
-      initArgs.setColumnsStartAt1(true);
-      initialize.setArguments(initArgs);
+      assertTrue("initialize", client.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-      assertTrue("initialize", client.sendRequest(initialize, TIMEOUT).isSuccess());
-
-      Map<String, Object> launchConfig = new LinkedHashMap<>();
-      launchConfig.put("request", "launch");
-      launchConfig.put("url", content.getBaseUrl());
-      launchConfig.put("webRoot", fixture.toString());
-      launchConfig.put("firefoxExecutable", firefox.toString());
-      launchConfig.put("firefoxArgs", List.of("-headless"));
-      launchConfig.put("port", LiveProbeUtil.freePort());
+      Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
 
       assertTrue("launch", client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess());
 
@@ -987,15 +933,7 @@ public class FirefoxAdapterLiveProbe {
     try {
       DapClient session = connectWithRetry(ownPort);
       try {
-        InitializeRequest initialize = new InitializeRequest();
-        InitializeRequestArguments initArgs = new InitializeRequestArguments();
-        initArgs.setClientID("intellij");
-        initArgs.setAdapterID("firefox");
-        initArgs.setPathFormat("path");
-        initArgs.setLinesStartAt1(true);
-        initArgs.setColumnsStartAt1(true);
-        initialize.setArguments(initArgs);
-        if (!session.sendRequest(initialize, TIMEOUT).isSuccess()) {
+        if (!session.sendRequest(initializeRequest(), TIMEOUT).isSuccess()) {
           return false;
         }
 
@@ -1004,15 +942,7 @@ public class FirefoxAdapterLiveProbe {
           content.refreshFirstPage(2);
         }
 
-        Map<String, Object> launchConfig = new LinkedHashMap<>();
-        launchConfig.put("request", "launch");
-        launchConfig.put("url", content.getBaseUrl());
-        launchConfig.put("webRoot", fixture.toString());
-        launchConfig.put("firefoxExecutable", firefox.toString());
-        launchConfig.put("firefoxArgs", List.of("-headless"));
-        // unique RDP port: default 6000 would CONNECT TO A LEFTOVER firefox
-        // from an earlier variant/session instead of the launched one
-        launchConfig.put("port", LiveProbeUtil.freePort());
+        Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
 
         Response launch = session.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
         if (!launch.isSuccess()) {

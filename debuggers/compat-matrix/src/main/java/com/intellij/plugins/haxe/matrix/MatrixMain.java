@@ -711,16 +711,19 @@ public final class MatrixMain {
         if (!Platform.WINDOWS) {
           // linux: hl finds libhl.so and the std .hdll libraries beside
           // itself OR in ../lib (the cmake layout: bin/hl + lib/libhl.so)
-          StringBuilder ldPath = new StringBuilder(hlBinary.getParent().toString());
+          List<String> ldPath = new ArrayList<>();
+          ldPath.add(hlBinary.getParent().toString());
+
           Path siblingLib = hlBinary.getParent().resolveSibling("lib");
           if (Files.isDirectory(siblingLib)) {
-            ldPath.append(':').append(siblingLib);
+            ldPath.add(siblingLib.toString());
           }
           String previous = System.getenv("LD_LIBRARY_PATH");
           if (previous != null) {
-            ldPath.append(':').append(previous);
+            ldPath.add(previous);
           }
-          env.put("LD_LIBRARY_PATH", ldPath.toString());
+
+          env.put("LD_LIBRARY_PATH", String.join(":", ldPath));
         }
         SuiteRun run = runSuite(":debuggers:hashlink-debug-adapter", extra, env,
                                 out.resolve("logs/hl-" + haxe + "-" + runtime + ".log"), 1500,

@@ -25,11 +25,13 @@ public final class DapFraming {
     byte[] body = json.getBytes(StandardCharsets.UTF_8);
     byte[] header = ("Content-Length: " + body.length).getBytes(StandardCharsets.US_ASCII);
     ByteArrayOutputStream frame = new ByteArrayOutputStream(header.length + 4 + body.length);
+    // header
     frame.write(header, 0, header.length);
     frame.write(CR);
     frame.write(LF);
     frame.write(CR);
     frame.write(LF);
+    // body
     frame.write(body, 0, body.length);
     return frame.toByteArray();
   }

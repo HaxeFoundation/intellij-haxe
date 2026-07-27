@@ -1,7 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
+import com.intellij.openapi.util.io.NioFiles;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -9,6 +10,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -103,7 +105,7 @@ public final class AdapterStore {
                               + "\nRefusing the artifact (supply-chain protection).");
       }
       // a torn previous attempt (no marker) is discarded wholesale
-      deleteRecursively(versionDir);
+      NioFiles.deleteRecursively(versionDir);
       if (pin.isTarGz()) {
         untarGz(download, versionDir);
       } else {
@@ -139,12 +141,8 @@ public final class AdapterStore {
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("JRE without SHA-256", e);
     }
-    try (InputStream in = Files.newInputStream(file)) {
-      byte[] buffer = new byte[64 * 1024];
-      int read;
-      while ((read = in.read(buffer)) > 0) {
-        digest.update(buffer, 0, read);
-      }
+    try (DigestInputStream in = new DigestInputStream(Files.newInputStream(file), digest)) {
+      in.transferTo(OutputStream.nullOutputStream());
     }
     return HexFormat.of().formatHex(digest.digest());
   }
@@ -197,18 +195,6 @@ public final class AdapterStore {
         } else {
           throw new IOException("Unsupported tar entry type for " + entry.getName() + " - refusing the artifact");
         }
-      }
-    }
-  }
-
-  private static void deleteRecursively(Path dir) throws IOException {
-    if (!Files.exists(dir)) {
-      return;
-    }
-    try (var walk = Files.walk(dir)) {
-      var toDelete = walk.sorted((a, b) -> b.getNameCount() - a.getNameCount()).toList();
-      for (Path path : toDelete) {
-        Files.deleteIfExists(path);
       }
     }
   }

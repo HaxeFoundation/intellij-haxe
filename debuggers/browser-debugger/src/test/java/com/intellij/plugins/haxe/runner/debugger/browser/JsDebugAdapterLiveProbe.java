@@ -189,19 +189,24 @@ public class JsDebugAdapterLiveProbe {
   }
 
   private static InitializeRequest initializeRequest() {
-    InitializeRequest initialize = new InitializeRequest();
-    InitializeRequestArguments arguments = new InitializeRequestArguments();
-
-    arguments.setClientID("intellij");
-    arguments.setClientName("IntelliJ Haxe");
-    arguments.setAdapterID("chrome");
-    arguments.setPathFormat("path");
-    arguments.setLinesStartAt1(true);
-    arguments.setColumnsStartAt1(true);
-    arguments.setSupportsStartDebuggingRequest(true);
-
-    initialize.setArguments(arguments);
+    InitializeRequest initialize = InitializeRequest.standard("chrome", true);
+    initialize.getArguments().setClientName("IntelliJ Haxe");
     return initialize;
+  }
+
+  /** The parent-session launch config every probe here sends. */
+  private static Map<String, Object> baseLaunchConfig(String baseUrl, Path fixture) {
+    Map<String, Object> config = new LinkedHashMap<>();
+
+    config.put("type", "pwa-chrome");
+    config.put("request", "launch");
+    config.put("name", "probe");
+    config.put("url", baseUrl);
+    config.put("webRoot", fixture.toString());
+    config.put("runtimeExecutable", chromiumExe().toString());
+    config.put("runtimeArgs", List.of("--headless=new"));
+
+    return config;
   }
 
   private SetBreakpointsRequest breakpointsRequest(Path fixture) {
@@ -394,14 +399,8 @@ public class JsDebugAdapterLiveProbe {
       // --- parent exactly as BrowserDebugBackend.runParentHandshake ---
       assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-      Map<String, Object> parentConfig = new LinkedHashMap<>();
-      parentConfig.put("type", "pwa-chrome");
-      parentConfig.put("request", "launch");
+      Map<String, Object> parentConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
       parentConfig.put("name", "IntelliJ Haxe browser session");
-      parentConfig.put("url", content.getBaseUrl());
-      parentConfig.put("webRoot", fixture.toString());
-      parentConfig.put("runtimeExecutable", chromiumExe().toString());
-      parentConfig.put("runtimeArgs", List.of("--headless=new"));
 
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
 
@@ -424,15 +423,7 @@ public class JsDebugAdapterLiveProbe {
 
       try (DapClient child = connectWithRetry(adapterPort)) {
         // --- child exactly as DapDebugProcess.initializeSession ---
-        InitializeRequest initialize = new InitializeRequest();
-        InitializeRequestArguments initArgs = new InitializeRequestArguments();
-        initArgs.setAdapterID("intellij-haxe");
-        initArgs.setClientID("intellij");
-        initArgs.setPathFormat("path");
-        initArgs.setLinesStartAt1(true);
-        initArgs.setColumnsStartAt1(true);
-        initialize.setArguments(initArgs);
-
+        InitializeRequest initialize = InitializeRequest.standard("intellij-haxe", false);
         assertTrue("child initialize", child.sendRequest(initialize, TIMEOUT).isSuccess());
         child.sendRequestNoWait(ConfiguredLaunchRequest.of(startDebugging.getArguments().getConfiguration()));
 
@@ -755,14 +746,7 @@ public class JsDebugAdapterLiveProbe {
       // --- parent handshake exactly as BrowserDebugBackend.runParentHandshake ---
       assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-      Map<String, Object> parentConfig = new LinkedHashMap<>();
-      parentConfig.put("type", "pwa-chrome");
-      parentConfig.put("request", "launch");
-      parentConfig.put("name", "probe");
-      parentConfig.put("url", content.getBaseUrl());
-      parentConfig.put("webRoot", fixture.toString());
-      parentConfig.put("runtimeExecutable", chromiumExe().toString());
-      parentConfig.put("runtimeArgs", List.of("--headless=new"));
+      Map<String, Object> parentConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
 
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
 
@@ -1058,14 +1042,7 @@ public class JsDebugAdapterLiveProbe {
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
 
-      Map<String, Object> launchConfig = new LinkedHashMap<>();
-      launchConfig.put("type", "pwa-chrome");
-      launchConfig.put("request", "launch");
-      launchConfig.put("name", "probe");
-      launchConfig.put("url", content.getBaseUrl());
-      launchConfig.put("webRoot", fixture.toString());
-      launchConfig.put("runtimeExecutable", chromiumExe().toString());
-      launchConfig.put("runtimeArgs", List.of("--headless=new"));
+      Map<String, Object> launchConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
       if (traceAdapter) {
         launchConfig.put("trace", true);
       }
@@ -1173,14 +1150,7 @@ public class JsDebugAdapterLiveProbe {
       System.out.println("[probe] parent initialize success=" + initResponse.isSuccess());
       assertTrue("parent initialize", initResponse.isSuccess());
 
-      Map<String, Object> launchConfig = new LinkedHashMap<>();
-      launchConfig.put("type", "pwa-chrome");
-      launchConfig.put("request", "launch");
-      launchConfig.put("name", "probe");
-      launchConfig.put("url", content.getBaseUrl());
-      launchConfig.put("webRoot", fixture.toString());
-      launchConfig.put("runtimeExecutable", chromiumExe().toString());
-      launchConfig.put("runtimeArgs", List.of("--headless=new"));
+      Map<String, Object> launchConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
 
       // ORDERING QUESTION: js-debug may hold the launch response until
       // configurationDone - send launch on a helper thread and observe
