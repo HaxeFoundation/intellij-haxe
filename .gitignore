@@ -4,10 +4,22 @@
 .gradle/
 /idea/
 /build/
-*/build/
+**/build/
 **/src/main/gen/
-.iml
+*.iml
 .project
 local-build-overrides.xml
 intellij-haxe*.jar
 
+# JVM crash/heap-dump artifacts (never commit these)
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
+
+# provisioned debugger toolchains (downloaded by debuggerCompatibilityReport)
+/debuggerResources/
+
+# haxelib upload zips (gradlew buildHaxelibZips)
+/intellij-dap-protocol-*.zip
+/intellij-hxcpp-debug-server-*.zip

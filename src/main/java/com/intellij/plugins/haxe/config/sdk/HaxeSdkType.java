@@ -102,7 +102,12 @@ public class HaxeSdkType extends SdkType {
       ApplicationManager.getApplication().runWriteAction( () -> {
         if (data != null) {
           final SdkModificator modificator = sdk.getSdkModificator();
-          modificator.setSdkAdditionalData(data);
+          // this task may run deferred (invokeLaterOnWriteThread below), by which
+          // time the user can already have configured the SDK's additional data;
+          // the stale `data` snapshot must not clobber it
+          if (sdk.getSdkAdditionalData() == null) {
+            modificator.setSdkAdditionalData(data);
+          }
           HaxeSdkUtil.setupSdkPaths(sdk.getHomeDirectory(), modificator);
           modificator.commitChanges();
         }

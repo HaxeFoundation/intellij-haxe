@@ -130,9 +130,29 @@
     <lang.ast.factory language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
     <!-- METADATA END -->
 
+    <!-- HashLink and HXCPP(vshaxe) support (experimental): both live as
+         factories of the Haxe configuration GROUP (HaxeRunConfigurationType,
+         registered further below) so the Edit Configurations dialog nests
+         them under one Haxe node. Their runners key on the configuration
+         CLASS, so the legacy runners never see these runs and vice versa. -->
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.HxcppVshaxeRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.HxcppVshaxeDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
+    <!-- ONE exception breakpoint category shared by the HashLink and HXCPP
+         debuggers (Java-style: a default "Any exception" with Notifications
+         checkboxes + user-added per-class entries); each debug process maps
+         it onto its own wire filters -->
+    <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.exceptions.HaxeExceptionBreakpointType"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
@@ -284,7 +304,10 @@
     <!-- Overriding default to allow completion on "$"-->
     <typedHandler implementation="com.intellij.plugins.haxe.ide.completion.HaxeCompletionAutoPopupHandler" id="TestingAutopopup"/>
 
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.runner.debugger.HaxeSetValueCompletionConfidence" order="first"/>
+
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST"/>
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRuntimeCompletionContributor"/>
     <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
 
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetadataCompletionContributor" order="after ControllingCompletion"/>
@@ -401,10 +424,21 @@
     <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheService"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService"/>
 
+    <projectService serviceImplementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSettings"/>
+
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
                          parentId="build"
                          id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
                          key="haxe.settings.name" bundle="messages.HaxeBundle"
+                         nonDefaultProject="true" />
+
+    <!-- parentId is the Debugger node's LEGACY configurable id (verified in
+         the platform's DebuggerConfigurable), NOT "debugger" - an unknown
+         parent silently drops the page to the settings ROOT -->
+    <projectConfigurable instance="com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSettingsConfigurable"
+                         parentId="project.propDebugger"
+                         id="haxe.debugger.settings"
+                         key="haxe.debugger.settings.display.name" bundle="messages.HaxeDebuggerBundle"
                          nonDefaultProject="true" />
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>

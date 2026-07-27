@@ -1,0 +1,6 @@
+-cp src/main/haxe
+-cp src/test/haxe
+-lib format
+-lib intellij-dap-protocol
+-main TestMain
+--interp

@@ -1393,7 +1393,10 @@ public class HaxeExpressionEvaluatorHandlers {
       }
       context.addError(superExpression, "Calling super without parent constructor");
     } else {
-      HaxeClass parentOfType = PsiTreeUtil.getStubOrPsiParentOfType(superExpression, HaxeClass.class);
+      // getAncestor (not a plain parent walk): finding the super class needs the ENCLOSING
+      // class, which in a debugger evaluate fragment is only reachable through the fragment's
+      // creation context; it also walks past object literals, which don't rebind super
+      HaxeClass parentOfType = UsefulPsiTreeUtil.getAncestor(superExpression, HaxeClass.class);
       if (parentOfType != null){
         HaxeClassModel model = parentOfType.getModel();
         // abstracts do not support the super keyword

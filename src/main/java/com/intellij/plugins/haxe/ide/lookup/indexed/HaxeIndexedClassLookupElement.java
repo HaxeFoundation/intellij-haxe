@@ -9,7 +9,7 @@ import com.intellij.plugins.haxe.ide.lookup.HaxeCompletionPriorityData;
 import com.intellij.plugins.haxe.ide.lookup.HaxePsiLookupElement;
 import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeClassLookupData;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeConstrcutorUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeConstructorUnifiedIndex;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -66,7 +66,7 @@ public class HaxeIndexedClassLookupElement extends LookupElement implements Haxe
       PsiFile file = context.getFile();
       PsiElement element = file.findElementAt(context.getStartOffset());
       if(isNewExpression(element)) {
-        HaxeMethod constructor = HaxeConstrcutorUnifiedIndex.getConstructor(qualifiedInfo, file.getProject(), file.getResolveScope());
+        HaxeMethod constructor = HaxeConstructorUnifiedIndex.getConstructor(qualifiedInfo, file.getProject(), file.getResolveScope());
         if(constructor != null) {
           context.commitDocument();
           insertParentheses(context, this, constructor.hasParameters(), true);

@@ -83,6 +83,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -94,8 +96,15 @@ import java.util.regex.Pattern;
  * <p/>
  * This is the singular Haxe debug runner, that can debug:
  * 1. Flash targets
- * 2. Hxcpp targets, run locally by the IDE
- * 3. Hxcpp targets, run by an external command
+ * 2. Hxcpp targets, run locally by the IDE (LEGACY hxcpp debugger)
+ * 3. Hxcpp targets, run by an external command (LEGACY hxcpp debugger)
+ * <p/>
+ * The hxcpp paths here are the LEGACY debugger (the old
+ * hxcpp.DebugSocket protocol via :hxcpp-debugger-protocol-legacy); the
+ * dedicated HXCPP Application configuration
+ * ({@code runner.debugger.hxcpp}) is the current one. Kept fully
+ * functional: existing users need it, and this runner also carries the
+ * Flash/Flex debugging support, which must not change.
  */
 public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
   public static final String HAXE_DEBUG_RUNNER_ID = "HaxeDebugRunner";
@@ -264,7 +273,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
                    (project, "Listening for debugged process " +
                              "on port " + port + " ... Press OK after " +
                              "remote debugged process has started.",
-                    "Haxe Debugger");
+                    "Legacy HXCPP Debugger");
                }
                // Else, start the being-debugged process and make the
                // local debug process instance aware of it.
@@ -317,7 +326,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
       mDeferredQueue =
         new LinkedList<Pair<debugger.Command, MessageListener>>();
       mListenerQueue = new LinkedList<MessageListener>();
-      mServerSocket = new java.net.ServerSocket(port);
+      mServerSocket = new ServerSocket(port);
       mBreakpointHandlers = this.createBreakpointHandlers();
       mMap =
         new HashMap<XLineBreakpoint<XBreakpointProperties>, Integer>();
@@ -433,15 +442,15 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
     }
 
     private void info(String message) {
-      showInfoMessage(mProject, message, "Haxe Debugger");
+      showInfoMessage(mProject, message, "Legacy HXCPP Debugger");
     }
 
     private void warn(String message) {
-      showInfoMessage(mProject, message, "Haxe Debugger Warning");
+      showInfoMessage(mProject, message, "Legacy HXCPP Debugger Warning");
     }
 
     private void error(String message) {
-      showInfoMessage(mProject, message, "Haxe Debugger Error");
+      showInfoMessage(mProject, message, "Legacy HXCPP Debugger Error");
       this.stop();
     }
 
@@ -514,13 +523,13 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
     }
 
     private void readLoop() throws IOException {
-      java.net.ServerSocket serverSocket;
+      ServerSocket serverSocket;
       synchronized (this) {
          serverSocket = mServerSocket;
       }
       // Don't synchronize around the accept.  It locks up the rest of the debugger still
       // running on the AWT thread if the application isn't starting correctly.
-      java.net.Socket debugSocket = serverSocket.accept();
+      Socket debugSocket = serverSocket.accept();
       synchronized (this) {
         mDebugSocket = debugSocket;
         mServerSocket.close();
@@ -818,13 +827,13 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
           }
 
           final String fileNameToLookFor = fileName;
-          final java.util.Collection<VirtualFile> files =
+          final Collection<VirtualFile> files =
             ApplicationManager.getApplication().runReadAction(
-              new Computable<java.util.Collection<VirtualFile>>() {
+              new Computable<Collection<VirtualFile>>() {
                 @Override
-                public java.util.Collection<VirtualFile> compute() {
+                public Collection<VirtualFile> compute() {
 
-                  java.util.Collection<VirtualFile> files =
+                  Collection<VirtualFile> files =
                     FilenameIndex.getVirtualFilesByName(
                       project, fileNameToLookFor, GlobalSearchScope.moduleScope(module));
                   if (files.isEmpty()) {
@@ -844,7 +853,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
               }
             );
 
-          java.util.Collection<VirtualFile> matches = new HashSet<VirtualFile>();
+          Collection<VirtualFile> matches = new HashSet<VirtualFile>();
           if (!files.isEmpty()) {
             for (VirtualFile f : files) {
               if (f.getPath().endsWith(mFileName)) {
@@ -1303,7 +1312,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
 
         private String mName;
         private String mExpression;
-        private javax.swing.Icon mIcon;
+        private Icon mIcon;
         private String mType;
         private String mValue;
         private LinkedList<Value> mChildren;
@@ -1329,8 +1338,8 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
       MessageListener>> mDeferredQueue;
     private QueueProcessor<Runnable> mWriteQueue;
     private LinkedList<MessageListener> mListenerQueue;
-    private java.net.ServerSocket mServerSocket;
-    private java.net.Socket mDebugSocket;
+    private ServerSocket mServerSocket;
+    private Socket mDebugSocket;
     private ExecutionResult mExecutionResult;
     private XBreakpointHandler[] mBreakpointHandlers;
     private HashMap<XLineBreakpoint<XBreakpointProperties>, Integer> mMap;
@@ -1348,6 +1357,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
       return fileName;
     }
 
+    // every literal dot in the package name becomes a path separator
     return packageName.replaceAll("\\.", "/") + "/" + fileName;
   }
 

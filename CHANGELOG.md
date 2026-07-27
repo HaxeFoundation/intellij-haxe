@@ -1,4 +1,7 @@
 # Changelog
+## 1.9.0
+* Added: New (experimental) debugger support for javascript, Eval, hashlink and hxcpp. 
+
 ## 1.8.9
 * Fixed: Allow typeTags to be wrapped in parentheses
 

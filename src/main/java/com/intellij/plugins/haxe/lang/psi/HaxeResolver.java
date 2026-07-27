@@ -32,7 +32,6 @@ import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentStringCode
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
-import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
@@ -1237,6 +1236,19 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
       // object literals are HaxeClass but have no superclass; walk past them to the real enclosing class.
       while (type instanceof HaxeObjectLiteral) {
         type = PsiTreeUtil.getStubOrPsiParentOfType(type, HaxeClass.class);
+      }
+      if (type == null) {
+        // detached code fragments (debugger evaluate / jump-to-source) have no PSI parent past
+        // the fragment file; the enclosing class is only reachable through the fragment's
+        // creation context. Ordinary file elements have getContext() == getParent(), so this
+        // fires only when the stub/parent walk above dead-ended.
+        HaxeExpressionCodeFragment fragment = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeExpressionCodeFragment.class);
+        if(fragment != null) {
+          type = PsiTreeUtil.getContextOfType(fragment, HaxeClass.class);
+          while (type instanceof HaxeObjectLiteral) {
+            type = PsiTreeUtil.getContextOfType(type, HaxeClass.class);
+          }
+        }
       }
       if (type instanceof HaxeAbstractTypeDeclaration) {
 
@@ -3165,7 +3177,7 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
       if (fakePsi != null) {
         return Collections.singletonList(fakePsi);
       } else {
-        fakePsi = HaxeSynteticPsiUtil.createFakeForBind(haxeIdentifier, namedComponent);
+        fakePsi = HaxeSyntheticPsiUtil.createFakeForBind(haxeIdentifier, namedComponent);
         reference.putUserData(FAKE_PSI_KEY, fakePsi);
         return Collections.singletonList(fakePsi);
       }
@@ -3173,11 +3185,11 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
   }
 
   private static @NonNull List<PsiElement> createSynteticForSyntax(String name, String qname, HaxeReference reference) {
-    return List.of(HaxeSynteticPsiUtil.createSynteticForTargetSpecificSyntax(name, qname, reference));
+    return List.of(HaxeSyntheticPsiUtil.createSyntheticForTargetSpecificSyntax(name, qname, reference));
   }
 
   private static @NonNull List<PsiElement> getOrCreateSynteticForTrace(HaxeReference reference) {
-    return List.of(HaxeSynteticPsiUtil.createSynteticForTrace(reference.getProject()));
+    return List.of(HaxeSyntheticPsiUtil.createSyntheticForTrace(reference.getProject()));
   }
 
 }

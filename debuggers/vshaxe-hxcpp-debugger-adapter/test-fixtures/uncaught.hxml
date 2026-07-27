@@ -1,0 +1,8 @@
+# Uncaught-exception fixture; same fixed test port as fixture.hxml.
+-cp test-fixtures/src
+-main Uncaught
+-cpp build/hxcpp/uncaught
+-debug
+-lib hxcpp-debug-server
+-D HXCPP_DEBUG_HOST=127.0.0.1
+-D HXCPP_DEBUG_PORT=6973

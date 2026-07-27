@@ -55,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+import static com.intellij.plugins.haxe.lang.psi.HaxeCodeFragmentUtil.isInCodeFragment;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.searchReferencesForType;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
@@ -422,6 +423,23 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
 
     if (isType(HaxeThisExpression.class)) {
       HaxeClass clazz = PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
+      if (clazz == null) {
+        // detached code fragments (debugger evaluate / jump-to-source) have no PSI parent past
+        // the fragment file; the enclosing class is only reachable through the fragment's
+        // creation context. Ordinary file elements have getContext() == getParent(), so this
+        // fires only when the stub/parent walk above dead-ended.
+        HaxeExpressionCodeFragment fragment = PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeExpressionCodeFragment.class);
+        if(fragment != null) {
+          clazz = PsiTreeUtil.getContextOfType(fragment, HaxeClass.class);
+          // object literals don't rebind `this` in Haxe; real-file resolution skips them too
+          // (the evaluator types `this` via UsefulPsiTreeUtil.getAncestor, which walks past
+          // literals) — without this, a frame inside a literal-defined callback resolves
+          // `this` to the literal instead of the enclosing class.
+          while (clazz instanceof HaxeObjectLiteral) {
+            clazz = PsiTreeUtil.getContextOfType(clazz, HaxeClass.class);
+          }
+        }
+      }
       // this has different semantics on abstracts
       if (clazz != null && clazz.getModel().isAbstractType()) {
         HaxeTypeOrAnonymous type = clazz.getModel().getUnderlyingTypeOrAnonymous();
@@ -1275,7 +1293,8 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
   @NotNull
   @Override
   public Object[] getVariants() {
-    return HaxeReferenceSuggestionUtil.getVariants(this);
+    boolean forceShowPrivateMembers = isInCodeFragment(this);
+    return HaxeReferenceSuggestionUtil.getVariants(this, forceShowPrivateMembers);
   }
 
 

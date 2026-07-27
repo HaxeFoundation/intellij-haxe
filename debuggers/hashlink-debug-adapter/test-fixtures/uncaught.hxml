@@ -1,0 +1,5 @@
+-cp src
+-main Uncaught
+-debug
+-D hl-legacy32
+-hl ../build/hl/uncaught-fixture.hl

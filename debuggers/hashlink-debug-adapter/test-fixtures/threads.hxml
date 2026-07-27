@@ -1,0 +1,5 @@
+-cp src
+-main Threads
+-debug
+-D hl-legacy32
+-hl ../build/hl/threads-fixture.hl

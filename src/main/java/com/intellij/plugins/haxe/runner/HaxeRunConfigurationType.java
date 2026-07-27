@@ -21,20 +21,50 @@ package com.intellij.plugins.haxe.runner;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkConfigurationFactory;
+import com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.HxcppVshaxeConfigurationFactory;
+import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijConfigurationFactory;
+import com.intellij.plugins.haxe.runner.debugger.interp.InterpConfigurationFactory;
+import com.intellij.plugins.haxe.runner.debugger.browser.BrowserConfigurationFactory;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+/**
+ * The "Haxe" run/debug configuration GROUP: one configuration type whose
+ * factories are the individual runner flavours, so the Edit Configurations
+ * dialog shows them nested under a single Haxe node:
+ * <ul>
+ *   <li>Haxe Application (legacy) — the original runner (also carries
+ *       Flash/Flex debugging)</li>
+ *   <li>HashLink Application</li>
+ *   <li>HXCPP Application (vshaxe)</li>
+ *   <li>HXCPP Application (IntelliJ)</li>
+ * </ul>
+ *
+ * Compatibility: the type keeps the historical id
+ * {@code HaxeApplicationRunConfiguration} and the legacy factory keeps its
+ * historical id {@code Haxe Application} AND stays FIRST in the factory
+ * array, so run configurations saved by earlier plugin versions still load.
+ */
 public class HaxeRunConfigurationType implements ConfigurationType {
-  private final HaxeFactory configurationFactory;
+  private final ConfigurationFactory[] factories;
+  private final HaxeFactory legacyFactory;
 
   public HaxeRunConfigurationType() {
-    configurationFactory = new HaxeFactory(this);
+    legacyFactory = new HaxeFactory(this);
+    factories = new ConfigurationFactory[]{
+      legacyFactory, // first: pre-group configurations saved without a factory name resolve to it
+      new HashLinkConfigurationFactory(this),
+      new HxcppVshaxeConfigurationFactory(this),
+      new HxcppIntellijConfigurationFactory(this),
+      new InterpConfigurationFactory(this),
+      new BrowserConfigurationFactory(this),
+    };
   }
 
   public static HaxeRunConfigurationType getInstance() {
@@ -42,11 +72,11 @@ public class HaxeRunConfigurationType implements ConfigurationType {
   }
 
   public String getDisplayName() {
-    return HaxeBundle.message("runner.configuration.name");
+    return HaxeBundle.message("haxe.runner.group.name");
   }
 
   public String getConfigurationTypeDescription() {
-    return HaxeBundle.message("runner.configuration.name");
+    return HaxeBundle.message("haxe.runner.group.description");
   }
 
   public Icon getIcon() {
@@ -59,13 +89,19 @@ public class HaxeRunConfigurationType implements ConfigurationType {
   }
 
   public ConfigurationFactory[] getConfigurationFactories() {
-    return new ConfigurationFactory[]{configurationFactory};
+    return factories;
   }
 
   public static class HaxeFactory extends ConfigurationFactory {
 
     public HaxeFactory(ConfigurationType type) {
       super(type);
+    }
+
+    @Override
+    @NotNull
+    public String getName() {
+      return HaxeBundle.message("runner.configuration.name.legacy");
     }
 
     public RunConfiguration createTemplateConfiguration(Project project) {
@@ -77,7 +113,8 @@ public class HaxeRunConfigurationType implements ConfigurationType {
     @NotNull
     @NonNls
     public String getId() {
-      // Must not come from a localized bundle.
+      // Must not come from a localized bundle - and must stay the historical
+      // value so previously saved configurations keep resolving.
       return "Haxe Application";
     }
   }

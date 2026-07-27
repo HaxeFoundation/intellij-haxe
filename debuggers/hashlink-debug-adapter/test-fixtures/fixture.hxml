@@ -1,0 +1,5 @@
+-cp src
+-main Main
+-debug
+-D hl-legacy32
+-hl ../build/hl/test-fixture.hl
