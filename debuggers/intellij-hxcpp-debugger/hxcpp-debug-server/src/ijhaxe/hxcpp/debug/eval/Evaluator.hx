@@ -100,6 +100,7 @@ class Evaluator {
 		var inString = false;
 		var quote = 0;
 		var i = 0;
+
 		while (i < source.length) {
 			var c = source.charCodeAt(i);
 			if (inString) {
@@ -184,6 +185,7 @@ private class ResolvingInterp extends Interp {
 		depth = 0;
 		locals = new Map();
 		declared = new Array();
+
 		try {
 			return expr(program);
 		} catch (e:Dynamic) {
@@ -249,7 +251,7 @@ private class ResolvingInterp extends Interp {
 			}
 		}
 		// a frame local (or anything else already bound) owns the root name;
-		// our own package objects are the one thing safe to extend
+		// the synthesized package objects are the one thing safe to extend
 		if (variables.exists(segments[0]) && !packageRoots.exists(segments[0])) {
 			return;
 		}

@@ -77,18 +77,23 @@ public class DapDebugProcess extends XDebugProcess {
     Executors.newSingleThreadExecutor(r -> daemon(r, "DAP requests"));
 
   private volatile DapEndpoint client;
+
   /** The adapter's declared capabilities (from the initialize response). */
   private volatile Capabilities capabilities;
+
   // the DAP frame id of the newest frame at the current stop (-1 before the
   // first); smart-step handlers that query the adapter need it
   private volatile int topFrameId = -1;
+
   /** Eval-only: raw sub-expression steps + expression-span highlight. Session-scoped. */
   private volatile boolean expressionStepping = false;
   private HaxeExpressionPointHighlighter expressionHighlighter;
+
   private boolean resumeListenerInstalled = false;
   private volatile int currentThreadId = 0;
   private volatile boolean shuttingDown = false;
   private volatile boolean launched = false;
+
   /**
    * Whether a pause is currently presented to the user. Tracked here and NOT
    * via XDebugSession.isSuspended(): the platform reflects the suspended
@@ -503,6 +508,7 @@ public class DapDebugProcess extends XDebugProcess {
     String path = position.getFile().getPath();
     int line = position.getLine() + 1; // XSourcePosition is 0-based; DAP is 1-based
     int threadId = currentThreadId;
+
     onRequestThread(() -> {
       if (breakpoints.setRunToBreakpoint(path, line)) {
         pauseOnScreen = false;

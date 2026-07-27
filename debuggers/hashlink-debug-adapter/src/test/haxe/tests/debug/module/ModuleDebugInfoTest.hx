@@ -1,5 +1,6 @@
 package tests.debug.module;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.module.CodeGraph;
 import ijhaxe.debug.module.ModuleDebugInfo;
 
@@ -70,7 +71,7 @@ class ModuleDebugInfoTest {
 		var ops = module.opcodes(mainFidx);
 		assert.isTrue(ops.length > 0, "main function has opcodes");
 
-		var graph = new ijhaxe.debug.module.CodeGraph(ops);
+		var graph = new CodeGraph(ops);
 		var foundCallToAdd = false;
 		var lineOfCallCorrect = false;
 		for (op in 0...ops.length) {
@@ -98,12 +99,14 @@ class ModuleDebugInfoTest {
 		var out = new haxe.io.BytesOutput();
 		out.writeString("HLB");
 		out.writeByte(9); // bytecode format version 9: unsupported (format lib reads 2-5)
+
 		var path = "build/bad-bytecode-version-test.hl";
 		sys.io.File.saveBytes(path, out.getBytes());
+
 		try {
 			new ModuleDebugInfo(path);
 			assert.fail("unsupported bytecode format version should throw");
-		} catch (e:ijhaxe.debug.DebugError) {
+		} catch (e:DebugError) {
 			assert.isTrue(StringTools.contains(e.message, "bytecode format version"),
 				"names the version kind (was: " + e.message + ")");
 			assert.isTrue(StringTools.contains(e.message, "not the HashLink runtime version"),

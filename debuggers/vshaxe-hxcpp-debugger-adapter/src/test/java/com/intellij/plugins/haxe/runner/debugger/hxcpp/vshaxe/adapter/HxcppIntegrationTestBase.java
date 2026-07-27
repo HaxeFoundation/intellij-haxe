@@ -204,11 +204,14 @@ abstract class HxcppIntegrationTestBase {
     // reports on Windows): the adapter must convert before the server's
     // exact-string path matching
     source.setPath(DapPaths.toForwardSlashes(fixtureSource.toString()));
+
     SetBreakpointsArguments arguments = new SetBreakpointsArguments();
     arguments.setSource(source);
     arguments.setBreakpoints(List.of(breakpoints));
+
     SetBreakpointsRequest request = new SetBreakpointsRequest();
     request.setArguments(arguments);
+
     SetBreakpointsResponse response = require(request);
     assertNotNull(response.getBody());
     return response;

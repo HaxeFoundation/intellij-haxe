@@ -8,10 +8,13 @@ typedef Capabilities = {
 	var ?supportsVariableType:Bool;
 	var ?supportsEvaluateForHovers:Bool;
 	var ?supportsSetVariable:Bool;
-	// We evaluate a breakpoint's `condition` at each hit.
+
+	// A breakpoint's `condition` is evaluated at each hit.
 	var ?supportsConditionalBreakpoints:Bool;
+
 	// stepInTargets lists the calls on the stopped line; stepIn takes a targetId.
 	var ?supportsStepInTargetsRequest:Bool;
+
 	// The exception categories the client can toggle via setExceptionBreakpoints.
 	var ?exceptionBreakpointFilters:Array<ExceptionBreakpointsFilter>;
 }

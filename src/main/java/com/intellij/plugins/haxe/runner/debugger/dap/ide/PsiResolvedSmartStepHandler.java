@@ -80,7 +80,7 @@ class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmart
   }
 
   // The PLAIN Step Into action (F7) consults this — the base implementation
-  // returns a rejected promise, meaning "no variants, just step". Returning our
+  // returns a rejected promise, meaning "no variants, just step". Returning the
   // variants makes F7 behave like the Java debugger: with more than one call on
   // the line the same highlight/Tab chooser appears; with zero or one the
   // platform performs an ordinary step into.
@@ -96,9 +96,11 @@ class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmart
   private List<Variant> resolveVariants(XSourcePosition position) {
     List<Variant> variants = new ArrayList<>();
     Project project = process.getSession().getProject();
+
     // per-callee invocation counter: the calls come in EXECUTION order, so the
     // Nth same-callee call on the line is its Nth runtime invocation
     Map<String, Integer> invocations = new HashMap<>();
+
     for (HaxeCallExpression call : HaxeDebuggerSupportUtils.callExpressionsOnLine(project, position)) {
       if (!(call.getExpression() instanceof HaxeReference reference)) {
         continue;

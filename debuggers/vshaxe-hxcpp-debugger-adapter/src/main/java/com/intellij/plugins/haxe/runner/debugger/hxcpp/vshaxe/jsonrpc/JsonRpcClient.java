@@ -47,11 +47,12 @@ public class JsonRpcClient implements Closeable {
     int id = nextId.getAndIncrement();
     BlockingQueue<JsonRpcResponse> pending = new ArrayBlockingQueue<>(1);
     pendingResponses.put(id, pending);
+
     try {
       // registered BEFORE this check: a reader exiting in between either
-      // trips the flag here or poisons our queue (its sweep runs after the
-      // flag is set, so it sees the entry) — no window where we'd wait out
-      // the full timeout against a connection that can never answer
+      // trips the flag here or poisons the pending entry's queue (its sweep
+      // runs after the flag is set, so it sees the entry) — no window that
+      // waits out the full timeout against a connection that can never answer
       if (readerFinished) {
         throw connectionClosed(method);
       }

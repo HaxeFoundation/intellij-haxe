@@ -84,6 +84,7 @@ public final class EvalProtocol {
       params.put("threadId", threadId.intValue());
     }
     JsonNode result = connection.request("stackTrace", params, DEFAULT_TIMEOUT_MS);
+
     List<EvalStackFrame> frames = new ArrayList<>();
     for (JsonNode frame : result) {
       frames.add(new EvalStackFrame(

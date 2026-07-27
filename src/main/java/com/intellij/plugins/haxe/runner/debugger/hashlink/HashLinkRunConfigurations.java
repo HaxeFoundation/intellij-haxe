@@ -37,6 +37,7 @@ final class HashLinkRunConfigurations {
    */
   static Optional<Path> detectedOutput(Module module) {
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+
     HlBuildSniffer.HlBuild build;
     if (settings.isUseHxmlToBuild()) {
       Path hxml = resolveAgainstModule(module, settings.getHxmlPath());
@@ -49,7 +50,9 @@ final class HashLinkRunConfigurations {
     }
 
     List<Path> candidates = outputCandidates(module, settings, build.output());
-    return candidates.stream().filter(Files::isRegularFile).findFirst()
+    return candidates.stream()
+      .filter(Files::isRegularFile)
+      .findFirst()
       .or(() -> candidates.stream().findFirst());
   }
 
@@ -95,7 +98,7 @@ final class HashLinkRunConfigurations {
         }
       }
     } catch (InvalidPathException ignored) {
-      // fall through with what we have
+      // fall through with the candidates collected so far
     }
     return candidates;
   }

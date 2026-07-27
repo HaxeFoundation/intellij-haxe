@@ -46,25 +46,30 @@ final class GradleRunner {
     List<String> command = new ArrayList<>();
     command.add(root.resolve(Platform.gradlew()).toString());
     command.addAll(tasks);
+
     if (liveTestProgress) {
       command.add("-I");
       command.add(root.resolve("debuggers/compat-matrix/test-events.init.gradle").toString());
     }
+
     // debugger tests and fixture builds are OPT-IN repo-wide; the matrix IS
     // the debugger-test runner, so every child build gets the flag
     command.add("-PdebuggerTests=true");
     command.add("--no-daemon");
     command.add("--console=plain");
+
     ProcessBuilder builder = new ProcessBuilder(command)
       .directory(root.toFile())
       .redirectOutput(logFile.toFile())
       .redirectError(new File(logFile + ".err"));
+
     applyEnv(builder.environment(), extraEnv);
     // the child gradlew needs a JVM the SHELL environment may not have (an
     // IDE-launched parent runs on a gradle-provisioned JDK invisible to the
     // shell — on a bare linux VM there is no `java` on PATH at all); this
     // process's own JVM is by construction a working one
     builder.environment().putIfAbsent("JAVA_HOME", System.getProperty("java.home"));
+
     try {
       // the redirect targets must exist or CreateProcess fails with a
       // misleading "cannot find the path specified" (fresh checkouts have

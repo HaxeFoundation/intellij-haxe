@@ -22,12 +22,14 @@ java {
 dependencies {
     // tar.gz extraction (haxe linux archives); the JDK only covers zip
     implementation(libs.commonsCompress)
+    // the report payload; the same jackson the debugger modules already use
+    implementation(libs.jacksonDatabind)
 }
 
 // Provisions toolchains (downloading what this OS has release binaries for),
 // runs every debugger's test suite against each of them, and writes the
-// matrix report to build/reports/debugger-matrix/index.html — the "full
-// check on all our debugger work" button. See README.md for options.
+// matrix report to build/reports/debugger-matrix/index.html — the "check
+// every debugger against everything" button. See README.md for options.
 tasks.register<JavaExec>("debuggerCompatibilityReport") {
     group = "verification"
     description = "Debugger compatibility matrix across provisioned haxe/HL versions + HTML report"

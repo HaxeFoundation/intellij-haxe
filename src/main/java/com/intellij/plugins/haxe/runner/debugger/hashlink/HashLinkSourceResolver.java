@@ -54,13 +54,14 @@ final class HashLinkSourceResolver {
       }
     }
 
-    // lets first try to use indexes to find our file
-    // hashlink frames contains the following formats (we try to match on class + method for now)
+    // index lookup first
+    // hashlink frames contain the following formats (matched on class + method for now)
     // "ClassName.methodName" for class methods
     // "ClassName.~methodName.index" for closure/ref methods
     // "fun$index" for standalone functions
 
     GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+    // the frame name split on literal dots ("ClassName.methodName" -> [ClassName, methodName])
     String[] nameParts = frame.getName().split("\\.");
     if(nameParts.length > 1) {
       String className = nameParts[0];
@@ -74,7 +75,7 @@ final class HashLinkSourceResolver {
       }
     }
 
-    //if index search fails, we'll fallback to searching for file
+    //if the index search fails, fall back to searching for the file
 
     // relative (or stale absolute): find candidates by file name, prefer the one
     // whose full path ends with the reported path
@@ -101,7 +102,10 @@ final class HashLinkSourceResolver {
 
   private static @Nullable VirtualFile findMostFileApplicable(Project project, ArrayList<VirtualFile> paths, StackFrame frame) {
     PsiManager psiManager = PsiManager.getInstance(project);
+    // the frame name split on literal dots, innermost segment first (the
+    // scoring below walks outward from the member to its enclosing types)
     List<String> nameParts = Arrays.asList(frame.getName().split("\\.")).reversed();
+
     if (!nameParts.isEmpty()) {
       Map<VirtualFile, Integer> stats = new HashMap<>();
       for (VirtualFile path : paths) {

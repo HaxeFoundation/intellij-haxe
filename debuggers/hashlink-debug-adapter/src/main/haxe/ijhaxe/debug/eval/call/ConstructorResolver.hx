@@ -53,6 +53,7 @@ class ConstructorResolver {
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final memory:MemoryReader;
+
 	// hl_alloc_obj is the same across every ONew site; once seen, later sites
 	// must agree with it (a sanity check on the pattern match).
 	var allocFnValue:Pointer = Int64.ofInt(0);
@@ -83,6 +84,7 @@ class ConstructorResolver {
 		for (fidx in 0...module.functionCount()) {
 			var ops = module.opcodes(fidx);
 			var regs = module.registers(fidx);
+
 			for (op in 0...ops.length) {
 				var dst = newDstForClass(ops[op], regs, className);
 				if (dst < 0) {

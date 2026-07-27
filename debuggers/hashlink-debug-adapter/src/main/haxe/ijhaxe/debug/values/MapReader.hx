@@ -76,6 +76,7 @@ class MapReader {
 		var valuePos;
 		var keyStride;
 		var valueStride;
+
 		switch (kind) {
 			case StringKey:
 				keyInValue = true;

@@ -125,6 +125,7 @@ final class DapBreakpointManager {
     source.setPath(process.backend().breakpointSourcePath(path));
     source.setName(Path.of(path).getFileName().toString());
     arguments.setSource(source);
+
     List<SourceBreakpoint> requested = new ArrayList<>(ordered.size() + 1);
     for (XLineBreakpoint<XBreakpointProperties> breakpoint : ordered) {
       SourceBreakpoint sb = new SourceBreakpoint();

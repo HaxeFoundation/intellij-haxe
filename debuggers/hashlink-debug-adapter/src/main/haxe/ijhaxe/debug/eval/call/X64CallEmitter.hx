@@ -60,6 +60,7 @@ class X64CallEmitter implements CallTrampoline {
 	**/
 	public function build(funcAddr:Int64, args:Array<CallArg>, floatBits:Int):Bytes {
 		var out = new BytesBuffer();
+
 		// save the scratch registers (both the integer reg and its XMM peer)
 		for (i in 0...scratch.length) {
 			pushCpu(out, scratch[i]);

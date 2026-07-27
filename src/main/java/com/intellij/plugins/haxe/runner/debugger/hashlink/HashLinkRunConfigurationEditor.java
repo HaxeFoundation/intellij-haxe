@@ -44,6 +44,7 @@ public class HashLinkRunConfigurationEditor extends SettingsEditor<HashLinkRunCo
       FileChooserDescriptorFactory.createSingleFolderDescriptor());
     HaxeRunConfigurationEditorUtil.browseInto(project, customHlBinaryField,
       FileChooserDescriptorFactory.singleFile());
+
     customHlBinaryField.setEnabled(false);
     useCustomHlBinaryCheckbox.addItemListener(
       e -> customHlBinaryField.setEnabled(useCustomHlBinaryCheckbox.isSelected()));

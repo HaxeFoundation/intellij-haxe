@@ -48,6 +48,7 @@ final class DapConsoleTracer {
         text.append(" thread=").append(r.getArguments().getThreadId());
       case PauseRequest r when r.getArguments() != null ->
         text.append(" thread=").append(r.getArguments().getThreadId());
+
       case ScopesRequest r when r.getArguments() != null ->
         text.append(" frame=").append(r.getArguments().getFrameId());
       case EvaluateRequest r when r.getArguments() != null ->
@@ -55,12 +56,15 @@ final class DapConsoleTracer {
             .append(r.getArguments().getFrameId())
             .append(" expr=")
             .append(r.getArguments().getExpression());
+
       case VariablesRequest r when r.getArguments() != null ->
         text.append(" ref=").append(r.getArguments().getVariablesReference());
       case SetVariableRequest r when r.getArguments() != null ->
         text.append(" ref=").append(r.getArguments().getVariablesReference());
+
       case SetBreakpointsRequest r when r.getArguments() != null && r.getArguments().getSource() != null ->
         text.append(" source=").append(r.getArguments().getSource().getName());
+
       default -> { }
     }
     return text.toString();

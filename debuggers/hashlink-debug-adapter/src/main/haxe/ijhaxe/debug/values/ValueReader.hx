@@ -86,6 +86,7 @@ class ValueReader {
 		return switch (t) {
 			case HObj(proto) if (proto != null && proto.name == "String"):
 				leaf(readString(ptr), "String");
+
 			case HObj(proto) if (proto != null && proto.name == ARRAY_DYN):
 				// hl.types.ArrayDyn wraps an ArrayBase (ptr @ +8) whose length is @ +8
 				arrayValue(ptr, t, arrayDynLength(ptr));
@@ -95,6 +96,7 @@ class ValueReader {
 			case HArray:
 				// varray: at@+ptr, size@+ptr*2
 				arrayValue(ptr, t, mem.readI32(ptr.offset(align.ptr * 2)));
+
 			case HRef(inner):
 				// a reference: the dereferenced pointer IS the address of the value
 				// (captured-and-mutated closure locals are the common case)
@@ -102,6 +104,7 @@ class ValueReader {
 			case HNull(inner):
 				// a box (vdynamic-shaped): the payload union is @ +8 on BOTH bitnesses
 				read(ptr.offset(align.dynPayload), inner);
+
 			case HDyn:
 				readDynamic(ptr);
 			case HFun(_), HMethod(_):
@@ -112,6 +115,7 @@ class ValueReader {
 				readVirtual(ptr, t, fields);
 			case HDynObj if (dynObjects != null):
 				readDynObj(ptr);
+
 			case HObj(proto) if (proto != null && maps != null && mapKeyKind(proto.name) != null):
 				readMapWrapper(ptr, t);
 			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
@@ -119,12 +123,14 @@ class ValueReader {
 			case HAbstract(name) if (maps != null && nativeMapKind(name) != null):
 				// the abstract value IS the native map pointer (no wrapper indirection)
 				readNativeMap(ptr, nativeMapKind(name), name);
+
 			case HAbstract("hl_symbol"):
 				// a haxe.Exception.__nativeStack entry: the abstract value is a code
 				// return address. Resolve it to a source location the way the call
 				// stack does, instead of showing an opaque `hl_symbol @ 0x..`.
 				var label = symbolResolver == null ? null : symbolResolver(ptr);
 				leaf(label != null ? label : "hl_symbol @ " + hex(ptr), "StackFrame");
+
 			case HObj(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			case HStruct(_):

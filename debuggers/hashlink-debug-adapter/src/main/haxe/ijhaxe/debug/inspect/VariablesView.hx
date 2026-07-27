@@ -27,6 +27,7 @@ class VariablesView {
 	final memory:MemoryReader;
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
+
 	final frameLayout:FrameLayout;
 	final localsResolver:LocalsResolver;
 	final globalTable:GlobalTable;
@@ -141,6 +142,7 @@ class VariablesView {
 			boundNames.set(local.register, local.name);
 		}
 		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+
 		for (i in 0...offsets.length) {
 			var slot = offsets[i];
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));

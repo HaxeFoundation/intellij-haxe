@@ -95,6 +95,7 @@ class SymbolResolver {
 		writeFrame = frameId;
 		var start = 0;
 		var current = tryRootTarget(frameId, path.root);
+
 		if (current == null) {
 			// `MyClass.member` / `pkg.MyClass.member`: a leading path prefix names
 			// a class — its statics container behaves like an object variable
@@ -192,6 +193,7 @@ class SymbolResolver {
 	public function staticsPrefix(path:ValuePath):Null<StaticsPrefix> {
 		var name = path.root;
 		var i = 0;
+
 		while (true) {
 			var hit = staticsByClassName(name);
 			if (hit != null) {
@@ -256,6 +258,7 @@ class SymbolResolver {
 	function tryChildTarget(parent:WriteTarget, childName:String):Null<WriteTarget> {
 		var base:Pointer;
 		var effectiveType:HLType;
+
 		switch (parent.type) {
 			case HStruct(_):
 				base = parent.address;

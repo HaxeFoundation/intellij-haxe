@@ -28,14 +28,16 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   private List<PsiElement> namesOnCaretLine(String mainBody) {
-    myFixture.configureByText("Main.hx",
-                              "class A { public function new() {} public function reset(v:Int):Int { return v; }"
-                              + " public function first():A { return this; } public function second():A { return this; } }\n"
-                              + "class B { public function new() {} public function reset():Int { return 1; } }\n"
-                              + "class Main { static function main() { var a = new A(); var b = new B(); "
-                              + mainBody + "<caret> } }");
+    myFixture.configureByText("Main.hx", """
+      class A { public function new() {} public function reset(v:Int):Int { return v; } \
+      public function first():A { return this; } public function second():A { return this; } }
+      class B { public function new() {} public function reset():Int { return 1; } }
+      class Main { static function main() { var a = new A(); var b = new B(); %s<caret> } }\
+      """.formatted(mainBody));
+
     int caretLine = myFixture.getEditor().getDocument()
       .getLineNumber(myFixture.getCaretOffset());
+
     XSourcePosition position = XDebuggerUtil.getInstance()
       .createPosition(myFixture.getFile().getVirtualFile(), caretLine);
     assertNotNull(position);

@@ -4,7 +4,7 @@ import ijhaxe.dap.protocol.SourceBreakpoint;
 import ijhaxe.dap.protocol.Breakpoint;
 import ijhaxe.hxcpp.debug.DebuggerApi;
 
-/** One installed breakpoint: the DAP id we assigned + the runtime's number. */
+/** One installed breakpoint: the assigned DAP id + the runtime's number. */
 private typedef Installed = {
 	var id:Int;
 	var runtimeNumber:Int;
@@ -46,8 +46,10 @@ class Breakpoints {
 		clearSource(sourcePath);
 		var fileKey = fileMatcher().resolve(sourcePath);
 		var knownLines = lineTable != null ? lineTable.linesFor(sourcePath) : null;
+
 		var installed:Array<Installed> = [];
 		var results:Array<Breakpoint> = [];
+
 		for (i in 0...requested.length) {
 			var line = requested[i].line;
 			if (fileKey == null) {

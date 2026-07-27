@@ -77,6 +77,7 @@ class Server {
 		var events = new Deque<DebugEvent>();
 		var ready = new Deque<Bool>();
 		var released = new Deque<Bool>();
+
 		Thread.create(() -> run(api, events, socket, released, ready));
 		ready.pop(true);
 		api.enableCurrentThread();

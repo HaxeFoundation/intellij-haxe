@@ -114,6 +114,7 @@ class DynObjReader {
 
 		var min = 0;
 		var max = count;
+
 		while (min < max) {
 			var mid = (min + max) >> 1;
 			var entry = lookup.offset(mid * align.fieldLookupStride);

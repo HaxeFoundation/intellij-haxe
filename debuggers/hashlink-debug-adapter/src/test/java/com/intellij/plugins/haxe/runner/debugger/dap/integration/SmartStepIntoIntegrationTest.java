@@ -59,8 +59,11 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();
     List<StepInTarget> targets = requestStepInTargets(newestFrameId(threadId));
+
     StepInTarget richDemo = targets.stream()
-      .filter(t -> t.getLabel().endsWith("Rich.demo")).findFirst().orElseThrow();
+      .filter(t -> t.getLabel().endsWith("Rich.demo"))
+      .findFirst()
+      .orElseThrow();
 
     StepInRequest stepIn = new StepInRequest();
     StepInArguments arguments = new StepInArguments();

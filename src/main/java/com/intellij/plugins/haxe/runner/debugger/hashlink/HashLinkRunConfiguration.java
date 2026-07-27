@@ -135,6 +135,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase {
     Path hlProgram = resolveProgram(module);
     Path workingDir = resolveWorkingDirectory(module);
     Path workDir = workingDir != null ? workingDir : hlProgram.getParent();
+
     GeneralCommandLine commandLine = new GeneralCommandLine()
       .withExePath(hlExecutable.toString())
       .withParameters(hlProgram.toString())

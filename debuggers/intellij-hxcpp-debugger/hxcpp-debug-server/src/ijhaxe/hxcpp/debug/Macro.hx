@@ -33,6 +33,7 @@ class Macro {
 			// define FIRST: Server's whole class is #if HXCPP_DEBUGGER guarded,
 			// so pulling the type in before the define finds an empty module
 			Compiler.define("HXCPP_DEBUGGER");
+
 			// force Server (which self-starts from its static init) into the build.
 			// haxe 5 forbids Context.getType from an initialization macro, so defer
 			// it to onAfterInitMacros there — the define above is already set, so the
@@ -43,6 +44,7 @@ class Macro {
 			#else
 			Context.getType("ijhaxe.hxcpp.debug.Server");
 			#end
+
 			Context.onGenerate(bakeLineTable);
 		}
 		#end
@@ -119,6 +121,7 @@ class Macro {
 		#else
 		var skip = false;
 		#end
+
 		var pos = Context.getPosInfos(expr.pos);
 		if (!skip && pos.min >= 0 && pos.file != null && pos.file.length > 0) {
 			var offsets = offsetsByFile.get(pos.file);

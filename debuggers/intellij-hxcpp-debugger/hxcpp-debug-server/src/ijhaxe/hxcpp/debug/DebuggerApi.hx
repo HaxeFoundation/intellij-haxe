@@ -89,6 +89,7 @@ enum DebugEvent {
 	ThreadCreated(threadNumber:Int);
 	ThreadTerminated(threadNumber:Int);
 	ThreadStarted(threadNumber:Int);
+
 	// Captured ON THE STOPPING THREAD (status, hit breakpoint number, and the
 	// stack — already trimmed of the debugger's own frames), so the server
 	// thread reports the stop and serves stackTrace without a cross-thread

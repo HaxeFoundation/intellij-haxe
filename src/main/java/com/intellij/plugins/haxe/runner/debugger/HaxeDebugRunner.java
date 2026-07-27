@@ -1357,6 +1357,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
       return fileName;
     }
 
+    // every literal dot in the package name becomes a path separator
     return packageName.replaceAll("\\.", "/") + "/" + fileName;
   }
 

@@ -12,8 +12,10 @@ typedef LaunchConfig = {
 	var program:String;
 	var args:Array<String>;
 	var cwd:Null<String>;
+
 	var hlPath:String;
 	var stopOnEntry:Bool;
+
 	var attachPid:Null<Int>;
 	var debugPort:Null<Int>;
 }

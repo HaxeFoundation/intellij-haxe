@@ -12,6 +12,7 @@ import haxe.Exception;
 **/
 class DebugError extends Exception {
 	public final code:DebugErrorCode;
+
 	// Machine-readable details for the client, keyed by name (e.g. the offending
 	// identifier for UnresolvedName). Null when there is nothing structured to add.
 	public final variables:Null<Map<String, String>>;

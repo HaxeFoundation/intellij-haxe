@@ -33,10 +33,12 @@ public final class EvalConnection implements AutoCloseable {
   private final OutputStream out;
   private final AtomicInteger nextId = new AtomicInteger(1);
   private final Map<Integer, CompletableFuture<JsonNode>> pending = new ConcurrentHashMap<>();
+
   // volatile: set once by the owner before/around start, read by the reader thread
   private volatile BiConsumer<String, JsonNode> eventListener = (method, params) -> { };
   private volatile Runnable onDisconnected = () -> { };
   private volatile boolean closed;
+
   // Set by the reader thread just before it exits (VM closed the socket or the
   // transport died). Once true, no future can ever be completed again, so
   // request() must fail fast instead of letting an orphaned future burn its
@@ -80,6 +82,7 @@ public final class EvalConnection implements AutoCloseable {
     int id = nextId.getAndIncrement();
     CompletableFuture<JsonNode> future = new CompletableFuture<>();
     pending.put(id, future);
+
     // Checked AFTER registering the future so every interleaving is covered:
     // reader died before this line -> vmGone is set -> fail fast here; reader
     // dies after it -> failPending finds the future in `pending` and fails it.

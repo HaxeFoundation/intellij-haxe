@@ -35,6 +35,7 @@ class RuntimeTypes {
 	static inline var KNULL = 19;
 	static inline var KSTRUCT = 21;
 	static inline var KGUID = 23;
+
 	static inline var MAX_NAME_CHARS = 256;
 	static inline var MAX_FUN_ARGS = 32;
 

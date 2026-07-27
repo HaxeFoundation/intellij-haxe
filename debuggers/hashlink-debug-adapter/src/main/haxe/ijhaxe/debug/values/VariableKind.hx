@@ -11,6 +11,7 @@ enum abstract VariableKind(String) to String {
 	// decoded value for an absent or unrecognized wire kind, so neither side needs
 	// a null.
 	var Unspecified = "unspecified";
+
 	var Argument = "argument";
 	var Local = "local";
 	var Static = "static";

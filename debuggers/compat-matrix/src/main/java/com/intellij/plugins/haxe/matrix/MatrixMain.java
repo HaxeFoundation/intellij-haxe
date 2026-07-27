@@ -25,19 +25,23 @@ public final class MatrixMain {
   private final Path root;
   private final Path resources;
   private final Path out;
+
   private final List<String> lanes;
   private final List<String> haxeFilter;
   private final List<String> hlFilter;
   private final boolean full;
   private final boolean parallelLanes;
+
   // -PdapTestForks the HL lane passes to its child builds (test classes in
   // parallel fork JVMs); default 4, always forwarded so it is authoritative.
   // 1 = sequential.
   private final int hlForks;
+
   // run start, baked into the report filename so successive runs never
   // overwrite each other's results
   private final String startedAt = LocalDateTime.now()
     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+
   private final Log log;
   private final GradleRunner gradle;
   private final List<Results.Cell> cells = new ArrayList<>();
@@ -49,11 +53,21 @@ public final class MatrixMain {
   private static final List<String> HL_FIXTURE_TASKS = List.of(
     "buildTestFixture", "buildThreadsFixture", "buildSpinFixture", "buildUncaughtFixture",
     "buildVmFixture", "buildStackTraceFixture", "buildTypedThrowFixture");
+
   private static final Map<String, String> HL_FIXTURE_FILES = Map.of(
-    "buildTestFixture", "test-fixture.hl", "buildThreadsFixture", "threads-fixture.hl",
-    "buildSpinFixture", "spin-fixture.hl", "buildUncaughtFixture", "uncaught-fixture.hl",
-    "buildVmFixture", "vm-fixture.hl", "buildStackTraceFixture", "stacktrace-fixture.hl",
+    "buildTestFixture", "test-fixture.hl",
+    "buildThreadsFixture", "threads-fixture.hl",
+    "buildSpinFixture", "spin-fixture.hl",
+    "buildUncaughtFixture", "uncaught-fixture.hl",
+    "buildVmFixture", "vm-fixture.hl",
+    "buildStackTraceFixture", "stacktrace-fixture.hl",
     "buildTypedThrowFixture", "typedthrow-fixture.hl");
+
+  // Browser executable names looked for under debuggerResources/browsers when the
+  // lane's WEB_DEBUG_*_EXE is unset.
+  private static final List<String> FIREFOX_BINARIES = List.of("firefox", "firefox-esr");
+  private static final List<String> CHROMIUM_BINARIES = List.of("chromium", "chrome", "chromium-browser");
+
   // CLI flags (see README). Value flags end with '=' and are read with flagValue(),
   // which slices at the flag's own length - no hand-counted substring offsets.
   private static final String FLAG_LANES = "--lanes=";
@@ -101,6 +115,7 @@ public final class MatrixMain {
     Path root = Path.of(System.getProperty("matrix.root", ".")).toAbsolutePath().normalize();
     Path resources = root.resolve("debuggerResources");
     Path out = root.resolve("build/reports/debugger-matrix");
+
     List<String> lanes = List.of("eval", "hashlink", "hxcpp", "firefox", "chromium");
     List<String> haxeFilter = List.of();
     List<String> hlFilter = List.of();
@@ -108,10 +123,14 @@ public final class MatrixMain {
     boolean parallelLanes = false;
     int hlForks = 4;
     boolean reportOnly = false;
+
     for (String arg : args) {
       if (arg.startsWith(FLAG_LANES)) {
         // lane names are matched lowercase (run() tests contains("hashlink") etc.)
-        lanes = flagValueList(arg, FLAG_LANES).stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
+        lanes = flagValueList(arg, FLAG_LANES)
+          .stream()
+          .map(s -> s.toLowerCase(Locale.ROOT))
+          .toList();
       } else if (arg.startsWith(FLAG_HAXE)) {
         haxeFilter = flagValueList(arg, FLAG_HAXE);
       } else if (arg.startsWith(FLAG_HL)) {
@@ -147,6 +166,7 @@ public final class MatrixMain {
   }
 
   private static List<String> flagValueList(String arg, String flag) {
+    // a comma-separated flag value ("--lanes=eval,hashlink"); blanks dropped below
     return Arrays.stream(flagValue(arg, flag).split(","))
       .map(String::trim)
       .filter(s -> !s.isEmpty())
@@ -164,13 +184,16 @@ public final class MatrixMain {
   private void run() throws IOException {
     logConfig();
     Provisioner provisioner = new Provisioner(resources, log);
+
     // haxeDirs arrive newest-first from the manifest (the run order)
     haxeDirs = new ArrayList<>(applyNameFilter(provisioner.haxeDirs(), haxeFilter));
     hlDirs = lanes.contains("hashlink") ? applyNameFilter(provisioner.hashlinkDirs(), hlFilter) : List.of();
     nodeDirs = lanes.contains("firefox") || lanes.contains("chromium") ? provisioner.nodeDirs() : List.of();
+
     log.line("matrix start: lanes=" + String.join("+", lanes)
              + " haxe=" + names(haxeDirs) + " hl=" + names(hlDirs)
              + (nodeDirs.isEmpty() ? "" : " node=" + names(nodeDirs)));
+
     if (haxeDirs.isEmpty()) {
       log.line("no haxe toolchains available - aborting");
       System.exit(1);
@@ -218,7 +241,9 @@ public final class MatrixMain {
   /** The dirs whose file name is listed in {@code names}, or all of them when {@code names} is empty. */
   private static List<Path> applyNameFilter(List<Path> dirs, List<String> names) {
     return names.isEmpty() ? dirs
-      : dirs.stream().filter(d -> names.contains(d.getFileName().toString())).toList();
+      : dirs.stream()
+        .filter(d -> names.contains(d.getFileName().toString()))
+        .toList();
   }
 
   /**
@@ -322,10 +347,12 @@ public final class MatrixMain {
     first.addAll(extraArgs);
     GradleRunner.Status status = gradle.run(first, env, logFile, timeoutSec, true);
     GradleRunner.killStrays();
+
     List<Results.ClassResult> classes = Results.collect(moduleResults, evidence, resultFilter);
     List<Results.ClassResult> failing = classes.stream()
       .filter(c -> c.failures() + c.errors() > 0)
       .toList();
+
     if (failing.isEmpty() || failing.size() > 8 || status == GradleRunner.Status.TIMEOUT) {
       return new SuiteRun(status, classes, List.of());
     }
@@ -344,10 +371,15 @@ public final class MatrixMain {
     GradleRunner.killStrays();
     overlayResults(moduleResults, evidence, resultFilter);
     List<Results.ClassResult> merged = Results.parse(evidence);
+
     List<String> after = merged.stream()
       .flatMap(MatrixMain::failedTestIds)
       .toList();
-    List<String> flaky = before.stream().filter(t -> !after.contains(t)).toList();
+
+    List<String> flaky = before.stream()
+      .filter(t -> !after.contains(t))
+      .toList();
+
     if (!flaky.isEmpty()) {
       log.line("      flaky (passed on retry): " + String.join(", ", flaky));
     }
@@ -362,7 +394,9 @@ public final class MatrixMain {
    */
   /** "ClassName::testName" for every failed test of one class result. */
   private static Stream<String> failedTestIds(Results.ClassResult result) {
-    return result.failed().stream().map(failure -> result.name() + "::" + failure.test());
+    return result.failed()
+      .stream()
+      .map(failure -> result.name() + "::" + failure.test());
   }
 
   private void preserveFirstAttempt(List<Results.ClassResult> failing, Path evidence) throws IOException {
@@ -412,12 +446,17 @@ public final class MatrixMain {
       List<String> command = Platform.WINDOWS
         ? List.of("cmd", "/c", "haxe", "--version")
         : List.of("sh", "-c", "haxe --version");
+
       ProcessBuilder builder = new ProcessBuilder(command).redirectErrorStream(true);
       GradleRunner.applyEnv(builder.environment(), env);
       Process process = builder.start();
       String version = new String(process.getInputStream().readAllBytes()).trim();
       process.waitFor(15, TimeUnit.SECONDS);
+
+      // the manifest's lane name ("haxe_4_3_7") back to a version ("4.3.7")
       String expected = laneName.replaceFirst("^haxe_", "").replace('_', '.');
+      // a plain three-part version only - preview/nightly lanes carry a suffix
+      // and must not be compared literally against what `haxe --version` printed
       boolean plainVersion = expected.matches("\\d+\\.\\d+\\.\\d+");
       String note = (plainVersion && !version.startsWith(expected))
         ? "   <-- WARNING: expected " + expected + "; the lane environment leaked (see README)"
@@ -431,10 +470,12 @@ public final class MatrixMain {
   private void evalLane() throws IOException {
     log.line("EVAL LANE");
     Path moduleResults = root.resolve("debuggers/eval-debugger/build/test-results/test");
+
     for (Path haxeDir : haxeDirs) {
       String haxe = haxeDir.getFileName().toString();
       Map<String, String> env = haxeEnv(haxeDir);
       verifyLaneHaxe(haxe, env);
+
       log.line("    " + haxe + " : running the eval suite");
       long start = System.nanoTime();
       SuiteRun run = runSuite(":debuggers:eval-debugger",
@@ -478,14 +519,17 @@ public final class MatrixMain {
     log.line(lane.toUpperCase(Locale.ROOT) + " LANE (browser live probe)");
     Map<String, String> browserEnv = discoveredBrowserEnv(lane);
     Path moduleResults = root.resolve("debuggers/browser-debugger/build/test-results/test");
+
     // no provisioned node (downloads failed?): one cell per haxe on the
     // probes' default node discovery rather than no coverage at all
     List<Path> nodes = nodeDirs.isEmpty() ? new ArrayList<>(Collections.singletonList((Path)null)) : nodeDirs;
+
     for (Path haxeDir : haxeDirs) {
       String haxe = haxeDir.getFileName().toString();
       Map<String, String> env = haxeEnv(haxeDir);
       env.putAll(browserEnv);
       verifyLaneHaxe(haxe, env);
+
       for (Path nodeDir : nodes) {
         String node = nodeDir != null ? nodeDir.getFileName().toString() : null;
         String cellName = haxe + (node != null ? "__" + node : "");
@@ -521,9 +565,9 @@ public final class MatrixMain {
       return Map.of();
     }
     Path browsers = resources.resolve("browsers");
-    for (String binary : lane.equals("firefox")
-      ? List.of("firefox", "firefox-esr")
-      : List.of("chromium", "chrome", "chromium-browser")) {
+    List<String> binaries = lane.equals("firefox") ? FIREFOX_BINARIES : CHROMIUM_BINARIES;
+
+    for (String binary : binaries) {
       Path found = Platform.findBinary(browsers, binary);
       if (found != null) {
         log.line("    " + lane + " : using discovered browser " + found);
@@ -539,14 +583,21 @@ public final class MatrixMain {
       "buildHxcppFixtureFixture", "hxcpp/fixture/" + Platform.exe("Main-debug"),
       "buildHxcppFixtureExFixture", "hxcpp/fixture-ex/" + Platform.exe("MainEx-debug"));
     Path moduleBuild = root.resolve("debuggers/intellij-hxcpp-debugger/build");
+
     for (Path haxeDir : haxeDirs) {
       String haxe = haxeDir.getFileName().toString();
       long start = System.nanoTime();
       deleteQuietly(moduleBuild.resolve("hxcpp"));
       verifyLaneHaxe(haxe, haxeEnv(haxeDir));
+
       log.line("    " + haxe + " : building the C++ fixtures (this is the slow part)");
       List<String> build = new ArrayList<>();
-      fixtures.keySet().stream().sorted().forEach(t -> build.add(":debuggers:intellij-hxcpp-debugger:" + t));
+
+      fixtures.keySet()
+        .stream()
+        .sorted()
+        .forEach(t -> build.add(":debuggers:intellij-hxcpp-debugger:" + t));
+
       build.addAll(EXCLUDE_HAXELIB);
       build.add(GRADLE_CONTINUE);
       gradle.run(build, haxeEnv(haxeDir), out.resolve("logs/hxcpp-" + haxe + "-build.log"), 1200);
@@ -583,6 +634,7 @@ public final class MatrixMain {
       Path err = Path.of(buildLog + ".err");
       String text = (Files.isRegularFile(err) ? Files.readString(err) : "")
                     + (Files.isRegularFile(buildLog) ? Files.readString(buildLog) : "");
+
       if (text.contains("cl.exe")) {
         log.line("      HINT: MSVC (cl.exe) was not usable in this build's environment.");
         log.line("      The gradle daemon keeps the environment it was STARTED with - if it was");
@@ -608,12 +660,14 @@ public final class MatrixMain {
     }
     long pinned = lastModified(adapter);
     log.line("HL LANE (adapter pinned; " + (full ? "FULL grid" : "smart-reduced") + ")");
+
     for (Path haxeDir : haxeDirs) {
       String haxe = haxeDir.getFileName().toString();
       HL_FIXTURE_FILES.values().forEach(f -> deleteQuietly(moduleBuild.resolve("hl/" + f)));
       long start = System.nanoTime();
       verifyLaneHaxe(haxe, haxeEnv(haxeDir));
       log.line("    " + haxe + " : building the HL fixtures");
+
       List<String> build = new ArrayList<>();
       HL_FIXTURE_TASKS.forEach(t -> build.add(":debuggers:hashlink-debug-adapter:" + t));
       build.addAll(EXCLUDE_HAXELIB);
@@ -632,12 +686,17 @@ public final class MatrixMain {
       // an explicit --hl selection overrides the smart-reduced grid
       List<Path> runtimes = (full || !hlFilter.isEmpty() || !VersionManifest.DEGRADED_HAXE_ON_HL.contains(haxe))
         ? hlDirs
-        : hlDirs.stream().filter(d -> VersionManifest.REFERENCE_RUNTIMES.contains(d.getFileName().toString())).toList();
+        : hlDirs.stream()
+          .filter(d -> VersionManifest.REFERENCE_RUNTIMES.contains(d.getFileName().toString()))
+          .toList();
+
       for (Path hlDir : runtimes) {
         String runtime = hlDir.getFileName().toString();
         Path hlBinary = Platform.findBinary(hlDir, "hl");
+
         log.line("    " + haxe + " x " + runtime + " : running the HL suite");
         long cellStart = System.nanoTime();
+
         List<String> extra = new ArrayList<>(List.of(
           PROP_HASHLINK_BIN + hlBinary, GRADLE_NO_BUILD_CACHE, GRADLE_EXCLUDE, TASK_BUILD_ADAPTER));
         // the matrix's fork count is authoritative for the cell - always passed,
@@ -730,17 +789,35 @@ public final class MatrixMain {
   private void report() throws IOException {
     // ascending here even though the lanes RUN newest-first - report columns
     // should not depend on execution order
-    List<String> haxeNames = !haxeDirs.isEmpty() ? names(haxeDirs).stream().sorted().toList()
-      : cells.stream().map(Results.Cell::haxe).distinct().sorted().toList();
-    List<String> hlNames = !hlDirs.isEmpty() ? names(hlDirs)
-      : cells.stream().map(Results.Cell::runtime).filter(Objects::nonNull).distinct().sorted().toList();
+    List<String> haxeNames = !haxeDirs.isEmpty()
+      ? names(haxeDirs).stream()
+        .sorted()
+        .toList()
+
+      : cells.stream()
+        .map(Results.Cell::haxe)
+        .distinct()
+        .sorted()
+        .toList();
+
+    List<String> hlNames = !hlDirs.isEmpty()
+      ? names(hlDirs)
+      : cells.stream()
+        .map(Results.Cell::runtime)
+        .filter(Objects::nonNull)
+        .distinct()
+        .sorted()
+        .toList();
+
     // one timestamped report per run (so results stay traceable to WHEN they
     // ran) plus index.html always mirroring the newest run
     Path stamped = out.resolve("matrix-" + startedAt + ".html");
     Report.write(root.resolve("debuggers/compat-matrix/report-template.html"),
                  stamped, cells, haxeNames, hlNames, resources, full);
+
     Files.copy(stamped, out.resolve("index.html"),
                StandardCopyOption.REPLACE_EXISTING);
+
     log.line("report: " + stamped + " (also copied to index.html)");
   }
 
@@ -752,6 +829,7 @@ public final class MatrixMain {
     long seconds = (System.nanoTime() - startNanos) / 1_000_000_000L;
     Results.Cell cell = new Results.Cell(lane, haxe, runtime, status, classes, flaky, seconds);
     cells.add(cell);
+
     int skipped = cell.totalSkipped();
     log.line(String.format("  %s %s%s : %s classes=%d failures=%d%s%s (%ds)",
                            lane, haxe, runtime != null ? " x " + runtime : "", status,
@@ -761,7 +839,9 @@ public final class MatrixMain {
   }
 
   private static List<String> names(List<Path> dirs) {
-    return dirs.stream().map(d -> d.getFileName().toString()).toList();
+    return dirs.stream()
+      .map(d -> d.getFileName().toString())
+      .toList();
   }
 
   private static long lastModified(Path path) {

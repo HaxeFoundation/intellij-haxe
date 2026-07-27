@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum VariableKind {
   UNSPECIFIED("unspecified"),
+
   ARGUMENT("argument"),
   LOCAL("local"),
   STATIC("static"),

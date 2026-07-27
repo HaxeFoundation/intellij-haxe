@@ -11,10 +11,10 @@ import org.jetbrains.annotations.Nullable;
  * DAP's {@code setVariable} names a child of a variablesReference, but the
  * server's {@code setVariable} takes an expression string and works against
  * the server's CURRENT frame (selected via {@code switchFrame} — the method
- * has no frame parameter). So every time a reference passes through the
- * adapter we record how to spell its contents (a scope's children are bare
- * names, an object's are {@code container.name}, an array's are
- * {@code container[index]}) and which frame they live in.
+ * has no frame parameter). So every reference passing through the adapter
+ * records how to spell its contents (a scope's children are bare names, an
+ * object's are {@code container.name}, an array's are {@code container[index]})
+ * and which frame they live in.
  *
  * References are per-stop (the server clears its own on every stop), so the
  * adapter clears this registry whenever the debuggee resumes or stops — a

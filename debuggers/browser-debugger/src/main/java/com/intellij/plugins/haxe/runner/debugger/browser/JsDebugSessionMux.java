@@ -92,12 +92,16 @@ public final class JsDebugSessionMux implements DapEndpoint {
   private final Map<Integer, ChildSession> sessions = new ConcurrentHashMap<>();
   private final AtomicInteger nextSessionIndex = new AtomicInteger(0);
   private final BlockingQueue<Event> mergedEvents = new LinkedBlockingQueue<>();
+
   /** Broadcast state replayed to every newly attached session. */
   private final Map<String, SetBreakpointsRequest> breakpointsBySource = new LinkedHashMap<>();
+
   /** Source path -> the tracked verification state, parallel to the request's list. */
   private final Map<String, List<TrackedBreakpoint>> trackedBySource = new LinkedHashMap<>();
+
   /** (session index, that session's adapter breakpoint id) -> tracked breakpoint. */
   private final Map<Long, TrackedBreakpoint> trackedBySessionId = new ConcurrentHashMap<>();
+
   private volatile SetExceptionBreakpointsRequest exceptionFilters;
   private volatile boolean closed;
   private volatile Consumer<String> logSink = line -> { };
@@ -401,7 +405,10 @@ public final class JsDebugSessionMux implements DapEndpoint {
     trackedBySessionId.keySet().removeIf(key -> (int)(key >>> 32) == sessionIndex);
     List<TrackedBreakpoint> all;
     synchronized (trackedBySource) {
-      all = trackedBySource.values().stream().flatMap(List::stream).toList();
+      all = trackedBySource.values()
+        .stream()
+        .flatMap(List::stream)
+        .toList();
     }
     for (TrackedBreakpoint bp : all) {
       boolean before = bp.mergedVerified();

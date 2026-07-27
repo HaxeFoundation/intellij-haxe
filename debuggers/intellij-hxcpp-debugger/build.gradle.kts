@@ -1,4 +1,4 @@
-// Our own in-debuggee HXCPP debug server (haxelib: intellij-hxcpp-debug-server):
+// The in-debuggee HXCPP debug server (haxelib: intellij-hxcpp-debug-server):
 // interpreter-run unit tests for the Haxe server, gradle-built native fixtures,
 // and the Java-client integration suite driving the REAL DapClient stack
 // against those fixtures. See docs/README.md for the server gotchas.
@@ -53,7 +53,7 @@ val haxeAvailable: Boolean by lazy {
 }
 
 // ---------------------------------------------------------------------------
-// hxcpp version pinning ( makes sure we can build for  haxe 4 & 5 ).
+// hxcpp version pinning (the server has to build for haxe 4 & 5).
 // v4.3.114 is  backward compatible with haxe 4.1-4.3 (api level 430)
 // and compatible with haxe 5 preview.
 // ---------------------------------------------------------------------------

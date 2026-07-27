@@ -180,6 +180,7 @@ public final class AdapterStore {
   private static void untarGz(Path archive, Path targetDir) throws IOException {
     Files.createDirectories(targetDir);
     Path target = targetDir.toRealPath();
+
     try (TarArchiveInputStream tar = new TarArchiveInputStream(
       new GzipCompressorInputStream(Files.newInputStream(archive)))) {
       TarArchiveEntry entry;

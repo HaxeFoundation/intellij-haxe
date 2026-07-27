@@ -124,6 +124,7 @@ class ExpressionEvaluator {
 	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {
 		var start = 0;
 		var current = resolveRoot(frameId, path.root);
+
 		if (current == null) {
 			// `MyClass.member`: a leading prefix naming a class resolves to its
 			// statics container (locals/this/frame statics were tried first)
@@ -253,7 +254,7 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// `value is Type` (Haxe Std.isOfType semantics, the subset we support):
+	// `value is Type` (Haxe Std.isOfType semantics, the supported subset):
 	// null is never an instance; Int/Float/Bool/String/Dynamic match by kind
 	// (an Int satisfies Float, as in Haxe); a class/enum/struct name matches an
 	// object whose runtime class equals it or descends from it (tsuper chain,
@@ -295,6 +296,7 @@ class ExpressionEvaluator {
 	public static function chainToPath(e:Expr):Null<ValuePath> {
 		var accessors:Array<PathAccessor> = [];
 		var cur = e;
+
 		while (true) {
 			switch (cur) {
 				case EIdent(name):

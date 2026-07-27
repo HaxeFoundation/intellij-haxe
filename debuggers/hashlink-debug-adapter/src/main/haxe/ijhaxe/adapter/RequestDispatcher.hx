@@ -17,6 +17,7 @@ import ijhaxe.dap.protocol.responses.ContinueResponseBody;
 import ijhaxe.dap.protocol.responses.ErrorResponseBody;
 import ijhaxe.dap.protocol.Event;
 import ijhaxe.dap.protocol.requests.LaunchRequestArguments;
+import ijhaxe.dap.protocol.responses.Message;
 import ijhaxe.dap.protocol.requests.PauseArguments;
 import ijhaxe.dap.protocol.ProtocolMessage;
 import ijhaxe.dap.protocol.Request;
@@ -413,6 +414,7 @@ class RequestDispatcher {
 			case EvSessionEnded(seq):
 				completeSuccess(seq, null);
 				shutdownRequested = true;
+
 			case EvBreakpointChanged(result):
 				sendEvent("breakpoint", {reason: "changed", breakpoint: breakpointStruct(result)});
 			case EvStoppedBreakpoint(threadId, hitBreakpointIds):
@@ -430,6 +432,7 @@ class RequestDispatcher {
 			case EvResumed(threadId):
 				currentThreadId = threadId;
 				sendEvent("continued", {threadId: threadId, allThreadsContinued: true});
+
 			case EvOutput(category, text):
 				sendEvent("output", {category: category, output: text});
 			case EvExited(exitCode):
@@ -478,7 +481,7 @@ class RequestDispatcher {
 	}
 
 	function sendError(requestSeq:Int, command:String, errorId:Int, message:String, ?variables:Null<Map<String, String>>):Void {
-		var error:ijhaxe.dap.protocol.responses.Message = {id: errorId, format: message, showUser: false};
+		var error:Message = {id: errorId, format: message, showUser: false};
 		if (variables != null) {
 			// DAP Message.variables is a plain JSON object; copy the Map into one
 			var details = new haxe.DynamicAccess<String>();
@@ -571,10 +574,11 @@ class RequestDispatcher {
 		};
 	}
 
-	// The HL runtime (hl.exe) running THIS adapter — the VM we launch the debuggee
-	// with when the client doesn't override it. Sys.executablePath()'s deprecation
-	// points at Sys.programPath(), but on HL that returns the adapter's own .hl
-	// file, not the runtime, so we keep executablePath and silence just this one.
+	// The HL runtime (hl.exe) running THIS adapter — the VM the debuggee is
+	// launched with when the client doesn't override it. Sys.executablePath()'s
+	// deprecation points at Sys.programPath(), but on HL that returns the
+	// adapter's own .hl file, not the runtime, so executablePath stays and the
+	// warning is silenced for just this function.
 	@:haxe.warning("-WDeprecated")
 	static function defaultHlExecutable():String {
 		return Sys.executablePath();

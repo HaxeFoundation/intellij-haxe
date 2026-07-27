@@ -32,7 +32,7 @@ import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.wrapType
 
 @CustomLog
 public class HaxeReferenceSuggestionUtil {
-    // forceShowPrivateMembers is used for evaluate expressions during debugging where we want to show completion for all possible refs.
+    // forceShowPrivateMembers is used for evaluate expressions during debugging, where completion must offer all possible refs.
     public static Object[] getVariants(HaxeReferenceImpl haxeReference, boolean forceShowPrivateMembers) {
         List<HaxeLookupElement> variants = new ArrayList<>();
 

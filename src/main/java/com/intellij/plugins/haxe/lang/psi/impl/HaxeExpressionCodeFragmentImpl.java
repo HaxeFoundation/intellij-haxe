@@ -133,7 +133,7 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
       myContext = null;
       return;
     }
-    myContext = ReadAction.compute(
+    myContext = ReadAction.computeBlocking(
       () -> SmartPointerManager.getInstance(getProject()).createSmartPsiElementPointer(context));
   }
 

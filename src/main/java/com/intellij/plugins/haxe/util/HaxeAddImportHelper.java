@@ -55,7 +55,7 @@ public class HaxeAddImportHelper {
     if (file instanceof HaxeExpressionCodeFragment fragment) {
       fragment.importClass(path);
       file.getManager().dropResolveCaches();
-      DaemonCodeAnalyzer.getInstance(file.getProject()).restart(file);
+      DaemonCodeAnalyzer.getInstance(file.getProject()).restart(file,"new import");
       return null;
     }
     PsiElement child = PsiTreeUtil.findChildOfType(file, HaxePackageStatement.class);

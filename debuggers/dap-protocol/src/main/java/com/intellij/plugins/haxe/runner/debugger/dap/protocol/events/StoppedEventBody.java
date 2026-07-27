@@ -13,7 +13,9 @@ public class StoppedEventBody {
   private String reason;
   private Integer threadId;
   private Boolean allThreadsStopped;
+
   private List<Integer> hitBreakpointIds;
+
   private String description;
   private String text;
 }

@@ -10,10 +10,12 @@ typedef PatchedBreakpoint = {
 	var id:Int;
 	var address:Pointer;
 	var originalByte:Int;
+
 	var fidx:Int;
 	var op:Int;
 	var file:String;
 	var line:Int;
+
 	// Optional Haxe expression evaluated at each hit; the debuggee stops only
 	// when it is true. Null/empty = an unconditional breakpoint.
 	var condition:Null<String>;

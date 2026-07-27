@@ -15,6 +15,7 @@ public final class HxcppProtocol {
   public static final String STEP_IN = "stepIn";
   public static final String NEXT = "next";
   public static final String STEP_OUT = "stepOut";
+
   public static final String STACK_TRACE = "stackTrace";
   public static final String SET_BREAKPOINTS = "setBreakpoints";
   public static final String GET_SCOPES = "getScopes";

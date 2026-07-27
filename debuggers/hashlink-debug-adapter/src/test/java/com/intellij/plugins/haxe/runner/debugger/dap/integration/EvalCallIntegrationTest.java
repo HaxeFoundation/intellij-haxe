@@ -219,9 +219,11 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // The eval-call must lift every breakpoint for the duration of the call.
     initialize();
     assertTrue("launch", launch().isSuccess());
+
     // breakpoints at the stop line AND inside addImpl (line 13, `return a + b;`)
     String callSrc = fixtureSrcDir.resolve(FIXTURE_CALL).toString();
     assertTrue("setBreakpoints", setBreakpoints(callSrc, FIXTURE_CALL_LINE, 13).isSuccess());
+
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
     StoppedEvent stopped = awaitStopped();
     int threadId = stopped.getBody().getThreadId();

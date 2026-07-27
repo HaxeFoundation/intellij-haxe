@@ -18,8 +18,10 @@ typedef LaunchRequestArguments = {
 	var program:String;
 	var ?args:Array<String>;
 	var ?cwd:String;
+
 	var ?hlPath:String;
 	var ?stopOnEntry:Bool;
+
 	var ?attachPid:Null<Int>;
 	var ?debugPort:Null<Int>;
 }

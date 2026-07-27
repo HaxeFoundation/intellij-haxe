@@ -14,6 +14,7 @@ class BreakpointPlanner {
 			requested:Array<RequestedBreakpoint>):{locations:Array<BreakpointLocation>, results:Array<BreakpointResult>} {
 		var locations:Array<BreakpointLocation> = [];
 		var results:Array<BreakpointResult> = [];
+
 		for (request in requested) {
 			var resolved = module.resolveLine(sourcePath, request.line);
 			if (resolved.length == 0) {

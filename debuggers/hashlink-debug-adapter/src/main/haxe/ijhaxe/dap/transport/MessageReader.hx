@@ -35,6 +35,7 @@ class MessageReader {
 		var buf = new StringBuf();
 		// tracks how much of the CR LF CR LF terminator has been matched
 		var matched = 0;
+
 		while (true) {
 			var b = input.readByte();
 			var expected = (matched == 0 || matched == 2) ? FrameCodec.CR : FrameCodec.LF;

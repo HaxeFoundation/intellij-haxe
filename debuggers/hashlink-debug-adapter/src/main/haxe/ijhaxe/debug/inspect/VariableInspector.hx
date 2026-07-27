@@ -44,6 +44,7 @@ class VariableInspector {
 	final jit:JitInfo;
 	final memory:MemoryReader;
 	final align:Align;
+
 	final frameLayout:FrameLayout;
 	final localsResolver:LocalsResolver;
 	final objectLayout:ObjectLayout;
@@ -52,14 +53,19 @@ class VariableInspector {
 	final valueChildren:ValueChildren;
 	final runtimeTypes:RuntimeTypes;
 	final dynObjects:DynObjReader;
+
 	// Resolves variable paths → writable {address, type}; shared by reads and writes.
 	final resolver:SymbolResolver;
+
 	// Runs code in the debuggee (calls / new / string+box materialization).
 	final calls:DebuggeeCallService;
+
 	// Turns frames + references into the DAP scopes/variables lists.
 	final view:VariablesView;
+
 	// The evaluate-expression interpreter (operators, is/ternary, calls).
 	final evaluator:ExpressionEvaluator;
+
 	// The value-modification path (setVariable / assignment).
 	final mutator:VariableMutator;
 
@@ -140,15 +146,18 @@ class VariableInspector {
 		var maps = new MapReader(memory, align,
 			jit.hlVersionMajor > 1 || (jit.hlVersionMajor == 1 && jit.hlVersionMinor >= 13));
 		var treeMaps = new TreeMapReader(memory, align, objectLayout, runtimeTypes);
+
 		valueReader.dynObjects = dynObjects;
 		valueReader.maps = maps;
 		valueReader.treeMaps = treeMaps;
+
 		valueChildren = new ValueChildren(memory, align, valueReader, objectLayout);
 		valueChildren.runtimeTypes = runtimeTypes;
 		valueChildren.enumLayout = enumLayout;
 		valueChildren.dynObjects = dynObjects;
 		valueChildren.maps = maps;
 		valueChildren.treeMaps = treeMaps;
+
 		resolver = new SymbolResolver(stops, memory, module, jit, frameLayout, localsResolver, globalTable,
 			valueChildren, runtimeTypes);
 		calls = new DebuggeeCallService(resolver, memory, module, jit, align);

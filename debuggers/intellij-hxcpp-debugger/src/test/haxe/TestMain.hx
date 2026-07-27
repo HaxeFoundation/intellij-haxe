@@ -8,10 +8,13 @@ class TestMain {
 		var tests:Array<{name:String, run:Assert->Void}> = [
 			{name: "ConfigTest", run: tests.ConfigTest.run},
 			{name: "FramingTest", run: tests.FramingTest.run},
+
 			{name: "DispatcherTest", run: tests.DispatcherTest.run},
+
 			{name: "FileMatcherTest", run: tests.FileMatcherTest.run},
 			{name: "LineTableTest", run: tests.LineTableTest.run},
 			{name: "BreakpointsTest", run: tests.BreakpointsTest.run},
+
 			{name: "ValuesTest", run: tests.ValuesTest.run},
 			{name: "VariablesViewTest", run: tests.VariablesViewTest.run},
 			{name: "EvaluatorTest", run: tests.EvaluatorTest.run}

@@ -51,11 +51,13 @@ public class BreakpointsAndEvaluateIT {
     // instruments (HXLINE).
     try (FixtureSession session = FixtureSession.launchMain()) {
       session.initialize("uncaught", "critical");
+
       List<Breakpoint> results = session.setBreakpointsRaw(FixtureSession.MAIN_SOURCE,
                                                            new int[]{FixtureSession.MAIN_COMMENT_LINE,
                                                              FixtureSession.MAIN_ADD_LINE,
                                                              FixtureSession.MAIN_BLANK_LINE}, null)
         .getBody().getBreakpoints();
+
       assertEquals(3, results.size());
       assertFalse("comment line rejected", results.get(0).isVerified());
       assertEquals("rejected result keeps the requested line",
@@ -64,6 +66,7 @@ public class BreakpointsAndEvaluateIT {
                  results.get(0).getMessage() != null && results.get(0).getMessage().contains("no executable code"));
       assertTrue("code line verified", results.get(1).isVerified());
       assertFalse("blank line rejected", results.get(2).isVerified());
+
       session.configurationDone();
 
       StoppedEvent hit = session.awaitStopped();

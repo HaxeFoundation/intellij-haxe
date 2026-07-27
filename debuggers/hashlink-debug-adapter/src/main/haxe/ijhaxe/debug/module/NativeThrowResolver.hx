@@ -30,6 +30,7 @@ class NativeThrowResolver {
 	final jit:JitInfo;
 	final memory:MemoryReader;
 	final sites:ExceptionSites;
+
 	var resolved:Bool = false;
 	var cached:Null<Pointer> = null;
 
