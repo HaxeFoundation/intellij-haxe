@@ -1,9 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -40,11 +41,12 @@ public final class EvalFraming {
       throw new IllegalArgumentException("Eval request exceeds the ui16 frame limit ("
                                          + body.length + " bytes): " + json.substring(0, 80) + "...");
     }
-    ByteArrayOutputStream frame = new ByteArrayOutputStream(2 + body.length);
-    frame.write(body.length & 0xFF);
-    frame.write((body.length >>> 8) & 0xFF);
-    frame.write(body, 0, body.length);
-    return frame.toByteArray();
+    // the size check above keeps the narrowing to the ui16 prefix lossless
+    return ByteBuffer.allocate(Short.BYTES + body.length)
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .putShort((short)body.length)
+      .put(body)
+      .array();
   }
 
   /**

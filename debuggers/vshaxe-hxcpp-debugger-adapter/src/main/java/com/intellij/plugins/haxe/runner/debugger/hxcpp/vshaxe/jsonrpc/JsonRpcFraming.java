@@ -1,9 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.jsonrpc;
 
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -26,13 +27,11 @@ public final class JsonRpcFraming {
   /** Wraps a JSON payload in a length-prefixed frame. */
   public static byte[] encode(String json) {
     byte[] body = json.getBytes(StandardCharsets.UTF_8);
-    ByteArrayOutputStream frame = new ByteArrayOutputStream(4 + body.length);
-    frame.write(body.length & 0xFF);
-    frame.write((body.length >>> 8) & 0xFF);
-    frame.write((body.length >>> 16) & 0xFF);
-    frame.write((body.length >>> 24) & 0xFF);
-    frame.write(body, 0, body.length);
-    return frame.toByteArray();
+    return ByteBuffer.allocate(Integer.BYTES + body.length)
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .putInt(body.length)
+      .put(body)
+      .array();
   }
 
   /**

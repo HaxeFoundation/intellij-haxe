@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
@@ -101,10 +102,12 @@ public final class ContentHttpServer implements Closeable {
     // than unlimited, but it scales with the machine instead of a constant.
     // Built through IntelliJVirtualThreads rather than Thread.ofVirtual so the
     // platform can decorate the virtual threads it hosts.
-    executor = Executors.newThreadPerTaskExecutor(
-      IntelliJVirtualThreads.ofVirtual()
-        .name("haxe-web-content-server-", 0)
-        .factory());
+    ThreadFactory threadFactory = IntelliJVirtualThreads.ofVirtual()
+      .name("haxe-web-content-server-", 0)
+      .factory();
+
+    executor = Executors.newThreadPerTaskExecutor(threadFactory);
+
     server.setExecutor(executor);
     server.createContext("/", this::handle);
     server.start();
@@ -128,24 +131,23 @@ public final class ContentHttpServer implements Closeable {
    * injected refresh makes the page reload itself once, and the SECOND load
    * happens on the already-attached thread where entry pauses and armed
    * breakpoints work.
+   *
+   * <p>The reload is the only sequence that arms load-time breakpoints: the
+   * adapter applies breakpoints to a load only when they were registered
+   * BEFORE the load that taught it the sources, so register -> load -> reload
+   * is required. A synthetic bootstrap page (an empty page that refreshes to
+   * the app) does not arm them, and neither does holding the reloaded page's
+   * first script request back until the breakpoints are set.
+   *
+   * <p>Costs one zombie: a worker paused at a breakpoint when the reload fires
+   * is never terminated and lingers as an inert thread. Chromium is the
+   * recommended family for worker debugging - see the module README.
    */
   public void refreshFirstPage(int seconds) {
     refreshOnceSeconds.set(seconds);
   }
 
   private final AtomicInteger refreshOnceSeconds = new AtomicInteger(-1);
-
-  // NOTE (probed, variants L/M/N in FirefoxAdapterLiveProbe - N re-verified
-  // on a CLEAN firefox instance): neither a synthetic BOOTSTRAP page (empty
-  // page + meta refresh to the app, with or without an inert script; L/M)
-  // nor DEFERRING the breakpoints until the reloaded page requests its first
-  // script (server-held response; N) arms load-time breakpoints. The adapter
-  // only applies breakpoints to a load when they were registered BEFORE the
-  // load that taught it the sources: register -> load once -> reload is the
-  // single working sequence. Its cost is real (clean-verified): a worker
-  // PAUSED at a breakpoint when the reload fires is never terminated and
-  // lingers as an inert zombie thread - accepted, and documented in the
-  // module README (Chromium is the recommended family for worker debugging).
 
   private byte[] maybeInjectRefresh(byte[] body) {
     // one-shot, and the pool serves requests concurrently: claim the value
@@ -169,23 +171,28 @@ public final class ContentHttpServer implements Closeable {
   private void handle(HttpExchange exchange) throws IOException {
     try (exchange) {
       String method = exchange.getRequestMethod();
+      String pathString = exchange.getRequestURI().getPath();
+
       if (!"GET".equals(method) && !"HEAD".equals(method)) {
         exchange.getResponseHeaders().set("Allow", "GET, HEAD");
         exchange.sendResponseHeaders(405, -1);
-        notifyRequest(method + " " + exchange.getRequestURI().getPath() + " -> 405");
+        notifyRequest(method + " " + pathString + " -> 405");
         return;
       }
-      Path file = resolveRequest(exchange.getRequestURI().getPath());
+
+      Path file = resolveRequest(pathString);
       if (file == null) {
         exchange.sendResponseHeaders(404, -1);
-        notifyRequest(method + " " + exchange.getRequestURI().getPath() + " -> 404");
+        notifyRequest(method + " " + pathString + " -> 404");
         return;
       }
-      notifyRequest(method + " " + exchange.getRequestURI().getPath() + " -> 200 (" + file.getFileName() + ")");
+
+      notifyRequest(method + " " + pathString + " -> 200 (" + file.getFileName() + ")");
       byte[] body = Files.readAllBytes(file);
       if (isHtml(file)) {
         body = maybeInjectRefresh(body);
       }
+      
       exchange.getResponseHeaders().set("Content-Type", mimeOf(file));
       // never cache: the user recompiles between runs and stale generated JS
       // would silently desync the source map and every breakpoint with it
