@@ -275,6 +275,18 @@ class ValueWriter {
 		}
 	}
 
+	/**
+		An Int64 as a Float: `high * 2^32 + low`, with low taken UNSIGNED.
+
+		4294967296.0 is 2^32, in both of its roles here - the positional weight
+		of the high word, and the offset that reinterprets a negative
+		(two's-complement) low word as unsigned.
+
+		A Float carries a 53-bit mantissa against Int64's 64, so magnitudes
+		above 2^53 round to the nearest representable Double. The multiply is
+		exact (scaling by a power of two only shifts the exponent), leaving the
+		addition as the single rounding step.
+	**/
 	static function int64ToFloat(v:Int64):Float {
 		var low = v.low;
 		var lowUnsigned = low < 0 ? low + 4294967296.0 : low;
