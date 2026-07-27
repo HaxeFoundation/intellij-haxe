@@ -171,10 +171,12 @@ public class EvalDebugAdapterLiveTest {
     StackTraceArguments stArgs = new StackTraceArguments();
     stArgs.setThreadId(threadId);
     stackTrace.setArguments(stArgs);
+
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
     assertTrue("stackTrace", stResponse.isSuccess());
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
     assertFalse("frames at the stop", frames.isEmpty());
+
     StackFrame top = frames.get(0);
     assertEquals("stopped on the break line", BREAK_LINE, top.getLine());
     assertNotNull("top frame has a source", top.getSource());
@@ -190,13 +192,16 @@ public class EvalDebugAdapterLiveTest {
     assertFalse("scopes present", scResponse.getBody().getScopes().isEmpty());
 
     boolean sawGreeting = false;
+
     for (Scope scope : scResponse.getBody().getScopes()) {
       VariablesRequest variables = new VariablesRequest();
       VariablesArguments vArgs = new VariablesArguments();
       vArgs.setVariablesReference(scope.getVariablesReference());
       variables.setArguments(vArgs);
+
       VariablesResponse vResponse = (VariablesResponse)request(variables);
       assertTrue("variables of scope " + scope.getName(), vResponse.isSuccess());
+
       for (Variable variable : vResponse.getBody().getVariables()) {
         if ("greeting".equals(variable.getName())) {
           sawGreeting = true;
@@ -254,12 +259,15 @@ public class EvalDebugAdapterLiveTest {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
+
     SourceBreakpoint breakpoint = new SourceBreakpoint();
     breakpoint.setLine(NESTED_CALL_LINE);
     bpArgs.setBreakpoints(List.of(breakpoint));
+
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
@@ -303,12 +311,15 @@ public class EvalDebugAdapterLiveTest {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
+
     SourceBreakpoint breakpoint = new SourceBreakpoint();
     breakpoint.setLine(NESTED_CALL_LINE);
     bpArgs.setBreakpoints(List.of(breakpoint));
+
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
@@ -352,12 +363,15 @@ public class EvalDebugAdapterLiveTest {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
+
     SourceBreakpoint breakpoint = new SourceBreakpoint();
     breakpoint.setLine(CHAIN_LINE);
     bpArgs.setBreakpoints(List.of(breakpoint));
+
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
@@ -377,8 +391,10 @@ public class EvalDebugAdapterLiveTest {
     ssArgs.setFunctionName("test2");
     ssArgs.setOccurrence(1);
     smartStep.setArguments(ssArgs);
+
     assertTrue("stepIntoFunction test2", request(smartStep).isSuccess());
     awaitStopped();
+
     StackFrame inTest2 = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
     assertTrue("in test2 (was " + inTest2.getName() + ")", inTest2.getName().endsWith("test2"));
 
@@ -423,12 +439,15 @@ public class EvalDebugAdapterLiveTest {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
+
     SourceBreakpoint breakpoint = new SourceBreakpoint();
     breakpoint.setLine(NESTED_CALL_LINE);
     bpArgs.setBreakpoints(List.of(breakpoint));
+
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
     assertTrue("expression stepping ON", request(SetExpressionSteppingRequest.of(true)).isSuccess());
@@ -447,8 +466,10 @@ public class EvalDebugAdapterLiveTest {
     StepInArguments siArgs = new StepInArguments();
     siArgs.setThreadId(threadId);
     stepIn.setArguments(siArgs);
+
     assertTrue("raw stepIn", request(stepIn).isSuccess());
     awaitStopped();
+
     StackFrame after = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
     assertTrue("still in main (one SUB-step, not a callee: was " + after.getName() + ")",
                after.getName().endsWith("main"));
@@ -472,12 +493,15 @@ public class EvalDebugAdapterLiveTest {
     String fixture = fixtureDir().resolve("EvalMain.hx").toString();
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture);
     bpArgs.setSource(source);
+
     SourceBreakpoint breakpoint = new SourceBreakpoint();
     breakpoint.setLine(BREAK_LINE);
     bpArgs.setBreakpoints(List.of(breakpoint));
+
     setBreakpoints.setArguments(bpArgs);
     assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
@@ -499,13 +523,16 @@ public class EvalDebugAdapterLiveTest {
 
     // find the scope that holds the local 'greeting'
     Integer greetingScope = null;
+
     for (Scope scope : scResponse.getBody().getScopes()) {
       VariablesRequest variables = new VariablesRequest();
       VariablesArguments vArgs = new VariablesArguments();
       vArgs.setVariablesReference(scope.getVariablesReference());
       variables.setArguments(vArgs);
+
       VariablesResponse vResponse = (VariablesResponse)request(variables);
       assertTrue("variables of scope " + scope.getName(), vResponse.isSuccess());
+
       for (Variable variable : vResponse.getBody().getVariables()) {
         if ("greeting".equals(variable.getName())) {
           greetingScope = scope.getVariablesReference();

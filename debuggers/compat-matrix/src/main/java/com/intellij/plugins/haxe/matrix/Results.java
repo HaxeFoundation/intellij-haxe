@@ -78,8 +78,10 @@ final class Results {
       factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
       Document doc = factory.newDocumentBuilder().parse(file.toFile());
       Element suite = doc.getDocumentElement();
+
       List<FailedTest> failed = new ArrayList<>();
       List<SkippedTest> skippedTests = new ArrayList<>();
+
       NodeList cases = suite.getElementsByTagName("testcase");
       for (int i = 0; i < cases.getLength(); i++) {
         Element testcase = (Element)cases.item(i);
@@ -141,6 +143,7 @@ final class Results {
   // An Assume skip's message is "org.junit.AssumptionViolatedException: <reason>";
   // only the reason is worth showing.
   private static String skipReason(String message) {
+    // a leading fully-qualified throwable name up to its ": " separator
     return message == null ? "" : message.replaceFirst("^[A-Za-z0-9_.$]+(?:Exception|Error): ", "");
   }
 

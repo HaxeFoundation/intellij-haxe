@@ -16,8 +16,10 @@ import ijhaxe.debug.Pointer;
 typedef ActiveStep = {
 	var threadId:Int;
 	var mode:StepMode;
+
 	// the stepping thread's stack pointer at step start (recursion frame guard)
 	var startEsp:Pointer;
+
 	// TARGETED step-in only (smart step into a chosen call): the callee's entry
 	// address and the chosen call op. The entry temp is at the FUNCTION, which
 	// the line may invoke more than once (cfg.test1(1)...test1(2)) — a hit only
@@ -25,6 +27,7 @@ typedef ActiveStep = {
 	// chosen op; other invocations are stepped past.
 	var ?targetEntry:Pointer;
 	var ?targetCallSite:{fidx:Int, op:Int};
+
 	// Step-in only: closure call sites whose operand register was NOT yet
 	// populated at the stop (the closure is produced earlier on the same line,
 	// e.g. `functions[0]()`). Each site's op start carries a temp; hitting it

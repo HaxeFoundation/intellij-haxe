@@ -50,6 +50,7 @@ public class HlBuildSnifferTest {
       -hl bin/game.hl
       -debug
       """);
+
     HlBuildSniffer.HlBuild build = HlBuildSniffer.fromHxml(hxml);
     assertTrue(build.hlBytecode());
     assertEquals("bin/game.hl", build.output());

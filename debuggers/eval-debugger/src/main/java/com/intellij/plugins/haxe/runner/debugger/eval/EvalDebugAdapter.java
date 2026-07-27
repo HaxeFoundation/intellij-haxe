@@ -77,10 +77,13 @@ public class EvalDebugAdapter implements Closeable {
   private Thread acceptThread;
   private Thread requestThread;
   private volatile boolean closed = false;
+
   /** ON = raw sub-expression steps + exact expression spans in stack frames. */
   private volatile boolean expressionStepping = false;
+
   /** Thread the VM last reported stopped; null while running. */
   private volatile Integer stoppedThreadId;
+
   /**
    * User breakpoint lines by normalized source path, mirroring what was sent
    * to the VM. The step-emulation loops consult this so a landing on a
@@ -89,6 +92,7 @@ public class EvalDebugAdapter implements Closeable {
    */
   private final Map<String, Set<Integer>> breakpointLines =
     new ConcurrentHashMap<>();
+
   /**
    * Runtime type by variablesReference, remembered as values are handed out.
    * Consulted before a setVariable: writing a String's derived rows
@@ -98,8 +102,10 @@ public class EvalDebugAdapter implements Closeable {
    */
   private final Map<Integer, String> referenceTypes =
     new ConcurrentHashMap<>();
+
   /** Thread whose step loop is running on the request thread; null otherwise. */
   private volatile Integer steppingThreadId;
+
   /**
    * Set by the reader thread when the VM pushes breakpointStop DURING a step:
    * the VM answers the step verb normally and ADDITIONALLY notifies that the
@@ -107,8 +113,10 @@ public class EvalDebugAdapter implements Closeable {
    * reports the stop as "breakpoint" instead of stepping onward past it.
    */
   private volatile Integer breakpointHitDuringStep;
+
   /** Like {@link #breakpointHitDuringStep} for an exceptionStop pushed mid-step. */
   private volatile String exceptionDuringStepText;
+
   /**
    * True from an exception stop until the next resume: the debuggee is inside
    * exception dispatch, where the step-coalescing heuristics are meaningless
@@ -119,15 +127,18 @@ public class EvalDebugAdapter implements Closeable {
    * bounded by construction.
    */
   private volatile boolean unwindingException;
+
   /** Ensures exactly one terminated event however the session ends. */
   private final AtomicBoolean terminatedSent =
     new AtomicBoolean();
+
   /**
    * True while the "all"-throws exception option is armed on the VM. Without
    * it, every exceptionStop is by construction an UNCAUGHT exception — the
    * state the VM can never leave (see {@link #letUncaughtExceptionKillTheProgram}).
    */
   private volatile boolean caughtExceptionFilterActive;
+
   /** Whether the IDE ever configured exception options this session. */
   private volatile boolean exceptionOptionsConfigured;
 
@@ -703,11 +714,14 @@ public class EvalDebugAdapter implements Closeable {
     StepOutcome outcome = StepOutcome.STEPPED;
     String vmException = null;
     int matched = 0;
+
     int startDepth = 0;
     FrameSignature start = null;
+
     steppingThreadId = thread;
     breakpointHitDuringStep = null;
     exceptionDuringStepText = null;
+
     try {
       if (unwindingException && !caughtExceptionFilterActive) {
         // same as plain steps: at an uncaught stop the only way is death
@@ -853,6 +867,7 @@ public class EvalDebugAdapter implements Closeable {
       int startDepth = startFrames.size();
       String startFunction = startFrames.isEmpty() ? null : startFrames.get(0).name();
       FrameSignature start = startFrames.isEmpty() ? null : signatureOf(startFrames.get(0));
+
       for (int step = 0; step < MAX_SMART_STEP_SUBSTEPS; step++) {
         vm().stepIn();
         List<EvalProtocol.EvalStackFrame> frames = vm().stackTrace(thread);
@@ -1170,8 +1185,10 @@ public class EvalDebugAdapter implements Closeable {
     errorMessage.setId(0);
     errorMessage.setFormat(message);
     errorMessage.setShowUser(true);
+
     ErrorResponseBody body = new ErrorResponseBody();
     body.setError(errorMessage);
+
     ErrorResponse response = new ErrorResponse();
     response.setBody(body);
     response.setSeq(nextSeq.getAndIncrement());
@@ -1179,6 +1196,7 @@ public class EvalDebugAdapter implements Closeable {
     response.setCommand(request.getCommand());
     response.setSuccess(false);
     response.setMessage(message);
+
     dap.send(response);
   }
 

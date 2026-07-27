@@ -72,15 +72,19 @@ final class VersionManifest {
       haxe("haxe_5_preview_1", "5.0.0-preview.1",
            "c223025518c6a527c66bd6c9ca51b4eff848ffcac97fc6c1833d1338cef1622e",
            "57710c7219c2d23bbd490cc5ed49e43686a946ab3a4910a7983a9d15fb078732"),
+
       haxe("haxe_4_3_7", "4.3.7",
            "29f7acb0fb9fc66a2b9f6bd9453af3474ccb14ebd9fd0142f351d7311c4010c9",
            "a156b3d039daa572f1f9329870ee753e3c39b7514fe8c818069323579659acca"),
+
       haxe("haxe_4_3_0", "4.3.0",
            "35d4d0e1f00a8b6904acd0e0a32a3e3abd4f33c5143b7ddc569f58a2504d2ece",
            "b1bcd3b75e2324a100ecefe8f231d611b2e6947108898c6c6026830b2ab9b847"),
+
       haxe("haxe_4_2_5", "4.2.5",
            "9e7913999eb3693d540926219b45107b3dc249feb44204c0378fcdc6a74a9132",
            "8670bf2f2950380c62450990f8a1b3a0fff9b27653c8f31f7cb7fbcae24c1b70"),
+
       haxe("haxe_4_1_5", "4.1.5",
            "ce4134cdf49814f8f8694648408d006116bd171b957a37be74c79cf403db9633",
            "e3a263476ccf575602126ba19f13da7e133f68a0c9493642e5fdaaa44437f4de"));
@@ -90,10 +94,13 @@ final class VersionManifest {
     return List.of(
       hashlink("hashlink-1.13.0", "1.13", "hashlink-1.13.0-win.zip",
                "b87557f30fbfd5ff382063317333cdce980b226c959586b9d71723c83d231934"),
+
       hashlink("hashlink-1.14.0", "1.14", "hashlink-1.14.0-win.zip",
                "528551550d518e3c2dd111fb4ecc886089da63452da6d7e813c37fdb8f9c8abd"),
+
       hashlink("hashlink-1.15.0", "1.15", "hashlink-1.15.0-win.zip",
                "69f1e2af38e8e912ee7fcd6869ba4a2eb352ad1b577701aee5503d7fd775657e"),
+
       hashlinkNightly());
   }
 
@@ -110,6 +117,7 @@ final class VersionManifest {
       node("node-24.18.0-lts", "v24.18.0",
            "0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821",
            "783130984963db7ba9cbd01089eaf2c2efb055c7c1693c943174b967b3050cb8"),
+
       node("node-26.5.0-current", "v26.5.0",
            "d3b2277dbcccfdf24ef6302928f64f484cff1d77a6d3caa3a28f4d20ce9158f6",
            "22b5f47ad6ae78837e4c2b846019965ce1a06ba143de176102294a1bf44fc677"));

@@ -54,6 +54,7 @@ class X86CallEmitter implements CallTrampoline {
 		// arguments right-to-left; within a wide (8-byte) arg push high then low
 		// so the low dword lands at the lower address (little-endian double)
 		var argBytes = 0;
+
 		for (i in 0...args.length) {
 			var arg = args[args.length - 1 - i];
 			if (arg.wide == true) {

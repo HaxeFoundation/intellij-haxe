@@ -180,6 +180,7 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
     adapterStatusLabel.setText(HaxeDebuggerBundle.message(
       "browser.runner.adapter.downloading",
       BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version()));
+
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       String failure;
       try {

@@ -21,6 +21,7 @@ final class Report {
   static void write(Path template, Path out, List<Results.Cell> cells,
                     List<String> haxeNames, List<String> hlNames, Path resources, boolean full) throws IOException {
     StringBuilder json = new StringBuilder(1 << 16);
+
     json.append("{\"meta\":{");
     json.append("\"generated\":").append(quote(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))));
     json.append(",\"testData\":").append(quote(resources.toString()));
@@ -28,6 +29,7 @@ final class Report {
     json.append(",\"haxeVersions\":").append(array(haxeNames));
     json.append(",\"hlRuntimes\":").append(array(hlNames));
     json.append("},\"cells\":[");
+
     for (int i = 0; i < cells.size(); i++) {
       Results.Cell cell = cells.get(i);
       if (i > 0) {
@@ -39,6 +41,7 @@ final class Report {
       json.append(",\"status\":").append(quote(cell.status()));
       json.append(",\"seconds\":").append(cell.seconds());
       json.append(",\"flaky\":").append(array(cell.flakyTests()));
+
       json.append(",\"classes\":[");
       List<Results.ClassResult> classes = cell.classes();
       for (int c = 0; c < classes.size(); c++) {
@@ -51,6 +54,7 @@ final class Report {
         json.append(",\"failures\":").append(cls.failures());
         json.append(",\"errors\":").append(cls.errors());
         json.append(",\"skipped\":").append(cls.skipped());
+
         json.append(",\"failed\":[");
         List<Results.FailedTest> failed = cls.failed();
         for (int f = 0; f < failed.size(); f++) {

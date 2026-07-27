@@ -93,9 +93,11 @@ class DapSmartStepIntoHandler extends XSmartStepIntoHandler<DapSmartStepIntoHand
   private List<Variant> resolveVariants(XSourcePosition position) {
     List<Variant> variants = new ArrayList<>();
     Project project = process.getSession().getProject();
+
     // per-callee invocation counter: the calls come in EXECUTION order, so the
     // Nth same-callee call on the line is its Nth runtime invocation
     Map<String, Integer> invocations = new HashMap<>();
+
     for (HaxeCallExpression call : HaxeDebuggerSupportUtils.callExpressionsOnLine(project, position)) {
       if (!(call.getExpression() instanceof HaxeReference reference)) {
         continue;

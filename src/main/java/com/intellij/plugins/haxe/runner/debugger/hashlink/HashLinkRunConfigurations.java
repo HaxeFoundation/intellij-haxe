@@ -37,6 +37,7 @@ final class HashLinkRunConfigurations {
    */
   static Optional<Path> detectedOutput(Module module) {
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+
     HlBuildSniffer.HlBuild build;
     if (settings.isUseHxmlToBuild()) {
       Path hxml = resolveAgainstModule(module, settings.getHxmlPath());

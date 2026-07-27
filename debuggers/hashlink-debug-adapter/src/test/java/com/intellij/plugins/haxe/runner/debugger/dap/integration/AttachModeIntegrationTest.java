@@ -52,6 +52,7 @@ public class AttachModeIntegrationTest extends DapIntegrationTestBase {
     // the loop body runs three times; variables must be readable at a stop
     int stops = 0;
     boolean terminated = false;
+
     while (!terminated) {
       Event event = client.pollEvent(TIMEOUT);
       assertNotNull("expected a debug event", event);
@@ -105,11 +106,13 @@ public class AttachModeIntegrationTest extends DapIntegrationTestBase {
     debuggee = new ProcessBuilder(hlExecutable, "--debug", Integer.toString(port), "--debug-wait", fixtureHl.toString())
       .redirectErrorStream(true)
       .start();
+
     BufferedReader stdout = new BufferedReader(
       new InputStreamReader(debuggee.getInputStream(), StandardCharsets.UTF_8));
     debuggeeGobbler = new Thread(() -> gobbleDebuggee(stdout), "debuggee-output-gobbler");
     debuggeeGobbler.setDaemon(true);
     debuggeeGobbler.start();
+
     return port;
   }
 

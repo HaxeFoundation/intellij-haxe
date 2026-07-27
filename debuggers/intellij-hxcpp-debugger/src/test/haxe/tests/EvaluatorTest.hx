@@ -7,10 +7,12 @@ class EvaluatorTest {
 		arithmeticAndComparisons(assert);
 		readsFrameLocals(assert);
 		fieldAndIndexAccess(assert);
+
 		assignmentWritesBackToTheFrame(assert);
 		methodCallsMutateTheRealObject(assert);
 		staticCallsReachRealCompiledCode(assert);
 		constructionAndCallsCompose(assert);
+
 		dottedPackagePathsResolve(assert);
 		unknownIdentifiersStillError(assert);
 		conditionHoldsIsFailSafe(assert);
@@ -51,8 +53,10 @@ class EvaluatorTest {
 		var t = make();
 		t.api.localNames = ["count"];
 		t.api.localValues.set("count", 1);
+
 		var result = t.eval.evaluate(0, 0, "count = 99");
 		assert.equals(99, result, "assignment returns the stored value");
+
 		assert.equals(1, t.api.setVarCalls.length, "write reached the runtime");
 		assert.equals("count", t.api.setVarCalls[0].name, "wrote the right local");
 		assert.equals(99, t.api.setVarCalls[0].value, "wrote the evaluated value");
@@ -95,13 +99,16 @@ class EvaluatorTest {
 		var t = make();
 		evalfixtures.PackTarget.total = 0;
 		evalfixtures.deep.DeepTarget.total = 0;
+
 		assert.equals(4, t.eval.evaluate(0, 0, "evalfixtures.PackTarget.bump(4)"), "packaged static call");
 		assert.equals(4, evalfixtures.PackTarget.total, "packaged static state mutated for real");
 		assert.equals(6, t.eval.evaluate(0, 0, "new evalfixtures.PackTarget(1).addTo(5)"), "packaged construction");
 		assert.equals(3, t.eval.evaluate(0, 0, "evalfixtures.deep.DeepTarget.bump(3)"), "two package levels");
+
 		// two chains sharing the root identifier in ONE expression must merge
 		assert.equals(9, t.eval.evaluate(0, 0,
 			"evalfixtures.PackTarget.bump(1) + evalfixtures.deep.DeepTarget.bump(1)"), "shared-root chains merge");
+
 		// a frame local shadows a package root of the same name
 		t.api.localNames = ["evalfixtures"];
 		t.api.localValues.set("evalfixtures", 41);

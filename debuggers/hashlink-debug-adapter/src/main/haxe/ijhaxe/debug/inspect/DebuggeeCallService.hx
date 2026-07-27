@@ -138,8 +138,10 @@ class DebuggeeCallService {
 		};
 		// resolve the receiver = the path without its last segment
 		var receiver = resolver.targetOfPath(frameId, new ValuePath(path.root, path.accessors.slice(0, path.accessors.length - 1)));
+
 		var base:Pointer;
 		var runtimeType:HLType;
+
 		switch (receiver.type) {
 			case HStruct(_):
 				base = receiver.address;

@@ -85,12 +85,14 @@ class JitInfoReader {
 
 		var nfunctions = chunk(input, 4).readInt32();
 		var functions:Array<JitFunction> = [];
+
 		for (_ in 0...nfunctions) {
 			var fixed = chunk(input, 9);
 			var nops = fixed.readInt32();
 			var start = fixed.readInt32();
 			var large = fixed.readByte() != 0;
 			var elementSize = large ? 4 : 2;
+
 			var offsetBytes = chunk(input, (nops + 1) * elementSize);
 			var offsets = new Array<Int>();
 			for (_ in 0...(nops + 1)) {

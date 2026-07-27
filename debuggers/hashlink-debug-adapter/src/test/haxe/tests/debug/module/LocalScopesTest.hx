@@ -97,14 +97,17 @@ class LocalScopesTest {
 			OInt(3, 6),
 			ORet(0)
 		];
+
 		var assigns = [
 			{name: "w", position: 0},
 			{name: "y", position: 2},
 			{name: "z", position: 4},
 		];
+
 		var dst = [0 => 0, 2 => 2, 4 => 3];
 		var scopes = new LocalScopes(new CodeGraph(ops), assigns, pos -> dst.exists(pos) ? dst.get(pos) : -1);
 		var locals = scopes.visibleLocals(5);
+
 		assert.equals(1, locals.length, "only w survives the join (y/z were branch-local)");
 		assert.equals(0, registerOf(locals, "w"), "w consistent across both branches");
 		assert.equals(-1, scopes.registerOf("y", 5), "then-branch var out of scope after the join");

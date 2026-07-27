@@ -48,7 +48,9 @@ class X64CallEmitterTest {
 			Int64.ofInt(0x400000),
 			[{isFloat: false, bits: Int64.ofInt(3)}, {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(1.5)}],
 			0);
+
 		var h = hex(bytes);
+
 		// XMM1 loaded via RAX + an 8-byte stack slot: push rax (50) ; movsd
 		// xmm1,[rsp] (f20f100c24) ; add rsp,8 (4883c408) — the balanced pop
 		assert.isTrue(h.indexOf("50f20f100c244883c408") >= 0, "float arg staged into XMM1 with a balanced 8-byte pop");

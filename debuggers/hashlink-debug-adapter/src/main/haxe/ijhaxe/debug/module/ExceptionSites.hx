@@ -21,6 +21,7 @@ typedef ThrowSite = {address:Pointer, fidx:Int, op:Int, reg:Int};
 class ExceptionSites {
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
+
 	var cached:Null<Array<ThrowSite>> = null;
 
 	public function new(module:ModuleDebugInfo, jit:JitInfo) {

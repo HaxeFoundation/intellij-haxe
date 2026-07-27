@@ -40,12 +40,14 @@ public class ToStringRenderingIT {
       // toggle ON (live, mid-stop): the SAME stop re-lists with new labels
       assertTrue("toggle on accepted",
                  session.request(SetToStringRenderingRequest.of(true)).isSuccess());
+
       List<Variable> on = session.variables(session.localsReference(frameId));
       assertEquals("on: the object's own toString", "Labeled#7", session.variable(on, "labeled").getValue());
       assertEquals("on: no toString declared still means the class name (no code runs)",
                    "PlainBox", session.variable(on, "plain").getValue());
       assertEquals("on: a THROWING toString degrades to the class name",
                    "MoodyLabel", session.variable(on, "moody").getValue());
+
       // maps switch from the entry count to their own content preview. The
       // preview comes from the map's std toString, whose punctuation varies by
       // haxe version ([k => v] on 4.3+, { k => v } on 4.1/4.2), so assert only

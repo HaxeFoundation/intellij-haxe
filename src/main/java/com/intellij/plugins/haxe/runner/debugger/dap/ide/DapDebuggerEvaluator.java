@@ -31,6 +31,7 @@ final class DapDebuggerEvaluator extends XDebuggerEvaluator {
     process.onRequestThread(() -> {
       String qualified = process.backend().qualifyExpression(
         process.getSession().getProject(), framePosition, expression);
+
       Response response = process.sendRequest(EvaluateRequest.of(frameId, qualified, "watch"));
       if (response instanceof EvaluateResponse evaluated && response.isSuccess()) {
         Variable result = new Variable();

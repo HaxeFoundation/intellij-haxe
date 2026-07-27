@@ -106,6 +106,7 @@ public class HaxeExceptionBreakpointType
                                                                    @NotNull String criticalWord) {
     List<String> filters = new ArrayList<>();
     List<String> filterTypes = new ArrayList<>();
+
     ReadAction.nonBlocking((Callable<Void>)() -> {
       collectEnabled(project, properties -> {
         if (properties.isTyped()) {

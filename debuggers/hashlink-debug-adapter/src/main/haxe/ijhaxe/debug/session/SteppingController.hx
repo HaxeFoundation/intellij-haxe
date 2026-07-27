@@ -85,10 +85,12 @@ class SteppingController {
 		var startLine = session.module.lineOf(fidx, startOp);
 		var graph = new CodeGraph(session.module.opcodes(fidx));
 		var eip = session.api.readRegister(session.debuggeePid, threadId, Eip);
+
 		var targets = graph.stepTargets(startOp, startLine, (op) -> session.module.lineOf(fidx, op),
 			callAtOpAlreadyRan(eip, fidx, startOp));
 		var callOps = targets.callOps.copy();
 		callOps.sort((a, b) -> a - b); // the CFG walk is DFS; present in execution order
+
 		var result:Array<StepInTargetInfo> = [];
 		for (op in callOps) {
 			var callee = session.module.callTargetFunction(fidx, op);

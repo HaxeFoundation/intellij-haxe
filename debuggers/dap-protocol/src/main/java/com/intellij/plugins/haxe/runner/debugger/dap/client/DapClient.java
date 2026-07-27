@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * callers drain with {@link #pollEvent}. Owns the client-side seq counter.
  */
 public class DapClient implements DapEndpoint {
+
   /** Poison pill offered to every pending request when the reader exits. */
   private static final Response CONNECTION_CLOSED = new Response();
 
@@ -28,6 +29,7 @@ public class DapClient implements DapEndpoint {
   private final AtomicInteger nextSeq = new AtomicInteger(1);
   private final ConcurrentMap<Integer, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
   private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
+
   // REVERSE requests (adapter -> client, e.g. js-debug's startDebugging);
   // drained like events - a client that never polls simply leaves them here
   private final BlockingQueue<Request> incomingRequests = new LinkedBlockingQueue<>();
@@ -49,6 +51,7 @@ public class DapClient implements DapEndpoint {
                                            long retryWindowMillis) throws IOException {
     long deadline = System.currentTimeMillis() + retryWindowMillis;
     IOException last = null;
+
     while (System.currentTimeMillis() < deadline) {
       try {
         return connect(host, port, connectTimeoutMillis);

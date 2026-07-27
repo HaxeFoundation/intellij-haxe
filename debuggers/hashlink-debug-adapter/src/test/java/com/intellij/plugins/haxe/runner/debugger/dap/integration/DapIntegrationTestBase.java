@@ -60,26 +60,34 @@ public abstract class DapIntegrationTestBase {
   protected static final int FIXTURE_LOOP_LINE = 18; // total = add(total, i)
   protected static final int FIXTURE_ADD_LINE = 29; // return current + amount (28 is the declaration line)
   protected static final int FIXTURE_INSPECT_LINE = 35; // var v = Config.version (p in scope)
+  protected static final int FIXTURE_SLOW_LINE = 44; // Main.slowDemo(): Sys.sleep(3.0)
+  protected static final int FIXTURE_SLOW_AFTER_LINE = 45; // Main.slowDemo(): the line after the sleep
+
   protected static final String FIXTURE_CONFIG = "Config.hx";
   protected static final int FIXTURE_STATICS_LINE = 14; // Config.bump(): version=7, title="cfg"
+
   protected static final String FIXTURE_RICH = "Rich.hx";
   protected static final int FIXTURE_RICH_LINE = 42; // Rich.demo(): arrays/dyn/enum/anon/closure/ref/dynobj/maps/structs
+
   protected static final String FIXTURE_IFACE = "Iface.hx";
   protected static final int FIXTURE_IFACE_LINE = 54; // Iface.demo(): task + asIface in scope
+
   protected static final String FIXTURE_POINT = "Point.hx";
   protected static final int FIXTURE_POINT_METHOD_LINE = 22; // Point.move(): `this` in scope, x still 10
+
   protected static final String FIXTURE_SHADOW = "Shadowed.hx";
   protected static final int FIXTURE_SHADOW_LOOP_LINE = 16; // inside the loop: x is the shadowing Int
   protected static final int FIXTURE_SHADOW_AFTER_LINE = 18; // after the loop: x is the outer String again
+
   protected static final String FIXTURE_MUTATE = "Mutate.hx";
   protected static final int FIXTURE_MUTATE_LINE = 21; // Mutate.demo() checkpoint: n/flag/obj/arr in scope
   protected static final int FIXTURE_CACHED_LINE = 37; // Mutate.cachedUse(): v used on this line and the previous one
-  protected static final int FIXTURE_SLOW_LINE = 44; // Main.slowDemo(): Sys.sleep(3.0)
-  protected static final int FIXTURE_SLOW_AFTER_LINE = 45; // Main.slowDemo(): the line after the sleep
   protected static final int FIXTURE_FLOAT_LINE = 44; // Mutate.floatParam(): Float arg traced on the callee's first line
   protected static final int FIXTURE_INT_ARG_LINE = 50; // Mutate.intParam(): Int arg traced on the callee's first line
+
   protected static final String FIXTURE_CALL = "Call.hx";
   protected static final int FIXTURE_CALL_LINE = 52; // Call.demo(): add/scale/negate/label callable, s reassignable, boost/plus bound
+
   protected static final String FIXTURE_CLOSURE = "ClosureCalls.hx";
   protected static final int FIXTURE_CLOSURE_CALL_LINE = 29; // Holder.new(): fn() where fn = grab
   protected static final int FIXTURE_CLOSURE_ARRAY_CALL_LINE = 31; // Holder.new(): functions[0]() (analyzer-folded)
@@ -130,6 +138,7 @@ public abstract class DapIntegrationTestBase {
     String adapter = System.getProperty("dap.adapter.hl", "");
     Assume.assumeTrue("adapter bytecode not built - skipping",
                       !adapter.isEmpty() && Files.isRegularFile(Path.of(adapter)));
+
     if (needsFixture()) {
       String fixtureProperty = System.getProperty("dap.fixture.hl", "");
       Assume.assumeTrue("debuggee fixture not built - skipping",
@@ -258,6 +267,8 @@ public abstract class DapIntegrationTestBase {
     if (fixtureHaxeVersion == null) {
       return true;
     }
+    // the leading major.minor of a haxe version; find() ignores any patch or
+    // preview suffix, which the >= comparison below does not need
     Matcher version =
       Pattern.compile("(\\d+)\\.(\\d+)").matcher(fixtureHaxeVersion.trim());
     if (!version.find()) {

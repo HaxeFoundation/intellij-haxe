@@ -11,12 +11,14 @@ import ijhaxe.debug.breakpoints.Breakpoints;
 import ijhaxe.debug.breakpoints.PatchedBreakpoint;
 import ijhaxe.debug.Pointer;
 import ijhaxe.debug.layout.Align;
+
 import ijhaxe.debug.module.ExceptionSites;
 import ijhaxe.debug.module.NativeThrowResolver;
 import ijhaxe.debug.module.TryRegions;
 import ijhaxe.debug.module.JitInfo;
 import ijhaxe.debug.module.JitInfoReader;
 import ijhaxe.debug.module.ModuleDebugInfo;
+
 import ijhaxe.debug.target.DebugApi;
 import ijhaxe.debug.target.DebuggeeProcess;
 import ijhaxe.debug.target.MemoryReader;
@@ -27,6 +29,7 @@ import ijhaxe.debug.target.ThreadInfo;
 import ijhaxe.debug.target.ThreadRegistry;
 import ijhaxe.debug.target.VmExceptionControl;
 import ijhaxe.debug.target.WaitOutcome;
+
 import ijhaxe.debug.inspect.CpuRegisters;
 import ijhaxe.debug.inspect.VariableInspector;
 
@@ -81,18 +84,22 @@ class DebugSession {
 	final emit:DebugEvent->Void;
 
 	var state:SessionState = NotStarted;
+
 	// In launch mode the adapter spawns and owns the debuggee (`process` set);
 	// in attach mode the client spawned it and `process` stays null. All debug
 	// natives key on the pid, so everything downstream uses `debuggeePid`.
 	var process:DebuggeeProcess;
 	var debuggeePid:Int = 0;
+
 	// linux only: the attach SIGSTOP is HELD (not resumed) until
 	// configurationDone, so launch-time breakpoint installs hit a
 	// ptrace-stopped tracee; -1 = nothing held. See drainAttachEvents.
 	var heldAttachStop:Int = -1;
+
 	var jit:JitInfo;
 	var module:ModuleDebugInfo;
 	var breakpoints:Breakpoints;
+
 	// Throw-site enumerator + static try-region analysis + hl_throw entry
 	// control (all built once jit+module are ready); the exception FILTER
 	// state and hit handling live in the ExceptionController.
@@ -100,33 +107,42 @@ class DebugSession {
 	var tryRegions:TryRegions;
 	var nativeThrowResolver:NativeThrowResolver;
 	var vmExceptions:Null<VmExceptionControl> = null;
+
 	var memReader:MemoryReader;
 	var handshakeSocket:Socket;
 	var stackWalker:StackWalker;
 	var threadRegistry:ThreadRegistry;
+
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
+
 	// A user pause holds the debug event of the thread the forced break landed on
 	// (on Windows a transient system thread, NOT a real HL thread). That exact
 	// thread must be the one continued to unfreeze the process, so it is stashed
 	// here for the next resume while a real HL thread is reported for inspection.
 	// -1 when no pause event is held.
 	var pauseEventThread:Int = -1;
+
 	var alive:Bool = true;
+
 	// The in-flight step (temps planted, landing pending), bound to its thread;
 	// null when no step is active. See ActiveStep for why this is a singleton.
 	var activeStep:Null<ActiveStep> = null;
+
 	// A pending debug event from another thread that interrupted an eval-call:
 	// it owns the process freeze and must be processed as a normal stop once
 	// the current command finishes (processing it mid-eval would re-enter the
 	// inspector while its caches are in use).
 	var pendingForeignStop:Null<WaitOutcome> = null;
+
 	// variable inspection (created at launch, once jit/module are available);
 	// owns the per-stop frame cache + variablesReference registry
 	var inspector:VariableInspector;
+
 	// exception-stop text assembly and throw classification (created at launch)
 	var descriptions:StopDescriptions;
 	var throwClassifier:ThrowClassifier;
+
 	// the feature controllers (friends via @:access): stepping, source line
 	// breakpoints and exception breakpoints; the session routes commands and
 	// trap hits to them and provides the shared trap machinery
@@ -357,6 +373,7 @@ class DebugSession {
 				(category, text) -> emit(EvOutput(category, text)));
 			process.startOutputPumps();
 			debuggeePid = process.pid;
+
 			try {
 				handshakeSocket = connectWithRetries(port);
 				return readHandshake();
@@ -428,17 +445,21 @@ class DebugSession {
 		stackWalker = new StackWalker(api, debuggeePid, jit);
 		memReader = new MemoryReader(api, debuggeePid, jit.is64);
 		nativeThrowResolver = new NativeThrowResolver(module, jit, memReader, exceptionSites);
+
 		// one arch descriptor resolved from the handshake, shared by every
 		// raw-memory reader here (the inspector builds its own from the same jit)
 		var align = new Align(jit.is64, jit.boolSize4);
 		threadRegistry = new ThreadRegistry(memReader, align, jit.hlVersionMajor, jit.hlVersionMinor);
 		vmExceptions = new VmExceptionControl(api, debuggeePid, memReader, align, jit.threadsPtr);
+
 		// linux: lets the walker recover the interrupted JIT frame through the
 		// kernel signal frame when a VM error arrived via SIGSEGV (null access)
 		stackWalker.capturedStack = vmExceptions.capturedStack;
+
 		inspector = new VariableInspector(module, jit, memReader);
 		descriptions = new StopDescriptions(module, inspector);
 		throwClassifier = new ThrowClassifier(api, debuggeePid, jit, memReader, stackWalker, tryRegions, inspector);
+
 		// Frames parked at hl_throw's ENTRY serve the stop reported at hl_throw's
 		// own break: by then execution is deep inside hl_throw, where the frame
 		// chain is no longer walkable. Consumed on first use; framesFor caches it
@@ -547,6 +568,7 @@ class DebugSession {
 	// budget. Shared by the silent memory-write pause and the user pause.
 	function forceBreakAndDrain():Null<WaitOutcome> {
 		api.forceBreak(debuggeePid);
+
 		for (_ in 0...MAX_FORCE_BREAK_POLLS) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
@@ -917,6 +939,7 @@ class DebugSession {
 		alive = false;
 		emit(EvSessionEnded(requestSeq));
 		dbg("disconnect: response emitted");
+
 		if (debuggeePid != 0) {
 			try {
 				api.stop(debuggeePid);

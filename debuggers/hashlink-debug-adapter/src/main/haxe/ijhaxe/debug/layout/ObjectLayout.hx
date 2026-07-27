@@ -48,6 +48,7 @@ class ObjectLayout {
 		// the parent's trailing padding is reclaimed before this type's fields
 		var size = parent == null ? (isStruct ? 0 : align.ptr) : parent.size - parent.padSize;
 		var largestField = parent == null ? size : parent.largestField;
+
 		for (field in proto.fields) {
 			switch (field.t) {
 				case HPacked({v: HStruct(sub)}):

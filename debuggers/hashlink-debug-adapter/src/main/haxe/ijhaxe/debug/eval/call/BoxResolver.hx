@@ -40,6 +40,7 @@ class BoxResolver {
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final memory:MemoryReader;
+
 	var allocDynamic:Pointer = Int64.ofInt(0);
 	// per-primitive-kind (format HLType enum index) runtime type pointer
 	final typeByKind:Map<Int, Pointer> = new Map();

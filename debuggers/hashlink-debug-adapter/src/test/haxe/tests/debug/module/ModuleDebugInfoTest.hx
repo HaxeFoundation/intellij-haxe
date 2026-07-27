@@ -99,8 +99,10 @@ class ModuleDebugInfoTest {
 		var out = new haxe.io.BytesOutput();
 		out.writeString("HLB");
 		out.writeByte(9); // bytecode format version 9: unsupported (format lib reads 2-5)
+
 		var path = "build/bad-bytecode-version-test.hl";
 		sys.io.File.saveBytes(path, out.getBytes());
+
 		try {
 			new ModuleDebugInfo(path);
 			assert.fail("unsupported bytecode format version should throw");

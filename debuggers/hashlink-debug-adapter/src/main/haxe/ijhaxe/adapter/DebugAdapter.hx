@@ -94,6 +94,7 @@ class DebugAdapter {
 
 	function awaitClientClose():Void {
 		var waited = 0;
+
 		while (!clientEofSeen && waited < CLIENT_CLOSE_TIMEOUT_MS) {
 			var message = inbound.pop(false);
 			switch (message) {

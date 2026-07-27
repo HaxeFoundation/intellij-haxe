@@ -61,6 +61,7 @@ final class HashLinkSourceResolver {
     // "fun$index" for standalone functions
 
     GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+    // the frame name split on literal dots ("ClassName.methodName" -> [ClassName, methodName])
     String[] nameParts = frame.getName().split("\\.");
     if(nameParts.length > 1) {
       String className = nameParts[0];
@@ -101,7 +102,10 @@ final class HashLinkSourceResolver {
 
   private static @Nullable VirtualFile findMostFileApplicable(Project project, ArrayList<VirtualFile> paths, StackFrame frame) {
     PsiManager psiManager = PsiManager.getInstance(project);
+    // the frame name split on literal dots, innermost segment first (the
+    // scoring below walks outward from the member to its enclosing types)
     List<String> nameParts = Arrays.asList(frame.getName().split("\\.")).reversed();
+
     if (!nameParts.isEmpty()) {
       Map<VirtualFile, Integer> stats = new HashMap<>();
       for (VirtualFile path : paths) {

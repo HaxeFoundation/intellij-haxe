@@ -49,14 +49,17 @@ class MapReaderTest {
 	// native map @0x1000, one int64 entry key=42; small map -> byte cells/nexts
 	static function walksInt64SmallMap(assert:Assert):Void {
 		var api = new FakeDebugApi();
+
 		pokePtr(api, 0x1000, 0x2000); // cells
 		pokePtr(api, 0x1008, 0x2100); // nexts
 		pokePtr(api, 0x1010, 0x2200); // entries (keys)
 		pokePtr(api, 0x1018, 0x2300); // values
+
 		// counts at ptr*4 + (ptr + 4 + 4) = 48
 		pokeI32(api, 0x1000 + 48, 1); // ncells
 		pokeI32(api, 0x1000 + 52, 1); // nentries
 		pokeI32(api, 0x1000 + 56, 1); // maxEntries (<128 -> small)
+
 		api.poke(addr(0x2000), 0); // cells[0] = entry 0
 		api.poke(addr(0x2100), 255); // nexts[0] = end
 		pokeI64(api, 0x2200, 42); // entries[0] = key 42

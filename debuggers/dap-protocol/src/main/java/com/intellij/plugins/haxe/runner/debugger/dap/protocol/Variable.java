@@ -11,9 +11,11 @@ public class Variable {
   private String name;
   private String value;
   private int variablesReference;
+
   private String type;
   private Integer namedVariables;
   private Integer indexedVariables;
+
   /** Classification driving the client's icon; UNSPECIFIED when the wire omits it. */
   private VariableKind kind = VariableKind.UNSPECIFIED;
 }

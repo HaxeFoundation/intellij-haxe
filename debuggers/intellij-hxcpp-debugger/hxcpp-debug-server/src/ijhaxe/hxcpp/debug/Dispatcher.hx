@@ -26,6 +26,7 @@ class Dispatcher {
 	final breakpoints:Breakpoints;
 	final variablesView:VariablesView;
 	final evaluator:Evaluator;
+
 	var nextSeq:Int = 1;
 	var nextBreakpointId:Int = 1;
 
@@ -90,6 +91,7 @@ class Dispatcher {
 	// the last exception stop, kept for the exceptionInfo request.
 	static inline var FILTER_UNCAUGHT = "uncaught";
 	static inline var FILTER_CRITICAL = "critical";
+
 	// "Thrown exceptions": there is no runtime hook for a CATCHABLE throw, but
 	// every `new haxe.Exception(...)` — including every subclass constructor,
 	// via super() — runs through haxe.Exception.new, and construction happens
@@ -98,15 +100,18 @@ class Dispatcher {
 	// hierarchy. Raw-value throws (`throw "str"`) never touch it.
 	static inline var FILTER_THROWN = "thrown";
 	static inline var THROWN_HOOK_CLASS = "haxe.Exception";
+
 	var breakOnUncaught:Bool = true;
 	var breakOnCritical:Bool = true;
 	var breakOnThrown:Bool = false;
+
 	// Typed exception filters (DAP filterTypes): class names to stop on. The
 	// hook stop reads the CONCRETE class from `this` and matches it and its
 	// superclass chain, so subclasses match their base's filter and subclasses
 	// with inherited constructors (no own `new` frame) are still caught.
 	var thrownTypeFilters:Array<String> = [];
 	var thrownHookBreakpoint:Int = -1; // installed while thrown/typed filters are on
+
 	var lastExceptionDescription:Null<String> = null;
 	var lastExceptionKind:Null<String> = null;
 
@@ -283,6 +288,7 @@ class Dispatcher {
 	// stopped(reason:"step") event follows when the step lands.
 	function handleStep(seq:Int, command:String, args:Dynamic, type:Int):Void {
 		clearTempStepBreakpoint(); // a fresh user step cancels a pending smart step
+
 		var threadId = resumeThread(args);
 		var from = topFrame(stoppedStacks.get(threadId));
 		stepActive = true;
@@ -290,6 +296,7 @@ class Dispatcher {
 		stepFromFile = from != null ? from.fileName : "";
 		stepFromLine = from != null ? from.lineNumber : 0;
 		stepIterations = 0;
+
 		resumed();
 		stoppedStacks.remove(threadId); // stepThread resumes only this thread
 		// respond BEFORE releasing the thread: a step off the program's last

@@ -139,6 +139,7 @@ class DebuggeeProcess {
 	inline function blockingRead(input:Input, buffer:Bytes):Int {
 		#if hl
 		hl.Gc.blocking(true);
+
 		var read = 0;
 		var error:Dynamic = null;
 		try {

@@ -43,6 +43,7 @@ public class BrowserRunningState implements RunProfileState {
     // the server is unowned until the handler takes it: anything that throws
     // before that must close it, or the port stays bound for the IDE's lifetime
     boolean handedOver = false;
+
     try {
       String url;
       if (configuration.isServeContent()) {

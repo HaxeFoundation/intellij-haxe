@@ -34,8 +34,10 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
       class B { public function new() {} public function reset():Int { return 1; } }
       class Main { static function main() { var a = new A(); var b = new B(); %s<caret> } }\
       """.formatted(mainBody));
+
     int caretLine = myFixture.getEditor().getDocument()
       .getLineNumber(myFixture.getCaretOffset());
+
     XSourcePosition position = XDebuggerUtil.getInstance()
       .createPosition(myFixture.getFile().getVirtualFile(), caretLine);
     assertNotNull(position);

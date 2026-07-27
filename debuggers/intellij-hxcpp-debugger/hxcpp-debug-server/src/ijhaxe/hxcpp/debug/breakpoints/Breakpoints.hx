@@ -46,8 +46,10 @@ class Breakpoints {
 		clearSource(sourcePath);
 		var fileKey = fileMatcher().resolve(sourcePath);
 		var knownLines = lineTable != null ? lineTable.linesFor(sourcePath) : null;
+
 		var installed:Array<Installed> = [];
 		var results:Array<Breakpoint> = [];
+
 		for (i in 0...requested.length) {
 			var line = requested[i].line;
 			if (fileKey == null) {

@@ -414,6 +414,7 @@ class RequestDispatcher {
 			case EvSessionEnded(seq):
 				completeSuccess(seq, null);
 				shutdownRequested = true;
+
 			case EvBreakpointChanged(result):
 				sendEvent("breakpoint", {reason: "changed", breakpoint: breakpointStruct(result)});
 			case EvStoppedBreakpoint(threadId, hitBreakpointIds):
@@ -431,6 +432,7 @@ class RequestDispatcher {
 			case EvResumed(threadId):
 				currentThreadId = threadId;
 				sendEvent("continued", {threadId: threadId, allThreadsContinued: true});
+
 			case EvOutput(category, text):
 				sendEvent("output", {category: category, output: text});
 			case EvExited(exitCode):

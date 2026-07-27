@@ -115,10 +115,12 @@ final class Provisioner {
       deleteRecursively(dir);
     }
     Files.createDirectories(dir);
+
     HttpRequest request = HttpRequest.newBuilder(URI.create(url))
       .timeout(Duration.ofMinutes(10))
       .GET()
       .build();
+
     if (sha256 != null) {
       // pinned artifact: download fully, verify the hash, and only then
       // extract - nothing from an unverified archive touches the disk tree
@@ -226,6 +228,7 @@ final class Provisioner {
 
   private void extractTarGz(InputStream in, Path dir) throws IOException {
     boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+
     try (TarArchiveInputStream tar = new TarArchiveInputStream(new GzipCompressorInputStream(in))) {
       TarArchiveEntry entry;
       while ((entry = tar.getNextEntry()) != null) {

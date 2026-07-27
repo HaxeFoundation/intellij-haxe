@@ -91,10 +91,12 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
     myFixture.addFileToProject("pack/Module.hx",
                                "package pack;\nclass Module {}\nclass Secondary { public var marker:Int = 1; }");
     myFixture.configureByText("Main.hx", "class Main { static function main() { trace<caret>(0); } }");
+
     Collection<HaxeClass> candidates = HaxeClassNameUnifiedIndex.getByNameFiltered(
       "Secondary", getProject(), GlobalSearchScope.allScope(getProject()));
     assertEquals("the ancillary class is indexed under its short name", 1, candidates.size());
     HaxeClass secondary = candidates.iterator().next();
+
     // the premise of the runtime-name comparison: PSI's qualified name is NOT
     // what the debugger reports (pack.Secondary)
     assertEquals("pack.Module.Secondary", secondary.getFullyQualifiedName());

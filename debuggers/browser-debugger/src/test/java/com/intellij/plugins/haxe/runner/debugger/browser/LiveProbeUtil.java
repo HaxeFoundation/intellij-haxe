@@ -38,6 +38,7 @@ final class LiveProbeUtil {
                                       "-js", classPath.resolve(outJsName).toString(), "-debug")
       .redirectErrorStream(true)
       .start();
+
     String output = new String(haxe.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
     if (!haxe.waitFor(30, TimeUnit.SECONDS) || haxe.exitValue() != 0) {
       throw new AssertionError("fixture compile of " + mainClass + " failed:\n" + output);

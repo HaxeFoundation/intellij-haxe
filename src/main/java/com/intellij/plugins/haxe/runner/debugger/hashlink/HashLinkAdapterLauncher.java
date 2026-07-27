@@ -22,6 +22,7 @@ public final class HashLinkAdapterLauncher {
   private static final String PLUGIN_ID = "com.intellij.plugins.haxe";
   private static final String ADAPTER_RELATIVE_PATH = "adapter/hl-debug-adapter.hl";
   private static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
+
   private static final long STARTUP_TIMEOUT_MILLIS = 15_000;
   private static final long POLL_INTERVAL_MILLIS = 20;
 
@@ -75,6 +76,7 @@ public final class HashLinkAdapterLauncher {
     long deadline = System.currentTimeMillis() + STARTUP_TIMEOUT_MILLIS;
     StringBuilder seen = new StringBuilder();
     StringBuilder line = new StringBuilder();
+
     try {
       while (System.currentTimeMillis() < deadline) {
         while (stdout.ready()) {

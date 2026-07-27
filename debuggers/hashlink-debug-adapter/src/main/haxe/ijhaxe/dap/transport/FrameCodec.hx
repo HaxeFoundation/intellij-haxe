@@ -22,11 +22,13 @@ class FrameCodec {
 	public static function encode(json:String):Bytes {
 		var body = Bytes.ofString(json, Encoding.UTF8);
 		var buf = new BytesBuffer();
+
 		buf.addString("Content-Length: " + body.length);
 		buf.addByte(CR);
 		buf.addByte(LF);
 		buf.addByte(CR);
 		buf.addByte(LF);
+
 		buf.addBytes(body, 0, body.length);
 		return buf.getBytes();
 	}

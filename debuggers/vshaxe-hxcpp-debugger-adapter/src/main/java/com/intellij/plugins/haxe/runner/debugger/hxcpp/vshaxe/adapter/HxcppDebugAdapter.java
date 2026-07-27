@@ -75,9 +75,11 @@ public class HxcppDebugAdapter implements Closeable {
   private final VariablePathRegistry variablePaths = new VariablePathRegistry();
 
   private DapConnection dap;
+
   private Thread acceptThread;
   private Thread requestThread;
   private Thread pumpThread;
+
   private volatile boolean closed = false;
   /** Thread the server last reported stopped; null while running. */
   private volatile Integer stoppedThreadId;
@@ -238,9 +240,11 @@ public class HxcppDebugAdapter implements Closeable {
     // Windows) — an IDE-style forward-slash Windows path silently matches
     // nothing and the breakpoints land nowhere. Convert to native separators.
     String file = toDebuggerPath(request.getArguments().getSource().getPath());
+
     List<Map<String, Object>> breakpoints = new ArrayList<>();
     List<SourceBreakpoint> requested = request.getArguments().getBreakpoints() != null
                                        ? request.getArguments().getBreakpoints() : List.of();
+
     for (SourceBreakpoint sourceBreakpoint : requested) {
       Map<String, Object> breakpoint = new HashMap<>();
       breakpoint.put("line", sourceBreakpoint.getLine());

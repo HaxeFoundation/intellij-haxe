@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
  * (backend.close() is invoked on every teardown path, including failed starts).
  */
 public final class ContentHttpServer implements Closeable {
+
   private static final Map<String, String> MIME = Map.ofEntries(
     Map.entry("html", "text/html; charset=utf-8"),
     Map.entry("htm", "text/html; charset=utf-8"),
@@ -58,11 +59,13 @@ public final class ContentHttpServer implements Closeable {
     Map.entry("gif", "image/gif"),
     Map.entry("ico", "image/x-icon"),
     Map.entry("txt", "text/plain; charset=utf-8"));
+
   private static final String FALLBACK_MIME = "application/octet-stream";
 
   private final Path root;
   private final HttpServer server;
   private final ExecutorService executor;
+
   /** Optional observer of served requests ("GET /app.js -> 200"); for tests/diagnostics. */
   private volatile Consumer<String> requestListener;
 
@@ -89,6 +92,7 @@ public final class ContentHttpServer implements Closeable {
     // 8.3 names, case) - everything served must stay under THIS path
     this.root = root.toRealPath();
     server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+
     // One virtual thread per exchange: an asset-heavy target (a game loading
     // atlases, audio and json) opens as many connections as the browser
     // allows, across the page, its workers and any iframes — a fixed pool
@@ -153,6 +157,8 @@ public final class ContentHttpServer implements Closeable {
     }
     String html = new String(body, StandardCharsets.UTF_8);
     String tag = "<meta http-equiv=\"refresh\" content=\"" + seconds + "\">";
+    // the opening <head> tag, any attributes, case-insensitive; "$0" keeps it
+    // and appends the meta tag right after
     String injected = html.replaceFirst("(?i)<head[^>]*>", "$0" + Matcher.quoteReplacement(tag));
     if (injected.equals(html)) {
       injected = tag + html; // headless html: prepend (browsers tolerate it)

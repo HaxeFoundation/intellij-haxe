@@ -55,6 +55,7 @@ final class HlBuildSniffer {
     if (arguments == null || arguments.isBlank()) {
       return HlBuild.NONE;
     }
+    // the argument string split on runs of whitespace, as a shell would
     return parse(List.of(arguments.trim().split("\\s+")));
   }
 
@@ -99,6 +100,7 @@ final class HlBuildSniffer {
       if (trimmed.isEmpty() || trimmed.startsWith("#")) {
         continue;
       }
+      // an hxml line split on runs of whitespace into its individual tokens
       for (String token : trimmed.split("\\s+")) {
         if (token.endsWith(".hxml")) {
           // an hxml include, relative to the including file

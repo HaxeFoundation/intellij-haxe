@@ -16,6 +16,7 @@ enum EvalValue {
 	VInt(v:Int64);
 	VFloat(v:Float);
 	VBool(v:Bool);
+
 	/**
 		String CONTENT, adapter-side. `ptr` is the debuggee String when the value
 		came from one (pass-through without re-materializing); null for literals
@@ -23,6 +24,7 @@ enum EvalValue {
 	**/
 	VString(v:String, ptr:Null<Pointer>);
 	VNull;
+
 	/**
 		A debuggee-resident pointer value (object/array/map/closure/...).
 	**/

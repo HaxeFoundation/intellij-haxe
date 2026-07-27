@@ -124,6 +124,7 @@ class ExpressionEvaluator {
 	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {
 		var start = 0;
 		var current = resolveRoot(frameId, path.root);
+
 		if (current == null) {
 			// `MyClass.member`: a leading prefix naming a class resolves to its
 			// statics container (locals/this/frame statics were tried first)
@@ -295,6 +296,7 @@ class ExpressionEvaluator {
 	public static function chainToPath(e:Expr):Null<ValuePath> {
 		var accessors:Array<PathAccessor> = [];
 		var cur = e;
+
 		while (true) {
 			switch (cur) {
 				case EIdent(name):

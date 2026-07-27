@@ -166,7 +166,9 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
 
   private String continueToExit(int threadId) throws Exception {
     assertTrue("continue after writes", request(continueRequest(threadId)).isSuccess());
+
     List<String> output = new ArrayList<>();
+
     while (true) {
       Event event = client.pollEvent(TIMEOUT);
       assertNotNull("expected more events before exit", event);

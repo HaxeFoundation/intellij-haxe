@@ -69,15 +69,18 @@ class ValueReaderTest {
 
 	static function readsString(assert:Assert):Void {
 		var api = new FakeDebugApi();
+
 		// String object at 0x1000: type@0, bytes ptr@8 -> 0x2000, length@16 = 2
 		pokePtr(api, 0x1000, 0xABCD); // type ptr (nonzero)
 		pokePtr(api, 0x1008, 0x2000); // bytes ptr
 		pokeI32(api, 0x1010, 2); // length (chars)
+
 		// UTF-16 "Hi" at 0x2000
 		api.poke(addr(0x2000), 0x48);
 		api.poke(addr(0x2001), 0x00);
 		api.poke(addr(0x2002), 0x69);
 		api.poke(addr(0x2003), 0x00);
+
 		// a slot at 0x900 holding a pointer to the String object
 		pokePtr(api, 0x900, 0x1000);
 

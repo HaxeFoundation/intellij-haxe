@@ -74,6 +74,7 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     assertTrue("launch succeeds", launch(threadsFixtureHl.toString()).isSuccess());
     assertTrue("breakpoint set", setBreakpoint("Threads.hx", BLOCK_LINE).isSuccess());
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+
     int threadId = awaitStopped().getBody().getThreadId(); // stopped ON gate.wait()
 
     assertTrue("stepOver accepted", request(nextRequest(threadId)).isSuccess());

@@ -23,12 +23,15 @@ class ExceptionController {
 	// only when no live `try` will catch the throw; `types` on matching classes.
 	var breakAll:Bool = false;
 	var breakUncaught:Bool = false;
+
 	// FQNs (or simple names) of exception classes to stop on — the per-type filter.
 	var breakTypes:Array<String> = [];
+
 	// "vm" filter: break on VM-raised errors (null access, bounds, cast, ...)
 	// by trapping hl_throw. Resolved lazily from an OThrow site once, then cached.
 	var breakVm:Bool = false;
 	var nativeThrowAddress:Null<Pointer> = null;
+
 	// Threads parked between hl_throw's ENTRY trap (where the thrown value is
 	// unreadable) and hl_throw's own hl_debug_break (where exc_value holds it),
 	// with the throwing frames walked at the entry (unwalkable at the break).

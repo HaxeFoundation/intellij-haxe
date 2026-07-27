@@ -185,12 +185,14 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     // landing cannot be identified — not supported by the current adapter
     assumeFixtureHaxe43Plus();
     org.junit.Assume.assumeTrue("uncaught fixture not built - skipping", uncaughtFixtureHl != null);
+
     initialize();
     assertTrue("launch", launch(uncaughtFixtureHl.toString()).isSuccess());
     assertTrue("breakpoint on the caught throw",
                setBreakpoints(fixtureSrcDir.resolve("Uncaught.hx").toString(), 11).isSuccess());
     assertTrue("configurationDone",
                request(new ConfigurationDoneRequest()).isSuccess());
+
     StoppedEvent atThrow = awaitStopped();
     int threadId = atThrow.getBody().getThreadId();
 

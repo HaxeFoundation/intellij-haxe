@@ -13,27 +13,32 @@ class TestMain {
 			{name: "FrameCodecTest", run: tests.dap.transport.FrameCodecTest.run},
 			{name: "ProtocolJsonTest", run: tests.dap.protocol.ProtocolJsonTest.run},
 			{name: "DispatcherTest", run: tests.adapter.DispatcherTest.run},
+
 			// module / jit metadata
 			{name: "JitInfoReaderTest", run: tests.debug.module.JitInfoReaderTest.run},
 			{name: "ModuleDebugInfoTest", run: tests.debug.module.ModuleDebugInfoTest.run},
 			{name: "CodeGraphTest", run: tests.debug.module.CodeGraphTest.run},
 			{name: "LocalScopesTest", run: tests.debug.module.LocalScopesTest.run},
 			{name: "LocalsResolverTest", run: tests.debug.module.LocalsResolverTest.run},
+
 			// target control
 			{name: "BreakpointsTest", run: tests.debug.breakpoints.BreakpointsTest.run},
 			{name: "StackWalkerTest", run: tests.debug.target.StackWalkerTest.run},
 			{name: "ThreadRegistryTest", run: tests.debug.target.ThreadRegistryTest.run},
+
 			// memory layout
 			{name: "FrameLayoutTest", run: tests.debug.layout.FrameLayoutTest.run},
 			{name: "ObjectLayoutTest", run: tests.debug.layout.ObjectLayoutTest.run},
 			{name: "EnumLayoutTest", run: tests.debug.layout.EnumLayoutTest.run},
 			{name: "GlobalTableTest", run: tests.debug.layout.GlobalTableTest.run},
+
 			// value decoding
 			{name: "RuntimeTypesTest", run: tests.debug.values.RuntimeTypesTest.run},
 			{name: "ValuePathTest", run: tests.debug.values.ValuePathTest.run},
 			{name: "ValueReaderTest", run: tests.debug.values.ValueReaderTest.run},
 			{name: "ValueChildrenTest", run: tests.debug.values.ValueChildrenTest.run},
 			{name: "MapReaderTest", run: tests.debug.values.MapReaderTest.run},
+
 			// expression evaluator + eval-call
 			{name: "ExprParserTest", run: tests.debug.eval.ExprParserTest.run},
 			{name: "OperatorsTest", run: tests.debug.eval.OperatorsTest.run},

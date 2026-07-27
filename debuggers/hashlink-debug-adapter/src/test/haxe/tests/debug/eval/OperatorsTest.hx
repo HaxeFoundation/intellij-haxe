@@ -16,6 +16,7 @@ class OperatorsTest {
 			return VFloat(v);
 		inline function s(v:String):EvalValue
 			return VString(v, null);
+
 		function throws(run:() -> Void):Bool {
 			return try {
 				run();

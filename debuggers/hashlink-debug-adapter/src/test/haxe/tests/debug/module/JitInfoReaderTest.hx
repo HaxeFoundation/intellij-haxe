@@ -23,10 +23,12 @@ class JitInfoReaderTest {
 			functions:Array<{start:Int, offsets:Array<Int>, ?large:Bool}>):BytesInput {
 		var out = new BytesOutput();
 		out.bigEndian = false;
+
 		out.writeByte("H".code);
 		out.writeByte("L".code);
 		out.writeByte("D".code);
 		out.writeByte("1".code);
+
 		out.writeInt32((is64 ? 1 : 0) | flagsExtra);
 		out.writeInt32(hlVersionRaw);
 		out.writeInt32(pid);
@@ -39,6 +41,7 @@ class JitInfoReaderTest {
 			out.writeInt32(4);
 		}
 		out.writeInt32(functions.length);
+
 		for (fn in functions) {
 			var nops = fn.offsets.length - 1;
 			var large = fn.large != null ? fn.large : false;
@@ -137,6 +140,7 @@ class JitInfoReaderTest {
 		out.writeByte("L".code);
 		out.writeByte("D".code);
 		out.writeByte("9".code);
+
 		try {
 			JitInfoReader.read(new BytesInput(out.getBytes()));
 			assert.fail("unsupported version should throw");

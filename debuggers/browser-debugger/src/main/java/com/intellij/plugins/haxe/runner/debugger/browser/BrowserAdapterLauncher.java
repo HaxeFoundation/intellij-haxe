@@ -49,13 +49,16 @@ public final class BrowserAdapterLauncher {
     // space) and the adapter then dies with EACCES before announcing.
     // Ephemeral ports are 5 digits, satisfying the adapter's argv regex.
     int port = NetUtils.findAvailableSocketPort();
+
     Process process = new ProcessBuilder(
       nodeExecutable.toString(), adapterBundle.toString(), "--server=" + port)
       .directory(adapterBundle.getParent().toFile())
       .redirectErrorStream(true)
       .start();
+
     BufferedReader stdout = new BufferedReader(
       new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+
     try {
       awaitAnnouncement(process, stdout, LISTENING_MARKER);
       return new LaunchedAdapter(process, port, stdout);
@@ -77,8 +80,10 @@ public final class BrowserAdapterLauncher {
       .directory(dapServerJs.getParent().toFile())
       .redirectErrorStream(true)
       .start();
+
     BufferedReader stdout = new BufferedReader(
       new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+
     try {
       String announcement = awaitAnnouncement(process, stdout, JS_DEBUG_LISTENING_MARKER);
       int colon = announcement.lastIndexOf(':');

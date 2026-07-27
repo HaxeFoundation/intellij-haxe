@@ -8,9 +8,11 @@ typedef Variable = {
 	var name:String;
 	var value:String;
 	var variablesReference:Int;
+
 	var ?type:String;
 	var ?namedVariables:Int;
 	var ?indexedVariables:Int;
+
 	// Classification driving the client's icon (the wire form of ijhaxe.debug.values.VariableKind).
 	var ?kind:String;
 }
