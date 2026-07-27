@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.runner.debugger.browser;
+¨package com.intellij.plugins.haxe.runner.debugger.browser;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 
