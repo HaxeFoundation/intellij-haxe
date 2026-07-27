@@ -17,9 +17,9 @@ import org.junit.Test;
 
 /**
  * Multi-threaded debugging against real HashLink (suspend-all). A worker thread
- * hits a breakpoint while main is parked in block(); at that stop we assert the
- * full thread list, and — the decisive check — read each thread's OWN stack and
- * locals (worker: workerLocal=222; main: v=111).
+ * hits a breakpoint while main is parked in block(); that stop is checked against
+ * the full thread list and — the decisive check — against each thread's OWN stack
+ * and locals (worker: workerLocal=222; main: v=111).
  */
 public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 
@@ -74,6 +74,7 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     assertTrue("launch succeeds", launch(threadsFixtureHl.toString()).isSuccess());
     assertTrue("breakpoint set", setBreakpoint("Threads.hx", BLOCK_LINE).isSuccess());
     assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+
     int threadId = awaitStopped().getBody().getThreadId(); // stopped ON gate.wait()
 
     assertTrue("stepOver accepted", request(nextRequest(threadId)).isSuccess());
@@ -116,7 +117,12 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 
   private static String names(List<DapThread> threads) {
     StringBuilder sb = new StringBuilder();
-    for (DapThread t : threads) sb.append(t.getName()).append("[").append(t.getId()).append("] ");
+    for (DapThread t : threads) {
+      sb.append(t.getName())
+        .append("[")
+        .append(t.getId())
+        .append("] ");
+    }
     return sb.toString();
   }
 }

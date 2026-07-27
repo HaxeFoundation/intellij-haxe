@@ -25,6 +25,7 @@ final class Log {
     String thread = Thread.currentThread().getName();
     String tag = thread.endsWith("-lane")
       ? thread.substring(0, thread.length() - "-lane".length()) + " | " : "";
+
     String stamped = "[" + LocalTime.now().format(TIME) + "] " + tag + message;
     System.out.println(stamped);
     try {

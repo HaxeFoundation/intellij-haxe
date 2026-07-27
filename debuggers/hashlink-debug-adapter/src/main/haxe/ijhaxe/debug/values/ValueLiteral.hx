@@ -13,7 +13,8 @@ enum ValueLiteral {
 	LInt(value:Int64);
 	LFloat(value:Float);
 	LBool(value:Bool);
-	LNull;
 	LString(value:String);
+
+	LNull;
 	LPath(path:ValuePath);
 }

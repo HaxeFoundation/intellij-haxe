@@ -14,6 +14,7 @@ import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import com.intellij.xdebugger.breakpoints.ui.XBreakpointCustomPropertiesPanel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -105,21 +106,26 @@ public class HaxeExceptionBreakpointType
                                                                    @NotNull String criticalWord) {
     List<String> filters = new ArrayList<>();
     List<String> filterTypes = new ArrayList<>();
-    ReadAction.nonBlocking(() -> collectEnabled(project, properties -> {
-      if (properties.isTyped()) {
-        filterTypes.add(properties.className.trim());
-      } else {
-        if (properties.notifyCaught) {
-          filters.add(caughtWord);
+
+    ReadAction.nonBlocking((Callable<Void>)() -> {
+      collectEnabled(project, properties -> {
+        if (properties.isTyped()) {
+          filterTypes.add(properties.className.trim());
         }
-        if (properties.notifyUncaught) {
-          filters.add(uncaughtWord);
+        else {
+          if (properties.notifyCaught) {
+            filters.add(caughtWord);
+          }
+          if (properties.notifyUncaught) {
+            filters.add(uncaughtWord);
+          }
+          if (properties.notifyCritical) {
+            filters.add(criticalWord);
+          }
         }
-        if (properties.notifyCritical) {
-          filters.add(criticalWord);
-        }
-      }
-    })).executeSynchronously();
+      });
+      return null;
+    }).executeSynchronously();
     SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
     SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
     arguments.setFilters(filters);

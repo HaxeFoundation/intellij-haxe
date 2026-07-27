@@ -1,5 +1,6 @@
 package tests.debug.eval.call;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.call.X86CallEmitter;
 import ijhaxe.debug.eval.call.CallArg;
 
@@ -26,7 +27,9 @@ class X86CallEmitterTest {
 		// add(20, 3): push args right-to-left (3 then 20), cdecl cleanup of 8 bytes
 		var bytes = new X86CallEmitter().build(Int64.ofInt(0x1000),
 			[{isFloat: false, bits: Int64.ofInt(20)}, {isFloat: false, bits: Int64.ofInt(3)}], 0);
+
 		var h = hex(bytes);
+
 		assert.isTrue(StringTools.startsWith(h, "5152"), "saves ecx then edx");
 		assert.isTrue(h.indexOf("6803000000") >= 0, "pushes the second arg (3) first");
 		assert.isTrue(h.indexOf("6814000000") >= 0, "pushes the first arg (20) last");
@@ -62,7 +65,7 @@ class X86CallEmitterTest {
 		var threw = false;
 		try {
 			new X86CallEmitter().build(Int64.ofInt(1), many, 0);
-		} catch (e:ijhaxe.debug.DebugError) {
+		} catch (e:DebugError) {
 			threw = true;
 		}
 		assert.isTrue(threw, "rejects more than the supported argument count");

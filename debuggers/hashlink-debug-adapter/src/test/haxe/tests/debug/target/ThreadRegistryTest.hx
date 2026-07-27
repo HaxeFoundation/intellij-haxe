@@ -59,13 +59,16 @@ class ThreadRegistryTest {
 		// registry @0x100: count=2 @0, array ptr @+8 -> 0x200
 		pokeI32(api, 0x100, 2);
 		pokePtr(api, 0x108, 0x200);
+
 		// array @0x200: [tinfo0 -> 0x300, tinfo1 -> 0x400]
 		pokePtr(api, 0x200, 0x300);
 		pokePtr(api, 0x208, 0x400);
+
 		// tinfo0 @0x300: tid=77 (the HIGHER id), flags=0, name="worker"
 		pokeI32(api, 0x300, 77);
 		pokeI32(api, 0x300 + FLAGS, 0);
 		pokeName(api, 0x300 + NAME, "worker");
+
 		// tinfo1 @0x400: tid=5 (the LOWER id), flags=0, no name
 		pokeI32(api, 0x400, 5);
 		pokeI32(api, 0x400 + FLAGS, 0);

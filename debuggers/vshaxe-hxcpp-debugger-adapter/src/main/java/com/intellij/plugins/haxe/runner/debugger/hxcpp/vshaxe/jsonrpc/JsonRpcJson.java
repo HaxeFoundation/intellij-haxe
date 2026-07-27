@@ -11,7 +11,7 @@ import tools.jackson.databind.node.ObjectNode;
  * Encodes/decodes hxcpp-debug-server jsonrpc messages.
  *
  * Decoding discriminates on the envelope: a message carrying an {@code id}
- * is the response to one of our requests; one carrying only a {@code method}
+ * is the response to an outgoing request; one carrying only a {@code method}
  * is a notification. The server never sends its own requests. Note that the
  * server answers by sending the REQUEST OBJECT back with {@code result} or
  * {@code error} filled in (Server.hx sendResponse), so responses also carry

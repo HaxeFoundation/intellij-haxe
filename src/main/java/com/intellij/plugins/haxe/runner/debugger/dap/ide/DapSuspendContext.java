@@ -27,6 +27,7 @@ final class DapSuspendContext extends XSuspendContext {
     }
     this.stacks = new DapExecutionStack[threads.size()];
     DapExecutionStack activeStack = null;
+
     for (int i = 0; i < threads.size(); i++) {
       DapThread thread = threads.get(i);
       boolean isActive = thread.getId() == activeThreadId;

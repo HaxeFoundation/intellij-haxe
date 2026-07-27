@@ -63,11 +63,13 @@ public class EvalLiveTest {
 
     listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     listener.setSoTimeout((int)TIMEOUT_MS);
+
     haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", "EvalMain",
                               "-D", "eval-debugger=127.0.0.1:" + listener.getLocalPort(),
                               "--interp")
       .redirectErrorStream(true)
       .start();
+
     outputGobbler = new Thread(() -> {
       try (BufferedReader reader = new BufferedReader(
              new InputStreamReader(haxe.getInputStream(), StandardCharsets.UTF_8))) {

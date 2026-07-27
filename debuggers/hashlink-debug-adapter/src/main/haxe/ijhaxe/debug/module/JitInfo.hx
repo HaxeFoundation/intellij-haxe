@@ -16,14 +16,17 @@ class JitInfo {
 	public var boolSize4(default, null):Bool;
 	public var threads(default, null):Bool;
 	public var winCall(default, null):Bool;
+
 	public var hlVersionMajor(default, null):Int;
 	public var hlVersionMinor(default, null):Int;
 	public var hlVersionPatch(default, null):Int;
+
 	public var pid(default, null):Int;
 	public var threadsPtr(default, null):Pointer;
 	public var globalsPtr(default, null):Pointer;
 	public var jitCodeBase(default, null):Pointer;
 	public var codeSize(default, null):Int;
+
 	public var typesPtr(default, null):Pointer;
 	public var structSizes(default, null):Array<Int>;
 	public var functions(default, null):Array<JitFunction>;
@@ -41,17 +44,21 @@ class JitInfo {
 		boolSize4 = fields.boolSize4;
 		threads = fields.threads;
 		winCall = fields.winCall;
+
 		hlVersionMajor = fields.hlVersionMajor;
 		hlVersionMinor = fields.hlVersionMinor;
 		hlVersionPatch = fields.hlVersionPatch;
+
 		pid = fields.pid;
 		threadsPtr = fields.threadsPtr;
 		globalsPtr = fields.globalsPtr;
 		jitCodeBase = fields.jitCodeBase;
 		codeSize = fields.codeSize;
+
 		typesPtr = fields.typesPtr;
 		structSizes = fields.structSizes;
 		functions = fields.functions;
+
 		buildIndex();
 	}
 
@@ -122,6 +129,7 @@ class JitInfo {
 	function functionAtOffset(rel:Int):Int {
 		var lo = 0;
 		var hi = sortedByStart.length - 1;
+
 		while (lo <= hi) {
 			var mid = (lo + hi) >> 1;
 			var entry = sortedByStart[mid];

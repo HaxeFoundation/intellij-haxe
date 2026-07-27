@@ -304,6 +304,7 @@ class Breakpoints {
 		clearTemps();
 		disarmExceptions();
 		disarmNativeThrow();
+
 		for (bp in byAddress) {
 			restore(bp);
 		}

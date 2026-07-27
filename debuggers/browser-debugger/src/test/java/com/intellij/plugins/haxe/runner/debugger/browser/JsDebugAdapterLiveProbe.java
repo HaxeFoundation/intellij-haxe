@@ -41,6 +41,18 @@ import org.junit.Test;
  */
 public class JsDebugAdapterLiveProbe {
   private static final long TIMEOUT = 15_000;
+
+  /** Machine-wide install locations, tried after the per-user LOCALAPPDATA ones. */
+  private static final List<String> CHROMIUM_PATHS = List.of(
+    "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+    "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+    "C:/Program Files/Microsoft/Edge/Application/msedge.exe",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome",
+    "/snap/bin/chromium");
+
   private static final int BP_LINE = 5;
   private static final String WEB_MAIN_HX = """
     class WebMain {
@@ -100,15 +112,7 @@ public class JsDebugAdapterLiveProbe {
       candidates.add(Path.of(localAppData, "Chromium/Application/chrome.exe"));
       candidates.add(Path.of(localAppData, "Google/Chrome/Application/chrome.exe"));
     }
-    for (String candidate : new String[]{
-      "C:/Program Files/Google/Chrome/Application/chrome.exe",
-      "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
-      "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
-      "C:/Program Files/Microsoft/Edge/Application/msedge.exe",
-      "/usr/bin/chromium",
-      "/usr/bin/chromium-browser",
-      "/usr/bin/google-chrome",
-      "/snap/bin/chromium"}) {
+    for (String candidate : CHROMIUM_PATHS) {
       candidates.add(Path.of(candidate));
     }
     for (Path path : candidates) {
@@ -136,12 +140,14 @@ public class JsDebugAdapterLiveProbe {
       .directory(dapServerJs().getParent().toFile())
       .redirectErrorStream(true)
       .start();
+
     BufferedReader stdout = new BufferedReader(
       new InputStreamReader(adapter.getInputStream(), StandardCharsets.UTF_8));
     String line = stdout.readLine();
     System.out.println("[adapter] " + line);
     assertNotNull("adapter announced nothing (died?)", line);
     assertTrue("unexpected announcement: " + line, line.contains("Debug server listening"));
+
     Thread gobbler = new Thread(() -> {
       try {
         String out;
@@ -177,9 +183,7 @@ public class JsDebugAdapterLiveProbe {
   private static Path buildFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-jsdbg-probe");
     Files.writeString(dir.resolve("WebMain.hx"), WEB_MAIN_HX);
-    Files.writeString(dir.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(dir.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(dir, "WebMain", "app.js");
     return dir;
   }
@@ -187,6 +191,7 @@ public class JsDebugAdapterLiveProbe {
   private static InitializeRequest initializeRequest() {
     InitializeRequest initialize = new InitializeRequest();
     InitializeRequestArguments arguments = new InitializeRequestArguments();
+
     arguments.setClientID("intellij");
     arguments.setClientName("IntelliJ Haxe");
     arguments.setAdapterID("chrome");
@@ -194,6 +199,7 @@ public class JsDebugAdapterLiveProbe {
     arguments.setLinesStartAt1(true);
     arguments.setColumnsStartAt1(true);
     arguments.setSupportsStartDebuggingRequest(true);
+
     initialize.setArguments(arguments);
     return initialize;
   }
@@ -201,13 +207,16 @@ public class JsDebugAdapterLiveProbe {
   private SetBreakpointsRequest breakpointsRequest(Path fixture) {
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture.resolve("WebMain.hx").toString());
     source.setName("WebMain.hx");
     bpArgs.setSource(source);
+
     SourceBreakpoint bp = new SourceBreakpoint();
     bp.setLine(BP_LINE);
     bpArgs.setBreakpoints(List.of(bp));
+
     setBreakpoints.setArguments(bpArgs);
     return setBreakpoints;
   }
@@ -234,9 +243,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-load");
     Files.writeString(fixture.resolve("WebLoad.hx"), WEB_LOAD_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebLoad", "app.js");
 
     StackFrame top = driveSessionToStop(fixture, "WebLoad.hx", LOAD_BP_LINE);
@@ -276,9 +283,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-smart");
     Files.writeString(fixture.resolve("WebSmart.hx"), WEB_SMART_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebSmart", "app.js");
 
     atStop = (child, top) -> {
@@ -289,10 +294,12 @@ public class JsDebugAdapterLiveProbe {
         new StepInTargetsArguments();
       targetsArgs.setFrameId(top.getId());
       targetsRequest.setArguments(targetsArgs);
+
       Response targetsResponse = child.sendRequest(targetsRequest, TIMEOUT);
       assertTrue("stepInTargets", targetsResponse.isSuccess());
       var targets = ((StepInTargetsResponse)
                        targetsResponse).getBody().getTargets();
+
       for (var target : targets) {
         System.out.println("[probe] stepInTarget id=" + target.getId() + " label=" + target.getLabel());
       }
@@ -310,14 +317,22 @@ public class JsDebugAdapterLiveProbe {
       completionsArgs.setText("docum");
       completionsArgs.setColumn(6); // 1-based caret after the text
       completions.setArguments(completionsArgs);
+
       Response completionsResponse = child.sendRequest(completions, TIMEOUT);
       assertTrue("completions", completionsResponse.isSuccess());
+
       var items = ((CompletionsResponse)
                      completionsResponse).getBody().getTargets();
-      System.out.println("[probe] completions for 'docum': "
-                         + items.stream().limit(8).map(i -> i.getLabel()).toList());
-      assertTrue("expected 'document' among runtime completions",
-                 items.stream().anyMatch(i -> "document".equals(i.getLabel())));
+
+      List<String> labels = items.stream()
+        .limit(8)
+        .map(CompletionItem::getLabel)
+        .toList();
+
+      System.out.println("[probe] completions for 'docum': " + labels);
+
+      boolean anyMatch = items.stream().anyMatch(i -> "document".equals(i.getLabel()));
+      assertTrue("expected 'document' among runtime completions", anyMatch);
 
       // --- smart step INTO f2 (the outer call) ---
       StepInRequest stepIn =
@@ -337,12 +352,14 @@ public class JsDebugAdapterLiveProbe {
         }
       }
       assertNotNull("no stop after targeted stepIn", landed);
+
       StackTraceRequest stackTrace = new StackTraceRequest();
       StackTraceArguments stArgs = new StackTraceArguments();
       stArgs.setThreadId(currentThreadId);
       stackTrace.setArguments(stArgs);
       Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
       StackFrame landedTop = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
+
       System.out.println("[probe] smart-step landed: " + landedTop.getName() + " @ "
                          + (landedTop.getSource() != null ? landedTop.getSource().getPath() : "?")
                          + ":" + landedTop.getLine());
@@ -370,14 +387,13 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-idelike");
     Files.writeString(fixture.resolve("WebSmart.hx"), WEB_SMART_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebSmart", "app.js");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       // --- parent exactly as BrowserDebugBackend.runParentHandshake ---
       assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
+
       Map<String, Object> parentConfig = new LinkedHashMap<>();
       parentConfig.put("type", "pwa-chrome");
       parentConfig.put("request", "launch");
@@ -386,7 +402,9 @@ public class JsDebugAdapterLiveProbe {
       parentConfig.put("webRoot", fixture.toString());
       parentConfig.put("runtimeExecutable", chromiumExe().toString());
       parentConfig.put("runtimeArgs", List.of("--headless=new"));
+
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
+
       StartDebuggingRequest startDebugging = null;
       long deadline = System.currentTimeMillis() + 20_000;
       while (System.currentTimeMillis() < deadline && startDebugging == null) {
@@ -414,8 +432,10 @@ public class JsDebugAdapterLiveProbe {
         initArgs.setLinesStartAt1(true);
         initArgs.setColumnsStartAt1(true);
         initialize.setArguments(initArgs);
+
         assertTrue("child initialize", child.sendRequest(initialize, TIMEOUT).isSuccess());
         child.sendRequestNoWait(ConfiguredLaunchRequest.of(startDebugging.getArguments().getConfiguration()));
+
         // awaitInitializedEvent
         deadline = System.currentTimeMillis() + 15_000;
         boolean initialized = false;
@@ -423,6 +443,7 @@ public class JsDebugAdapterLiveProbe {
           initialized = child.pollEvent(250) instanceof InitializedEvent;
         }
         assertTrue("child initialized", initialized);
+
         // flushAll
         SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
         SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
@@ -434,7 +455,9 @@ public class JsDebugAdapterLiveProbe {
         bp.setLine(CALLS_LINE);
         bpArgs.setBreakpoints(List.of(bp));
         setBreakpoints.setArguments(bpArgs);
+
         assertTrue("child setBreakpoints", child.sendRequest(setBreakpoints, TIMEOUT).isSuccess());
+
         // exception filters as the IDE's exceptionFiltersRequest would send
         SetExceptionBreakpointsRequest filters =
           new SetExceptionBreakpointsRequest();
@@ -444,6 +467,7 @@ public class JsDebugAdapterLiveProbe {
         filters.setArguments(filterArgs);
         System.out.println("[probe] ide-seq setExceptionBreakpoints success="
                            + child.sendRequest(filters, TIMEOUT).isSuccess());
+
         assertTrue("child configurationDone", child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
 
         StoppedEvent stopped = null;
@@ -476,7 +500,9 @@ public class JsDebugAdapterLiveProbe {
           new ScopesArguments();
         scArgs.setFrameId(top.getId());
         scopes.setArguments(scArgs);
+
         Response scResponse = child.sendRequest(scopes, TIMEOUT);
+
         if (scResponse instanceof ScopesResponse okScopes
             && okScopes.getBody() != null && !okScopes.getBody().getScopes().isEmpty()) {
           VariablesRequest variables =
@@ -514,7 +540,9 @@ public class JsDebugAdapterLiveProbe {
           new ContinueArguments();
         cArgs.setThreadId(threadId);
         resume.setArguments(cArgs);
+
         assertTrue("continue", child.sendRequest(resume, TIMEOUT).isSuccess());
+
         StoppedEvent second = null;
         deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline && second == null) {
@@ -524,18 +552,21 @@ public class JsDebugAdapterLiveProbe {
         }
         assertNotNull("no second stop", second);
         int threadId2 = second.getBody().getThreadId() != null ? second.getBody().getThreadId() : threadId;
+
         StackTraceRequest stackTrace3 = new StackTraceRequest();
         StackTraceArguments stArgs3 = new StackTraceArguments();
         stArgs3.setThreadId(threadId2);
         stackTrace3.setArguments(stArgs3);
         Response stResponse3 = child.sendRequest(stackTrace3, TIMEOUT);
         StackFrame top3 = ((StackTraceResponse)stResponse3).getBody().getStackFrames().get(0);
+
         System.out.println("[probe] ide-seq SECOND PAUSE top id=" + top3.getId()
                            + " @ " + (top3.getSource() != null ? top3.getSource().getPath() : "?")
                            + ":" + top3.getLine());
         int n5 = stepInTargetsCount(child, top3.getId(), "5:second pause");
         System.out.println("[probe] ide-seq second-pause targets=" + n5);
         assertTrue("second-pause stepInTargets must find the calls too (user's failing case)", n5 >= 2);
+
         child.sendRequest(new DisconnectRequest(), TIMEOUT);
       }
     }
@@ -593,9 +624,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-expr");
     Files.writeString(fixture.resolve("WebExpr.hx"), WEB_EXPR_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebExpr", "app.js");
 
     final int[] targetsAtStop = {-2};
@@ -629,9 +658,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-lastline");
     Files.writeString(fixture.resolve("WebClick.hx"), WEB_CLICK_LAST_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebClick", "app.js");
 
     final int[] targetsAtStop = {-2};
@@ -656,9 +683,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-click");
     Files.writeString(fixture.resolve("WebClick.hx"), WEB_CLICK_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebClick", "app.js");
 
     final int[] targetsAtStop = {-2};
@@ -722,15 +747,14 @@ public class JsDebugAdapterLiveProbe {
     Path fixture = Files.createTempDirectory("haxe-jsdbg-worker");
     Files.writeString(fixture.resolve("WebPage.hx"), WEB_PAGE_HX);
     Files.writeString(fixture.resolve("WorkerMain.hx"), WORKER_MAIN_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebPage", "app.js");
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       // --- parent handshake exactly as BrowserDebugBackend.runParentHandshake ---
       assertTrue("parent initialize", parent.sendRequest(initializeRequest(), TIMEOUT).isSuccess());
+
       Map<String, Object> parentConfig = new LinkedHashMap<>();
       parentConfig.put("type", "pwa-chrome");
       parentConfig.put("request", "launch");
@@ -739,7 +763,9 @@ public class JsDebugAdapterLiveProbe {
       parentConfig.put("webRoot", fixture.toString());
       parentConfig.put("runtimeExecutable", chromiumExe().toString());
       parentConfig.put("runtimeArgs", List.of("--headless=new"));
+
       parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
+
       StartDebuggingRequest startDebugging = null;
       long deadline = System.currentTimeMillis() + 20_000;
       while (System.currentTimeMillis() < deadline && startDebugging == null) {
@@ -775,14 +801,17 @@ public class JsDebugAdapterLiveProbe {
         // the mux must cache it and replay it into the worker as it attaches
         SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
         SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
         Source source = new Source();
         source.setPath(fixture.resolve("WorkerMain.hx").toString());
         source.setName("WorkerMain.hx");
         bpArgs.setSource(source);
+
         SourceBreakpoint bp = new SourceBreakpoint();
         bp.setLine(WORKER_BP_LINE);
         bpArgs.setBreakpoints(List.of(bp));
         setBreakpoints.setArguments(bpArgs);
+
         Response bpResponse = mux.sendRequest(setBreakpoints, TIMEOUT);
         assertTrue("setBreakpoints via mux", bpResponse.isSuccess());
         var bpResult = ((SetBreakpointsResponse)
@@ -790,6 +819,7 @@ public class JsDebugAdapterLiveProbe {
         Integer pageBreakpointId = bpResult.getId();
         System.out.println("[probe] worker-source bp before worker exists: id=" + pageBreakpointId
                            + " verified=" + bpResult.isVerified());
+
         assertTrue("configurationDone via mux",
                    mux.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
 
@@ -800,6 +830,7 @@ public class JsDebugAdapterLiveProbe {
         StoppedEvent stopped = null;
         boolean verifiedUpgradeSeen = false;
         deadline = System.currentTimeMillis() + 20_000;
+
         while (System.currentTimeMillis() < deadline && stopped == null) {
           Event event = mux.pollEvent(250);
           if (event instanceof BreakpointEvent be
@@ -829,9 +860,11 @@ public class JsDebugAdapterLiveProbe {
         stackTrace.setArguments(stArgs);
         Response stResponse = mux.sendRequest(stackTrace, TIMEOUT);
         assertTrue("stackTrace via composite thread id", stResponse.isSuccess());
+
         StackFrame top = ((StackTraceResponse)stResponse).getBody().getStackFrames().get(0);
         System.out.println("[probe] worker top frame: " + top.getName() + " @ "
                            + (top.getSource() != null ? top.getSource().getPath() : "?") + ":" + top.getLine());
+
         assertNotNull("worker frame has no source", top.getSource());
         assertTrue("stopped in the worker's .hx line: " + top.getSource().getPath() + ":" + top.getLine(),
                    top.getSource().getPath().endsWith("WorkerMain.hx") && top.getLine() == WORKER_BP_LINE);
@@ -846,11 +879,13 @@ public class JsDebugAdapterLiveProbe {
         scopes.setArguments(scArgs);
         Response scResponse = mux.sendRequest(scopes, TIMEOUT);
         assertTrue("scopes via composite frame id", scResponse.isSuccess());
+
         var scopeList = ((ScopesResponse)
                            scResponse).getBody().getScopes();
         assertTrue("no scopes", !scopeList.isEmpty());
         int varRef = scopeList.get(0).getVariablesReference();
         assertTrue("scope variablesReference must be composited, got " + varRef, varRef >= COMPOSITE_FLOOR);
+
         VariablesRequest variables =
           new VariablesRequest();
         VariablesArguments vArgs =
@@ -900,12 +935,14 @@ public class JsDebugAdapterLiveProbe {
           .findFirst()
           .orElseThrow()
           .getId();
+
         PauseRequest pause =
           new PauseRequest();
         PauseArguments pArgs =
           new PauseArguments();
         pArgs.setThreadId(pageThreadId);
         pause.setArguments(pArgs);
+
         assertTrue("pause the page thread", mux.sendRequest(pause, TIMEOUT).isSuccess());
         StoppedEvent pageStop = null;
         deadline = System.currentTimeMillis() + 15_000;
@@ -926,7 +963,9 @@ public class JsDebugAdapterLiveProbe {
           new NextArguments();
         nArgs.setThreadId(pageThreadId);
         next.setArguments(nArgs);
+
         assertTrue("step the page thread", mux.sendRequest(next, TIMEOUT).isSuccess());
+
         StoppedEvent stepStop = null;
         deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline && stepStop == null) {
@@ -949,7 +988,9 @@ public class JsDebugAdapterLiveProbe {
           new ContinueArguments();
         caArgs.setThreadId(pageThreadId);
         pageResume.setArguments(caArgs);
+
         assertTrue("resume via the page thread", mux.sendRequest(pageResume, TIMEOUT).isSuccess());
+
         deadline = System.currentTimeMillis() + 4_000;
         while (System.currentTimeMillis() < deadline) {
           if (mux.pollEvent(250) instanceof StoppedEvent s && s.getBody().getThreadId() != null
@@ -966,7 +1007,9 @@ public class JsDebugAdapterLiveProbe {
           new ContinueArguments();
         wcArgs.setThreadId(second.getBody().getThreadId());
         workerResume.setArguments(wcArgs);
+
         assertTrue("resume via the worker thread", mux.sendRequest(workerResume, TIMEOUT).isSuccess());
+
         StoppedEvent workerAgain = null;
         deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline && workerAgain == null) {
@@ -989,7 +1032,9 @@ public class JsDebugAdapterLiveProbe {
       new StepInTargetsArguments();
     arguments.setFrameId(frameId);
     request.setArguments(arguments);
+
     Response response = child.sendRequest(request, TIMEOUT);
+
     int count = response instanceof StepInTargetsResponse ok
                 && ok.isSuccess() && ok.getBody() != null && ok.getBody().getTargets() != null
                 ? ok.getBody().getTargets().size() : -1;
@@ -1080,6 +1125,7 @@ public class JsDebugAdapterLiveProbe {
             bp.setLine(bpLine);
             bpArgs.setBreakpoints(List.of(bp));
             setBreakpoints.setArguments(bpArgs);
+
             assertTrue("child setBreakpoints", child.sendRequest(setBreakpoints, TIMEOUT).isSuccess());
             assertTrue("child configurationDone",
                        child.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
@@ -1091,12 +1137,14 @@ public class JsDebugAdapterLiveProbe {
         assertNotNull("breakpoint never hit", stopped);
         int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
         currentThreadId = threadId;
+
         StackTraceRequest stackTrace = new StackTraceRequest();
         StackTraceArguments stArgs = new StackTraceArguments();
         stArgs.setThreadId(threadId);
         stackTrace.setArguments(stArgs);
         Response stResponse = child.sendRequest(stackTrace, TIMEOUT);
         assertTrue("child stackTrace", stResponse.isSuccess());
+
         List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
         assertTrue("no frames", !frames.isEmpty());
         StackFrame top = frames.get(0);
@@ -1152,6 +1200,7 @@ public class JsDebugAdapterLiveProbe {
       StartDebuggingRequest startDebugging = null;
       boolean parentConfigured = false;
       long deadline = System.currentTimeMillis() + 20_000;
+
       while (System.currentTimeMillis() < deadline && startDebugging == null) {
         Event event = parent.pollEvent(100);
         if (event != null) {

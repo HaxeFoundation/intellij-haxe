@@ -86,8 +86,7 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
         stoppedForException = true;
         break;
       }
-      if (event instanceof com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ExitedEvent
-          || event instanceof com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.TerminatedEvent) {
+      if (event instanceof ExitedEvent || event instanceof TerminatedEvent) {
         break;
       }
     }

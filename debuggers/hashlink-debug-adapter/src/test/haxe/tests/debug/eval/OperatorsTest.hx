@@ -1,5 +1,6 @@
 package tests.debug.eval;
 
+import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.EvalValue;
 import ijhaxe.debug.eval.Operators;
 import haxe.Int64;
@@ -15,11 +16,12 @@ class OperatorsTest {
 			return VFloat(v);
 		inline function s(v:String):EvalValue
 			return VString(v, null);
+
 		function throws(run:() -> Void):Bool {
 			return try {
 				run();
 				false;
-			} catch (e:ijhaxe.debug.DebugError) true;
+			} catch (e:DebugError) true;
 		}
 
 		// arithmetic + promotion

@@ -66,6 +66,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
     // never stops: the program runs straight through to its exit
     boolean exited = false;
     List<String> output = new ArrayList<>();
+
     while (!exited) {
       Event event = client.pollEvent(TIMEOUT);
       assertNotNull("expected an event before exit", event);

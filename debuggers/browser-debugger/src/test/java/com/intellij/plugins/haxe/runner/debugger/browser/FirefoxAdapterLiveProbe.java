@@ -37,6 +37,17 @@ import org.junit.Test;
 public class FirefoxAdapterLiveProbe {
   private static final long TIMEOUT = 15_000;
 
+  /** Default install locations, tried in order when WEB_DEBUG_FIREFOX_EXE is unset. */
+  private static final List<String> FIREFOX_PATHS = List.of(
+    "C:/Program Files/Mozilla Firefox/firefox.exe",
+    "C:/Program Files (x86)/Mozilla Firefox/firefox.exe",
+    "/usr/bin/firefox",
+    "/usr/bin/firefox-esr",
+    "/snap/bin/firefox");
+
+  /** The two load-timing variants runLoadVariant is exercised with. */
+  private static final List<String> LOAD_VARIANTS = List.of("J", "K");
+
   private Process adapter;
   private int adapterPort;
   private DapClient client;
@@ -125,6 +136,7 @@ public class FirefoxAdapterLiveProbe {
   public void initializeHandshakeAndCapabilities() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     InitializeRequestArguments arguments = new InitializeRequestArguments();
+
     arguments.setClientID("intellij");
     arguments.setAdapterID("firefox");
     // the firefox adapter REJECTS initialize unless pathFormat=="path"
@@ -132,12 +144,15 @@ public class FirefoxAdapterLiveProbe {
     arguments.setPathFormat("path");
     arguments.setLinesStartAt1(true);
     arguments.setColumnsStartAt1(true);
+
     initialize.setArguments(arguments);
 
     Response response = client.sendRequest(initialize, TIMEOUT);
     System.out.println("[probe] initialize success=" + response.isSuccess()
                        + " class=" + response.getClass().getSimpleName());
+
     assertTrue("initialize failed: " + response.getMessage(), response.isSuccess());
+
     if (response instanceof InitializeResponse init && init.getBody() != null) {
       System.out.println("[probe] capabilities: supportsConfigurationDone="
                          + init.getBody().getSupportsConfigurationDoneRequest()
@@ -188,12 +203,7 @@ public class FirefoxAdapterLiveProbe {
       Path fromEnv = Path.of(env);
       return Files.isRegularFile(fromEnv) ? fromEnv : null;
     }
-    for (String candidate : new String[]{
-      "C:/Program Files/Mozilla Firefox/firefox.exe",
-      "C:/Program Files (x86)/Mozilla Firefox/firefox.exe",
-      "/usr/bin/firefox",
-      "/usr/bin/firefox-esr",
-      "/snap/bin/firefox"}) {
+    for (String candidate : FIREFOX_PATHS) {
       Path path = Path.of(candidate);
       if (Files.isRegularFile(path)) {
         return path;
@@ -228,9 +238,7 @@ public class FirefoxAdapterLiveProbe {
   private static Path buildFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-web-probe");
     Files.writeString(dir.resolve("WebMain.hx"), WEB_MAIN_HX);
-    Files.writeString(dir.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(dir.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(dir, "WebMain", "app.js");
     return dir;
   }
@@ -279,13 +287,16 @@ public class FirefoxAdapterLiveProbe {
     // breakpoint by the ORIGINAL .hx path (native absolute path)
     SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
     SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
     Source source = new Source();
     source.setPath(fixture.resolve("WebMain.hx").toString());
     source.setName("WebMain.hx");
     bpArgs.setSource(source);
+
     SourceBreakpoint bp = new SourceBreakpoint();
     bp.setLine(BP_LINE);
     bpArgs.setBreakpoints(List.of(bp));
+
     setBreakpoints.setArguments(bpArgs);
     Response bpResponse = client.sendRequest(setBreakpoints, TIMEOUT);
     if (bpResponse instanceof SetBreakpointsResponse ok && ok.getBody() != null) {
@@ -319,6 +330,7 @@ public class FirefoxAdapterLiveProbe {
     stackTrace.setArguments(stArgs);
     Response stResponse = client.sendRequest(stackTrace, TIMEOUT);
     assertTrue("stackTrace", stResponse.isSuccess());
+
     List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
     for (int i = 0; i < Math.min(3, frames.size()); i++) {
       StackFrame frame = frames.get(i);
@@ -340,16 +352,22 @@ public class FirefoxAdapterLiveProbe {
     scopes.setArguments(scArgs);
     Response scResponse = client.sendRequest(scopes, TIMEOUT);
     assertTrue("scopes", scResponse.isSuccess());
+
     for (var scope : ((ScopesResponse)scResponse).getBody().getScopes()) {
       VariablesRequest variables = new VariablesRequest();
       VariablesArguments vArgs = new VariablesArguments();
       vArgs.setVariablesReference(scope.getVariablesReference());
       variables.setArguments(vArgs);
+
       Response vResponse = client.sendRequest(variables, TIMEOUT);
+
       if (vResponse instanceof VariablesResponse vars && vars.isSuccess() && vars.getBody() != null) {
         List<Variable> list = vars.getBody().getVariables();
-        System.out.println("[probe] scope '" + scope.getName() + "': "
-                           + list.stream().limit(5).map(v -> v.getName() + "=" + v.getValue()).toList());
+        List<String> valueStrings = list.stream()
+          .limit(5)
+          .map(v -> v.getName() + "=" + v.getValue())
+          .toList();
+        System.out.println("[probe] scope '" + scope.getName() + "': " + valueStrings);
       }
     }
 
@@ -389,7 +407,7 @@ public class FirefoxAdapterLiveProbe {
       launchConfig.put("webRoot", fixture.toString());
       launchConfig.put("firefoxExecutable", firefox.toString());
       launchConfig.put("firefoxArgs", List.of("-headless"));
-    launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
+      launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
       Response launch = client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
       assertTrue("launch failed: " + launch.getMessage(), launch.isSuccess());
 
@@ -426,14 +444,17 @@ public class FirefoxAdapterLiveProbe {
       StackTraceArguments stArgs = new StackTraceArguments();
       stArgs.setThreadId(threadId);
       stackTrace.setArguments(stArgs);
+
       Response stResponse = client.sendRequest(stackTrace, TIMEOUT);
       assertTrue("stackTrace", stResponse.isSuccess());
       List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
       assertTrue("no frames", !frames.isEmpty());
+
       StackFrame top = frames.get(0);
       System.out.println("[probe] http-mode top frame: " + top.getName()
                          + " @ " + (top.getSource() != null ? top.getSource().getPath() : "?")
                          + ":" + top.getLine());
+
       assertNotNull("top frame has no source", top.getSource());
       assertTrue("top frame is not the .hx original: " + top.getSource().getPath(),
                  top.getSource().getPath() != null && top.getSource().getPath().endsWith("WebMain.hx"));
@@ -480,6 +501,7 @@ public class FirefoxAdapterLiveProbe {
       .directory(adapterBundle().getParent().toFile())
       .redirectErrorStream(true)
       .start();
+
     try {
       DapClient session = connectWithRetry(ownPort);
       try {
@@ -491,6 +513,7 @@ public class FirefoxAdapterLiveProbe {
         initArgs.setLinesStartAt1(true);
         initArgs.setColumnsStartAt1(true);
         initialize.setArguments(initArgs);
+
         if (!session.sendRequest(initialize, TIMEOUT).isSuccess()) {
           return false;
         }
@@ -500,7 +523,7 @@ public class FirefoxAdapterLiveProbe {
         launchConfig.put("webRoot", fixture.toString());
         launchConfig.put("firefoxExecutable", firefox.toString());
         launchConfig.put("firefoxArgs", List.of("-headless"));
-    launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
+        launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
         if (!session.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess()) {
           return false;
         }
@@ -529,6 +552,7 @@ public class FirefoxAdapterLiveProbe {
         // a path that binds stops well inside this window; the forward
         // variant is EXPECTED not to stop and pays the full wait
         deadline = System.currentTimeMillis() + 8_000;
+
         while (System.currentTimeMillis() < deadline && stopped == null) {
           Event event = session.pollEvent(250);
           if (event instanceof StoppedEvent s) {
@@ -606,13 +630,13 @@ public class FirefoxAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path firefox = firefoxExe();
     Assume.assumeTrue("firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping", firefox != null);
+
     Path fixture = Files.createTempDirectory("haxe-ff-worker-probe");
     System.out.println("[probe] fixture dir: " + fixture);
     Files.writeString(fixture.resolve("WebPage.hx"), FF_PAGE_HX);
     Files.writeString(fixture.resolve("WorkerMain.hx"), FF_WORKER_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
+
     LiveProbeUtil.compileHaxeJs(fixture, "WebPage", "app.js");
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 
@@ -634,17 +658,20 @@ public class FirefoxAdapterLiveProbe {
       launchConfig.put("webRoot", fixture.toString());
       launchConfig.put("firefoxExecutable", firefox.toString());
       launchConfig.put("firefoxArgs", List.of("-headless"));
-    launchConfig.put("port", LiveProbeUtil.freePort()); // never the shared default 6000
+
       // UNIQUE RDP port: the adapter's default 6000 makes it CONNECT TO A
       // LEFTOVER firefox from an earlier session/probe instead of the one it
       // just launched ("Not attaching to this thread" for
       // every worker, foreign processes' workers in the target list)
       launchConfig.put("port", LiveProbeUtil.freePort());
+
       Path adapterLog = fixture.resolve("adapter.log");
       launchConfig.put("log", Map.of(
         "fileName", adapterLog.toString(),
         "fileLevel", Map.of("default", "Debug")));
+
       assertTrue("launch", client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess());
+
       long deadline = System.currentTimeMillis() + 15_000;
       boolean initialized = false;
       while (System.currentTimeMillis() < deadline && !initialized) {
@@ -672,10 +699,12 @@ public class FirefoxAdapterLiveProbe {
       // 3) CONTROL: the TAB thread - move the breakpoint to the page heartbeat
       sendBreakpoints(fixture.resolve("WorkerMain.hx"), List.of()); // clear worker bp
       sendBreakpoint(fixture.resolve("WebPage.hx"), FF_PAGE_BEAT_LINE);
+
       resumeThread(workerThread);
       StoppedEvent tabStop = awaitStop(15_000);
       assertNotNull("page heartbeat breakpoint never hit", tabStop);
       int tabThread = tabStop.getBody().getThreadId() != null ? tabStop.getBody().getThreadId() : 1;
+
       StackFrame tabFrame = topFrame(tabThread);
       assertNotNull("no tab top frame", tabFrame);
       System.out.println("[probe] tab stop: thread=" + tabThread + " frame=" + tabFrame.getId());
@@ -699,18 +728,19 @@ public class FirefoxAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path firefox = firefoxExe();
     Assume.assumeTrue("firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping", firefox != null);
+
     Path fixture = Files.createTempDirectory("haxe-ff-refresh-probe");
     Files.writeString(fixture.resolve("WebPage.hx"), FF_PAGE_HX);
     Files.writeString(fixture.resolve("WorkerMain.hx"), FF_WORKER_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
+
     LiveProbeUtil.compileHaxeJs(fixture, "WebPage", "app.js");
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
       content.setRequestListener(line -> System.out.println("[server] " + line));
       content.refreshFirstPage(2);
+
       InitializeRequest initialize = new InitializeRequest();
       InitializeRequestArguments initArgs = new InitializeRequestArguments();
       initArgs.setClientID("intellij");
@@ -719,6 +749,7 @@ public class FirefoxAdapterLiveProbe {
       initArgs.setLinesStartAt1(true);
       initArgs.setColumnsStartAt1(true);
       initialize.setArguments(initArgs);
+
       assertTrue("initialize", client.sendRequest(initialize, TIMEOUT).isSuccess());
 
       Map<String, Object> launchConfig = new LinkedHashMap<>();
@@ -728,7 +759,9 @@ public class FirefoxAdapterLiveProbe {
       launchConfig.put("firefoxExecutable", firefox.toString());
       launchConfig.put("firefoxArgs", List.of("-headless"));
       launchConfig.put("port", LiveProbeUtil.freePort());
+
       assertTrue("launch", client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess());
+
       long deadline = System.currentTimeMillis() + 15_000;
       boolean initialized = false;
       while (System.currentTimeMillis() < deadline && !initialized) {
@@ -776,9 +809,13 @@ public class FirefoxAdapterLiveProbe {
     request.setArguments(arguments);
     Response response = client.sendRequest(request, TIMEOUT);
     assertTrue("setBreakpoints " + hxFile.getFileName(), response.isSuccess());
+
     if (response instanceof SetBreakpointsResponse ok && ok.getBody() != null && ok.getBody().getBreakpoints() != null) {
-      ok.getBody().getBreakpoints().forEach(b -> System.out.println(
-        "[probe] bp " + hxFile.getFileName() + " id=" + b.getId() + " verified=" + b.isVerified()));
+      ok.getBody()
+        .getBreakpoints()
+        .forEach(b -> {
+          System.out.println("[probe] bp " + hxFile.getFileName() + " id=" + b.getId() + " verified=" + b.isVerified());
+        });
     }
   }
 
@@ -855,7 +892,9 @@ public class FirefoxAdapterLiveProbe {
       arguments.setFrameId(frameId);
       arguments.setContext(context);
       request.setArguments(arguments);
+
       Response response = client.sendRequest(request, 10_000);
+
       String result = response instanceof EvaluateResponse ok
                       && ok.isSuccess() ? ok.getBody().getResult() : "error: " + response.getMessage();
       return "answered in " + (System.currentTimeMillis() - start) + "ms -> " + result;
@@ -867,9 +906,7 @@ public class FirefoxAdapterLiveProbe {
   private static Path buildLoadFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-web-load-probe");
     Files.writeString(dir.resolve("WebLoad.hx"), WEB_LOAD_HX);
-    Files.writeString(dir.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(dir.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(dir, "WebLoad", "app.js");
     return dir;
   }
@@ -909,7 +946,7 @@ public class FirefoxAdapterLiveProbe {
     // reload fires lingers as a zombie thread (pinned by the
     // workerThreadsAcrossRefresh probe), which the module README documents.
     String worked = null;
-    for (String variant : new String[]{"J", "K"}) {
+    for (String variant : LOAD_VARIANTS) {
       Files.writeString(appJs, pristineAppJs);
       try (ContentHttpServer content = new ContentHttpServer(fixture)) {
         content.setRequestListener(line -> System.out.println("[server] " + line));
@@ -933,6 +970,7 @@ public class FirefoxAdapterLiveProbe {
       .directory(adapterBundle().getParent().toFile())
       .redirectErrorStream(true)
       .start();
+
     Thread gobbler = new Thread(() -> {
       try (BufferedReader out = new BufferedReader(
         new InputStreamReader(ownAdapter.getInputStream(), StandardCharsets.UTF_8))) {
@@ -945,6 +983,7 @@ public class FirefoxAdapterLiveProbe {
     }, "adapter-gobbler-" + variant);
     gobbler.setDaemon(true);
     gobbler.start();
+
     try {
       DapClient session = connectWithRetry(ownPort);
       try {
@@ -974,6 +1013,7 @@ public class FirefoxAdapterLiveProbe {
         // unique RDP port: default 6000 would CONNECT TO A LEFTOVER firefox
         // from an earlier variant/session instead of the launched one
         launchConfig.put("port", LiveProbeUtil.freePort());
+
         Response launch = session.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
         if (!launch.isSuccess()) {
           System.out.println("[probe]   variant " + variant + " launch failed: " + launch.getMessage());
@@ -992,14 +1032,17 @@ public class FirefoxAdapterLiveProbe {
 
         SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
         SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
+
         Source source = new Source();
         source.setPath(fixture.resolve("WebLoad.hx").toString());
         source.setName("WebLoad.hx");
         bpArgs.setSource(source);
+
         SourceBreakpoint bp = new SourceBreakpoint();
         bp.setLine(LOAD_BP_LINE);
         bpArgs.setBreakpoints(List.of(bp));
         setBreakpoints.setArguments(bpArgs);
+
         Response bpResponse = session.sendRequest(setBreakpoints, TIMEOUT);
         System.out.println("[probe]   variant " + variant + " setBreakpoints success=" + bpResponse.isSuccess());
 
@@ -1029,11 +1072,13 @@ public class FirefoxAdapterLiveProbe {
             continue;
           }
           int threadId = stopped.getBody().getThreadId() != null ? stopped.getBody().getThreadId() : 1;
+
           StackTraceRequest stackTrace = new StackTraceRequest();
           StackTraceArguments stArgs = new StackTraceArguments();
           stArgs.setThreadId(threadId);
           stackTrace.setArguments(stArgs);
           Response stResponse = session.sendRequest(stackTrace, TIMEOUT);
+
           StackFrame top = stResponse instanceof StackTraceResponse st && st.isSuccess()
                            && !st.getBody().getStackFrames().isEmpty()
                            ? st.getBody().getStackFrames().get(0) : null;

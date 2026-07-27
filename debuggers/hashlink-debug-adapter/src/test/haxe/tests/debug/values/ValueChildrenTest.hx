@@ -86,12 +86,15 @@ class ValueChildrenTest {
 	static function listsArrayObjStringElements(assert:Assert):Void {
 		var api = new FakeDebugApi();
 		var stringType = HObj({name: "String", tsuper: null, fields: [], proto: [], globalValue: null, bindings: []});
+
 		// ArrayObj @0x1000: length@8 = 1, native varray@16 -> 0x3000
 		pokeI32(api, 0x1008, 1);
 		pokePtr(api, 0x1010, 0x3000);
+
 		// varray @0x3000: at@8 -> runtime hl_type @0x4000 (HOBJ "String"), size@16 = 4
 		pokePtr(api, 0x3008, 0x4000);
 		pokeI32(api, 0x3010, 4);
+
 		// runtime hl_type "String": kind=11 @0x4000, data@0x4008 -> 0x4100, name@0x4110 -> 0x4200
 		pokeI32(api, 0x4000, 11);
 		pokePtr(api, 0x4008, 0x4100);

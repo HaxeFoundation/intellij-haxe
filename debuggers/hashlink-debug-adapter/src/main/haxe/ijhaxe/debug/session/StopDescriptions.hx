@@ -33,6 +33,7 @@ class StopDescriptions {
 		var what = stackOverflow
 			? "Stack overflow"
 			: "Low-level runtime error (such as a null access or invalid arithmetic; the VM reports no further detail)";
+
 		var where = topFrameWhere(threadId);
 		return what + (where != null ? " in " + where : "") + ". Execution cannot continue past this instruction.";
 	}
@@ -47,6 +48,7 @@ class StopDescriptions {
 	public function vmThrow(threadId:Int, thrown:Null<Pointer>):String {
 		var message = thrown != null ? inspector.previewDynamicPointer(thrown) : null;
 		var where = topFrameWhere(threadId);
+
 		if (message != null) {
 			return 'HashLink VM exception: $message' + (where != null ? ' — in $where' : '');
 		}

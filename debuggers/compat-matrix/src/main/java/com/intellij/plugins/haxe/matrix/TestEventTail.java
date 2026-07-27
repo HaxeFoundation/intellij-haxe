@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
  * on every switch between them.
  */
 final class TestEventTail {
+  // one gradle test event: "<class> > <test> <STATUS>" — group 1 the class,
+  // 2 the test, 3 the status. The ".*" absorbs the duration gradle prints between.
   private static final Pattern EVENT =
     Pattern.compile("^(\\S+) > (\\S+).* (PASSED|FAILED|SKIPPED)\\s*$");
   // tests between running-total progress lines (keeps long runs alive without
@@ -64,7 +66,8 @@ final class TestEventTail {
         return;
       }
       carry = text.substring(lastNewline + 1);
-      for (String line : text.substring(0, lastNewline).split("\r?\n")) {
+      // split on either line ending - the child build's log follows its own OS
+    for (String line : text.substring(0, lastNewline).split("\r?\n")) {
         handle(line);
       }
       if (total - reportedTotal >= PROGRESS_EVERY) {
@@ -116,12 +119,15 @@ final class TestEventTail {
     if (classes.isEmpty()) {
       return;
     }
-    classes.keySet().stream().sorted().forEach(name -> {
-      int[] counts = classes.get(name);
-      log.line("      " + name + ": " + counts[0] + " tests"
-               + (counts[1] > 0 ? ", " + counts[1] + " FAILED" : "")
-               + (counts[2] > 0 ? ", " + counts[2] + " skipped" : ""));
-    });
+    classes.keySet()
+      .stream()
+      .sorted()
+      .forEach(name -> {
+        int[] counts = classes.get(name);
+        log.line("      " + name + ": " + counts[0] + " tests"
+                 + (counts[1] > 0 ? ", " + counts[1] + " FAILED" : "")
+                 + (counts[2] > 0 ? ", " + counts[2] + " skipped" : ""));
+      });
     classes.clear();
     total = 0;
     reportedTotal = 0;

@@ -30,27 +30,35 @@ class DispatcherTest {
 		disconnectAcksAndRequestsShutdown(assert);
 		unknownCommandFailsWithoutKillingTheSession(assert);
 		invalidJsonFailsGracefully(assert);
+
 		runtimeEventsMapToDapEvents(assert);
+
 		setBreakpointsInstallsAndReturnsResults(assert);
 		aBreakpointStopCarriesTheHitId(assert);
 		continueResumesAllThreads(assert);
+
 		eventsBeforeInitializeAreBufferedThenFlushed(assert);
 		pauseBreaksTheWorld(assert);
+
 		stepIssuesTheRightStepTypeAndReportsStep(assert);
 		aStepThatKeepsTheSameLineReSteps(assert);
 		stackTraceReportsFramesNewestFirst(assert);
 		aBreakpointHitMidStepWinsOverTheStep(assert);
+
 		evaluateReturnsAResult(assert);
 		aFalseConditionResumesWithoutStopping(assert);
 		aTrueConditionStops(assert);
+
 		anUncaughtThrowStopsAsException(assert);
 		aCriticalErrorStopsAsException(assert);
 		aDisabledFilterResumesSilently(assert);
 		exceptionInfoDescribesTheLastStop(assert);
 		exceptionInfoFailsWhenNotAtAnExceptionStop(assert);
 		repeatedSilentCriticalResumesBreakTheLivelock(assert);
+
 		aCorruptLocalPoisonsOneRowNotTheRequest(assert);
 		aFaultingHandlerAnswersAndTheSessionLivesOn(assert);
+
 		theThrownFilterInstallsAndRemovesTheHook(assert);
 		aThrownHookStopReportsTheExceptionWithItsMessage(assert);
 		aMissingExceptionClassMakesTheThrownFilterUnverified(assert);
@@ -58,6 +66,7 @@ class DispatcherTest {
 		aTypedFilterStopsMatchesAndResumesOthers(assert);
 		aBaseClassFilterMatchesSubclassThrows(assert);
 		aThrownStopTrimsTheExceptionsOwnCtorFramesOnly(assert);
+
 		smartStepEntersTheChosenCallee(assert);
 		smartStepFallsBackToStepOver(assert);
 		aUserBreakpointWinsTheSmartStepRace(assert);
@@ -142,10 +151,12 @@ class DispatcherTest {
 		initialize(t);
 		setFilters(t, ["thrown"]);
 		var hook = t.api.installedFunctionBreakpoints[0].number;
+
 		t.api.localNames = ["this", "message"];
 		t.api.localValues.set("this", new SubError("boom"));
 		t.api.localValues.set("message", "boom");
 		var subName = Type.getClassName(SubError); // the runtime chain name
+
 		// Widget.new throws: [outermost .. innermost]
 		var frames:Array<DebugStackFrame> = [
 			new DebugStackFrame("Main.hx", 5, "Main", "main"),
@@ -153,9 +164,11 @@ class DispatcherTest {
 			new DebugStackFrame("Sub.hx", 3, subName, "new"),
 			new DebugStackFrame("Exception.hx", 40, "haxe.Exception", "new")
 		];
+
 		t.sent.resize(0);
 		t.dispatcher.handleDebugEvent(ThreadStopped(1, DebugThread.STATUS_STOPPED_BREAKPOINT, hook, frames, null));
 		assert.equals("exception", t.sent[0].body.reason, "reported as a thrown stop");
+
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({seq: 9, type: "request", command: "stackTrace", arguments: {threadId: 1}}));
 		var reported:Array<Dynamic> = t.sent[0].body.stackFrames;
@@ -170,12 +183,15 @@ class DispatcherTest {
 		var t = make();
 		initialize(t);
 		setFilters(t, ["uncaught", "critical", "thrown"]);
+
 		assert.equals(1, t.api.installedFunctionBreakpoints.length, "the hook is installed");
 		assert.equals("haxe.Exception", t.api.installedFunctionBreakpoints[0].className, "on haxe.Exception");
 		assert.equals("new", t.api.installedFunctionBreakpoints[0].functionName, "at the constructor");
 		var hook = t.api.installedFunctionBreakpoints[0].number;
+
 		setFilters(t, ["uncaught", "critical"]);
 		assert.isTrue(t.api.deletedBreakpoints.indexOf(hook) >= 0, "disabling removes the hook");
+
 		setFilters(t, ["thrown"]);
 		assert.equals(2, t.api.installedFunctionBreakpoints.length, "re-enabling reinstalls");
 	}
@@ -187,11 +203,14 @@ class DispatcherTest {
 		var hook = t.api.installedFunctionBreakpoints[0].number;
 		t.api.localNames = ["this", "message"];
 		t.api.localValues.set("message", "kaboom");
+
 		t.sent.resize(0);
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAKPOINT, hook, "Exception.hx", 40));
+
 		assert.equals("exception", t.sent[0].body.reason, "reported as an exception stop");
 		assert.equals("Thrown exception", t.sent[0].body.description, "classified as thrown");
 		assert.equals("haxe.Exception: kaboom", t.sent[0].body.text, "carries class + message");
+
 		// exceptionInfo reflects the thrown stop
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({seq: 9, type: "request", command: "exceptionInfo", arguments: {threadId: 1}}));
@@ -223,14 +242,17 @@ class DispatcherTest {
 		var t = make();
 		initialize(t);
 		smartStepRequest(t);
+
 		assert.isTrue(t.sent[0].success, "stepIntoFunction acknowledged");
 		assert.equals(1, t.api.installedFunctionBreakpoints.length, "temp entry breakpoint installed");
 		assert.equals("my.pack.Target", t.api.installedFunctionBreakpoints[0].className, "on the chosen class");
 		assert.equals(StepType.OVER, t.api.stepCalls[0].stepType, "races a step-over");
 		var temp = t.api.installedFunctionBreakpoints[0].number;
+
 		// the callee's entry: the temp fires (a breakpoint stop with its number)
 		t.sent.resize(0);
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAKPOINT, temp, "Target.hx", 5));
+
 		assert.equals("step", t.sent[0].body.reason, "reported as a plain step stop");
 		assert.isTrue(t.sent[0].body.hitBreakpointIds == null, "no breakpoint id leaks to the client");
 		assert.isTrue(t.api.deletedBreakpoints.indexOf(temp) >= 0, "the temp died with the stop");
@@ -266,16 +288,20 @@ class DispatcherTest {
 	static function aCorruptLocalPoisonsOneRowNotTheRequest(assert:Assert):Void {
 		var t = make();
 		initialize(t);
+
 		t.api.localNames = ["ok", "bad"];
 		t.api.localValues.set("ok", 5);
 		t.api.corruptLocals = ["bad"];
+
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAK_IMMEDIATE, -1, "Main.hx", 9));
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({seq: 5, type: "request", command: "stackTrace", arguments: {threadId: 1}}));
+
 		var frameId = t.sent[0].body.stackFrames[0].id;
 		t.dispatcher.handleRequest(Json.stringify({seq: 6, type: "request", command: "scopes", arguments: {frameId: frameId}}));
 		var reference = t.sent[1].body.scopes[0].variablesReference;
 		t.dispatcher.handleRequest(Json.stringify({seq: 7, type: "request", command: "variables", arguments: {variablesReference: reference}}));
+
 		var response = t.sent[2];
 		assert.isTrue(response.success, "variables succeeds despite the corrupt slot");
 		var rows:Array<Dynamic> = response.body.variables;
@@ -287,12 +313,14 @@ class DispatcherTest {
 	static function aFaultingHandlerAnswersAndTheSessionLivesOn(assert:Assert):Void {
 		var t = make();
 		initialize(t);
+
 		// no stop happened, so this threads() call is fine — instead fault the
 		// handler itself: threads() over a null canned list throws inside dispatch
 		t.api.cannedThreads = null;
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({seq: 8, type: "request", command: "threads"}));
 		assert.isTrue(!t.sent[0].success, "the faulting request is answered with an error");
+
 		// and the session still serves the next request
 		t.api.cannedThreads = [];
 		t.dispatcher.handleRequest(Json.stringify({seq: 9, type: "request", command: "threads"}));
@@ -353,11 +381,13 @@ class DispatcherTest {
 		var t = make();
 		initialize(t);
 		setFilters(t, ["critical"]); // uncaught OFF
+
 		t.sent.resize(0);
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_CRITICAL_ERROR, -1,
 			"Main.hx", 16, "Uncatchable Throw: boom"));
 		assert.equals(0, t.sent.length, "no stopped event for a disabled filter");
 		assert.equals(1, t.api.continueCalls.length, "resumed silently");
+
 		// the OTHER kind still stops
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_CRITICAL_ERROR, -1,
 			"Main.hx", 16, "Null Object Reference"));
@@ -389,13 +419,16 @@ class DispatcherTest {
 		var t = make();
 		initialize(t);
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAKPOINT, -1, "Main.hx", 10));
+
 		t.api.localNames = ["count"];
 		t.api.localValues.set("count", 6);
+
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({
 			seq: 1, type: "request", command: "evaluate",
 			arguments: {expression: "count * 7", frameId: 0}
 		}));
+
 		assert.isTrue(t.sent[0].success, "evaluate succeeds");
 		assert.equals("42", t.sent[0].body.result, "expression evaluated against the frame");
 	}
@@ -458,10 +491,12 @@ class DispatcherTest {
 		initialize(t);
 		// prime a current stop so the step has a "from" line
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAKPOINT, -1, "Main.hx", 10));
+
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(stepRequest("next", 3, 1));
 		assert.equals(1, t.api.stepCalls.length, "stepThread issued");
 		assert.equals(2, t.api.stepCalls[0].stepType, "next -> STEP_OVER");
+
 		// landing on a different line -> stop with reason step
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAK_IMMEDIATE, -1, "Main.hx", 11));
 		assert.equals("step", t.sent[1].body.reason, "step landing reported as step");
@@ -471,12 +506,15 @@ class DispatcherTest {
 		var t = make();
 		initialize(t);
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAKPOINT, -1, "Main.hx", 10));
+
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(stepRequest("next", 3, 1));
+
 		// still on line 10 (multi-expression line) -> re-step, no stopped event
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAK_IMMEDIATE, -1, "Main.hx", 10));
 		assert.equals(2, t.api.stepCalls.length, "re-stepped on the same line");
 		assert.equals(1, t.sent.length, "no stopped event while still on the same line (just the step response)");
+
 		// now the line changes -> report
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAK_IMMEDIATE, -1, "Main.hx", 12));
 		assert.equals("step", t.sent[1].body.reason, "reported once the line changed");
@@ -485,13 +523,16 @@ class DispatcherTest {
 	static function aBreakpointHitMidStepWinsOverTheStep(assert:Assert):Void {
 		var t = make();
 		initialize(t);
+
 		t.api.cannedFilesFullPath = ["C:/src/Main.hx"];
 		t.api.cannedFiles = ["Main.hx"];
+
 		t.dispatcher.handleRequest(Json.stringify({
 			seq: 1, type: "request", command: "setBreakpoints",
 			arguments: {source: {path: "C:/src/Main.hx"}, breakpoints: [{line: 20}]}
 		}));
 		var runtimeNumber = t.api.installedBreakpoints[0].number;
+
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAKPOINT, -1, "Main.hx", 10));
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(stepRequest("next", 3, 1));

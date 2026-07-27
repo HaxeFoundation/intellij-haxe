@@ -45,6 +45,7 @@ class ValueChildren {
 				arrayObjElements(pointer);
 			case HObj(proto) if (proto != null && proto.name == ValueReader.ARRAY_DYN):
 				arrayDynElements(pointer, t);
+
 			case HObj(proto) if (proto != null && maps != null && ValueReader.mapKeyKind(proto.name) != null):
 				mapEntries(mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr))), ValueReader.mapKeyKind(proto.name));
 			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
@@ -52,18 +53,22 @@ class ValueChildren {
 			case HAbstract(name) if (maps != null && ValueReader.nativeMapKind(name) != null):
 				// a map-native abstract: the reference pointer is the native map itself
 				mapEntries(pointer, ValueReader.nativeMapKind(name));
+
 			case HDynObj if (dynObjects != null):
 				dynObjFields(pointer);
+
 			case HObj(_), HStruct(_):
 				objectFields(pointer, t);
 			case HArray:
 				varrayElements(pointer);
 			case HEnum(proto) if (proto != null && enumLayout != null):
 				enumParams(pointer, proto);
+
 			case HVirtual(fields):
 				virtualFields(pointer, fields);
 			case HFun(_), HMethod(_):
 				closureCapture(pointer);
+
 			default:
 				[];
 		}
@@ -91,15 +96,18 @@ class ValueChildren {
 					: objectFieldTarget(pointer, t, childName);
 			case HObj(proto) if (proto != null && proto.name == ValueReader.ARRAY_DYN):
 				arrayDynElementTarget(pointer, childName);
+
 			case HDynObj if (dynObjects != null):
 				var field = dynObjects.fieldByName(pointer, childName);
 				field == null ? null : {address: field.address, type: field.type};
+
 			case HObj(_), HStruct(_):
 				objectFieldTarget(pointer, t, childName);
 			case HArray:
 				varrayElementTarget(pointer, childName);
 			case HVirtual(fields):
 				virtualFieldTarget(pointer, fields, childName);
+
 			default:
 				null;
 		}
@@ -217,6 +225,7 @@ class ValueChildren {
 		var variables:Array<VariableInfo> = [];
 		var wrapped = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		var objectBacked = !Int64.eq(wrapped, Int64.ofInt(0));
+
 		for (i in 0...fields.length) {
 			var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));
 			if (objectBacked && isFunctionField(fields[i].t) && !Int64.eq(slot, Int64.ofInt(0))) {

@@ -22,6 +22,7 @@ final class DapExecutionStack extends XExecutionStack {
   private final DapDebugProcess process;
   private final int threadId;
   private final @Nullable List<DapStackFrame> eagerFrames;
+
   // non-null when this thread stopped on a thrown exception: the value's text,
   // used for the gutter marker + tooltip at the throw line
   private final @Nullable String exceptionText;
@@ -71,7 +72,9 @@ final class DapExecutionStack extends XExecutionStack {
   }
 
   private List<DapStackFrame> toFrames(List<StackFrame> dapFrames) {
-    return dapFrames.stream().map(frame -> new DapStackFrame(process, frame, threadId)).toList();
+    return dapFrames.stream()
+      .map(frame -> new DapStackFrame(process, frame, threadId))
+      .toList();
   }
 
   @Override

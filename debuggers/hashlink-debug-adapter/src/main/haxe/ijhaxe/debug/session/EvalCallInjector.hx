@@ -82,7 +82,7 @@ class EvalCallInjector {
 		// may internally throw/catch (tripping the hl_throw trap when VM-exception
 		// breakpoints are on) or run through a user breakpoint — either would abort
 		// the call and leave a half-executed frame that corrupts later execution.
-		// The lift also keeps the trampoline's saved bytes clean of our 0xCC.
+		// The lift also keeps the trampoline's saved bytes clean of any 0xCC.
 		breakpoints.suspendAll();
 		// no `finally` in Haxe: hold a failure so the breakpoints are ALWAYS
 		// re-planted, even when the injection itself throws
@@ -123,6 +123,7 @@ class EvalCallInjector {
 	public function writeXmm0(threadId:Int, bits:Pointer):Void {
 		breakpoints.suspendAll();
 		var error:Null<Dynamic> = null;
+
 		try {
 			runInjectedCall(threadId, X64CallEmitter.buildXmm0Load(bits), 0);
 		} catch (e:Dynamic) {
@@ -141,14 +142,17 @@ class EvalCallInjector {
 	// everything is restored.
 	function runInjectedCall(threadId:Int, asm:Bytes, floatBits:Int):Pointer {
 		var asmSize = asm.length;
+
 		var prevEax = api.readRegister(debuggeePid, threadId, Eax);
 		var prevEip = api.readRegister(debuggeePid, threadId, Eip);
 		var prevEsp = api.readRegister(debuggeePid, threadId, Esp);
+
 		// readable context the injection does NOT restore - snapshot it so the
 		// after-call readback exposes any clobber the resume then runs with
 		var prevEbp = api.readRegister(debuggeePid, threadId, Ebp);
 		var prevFlags = api.readRegister(debuggeePid, threadId, EFlags);
 		var prevXmm0 = api.readRegister(debuggeePid, threadId, Xmm0);
+
 		if (Trace.isEnabled()) {
 			Trace.log('[eval-call] inject thread=$threadId eip=${hex(prevEip)} esp=${hex(prevEsp)}'
 				+ ' ebp=${hex(prevEbp)} eax=${hex(prevEax)} flags=${hex(prevFlags)} xmm0=${hex(prevXmm0)}'
@@ -220,7 +224,7 @@ class EvalCallInjector {
 	}
 
 	// Resume the thread and wait until it traps at exactly `trapEnd` (Eip past
-	// our injected INT3). Returns false on exit, a foreign stop, or timeout.
+	// the injected INT3). Returns false on exit, a foreign stop, or timeout.
 	// A foreign Breakpoint/Error is a REAL pending event that owns the process
 	// freeze: it is handed to hooks.onForeignStop for the session to process as
 	// a normal stop once the eval teardown is done — resuming past it with the
@@ -249,8 +253,8 @@ class EvalCallInjector {
 					api.resume(debuggeePid, outcome.threadId);
 				case Handled:
 					// auto-continued lifecycle event (another thread created/
-					// exited/named itself during the call): not our trap and not
-					// a failure — keep waiting
+					// exited/named itself during the call): not the injected trap
+					// and not a failure — keep waiting
 				case Exit:
 					if (Trace.isEnabled()) {
 						Trace.log('[eval-call] debuggee EXITED during call (thread=${outcome.threadId})');

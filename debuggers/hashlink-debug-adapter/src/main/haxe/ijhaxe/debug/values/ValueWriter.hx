@@ -222,7 +222,7 @@ class ValueWriter {
 	}
 
 	// A Dynamic slot holds a pointer to a vdynamic (runtime type @ +0, payload
-	// @ +ptr). We can update a box IN PLACE only when it already holds the same
+	// @ +ptr). A box can be updated IN PLACE only when it already holds the same
 	// primitive kind — anything else would need a fresh allocation.
 	function mutateBox(target:WriteTarget, wantKind:HLType, writePayload:Pointer->Void):Void {
 		var box = mem.readPointer(target.address);

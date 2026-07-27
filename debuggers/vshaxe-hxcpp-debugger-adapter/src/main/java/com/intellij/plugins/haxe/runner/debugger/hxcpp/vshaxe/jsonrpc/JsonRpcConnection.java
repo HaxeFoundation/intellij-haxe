@@ -14,7 +14,7 @@ import java.net.Socket;
  * and receives whole {@link JsonRpcServerMessage}s. Does not assign ids or
  * match responses to requests — that is {@link JsonRpcClient}'s job.
  *
- * In the normal launch flow the debuggee connects to us, so the socket
+ * In the normal launch flow the debuggee is the connecting side, so the socket
  * usually comes from a ServerSocket accept rather than {@link #connect}.
  */
 public class JsonRpcConnection implements Closeable {

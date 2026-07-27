@@ -25,11 +25,13 @@ public class InitializeRequest extends Request {
   public static InitializeRequest standard(String adapterId, boolean supportsStartDebugging) {
     InitializeRequest request = new InitializeRequest();
     InitializeRequestArguments arguments = new InitializeRequestArguments();
+
     arguments.setClientID("intellij");
     arguments.setAdapterID(adapterId);
     arguments.setPathFormat("path");
     arguments.setLinesStartAt1(true);
     arguments.setColumnsStartAt1(true);
+
     if (supportsStartDebugging) {
       arguments.setSupportsStartDebuggingRequest(true);
     }

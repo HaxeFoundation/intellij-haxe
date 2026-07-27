@@ -23,12 +23,15 @@ class ExceptionController {
 	// only when no live `try` will catch the throw; `types` on matching classes.
 	var breakAll:Bool = false;
 	var breakUncaught:Bool = false;
+
 	// FQNs (or simple names) of exception classes to stop on — the per-type filter.
 	var breakTypes:Array<String> = [];
+
 	// "vm" filter: break on VM-raised errors (null access, bounds, cast, ...)
 	// by trapping hl_throw. Resolved lazily from an OThrow site once, then cached.
 	var breakVm:Bool = false;
 	var nativeThrowAddress:Null<Pointer> = null;
+
 	// Threads parked between hl_throw's ENTRY trap (where the thrown value is
 	// unreadable) and hl_throw's own hl_debug_break (where exc_value holds it),
 	// with the throwing frames walked at the entry (unwalkable at the break).
@@ -129,19 +132,19 @@ class ExceptionController {
 		session.emit(EvStoppedException(threadId, session.descriptions.thrown(threadId, excEntry.reg)));
 	}
 
-	// hl_throw's entry: EVERY exception passes through here. We only surface
-	// VM-RAISED errors (null access, bounds, cast, ...) — i.e. throws whose
+	// hl_throw's entry: EVERY exception passes through here. Only VM-RAISED
+	// errors (null access, bounds, cast, ...) are surfaced — i.e. throws whose
 	// immediate caller is C runtime code, not a jitted OThrow. A bytecode
 	// throw's caller IS jit code, so it is left to the OThrow-based breakpoints
 	// (avoiding a double stop) and resumed past silently here.
 	//
 	// The thrown value is UNREADABLE at this entry (it sits in an argument
 	// register HL's debug API does not expose), so a VM-raised throw does not
-	// stop here either: we set HL_EXC_CATCH_ALL on the throwing thread and let
-	// hl_throw run on — it stores exc_value and then executes its own
+	// stop here either: HL_EXC_CATCH_ALL is set on the throwing thread and
+	// hl_throw runs on — it stores exc_value and then executes its own
 	// hl_debug_break, where handleVmThrowBreak reports the stop WITH the
-	// actual error message. Only when the thread registry is unreadable do we
-	// stop here, with a generic description.
+	// actual error message. Only an unreadable thread registry stops here,
+	// with a generic description.
 	public function handleNativeThrowHit(threadId:Int):Void {
 		var syntheticBp = session.breakpoints.nativeThrowBreakpoint();
 		var vmRaised = session.throwClassifier.raisedByRuntime(threadId);

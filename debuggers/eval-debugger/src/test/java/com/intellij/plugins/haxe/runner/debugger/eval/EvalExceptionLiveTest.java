@@ -116,7 +116,7 @@ public class EvalExceptionLiveTest {
     dapClient.pollEvent(TIMEOUT);
     assertTrue("launch", request(new LaunchRequest()).isSuccess());
 
-    // the IDE sends exception filters (our backend reports it can't honor
+    // the IDE sends exception filters (the backend reports it can't honor
     // them, but the request must still not wedge the session)
     SetExceptionBreakpointsRequest exceptions = new SetExceptionBreakpointsRequest();
     SetExceptionBreakpointsArguments exArgs = new SetExceptionBreakpointsArguments();

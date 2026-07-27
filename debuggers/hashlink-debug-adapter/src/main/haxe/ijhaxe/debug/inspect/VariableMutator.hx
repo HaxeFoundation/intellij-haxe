@@ -68,8 +68,10 @@ class VariableMutator {
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
 		var target = resolver.targetInReference(reference, name);
 		var v = evaluator.evalExpr(resolver.writeFrame, ExprParser.parse(StringTools.trim(valueExpr)));
+
 		writeValue(target, v);
 		fixupAfterWrite(target);
+
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}

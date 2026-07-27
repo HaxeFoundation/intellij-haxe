@@ -20,7 +20,7 @@ class ObjectLayoutTest {
 		return {name: name, tsuper: tsuper, fields: fields, proto: [], globalValue: null, bindings: []};
 	}
 
-	static function offsetOf(layout:Array<ijhaxe.debug.layout.FieldLayout>, name:String):Int {
+	static function offsetOf(layout:Array<FieldLayout>, name:String):Int {
 		for (f in layout) {
 			if (f.name == name) {
 				return f.offset;
@@ -64,7 +64,9 @@ class ObjectLayoutTest {
 			{name: "pos", t: HPacked({v: HStruct(vec)})},
 			{name: "tail", t: HI32},
 		]);
+
 		var layout = new ObjectLayout(new Align(true, false)).fields(holder);
+
 		assert.equals(8, offsetOf(layout, "id"), "id after the header");
 		assert.equals(16, offsetOf(layout, "pos"), "packed struct aligned on its largest field");
 		assert.equals(32, offsetOf(layout, "tail"), "tail after the inlined struct size");

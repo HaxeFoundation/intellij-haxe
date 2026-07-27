@@ -38,6 +38,7 @@ class FakeHxcppServer implements Closeable {
     socket = new Socket("127.0.0.1", adapterPort);
     in = socket.getInputStream();
     out = socket.getOutputStream();
+
     // Void-result methods every session uses; tests override what they assert on
     handle("continue", params -> "null");
     handle("next", params -> "null");
@@ -46,6 +47,7 @@ class FakeHxcppServer implements Closeable {
     handle("pause", params -> "null");
     handle("setExceptionOptions", params -> "null");
     handle("switchFrame", params -> "null");
+
     Thread reader = new Thread(this::serveLoop, "fake-hxcpp-server");
     reader.setDaemon(true);
     reader.start();
@@ -63,7 +65,9 @@ class FakeHxcppServer implements Closeable {
 
   /** The recorded requests for one method. */
   List<JsonNode> requests(String method) {
-    return requests.stream().filter(r -> method.equals(r.path("method").asString())).toList();
+    return requests.stream()
+      .filter(r -> method.equals(r.path("method").asString()))
+      .toList();
   }
 
   /** Pushes a notification (a message without id) to the adapter. */

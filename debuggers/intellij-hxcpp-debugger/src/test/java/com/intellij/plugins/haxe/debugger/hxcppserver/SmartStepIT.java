@@ -110,7 +110,7 @@ public class SmartStepIT {
   /**
    * A callee invoked TWICE on one line ({@code cfg.dup(1).mid().dup(2)}):
    * occurrence=2 must land in the SECOND invocation — the entry breakpoint
-   * alone stops at the first. The argument value proves which one we entered.
+   * alone stops at the first. The argument value proves which one was entered.
    */
   @Test
   public void occurrencePicksTheLaterInvocationOfADuplicatedCallee() throws Exception {

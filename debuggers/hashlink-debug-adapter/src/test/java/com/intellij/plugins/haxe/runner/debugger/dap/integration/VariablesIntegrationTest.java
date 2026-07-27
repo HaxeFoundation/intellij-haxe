@@ -390,9 +390,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     Variable f = findVariable(richLocals(), "f");
     assertNotNull("local f present", f);
     assertTrue("bound closure is expandable", f.getVariablesReference() > 0);
+
     Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
     assertNotNull("captured child present", captured);
     assertEquals("capture box preview", "Array(1)", captured.getValue());
+
     Map<String, String> box = variablesByName(captured.getVariablesReference());
     assertEquals("captured value inside the box", "20", box.get("0"));
 
@@ -679,8 +681,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("int is Float (Haxe)", "true", evaluate(frameId, "n is Float").getBody().getResult());
     assertEquals("int is not Bool", "false", evaluate(frameId, "n is Bool").getBody().getResult());
     assertEquals("field is String", "true", evaluate(frameId, "obj.label is String").getBody().getResult());
+
     // combined with logic
     assertEquals("is in a boolean expression", "true", evaluate(frameId, "obj is Point && n is Int").getBody().getResult());
+
     // an unknown type name is a user error, not a silent false
     Response unknownType = evaluateRaw(frameId, "obj is Nonexistent");
     assertFalse("unknown type rejected", unknownType.isSuccess());

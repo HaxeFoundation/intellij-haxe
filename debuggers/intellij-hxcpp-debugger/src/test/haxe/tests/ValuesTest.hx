@@ -82,11 +82,13 @@ class ValuesTest {
 		objectsExpandToDataFieldsOnly(assert);
 		anonymousObjectsExpand(assert);
 		enumsExpandToParameters(assert);
+
 		renderingNeverInvokesGetters(assert);
 		toStringLabelsAreOptIn(assert);
 		toStringNeverRunsWithoutADeclaration(assert);
 		throwingToStringDegradesToTheClassName(assert);
 		recursingToStringDegradesWhereCatchable(assert);
+
 		stringMapListsItsEntries(assert);
 		intMapListsItsEntries(assert);
 		objectMapKeysFollowTheDescribePolicy(assert);

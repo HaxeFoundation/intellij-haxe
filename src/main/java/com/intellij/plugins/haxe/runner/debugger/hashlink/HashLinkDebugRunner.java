@@ -61,6 +61,7 @@ public class HashLinkDebugRunner extends DapDebugRunnerBase<HashLinkRunConfigura
     Path hlProgram = configuration.resolveProgram(module);
     Path workingDirectory = configuration.resolveWorkingDirectory(module);
     Path workDir = workingDirectory != null ? workingDirectory : hlProgram.getParent();
+
     return new GeneralCommandLine()
       .withExePath(hlExecutable.toString())
       .withParameters("--debug", Integer.toString(backend.getDebugPort()), "--debug-wait", hlProgram.toString())

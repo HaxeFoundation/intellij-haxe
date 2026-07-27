@@ -100,6 +100,7 @@ public class HxcppDebugAdapterTest {
       ServerSocket listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
       Socket clientSide = new Socket("127.0.0.1", listener.getLocalPort());
       lonely.start(new DapConnection(listener.accept()));
+
       try (DapClient client = new DapClient(new DapConnection(clientSide))) {
         Response response = client.sendRequest(new LaunchRequest(), TIMEOUT);
         assertFalse(response.isSuccess());
@@ -126,14 +127,17 @@ public class HxcppDebugAdapterTest {
 
     Source source = new Source();
     source.setPath("C:\\project\\src\\Main.hx");
+
     SourceBreakpoint plain = new SourceBreakpoint();
     plain.setLine(14);
     SourceBreakpoint conditional = new SourceBreakpoint();
     conditional.setLine(20);
     conditional.setCondition("n > 2");
+
     SetBreakpointsArguments arguments = new SetBreakpointsArguments();
     arguments.setSource(source);
     arguments.setBreakpoints(List.of(plain, conditional));
+
     SetBreakpointsRequest request = new SetBreakpointsRequest();
     request.setArguments(arguments);
 
@@ -226,6 +230,7 @@ public class HxcppDebugAdapterTest {
           {"id": 5, "name": "worker"}
         ]
         """);
+
     ThreadsResponse response = (ThreadsResponse)dapClient.sendRequest(new ThreadsRequest(), TIMEOUT);
     assertEquals(2, response.getBody().getThreads().size());
     assertEquals("worker", response.getBody().getThreads().get(1).getName());

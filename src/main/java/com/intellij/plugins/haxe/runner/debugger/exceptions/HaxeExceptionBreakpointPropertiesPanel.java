@@ -63,7 +63,7 @@ final class HaxeExceptionBreakpointPropertiesPanel
     properties.notifyCritical = critical.isSelected();
 
     if (changed && breakpoint.isEnabled()) {
-      // forces an "update state and notify" so our debugger can update its internal state
+      // forces an "update state and notify" so the debugger can update its internal state
       breakpoint.setEnabled(false);
       breakpoint.setEnabled(true);
     }

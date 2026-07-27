@@ -31,6 +31,7 @@ public final class HaxeRunConfigurationEditorUtil {
    */
   public static void browseInto(Project project, TextFieldWithBrowseButton field, FileChooserDescriptor descriptor) {
     field.getTextField().setColumns(25);
+
     field.addActionListener(e -> {
       VirtualFile file = FileChooser.chooseFile(descriptor, project, currentSelection(field));
       if (file != null) {

@@ -174,6 +174,7 @@ public class HashLinkBackend implements DapBackend {
         HashLinkRegistersPanel panel = new HashLinkRegistersPanel(process);
         registersPanel = panel;
         process.getSession().addSessionListener(panel);
+
         Content content = ui.createContent("HashLinkRegisters", panel, "Registers",
                                            AllIcons.Debugger.Value, null);
         content.setCloseable(false);

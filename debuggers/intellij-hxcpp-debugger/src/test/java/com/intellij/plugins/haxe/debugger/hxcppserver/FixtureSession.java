@@ -44,9 +44,11 @@ final class FixtureSession implements AutoCloseable {
   // fixture sources; the files say "extend at the END, never reflow").
   static final String MAIN_SOURCE = "Main.hx";
   static final int MAIN_ADD_LINE = 17;
+
   // lines WITHOUT executable code, for the strict line-table verification tests
   static final int MAIN_COMMENT_LINE = 15;
   static final int MAIN_BLANK_LINE = 20;
+
   static final String EX_SOURCE = "MainEx.hx";
   static final int EX_THROW_LINE = 21;
   static final int EX_CAUGHT_NULL_LINE = 35;
@@ -58,6 +60,7 @@ final class FixtureSession implements AutoCloseable {
   static final int TYPED_THROW_LINE = 191;
   static final int DUP_CHAIN_LINE = 228;
   static final int TOSTRING_LINE = 258;
+
   static final int CLOSURE_CALL_LINE = 304;
   static final int CLOSURE_ARRAY_CALL_LINE = 306;
   static final int CLOSURE_BODY_LINE = 310;
@@ -107,6 +110,7 @@ final class FixtureSession implements AutoCloseable {
       }
     }, "fixture-output");
     listener.setSoTimeout((int)TIMEOUT_MILLIS);
+
     try {
       FixtureSession session = new FixtureSession(listener, debuggee, new DapClient(new DapConnection(listener.accept())));
       holder[0] = session;
@@ -321,7 +325,9 @@ final class FixtureSession implements AutoCloseable {
   /** Lines the debuggee printed so far whose text starts with the prefix. */
   int outputCount(String prefix) {
     synchronized (output) {
-      return (int)output.stream().filter(line -> line.startsWith(prefix)).count();
+      return (int)output.stream()
+        .filter(line -> line.startsWith(prefix))
+        .count();
     }
   }
 

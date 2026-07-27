@@ -22,18 +22,24 @@ import format.hl.Data.Opcode;
 class ModuleDebugInfo {
 	final data:Data;
 	final isWindows:Bool;
+
 	// findex (global) -> "Class.method" display name
 	final namesByFindex:Map<Int, String>;
+
 	// "Class.method" -> findex (the reverse of namesByFindex; for resolving
 	// runtime helpers like "String.fromUTF8" to call via the eval-call machinery)
 	final findexByName:Map<String, Int>;
+
 	// findex (global) -> position in data.functions (the index JitInfo uses)
 	final functionIndexByFindex:Map<Int, Int>;
+
 	// findex (global) -> the "$Class" statics prototype whose bindings own that function
 	final staticsProtoByFindex:Map<Int, ObjPrototype>;
+
 	// statics-container type name (e.g. "$Config") -> its global index (the slot in
 	// the global data block that holds the class's statics singleton pointer)
 	final globalIndexByTypeName:Map<String, Int>;
+
 	// type name -> module HLType, for resolving runtime hl_type names
 	final typesByName:Map<String, HLType>;
 
@@ -414,11 +420,13 @@ class ModuleDebugInfo {
 			if (baseName(stored) != basename) {
 				continue;
 			}
-			if (stored == normalizedRequest
+			var sameFile = stored == normalizedRequest
 				|| StringTools.endsWith(normalizedRequest, "/" + stored)
 				|| StringTools.endsWith(stored, "/" + normalizedRequest)
 				|| StringTools.endsWith(normalizedRequest, stored)
-				|| StringTools.endsWith(stored, normalizedRequest)) {
+				|| StringTools.endsWith(stored, normalizedRequest);
+
+			if (sameFile) {
 				result.set(i, true);
 			}
 		}

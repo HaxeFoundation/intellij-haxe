@@ -98,6 +98,7 @@ class StackWalker {
 		var returnAddress = readPointer(esp); // the immediate caller's resume address
 		var frameBase = ebp; // ... whose frame base is the current RBP
 		var guard = 0;
+
 		while (guard++ < MAX_FRAMES) {
 			var resolved = jit.resolveAddress(returnAddress);
 			if (resolved != null) {

@@ -184,7 +184,7 @@ public class EvalStepExceptionLiveTest {
       assertTrue("step #" + i + " answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
 
       // the terminate may race ahead of / lag behind the step response; poll a
-      // short window for it, or for a fresh stop meaning we must step again
+      // short window for it, or for a fresh stop meaning another step is needed
       long deadline = System.currentTimeMillis() + 4_000;
       boolean stoppedAgain = false;
       while (System.currentTimeMillis() < deadline) {
@@ -215,12 +215,14 @@ public class EvalStepExceptionLiveTest {
     ContinueArguments cArgs = new ContinueArguments();
     cArgs.setThreadId(threadId);
     resume.setArguments(cArgs);
+
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
     long elapsed = System.currentTimeMillis() - before;
     assertTrue("continue after the walk answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
     assertTrue("continue after the walk answered (success), was: " + resumed.getMessage(),
                resumed.isSuccess());
+
     awaitEvent(TerminatedEvent.class);
     haxe.waitFor(3, TimeUnit.SECONDS);
   }
@@ -261,6 +263,7 @@ public class EvalStepExceptionLiveTest {
   public void steppingAtTheExceptionStopAnswersPromptlyAndTerminates() throws Exception {
     int threadId = runIntoExceptionStop().getBody().getThreadId();
     hydrateStopLikeTheIde(threadId, "exception stop");
+
     for (int press = 0; press < 6; press++) {
       long before = System.currentTimeMillis();
       Response step = request(stepInRequestFor(threadId));
@@ -314,7 +317,9 @@ public class EvalStepExceptionLiveTest {
       ScopesArguments scArgs = new ScopesArguments();
       scArgs.setFrameId(frames.get(0).getId());
       scopes.setArguments(scArgs);
+
       Response scopesResponse = request(scopes);
+
       // a mid-unwind frame may legitimately have nothing to show, but the
       // request must come back rather than sit on the VM timeout
       if (scopesResponse.isSuccess()) {

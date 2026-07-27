@@ -126,7 +126,7 @@ class VmExceptionControl {
 	}
 
 	// Both exception bits live in the flags word's first (little-endian) byte;
-	// the throwing thread is frozen while we touch it, so the single-byte
+	// the throwing thread is frozen during the update, so the single-byte
 	// read-modify-write cannot race the debuggee.
 	function readFlagsByte(info:Pointer):Int {
 		var buf = haxe.io.Bytes.alloc(1);

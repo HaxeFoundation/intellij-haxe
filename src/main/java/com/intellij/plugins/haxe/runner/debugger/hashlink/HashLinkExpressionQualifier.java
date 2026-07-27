@@ -31,14 +31,14 @@ import org.jetbrains.annotations.Nullable;
  * <p>The adapter resolves class-qualified statics only by fully-qualified name
  * ({@code pkg.Cls.member}) — it has no view of the source file's imports. So
  * {@code Point.ORIGIN} typed against a file that {@code import}s the class must
- * become {@code geom.Point.ORIGIN} first. We do it <em>eagerly</em> (rewrite,
- * then send once) rather than letting the adapter reject the unresolved name and
- * retrying with a qualified form: a lazy retry would re-run any side effects
+ * become {@code geom.Point.ORIGIN} first. The rewrite happens <em>eagerly</em>
+ * (rewrite, then send once) rather than letting the adapter reject the unresolved
+ * name and retrying with a qualified form: a lazy retry would re-run any side effects
  * already evaluated in a compound expression — {@code increase() + Cls.member}
  * would call {@code increase()} twice. Sending once keeps side effects once.
  *
  * <p>A detached code fragment's own {@code resolve()} does NOT honor the context
- * file's imports, so we resolve each type <em>name</em> against the context via
+ * file's imports, so each type <em>name</em> is resolved against the context via
  * the model layer (the Haxe analogue of Flex's {@code
  * JSImportHandlingUtil.resolveTypeName}) — the same {@code exposeByName} path
  * {@link com.intellij.plugins.haxe.lang.psi.HaxeResolver} itself uses.

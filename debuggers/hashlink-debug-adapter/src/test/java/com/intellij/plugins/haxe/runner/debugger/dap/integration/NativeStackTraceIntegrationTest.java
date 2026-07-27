@@ -70,6 +70,7 @@ public class NativeStackTraceIntegrationTest extends DapIntegrationTestBase {
     // at least two entries have the full "Class.method (File.hx:line)" shape
     int located = 0;
     for (String value : entries) {
+      // a fully located fixture frame: "StackTrace.<method> (StackTrace.hx:<line>)"
       if (value.matches("StackTrace\\.\\w+ \\(StackTrace\\.hx:\\d+\\)")) located++;
     }
     assertTrue("two+ fixture frames carry a File.hx:line location (" + joined + ")", located >= 2);

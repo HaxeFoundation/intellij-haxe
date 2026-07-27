@@ -22,7 +22,7 @@ class HlNativeDebugApi implements DebugApi {
 	// layout (CONTEXT vs WOW64_CONTEXT on win64; a 32-bit libhl only has the
 	// 32-bit CONTEXT). Passing the wrong one reads garbage registers and — worse —
 	// register WRITES corrupt the thread context and crash the debuggee. True
-	// until the handshake tells us (registers are first touched after it).
+	// until the handshake reports otherwise (registers are first touched after it).
 	var targetIs64:Bool = true;
 
 	public function new() {}
