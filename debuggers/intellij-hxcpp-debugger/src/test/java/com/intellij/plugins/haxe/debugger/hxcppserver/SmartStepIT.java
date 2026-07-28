@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.debugger.hxcppserver;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,8 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * instance targets, packaged class names, the step-over fallback for a callee
  * that never runs, and the no-op stop for a class name the runtime rejects.
  */
+@DisplayName("HXCPP debugger: smart step (integration)")
 public class SmartStepIT {
   @Test
+  @DisplayName("enters the chosen callee including later and packaged ones")
   public void entersTheChosenCalleeIncludingLaterAndPackagedOnes() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
       session.initialize("uncaught", "critical");
@@ -52,6 +55,7 @@ public class SmartStepIT {
   }
 
   @Test
+  @DisplayName("an instance method chain enters the chosen link")
   public void anInstanceMethodChainEntersTheChosenLink() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("chain")) {
       session.initialize("uncaught", "critical");
@@ -74,6 +78,7 @@ public class SmartStepIT {
    * alone stops at the first. The argument value proves which one was entered.
    */
   @Test
+  @DisplayName("occurrence picks the later invocation of a duplicated callee")
   public void occurrencePicksTheLaterInvocationOfADuplicatedCallee() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("dupchain")) {
       session.initialize("uncaught", "critical");
@@ -95,6 +100,7 @@ public class SmartStepIT {
   }
 
   @Test
+  @DisplayName("a callee that never runs falls back to a step over")
   public void aCalleeThatNeverRunsFallsBackToAStepOver() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
       session.initialize("uncaught", "critical");
@@ -114,6 +120,7 @@ public class SmartStepIT {
    * (it could run forever): it re-reports the current stop instead.
    */
   @Test
+  @DisplayName("a runtime unknown class name is a no op stop")
   public void aRuntimeUnknownClassNameIsANoOpStop() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
       session.initialize("uncaught", "critical");

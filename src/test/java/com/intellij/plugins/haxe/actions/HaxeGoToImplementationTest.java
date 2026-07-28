@@ -23,11 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.intellij.codeInsight.navigation.GotoTargetHandler;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Navigation: go to implementation")
 public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -44,21 +46,25 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("gti 1")
   public void testGti1() throws Throwable {
     doTest(2);
   }
 
   @Test
+  @DisplayName("gti 2")
   public void testGti2() throws Throwable {
     doTest(1);
   }
 
   @Test
+  @DisplayName("gti 3")
   public void testGti3() throws Throwable {
     doTest(2);
   }
 
   @Test
+  @DisplayName("gti 4")
   public void testGti4() throws Throwable {
     doTest(2);
   }

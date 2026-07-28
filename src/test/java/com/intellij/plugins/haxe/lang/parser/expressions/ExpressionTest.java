@@ -19,167 +19,200 @@
 package com.intellij.plugins.haxe.lang.parser.expressions;
 
 import com.intellij.plugins.haxe.lang.parser.HaxeParsingTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: expression")
 public class ExpressionTest extends HaxeParsingTestBase {
   public ExpressionTest() {
     super("parsing", "haxe", "expressions");
   }
 
   @Test
+  @DisplayName("haxe 3")
   public void testHaxe3() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("offers")
   public void testOffers() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 1")
   public void testTest1() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 2")
   public void testTest2() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 3")
   public void testTest3() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 4")
   public void testTest4() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 5")
   public void testTest5() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 6")
   public void testTest6() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 7")
   public void testTest7() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test 8")
   public void testTest8() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("tivo 42")
   public void testTivo_42() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("new")
   public void testNew() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("json string literals issue 498")
   public void testJsonStringLiteralsIssue498() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("type check")
   public void testTypeCheck() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("issue 544")
   public void testIssue544() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("optional var on function type")
   public void testOptionalVarOnFunctionType() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("shift left assign")
   public void testShiftLeftAssign() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("shift right assign")
   public void testShiftRightAssign() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("nested typed classes assignment")
   public void testNestedTypedClassesAssignment() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("unsigned shift right assign")
   public void testUnsignedShiftRightAssign() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("complex expression")
   public void testComplexExpression() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("static initializer")
   public void testStaticInitializer() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("parenthesized array access")
   public void testParenthesizedArrayAccess() throws Throwable {
     doTest(true);
   }
   @Test
+  @DisplayName("safe cast expressions")
   public void testSafeCastExpressions() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("sequential operators should fail parsing")
   public void testSequentialOperatorsShouldFailParsing() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("too many metas")
   public void testTooManyMetas() throws Throwable {
     // github.com/HaxeFoundation/intellij-haxe/issues/81
     doTest(true);
   }
 
   @Test
+  @DisplayName("is keyword")
   public void testIsKeyword() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("strings")
   public void testStrings() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("inline call expression")
   public void testInlineCallExpression() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("regular expressions")
   public void testRegularExpressions() throws Throwable {
     doTest(true, true);
   }
 
   @Test
+  @DisplayName("xml literals")
   public void testXmlLiterals() throws Throwable {
     doTest(true);
   }

@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.execution.Platform;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Compiler: error parsing")
 public class HaxeCompilerErrorParsingTest {
   // XXX this is an unsafe test to do on a non-windows box
   public void disabledtestUserProperiesErrorWin() {
@@ -45,6 +47,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("NME error win")
   public void testNMEErrorWin() {
     final String error = "src/Main.hx:5: characters 0-21 : Class not found : StringTools212";
     final String rootPath = "C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker";
@@ -59,6 +62,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("NME error relative unix")
   public void testNMEErrorRelativeUnix() {
     final String error = "./HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener";
     final String rootPath = "/trees/test";
@@ -73,6 +77,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("NME error absolute unix")
   public void testNMEErrorAbsoluteUnix() {
     final String error = "/an/absolute/path/HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener";
     final String rootPath = "/trees/test";
@@ -89,6 +94,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("NME error no column unix")
   public void testNMEErrorNoColumnUnix() {
     final String error = "hello/HelloWorld.hx:18: lines 18-24 : Interfaces cannot implement another interface (use extends instead)";
     final String rootPath = "/trees/test";
@@ -103,6 +109,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("warnings")
   public void testWarnings() {
     final String error = "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!";
     final String rootPath = "/trees/test";
@@ -117,6 +124,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("file less warning double parens")
   public void testFileLessWarningDoubleParens() {
     // Haxe emits global warnings without a file location, e.g. the deprecated
     // flash target notice.  These must be reported as warnings, not errors.
@@ -129,6 +137,7 @@ public class HaxeCompilerErrorParsingTest {
   }
 
   @Test
+  @DisplayName("file less warning single parens")
   public void testFileLessWarningSingleParens() {
     // Alternative shape emitted by newer Haxe versions: "(unknown) : Warning : ...".
     final String error = "(unknown) : Warning : (WDeprecatedDefine) The flash target will be removed for Haxe 5";

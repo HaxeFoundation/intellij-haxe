@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test;
  * - disconnect detaches (restoring all patched INT3 bytes) instead of killing,
  *   so the debuggee runs to completion on its own.
  */
+@DisplayName("HashLink debugger: attach mode (integration)")
 public class AttachModeIntegrationTest extends DapIntegrationTestBase {
   private final StringBuilder debuggeeOutput = new StringBuilder();
 
@@ -43,6 +45,7 @@ public class AttachModeIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("attaches to an externally spawned debuggee and debugs it")
   public void attachesToAnExternallySpawnedDebuggeeAndDebugsIt() throws Exception {
     int port = spawnDebuggee();
     initialize();
@@ -80,6 +83,7 @@ public class AttachModeIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("disconnect detaches and lets the debuggee finish")
   public void disconnectDetachesAndLetsTheDebuggeeFinish() throws Exception {
     int port = spawnDebuggee();
     initialize();

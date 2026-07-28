@@ -18,6 +18,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
  * ContentHttpServer, dogfooded) — no network, no real pins. The archive shape
  * mirrors the firefox vsix: a zip with extension/dist/adapter.bundle.js.
  */
+@DisplayName("Browser debugger: adapter store")
 public class AdapterStoreTest {
   private static final String ENTRY = "extension/dist/adapter.bundle.js";
   private static final String BUNDLE_CONTENT = "// fake adapter bundle";
@@ -53,6 +55,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("downloads verifies unpacks and caches")
   public void downloadsVerifiesUnpacksAndCaches() throws Exception {
     AdapterStore store = new AdapterStore(storeRoot);
     Path entry = store.resolveEntry(pin(archiveSha), null);
@@ -67,6 +70,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("wrong hash refuses the artifact and caches nothing")
   public void wrongHashRefusesTheArtifactAndCachesNothing() throws Exception {
     AdapterStore store = new AdapterStore(storeRoot);
     String wrongSha = "0".repeat(64);
@@ -81,6 +85,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("torn previous attempt is redone")
   public void tornPreviousAttemptIsRedone() throws Exception {
     // simulate a crash mid-unpack: version dir exists WITHOUT the marker
     Path versionDir = storeRoot.resolve("test-adapter").resolve("1.0.0");
@@ -93,6 +98,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("override directory wins and skips the store")
   public void overrideDirectoryWinsAndSkipsTheStore() throws Exception {
     Path override = Files.createTempDirectory("adapter-override");
     Path overrideEntry = override.resolve(ENTRY);
@@ -105,6 +111,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("empty override directory fails with a clear message")
   public void emptyOverrideDirectoryFailsWithAClearMessage() throws Exception {
     Path override = Files.createTempDirectory("adapter-override-empty");
     try {
@@ -116,6 +123,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("zip slip entries are rejected")
   public void zipSlipEntriesAreRejected() throws Exception {
     byte[] evil = zipWith("../escaped.txt", "evil");
     Files.write(www.resolve("adapter.vsix"), evil);
@@ -129,6 +137,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("tar gz artifacts unpack")
   public void tarGzArtifactsUnpack() throws Exception {
     byte[] tarGz = tarGzWith("js-debug/src/dapDebugServer.js", "// fake dap server");
     Files.write(www.resolve("adapter.tar.gz"), tarGz);
@@ -139,6 +148,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("tar slip entries are rejected")
   public void tarSlipEntriesAreRejected() throws Exception {
     byte[] evil = tarGzWith("../escaped.txt", "evil");
     Files.write(www.resolve("adapter.tar.gz"), evil);

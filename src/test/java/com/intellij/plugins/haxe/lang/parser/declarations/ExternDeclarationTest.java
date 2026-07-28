@@ -17,31 +17,37 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+@DisplayName("Parsing: extern declaration")
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {
     super("extern");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("interface")
   public void testInterface() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("final")
   public void testFinal() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("extern inline")
   public void testExternInline() throws Throwable {
     doTest(true);
   }

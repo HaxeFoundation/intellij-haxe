@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +28,7 @@ import java.util.List;
  * the highlights — and the user, choosing by highlight, stepped into the
  * wrong method.
  */
+@DisplayName("Debugger: hashlink smart step into order")
 public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -52,6 +54,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("nested calls collect in execution order inner first")
   public void testNestedCallsCollectInExecutionOrderInnerFirst() {
     // b.reset() is the ARGUMENT: it executes first although it is textually last
     List<PsiElement> names = namesOnCaretLine("a.reset(b.reset());");
@@ -62,6 +65,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("chained calls collect in execution order left to right")
   public void testChainedCallsCollectInExecutionOrderLeftToRight() {
     List<PsiElement> names = namesOnCaretLine("a.first().second();");
     assertEquals(2, names.size());
@@ -70,6 +74,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("same named targets pair with their own occurrence")
   public void testSameNamedTargetsPairWithTheirOwnOccurrence() {
     List<PsiElement> names = namesOnCaretLine("a.reset(b.reset());");
     // the adapter reports execution order: B.reset (the argument) first
@@ -90,6 +95,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
    * already-executed one at the start of the line.
    */
   @Test
+  @DisplayName("remaining targets pair with the later occurrence of a duplicate name")
   public void testRemainingTargetsPairWithTheLaterOccurrenceOfADuplicateName() {
     // full line: first, second, first (execution order = source order for a chain)
     List<PsiElement> names = namesOnCaretLine("a.first().second().first();");
@@ -105,6 +111,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("unmatchable target gets no highlight but keeps alignment")
   public void testUnmatchableTargetGetsNoHighlightButKeepsAlignment() {
     List<PsiElement> names = namesOnCaretLine("a.first().second();");
     // an extra target the PSI knows nothing about (e.g. an inlined helper)
@@ -119,6 +126,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("js debug paren labels match by name")
   public void testJsDebugParenLabelsMatchByName() {
     // js-debug labels its targets "name(...)" (source-map-mapped, with a
     // parameter placeholder) - the paren must not fool the name extraction
@@ -132,6 +140,7 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("simple callee name handles both dialects")
   public void testSimpleCalleeNameHandlesBothDialects() {
     assertEquals("method",
                  AdapterTargetsSmartStepHandler.simpleCalleeName("pack.Class.method"));

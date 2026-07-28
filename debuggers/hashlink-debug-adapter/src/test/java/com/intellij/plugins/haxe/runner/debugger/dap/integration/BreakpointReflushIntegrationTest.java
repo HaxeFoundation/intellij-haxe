@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,9 +18,11 @@ import org.junit.jupiter.api.Test;
  * re-arms the INT3 at the current instruction pointer; the session must keep it
  * suspended so continue single-steps the real instruction and makes progress.
  */
+@DisplayName("HashLink debugger: breakpoint reflush (integration)")
 public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("reflush while stopped does not re hit the current breakpoint")
   public void reflushWhileStoppedDoesNotReHitTheCurrentBreakpoint() throws Exception {
     // stop at the loop line on the first iteration (i == 0)
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
@@ -46,6 +49,7 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
    * faulting the VM at the removed breakpoint's line.
    */
   @Test
+  @DisplayName("removing breakpoints while stopped on one runs cleanly after continue")
   public void removingBreakpointsWhileStoppedOnOneRunsCleanlyAfterContinue() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     int threadId = stopped.getBody().getThreadId();

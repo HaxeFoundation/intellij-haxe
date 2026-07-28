@@ -31,6 +31,7 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.Timeout;
  * user-provisioned under {@code <project>/node/} (git-ignored), see the
  * web-debugger plan.
  */
+@DisplayName("Browser debugger: firefox adapter (live)")
 public class FirefoxAdapterLiveProbe {
   private static final long TIMEOUT = 15_000;
 
@@ -133,6 +135,7 @@ public class FirefoxAdapterLiveProbe {
 
   @Timeout(30)
   @Test
+  @DisplayName("initialize handshake and capabilities")
   public void initializeHandshakeAndCapabilities() throws Exception {
     Response response = client.sendRequest(initializeRequest(), TIMEOUT);
     probe("initialize success=" + response.isSuccess() + " class=" + response.getClass().getSimpleName());
@@ -266,6 +269,7 @@ public class FirefoxAdapterLiveProbe {
 
   @Test
   @Timeout(60)
+  @DisplayName("full session breakpoint in hx source via file url")
   public void fullSessionBreakpointInHxSourceViaFileUrl() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
@@ -377,6 +381,7 @@ public class FirefoxAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("full session breakpoint in hx source via content server")
   public void fullSessionBreakpointInHxSourceViaContentServer() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
@@ -442,6 +447,7 @@ public class FirefoxAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("breakpoint path separator sensitivity")
   public void breakpointPathSeparatorSensitivity() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
@@ -577,6 +583,7 @@ public class FirefoxAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("worker frame evaluate behaviour")
   public void workerFrameEvaluateBehaviour() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
@@ -653,6 +660,7 @@ public class FirefoxAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("worker threads across refresh")
   public void workerThreadsAcrossRefresh() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
@@ -816,6 +824,7 @@ public class FirefoxAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("load time breakpoint strategies")
   public void loadTimeBreakpointStrategies() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();

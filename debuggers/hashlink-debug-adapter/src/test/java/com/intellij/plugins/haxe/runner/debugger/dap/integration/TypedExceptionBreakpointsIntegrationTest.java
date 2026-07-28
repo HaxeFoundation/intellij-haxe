@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
  * {@code Kaboom} throw — Kaboom extends Boom, so this also proves subtype matching
  * (the match covers the thrown value's class and its superclasses).
  */
+@DisplayName("HashLink debugger: typed exception breakpoints (integration)")
 public class TypedExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase {
 
   @BeforeEach
@@ -24,6 +26,7 @@ public class TypedExceptionBreakpointsIntegrationTest extends DapIntegrationTest
   }
 
   @Test
+  @DisplayName("stops only on the filtered type and its subclasses")
   public void stopsOnlyOnTheFilteredTypeAndItsSubclasses() throws Exception {
     initialize();
     assertTrue(launch(typedThrowFixtureHl.toString()).isSuccess(), "launch succeeds");

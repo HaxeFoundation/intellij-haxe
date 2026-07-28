@@ -12,6 +12,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -21,9 +22,11 @@ import org.junit.jupiter.api.Test;
  * afterwards (execution continues to a clean exit). Runs on both the x86-64
  * (register-arg) and x86 (cdecl stack-arg) trampolines.
  */
+@DisplayName("HashLink debugger: eval call (integration)")
 public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("calls functions and returns values")
   public void callsFunctionsAndReturnsValues() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -42,6 +45,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("calls are repeatable and leave the process runnable")
   public void callsAreRepeatableAndLeaveTheProcessRunnable() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -57,6 +61,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("calls bound closures")
   public void callsBoundClosures() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int threadId = stopped.getBody().getThreadId();
@@ -75,6 +80,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("calls inside expressions")
   public void callsInsideExpressions() throws Exception {
     // calls are expression leaves — results feed operators, and
     // arguments are themselves full expressions (base = 10)
@@ -91,6 +97,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("rejects bad calls with clear messages")
   public void rejectsBadCallsWithClearMessages() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -106,6 +113,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("assigns a call result to a variable")
   public void assignsACallResultToAVariable() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int threadId = stopped.getBody().getThreadId();
@@ -128,6 +136,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("creates and assigns new strings")
   public void createsAndAssignsNewStrings() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int threadId = stopped.getBody().getThreadId();
@@ -151,6 +160,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("constructs objects with new")
   public void constructsObjectsWithNew() throws Exception {
     // `new Point(x,y,label)` — allocate via the mined hl_alloc_obj + type
     // pointer, then run the constructor. Point is constructed elsewhere in the
@@ -176,6 +186,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("assigns a new object to a local and it reaches execution")
   public void assignsANewObjectToALocalAndItReachesExecution() throws Exception {
     // `p = new Point(...)` — but Call.demo has no Point local, so verify via a
     // fresh construction assigned through evaluate into a Dynamic array slot is
@@ -194,6 +205,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("rejects constructing an uninstantiated class clearly")
   public void rejectsConstructingAnUninstantiatedClassClearly() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -210,6 +222,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("call succeeds and stays clean with a breakpoint inside the callee")
   public void callSucceedsAndStaysCleanWithABreakpointInsideTheCallee() throws Exception {
     // The reported corruption: an injected call whose body trips one of OUR
     // planted INT3s (a user breakpoint here; the hl_throw trap when VM-exception
@@ -242,6 +255,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("push to int array returns and leaves the process runnable")
   public void pushToIntArrayReturnsAndLeavesTheProcessRunnable() throws Exception {
     // reproduces the reported corruption: a method call that allocates/grows an
     // Array<Int> (hl.types.ArrayBytes_Int.push) must return AND leave the VM

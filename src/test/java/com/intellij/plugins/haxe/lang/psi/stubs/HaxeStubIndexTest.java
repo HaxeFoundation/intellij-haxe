@@ -15,6 +15,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeClassInher
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.stubs.StubIndexKey;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
@@ -29,6 +30,7 @@ import java.util.Collection;
  * This matches the behaviour of {@link com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass#getFullyQualifiedName()},
  * which includes the module name only when the class name differs from the file name.
  */
+@DisplayName("Indexing: stub index")
 public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -39,6 +41,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // ── HaxeClassNameStubIndex ────────────────────────────────────────────
 
   @Test
+  @DisplayName("class name index simple class")
   public void testClassNameIndex_simpleClass() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
     Collection<HaxeClass> results = getByName("SimpleClass");
@@ -47,6 +50,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index interface")
   public void testClassNameIndex_interface() throws Throwable {
     myFixture.configureByFiles("IBase.hx");
     Collection<HaxeClass> results = getByName("IBase");
@@ -55,6 +59,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index extended interface")
   public void testClassNameIndex_extendedInterface() throws Throwable {
     myFixture.configureByFiles("IExtended.hx", "IBase.hx");
     Collection<HaxeClass> results = getByName("IExtended");
@@ -62,6 +67,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index enum")
   public void testClassNameIndex_enum() throws Throwable {
     myFixture.configureByFiles("Color.hx");
     Collection<HaxeClass> results = getByName("Color");
@@ -69,6 +75,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index abstract")
   public void testClassNameIndex_abstract() throws Throwable {
     myFixture.configureByFiles("MyAbstract.hx");
     Collection<HaxeClass> results = getByName("MyAbstract");
@@ -76,6 +83,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index typedef")
   public void testClassNameIndex_typedef() throws Throwable {
     myFixture.configureByFiles("MyTypedef.hx", "SimpleClass.hx");
     Collection<HaxeClass> results = getByName("MyTypedef");
@@ -83,6 +91,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index extern class")
   public void testClassNameIndex_externClass() throws Throwable {
     myFixture.configureByFiles("ExternClass.hx");
     Collection<HaxeClass> results = getByName("ExternClass");
@@ -90,6 +99,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index child class")
   public void testClassNameIndex_childClass() throws Throwable {
     myFixture.configureByFiles("ChildClass.hx", "SimpleClass.hx", "IBase.hx", "IExtended.hx");
     Collection<HaxeClass> results = getByName("ChildClass");
@@ -97,6 +107,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index private class")
   public void testClassNameIndex_privateClass() throws Throwable {
     // PrivateClassModule.hx contains both PrivateClassModule (primary) and private PrivateClass
     myFixture.configureByFiles("PrivateClassModule.hx");
@@ -106,6 +117,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index module class")
   public void testClassNameIndex_moduleClass() throws Throwable {
     myFixture.configureByFiles("ModuleClass.hx");
     Collection<HaxeClass> results = getByName("ModuleClass");
@@ -113,6 +125,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("class name index deep package class")
   public void testClassNameIndex_deepPackageClass() throws Throwable {
     myFixture.configureByFiles("DeepClass.hx");
     Collection<HaxeClass> results = getByName("DeepClass");
@@ -124,6 +137,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // with no additional module segment (file name == class name → not ancillary).
 
   @Test
+  @DisplayName("fqn index simple class")
   public void testFqnIndex_simpleClass() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
     Collection<HaxeClass> results = getByFqn("com.example.SimpleClass");
@@ -132,6 +146,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index interface")
   public void testFqnIndex_interface() throws Throwable {
     myFixture.configureByFiles("IBase.hx");
     Collection<HaxeClass> results = getByFqn("com.example.IBase");
@@ -139,6 +154,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index enum")
   public void testFqnIndex_enum() throws Throwable {
     myFixture.configureByFiles("Color.hx");
     Collection<HaxeClass> results = getByFqn("com.example.Color");
@@ -146,6 +162,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index abstract")
   public void testFqnIndex_abstract() throws Throwable {
     myFixture.configureByFiles("MyAbstract.hx");
     Collection<HaxeClass> results = getByFqn("com.example.MyAbstract");
@@ -153,6 +170,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index typedef")
   public void testFqnIndex_typedef() throws Throwable {
     myFixture.configureByFiles("MyTypedef.hx", "SimpleClass.hx");
     Collection<HaxeClass> results = getByFqn("com.example.MyTypedef");
@@ -160,6 +178,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index deep package")
   public void testFqnIndex_deepPackage() throws Throwable {
     myFixture.configureByFiles("DeepClass.hx");
     Collection<HaxeClass> results = getByFqn("com.example.deep.pkg.DeepClass");
@@ -167,6 +186,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index module class")
   public void testFqnIndex_moduleClass() throws Throwable {
     myFixture.configureByFiles("ModuleClass.hx");
     Collection<HaxeClass> results = getByFqn("com.example.module.ModuleClass");
@@ -174,6 +194,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("fqn index ancillary class")
   public void testFqnIndex_ancillaryClass() throws Throwable {
     // PrivateClass is ancillary inside PrivateClassModule.hx:
     // FQN = com.example.PrivateClassModule.PrivateClass
@@ -185,6 +206,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // ── HaxeSuperClassStubIndex ───────────────────────────────────────────
 
   @Test
+  @DisplayName("super class index direct extends")
   public void testSuperClassIndex_directExtends() throws Throwable {
     myFixture.configureByFiles("ChildClass.hx", "SimpleClass.hx", "IBase.hx", "IExtended.hx");
     Collection<HaxeClass> subclasses = getBySuper("SimpleClass");
@@ -194,6 +216,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("super class index interface implementation")
   public void testSuperClassIndex_interfaceImplementation() throws Throwable {
     myFixture.configureByFiles("ChildClass.hx", "SimpleClass.hx", "IBase.hx", "IExtended.hx");
     Collection<HaxeClass> implementors = getBySuper("IBase");
@@ -203,6 +226,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("super class index interface extends")
   public void testSuperClassIndex_interfaceExtends() throws Throwable {
     myFixture.configureByFiles("IExtended.hx", "IBase.hx");
     Collection<HaxeClass> subInterfaces = getBySuper("IBase");
@@ -212,6 +236,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("super class index deep package extends")
   public void testSuperClassIndex_deepPackageExtends() throws Throwable {
     myFixture.configureByFiles("AnotherClass.hx", "DeepClass.hx");
     Collection<HaxeClass> subclasses = getBySuper("DeepClass");
@@ -223,6 +248,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // ── HaxeMethodNameStubIndex ───────────────────────────────────────────
 
   @Test
+  @DisplayName("method name index constructor")
   public void testMethodNameIndex_constructor() throws Throwable {
     // Constructors are named "new" in Haxe
     myFixture.configureByFiles("SimpleClass.hx");
@@ -233,6 +259,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
 
 
   @Test
+  @DisplayName("method name index instance method")
   public void testMethodNameIndex_instanceMethod() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
     Collection<HaxeMethod> methods = getMethods("method", HaxeClassMethodNameStubIndex.KEY);
@@ -240,6 +267,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("method name index static method")
   public void testMethodNameIndex_staticMethod() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
     Collection<HaxeMethod> methods = getMethods("staticMethod", HaxeStaticMethodNameStubIndex.KEY);
@@ -248,6 +276,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
 
 
   @Test
+  @DisplayName("method name index module function")
   public void testMethodNameIndex_moduleFunction() throws Throwable {
     myFixture.configureByFiles("ModuleClass.hx");
     Collection<HaxeMethod> methods = getMethods("moduleFunction", HaxeModuleMethodNameStubIndex.KEY);
@@ -257,6 +286,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // ── HaxeFieldNameStubIndex ────────────────────────────────────────────
 
   @Test
+  @DisplayName("field name index instance field")
   public void testFieldNameIndex_instanceField() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
     Collection<HaxePsiField> fields = getFields("field", HaxeClassFieldNameStubIndex.KEY);
@@ -264,6 +294,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("field name index static field")
   public void testFieldNameIndex_staticField() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
     Collection<HaxePsiField> fields = getFields("staticField", HaxeStaticFieldNameStubIndex.KEY);
@@ -271,6 +302,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("field name index module var")
   public void testFieldNameIndex_moduleVar() throws Throwable {
     myFixture.configureByFiles("ModuleClass.hx");
     Collection<HaxePsiField> fields = getFields("moduleVar", HaxeModuleFieldNameStubIndex.KEY);
@@ -280,6 +312,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // ── Multiple files ─────────────────────────────────────────────────────
 
   @Test
+  @DisplayName("multiple files all classes indexed")
   public void testMultipleFiles_allClassesIndexed() throws Throwable {
     myFixture.configureByFiles(
       "SimpleClass.hx", "IBase.hx", "IExtended.hx", "ChildClass.hx",
@@ -301,6 +334,7 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("multiple files fqn unique")
   public void testMultipleFiles_fqnUnique() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx", "DeepClass.hx");
     Collection<HaxeClass> results = getByFqn("com.example.SimpleClass");

@@ -17,8 +17,10 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: import declaration")
 public class ImportDeclarationTest extends DeclarationTestBase {
   public ImportDeclarationTest() {
     super("import");
@@ -26,26 +28,31 @@ public class ImportDeclarationTest extends DeclarationTestBase {
 
 
   @Test
+  @DisplayName("empty 182")
   public void testEmpty182() throws Throwable {
       doTest(true);
   }
 
   @Test
+  @DisplayName("multi")
   public void testMulti() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("in")
   public void testIn() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("wildcard")
   public void testWildcard() throws Throwable {
     doTest(true);
   }

@@ -6,8 +6,10 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Resolve: module")
 public class HaxeModuleTest extends HaxeCodeInsightFixtureTestCase {
     @Override
     public void setUp() throws Exception {
@@ -29,6 +31,7 @@ public class HaxeModuleTest extends HaxeCodeInsightFixtureTestCase {
     }
 
     @Test
+    @DisplayName("module import")
     public void testModuleImport() {
         doTest(
                 "modules/ModuleWithMainClass.hx",

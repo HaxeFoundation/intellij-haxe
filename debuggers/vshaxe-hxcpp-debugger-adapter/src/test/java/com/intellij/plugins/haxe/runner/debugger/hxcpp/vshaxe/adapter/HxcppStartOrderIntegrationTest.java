@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -23,10 +24,12 @@ import org.junit.jupiter.api.Test;
  * and the DAP conversation only happen later, from sessionInitialized. The
  * debuggee's connect must be parked in the listener's backlog until then.
  */
+@DisplayName("HXCPP debugger (vshaxe): start order (integration)")
 public class HxcppStartOrderIntegrationTest {
   private static final long TIMEOUT = 15_000;
 
   @Test
+  @DisplayName("debuggee connecting before adapter start is accepted")
   public void debuggeeConnectingBeforeAdapterStartIsAccepted() throws Exception {
     String exeProperty = System.getProperty("hxcpp.fixture.exe");
     assumeTrue(exeProperty != null && Files.isRegularFile(Path.of(exeProperty)), "hxcpp fixture exe not built (haxe/hxcpp toolchain missing)");

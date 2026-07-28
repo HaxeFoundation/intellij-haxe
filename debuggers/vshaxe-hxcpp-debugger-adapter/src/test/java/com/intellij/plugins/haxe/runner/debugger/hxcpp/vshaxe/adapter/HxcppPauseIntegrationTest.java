@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
  * killed): pause must produce a stop with an inspectable stack, and continue
  * must let it run again.
  */
+@DisplayName("HXCPP debugger (vshaxe): pause (integration)")
 public class HxcppPauseIntegrationTest extends HxcppIntegrationTestBase {
 
   @BeforeEach
@@ -23,6 +25,7 @@ public class HxcppPauseIntegrationTest extends HxcppIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("pause stops a running program and continue resumes it")
   public void pauseStopsARunningProgramAndContinueResumesIt() throws Exception {
     initializeAndLaunch();
     require(new ConfigurationDoneRequest());

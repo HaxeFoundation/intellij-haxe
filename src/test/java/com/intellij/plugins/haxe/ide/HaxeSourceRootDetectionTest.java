@@ -28,6 +28,7 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.junit5.RunInEdt;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -45,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author: Fedor.Korotkov
  */
 @RunInEdt(allMethods = true, writeIntent = true)
+@DisplayName("Project: source root detection")
 public class HaxeSourceRootDetectionTest {
   // JUnit3-style engine: root detection needs the initialized application the
   // light platform fixture provides
@@ -98,11 +100,13 @@ public class HaxeSourceRootDetectionTest {
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest("src");
   }
 
   @Test
+  @DisplayName("modules")
   public void testModules() throws Throwable {
     doTest("src", "module1/src", "module2/src");
   }

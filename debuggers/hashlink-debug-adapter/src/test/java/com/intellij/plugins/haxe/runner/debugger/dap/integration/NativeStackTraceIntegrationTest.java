@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
  * The fixture builds an exception two calls deep (deeper -> build -> main), so the
  * captured stack must name those fixture methods with source locations.
  */
+@DisplayName("HashLink debugger: native stack trace (integration)")
 public class NativeStackTraceIntegrationTest extends DapIntegrationTestBase {
 
   private static final int STACKTRACE_BREAK_LINE = 11; // Sys.println line; `err` is a live local
@@ -32,6 +34,7 @@ public class NativeStackTraceIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("resolves native stack entries to source locations")
   public void resolvesNativeStackEntriesToSourceLocations() throws Exception {
     // pre-4.3 compilers store __nativeStack in a shape whose entries the
     // adapter cannot resolve to source locations (they stay raw Bytes

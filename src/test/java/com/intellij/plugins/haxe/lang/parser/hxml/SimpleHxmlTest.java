@@ -18,8 +18,10 @@
 package com.intellij.plugins.haxe.lang.parser.hxml;
 
 import com.intellij.plugins.haxe.lang.parser.HxmlParsingTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: simple hxml")
 public class SimpleHxmlTest extends HxmlParsingTestBase {
 
   public SimpleHxmlTest() {
@@ -27,10 +29,12 @@ public class SimpleHxmlTest extends HxmlParsingTestBase {
   }
 
   @Test
+  @DisplayName("simple build")
   public void testSimpleBuild() throws Throwable {
     doTest(true);
   }
   @Test
+  @DisplayName("parser test")
   public void testParserTest() throws Throwable {
     doTest(true);
   }

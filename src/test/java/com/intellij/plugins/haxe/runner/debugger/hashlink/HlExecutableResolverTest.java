@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -16,11 +17,13 @@ import org.junit.jupiter.api.io.TempDir;
  * then the HASHLINK_BIN/HASHLINK/HASHLINKPATH environment variables, then
  * PATH. Pure unit test — the environment is injected.
  */
+@DisplayName("Debugger: hl executable resolver")
 public class HlExecutableResolverTest {
   @TempDir
   Path temp;
 
   @Test
+  @DisplayName("sdk path wins over environment")
   public void sdkPathWinsOverEnvironment() throws IOException {
     Path sdkHl = executableIn("sdk");
     Path envHl = executableIn("env");
@@ -30,6 +33,7 @@ public class HlExecutableResolverTest {
   }
 
   @Test
+  @DisplayName("sdk path may be a directory")
   public void sdkPathMayBeADirectory() throws IOException {
     Path sdkHl = executableIn("sdkdir");
     Optional<Path> resolved =
@@ -38,6 +42,7 @@ public class HlExecutableResolverTest {
   }
 
   @Test
+  @DisplayName("environment variables are tried in order")
   public void environmentVariablesAreTriedInOrder() throws IOException {
     Path second = executableIn("second");
     Path third = executableIn("third");
@@ -47,6 +52,7 @@ public class HlExecutableResolverTest {
   }
 
   @Test
+  @DisplayName("falls back to path directories")
   public void fallsBackToPathDirectories() throws IOException {
     Path onPath = executableIn("bin");
     Optional<Path> resolved = HlExecutableResolver.resolve(null,
@@ -56,11 +62,13 @@ public class HlExecutableResolverTest {
   }
 
   @Test
+  @DisplayName("empty when nothing configured")
   public void emptyWhenNothingConfigured() {
     assertTrue(HlExecutableResolver.resolve(null, env(Map.of())).isEmpty());
   }
 
   @Test
+  @DisplayName("blank and broken entries are skipped")
   public void blankAndBrokenEntriesAreSkipped() throws IOException {
     Path envHl = executableIn("working");
     Optional<Path> resolved = HlExecutableResolver.resolve("   ",

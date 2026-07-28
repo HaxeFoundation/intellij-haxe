@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static com.intellij.plugins.haxe.debugger.hxcppserver.FixtureSession.setVariableRequest;
@@ -18,9 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * (Main.hx: add() is called three times with amount 0/1/2, then the program
  * exits). Mirrors the M2–M5 python probes.
  */
+@DisplayName("HXCPP debugger: breakpoints and evaluate (integration)")
 public class BreakpointsAndEvaluateIT {
 
   @Test
+  @DisplayName("a breakpoint hits and carries locals")
   public void aBreakpointHitsAndCarriesLocals() throws Exception {
     try (FixtureSession session = FixtureSession.launchMain()) {
       session.initialize("uncaught", "critical");
@@ -44,6 +47,7 @@ public class BreakpointsAndEvaluateIT {
   }
 
   @Test
+  @DisplayName("a line without code is rejected")
   public void aLineWithoutCodeIsRejected() throws Exception {
     // Verification against the macro-baked line table: a comment or blank
     // line is rejected (unverified + message, the usual cause being a stale
@@ -76,6 +80,7 @@ public class BreakpointsAndEvaluateIT {
   }
 
   @Test
+  @DisplayName("a conditional breakpoint stops only when true")
   public void aConditionalBreakpointStopsOnlyWhenTrue() throws Exception {
     try (FixtureSession session = FixtureSession.launchMain()) {
       session.initialize("uncaught", "critical");
@@ -93,6 +98,7 @@ public class BreakpointsAndEvaluateIT {
   }
 
   @Test
+  @DisplayName("the evaluate matrix")
   public void theEvaluateMatrix() throws Exception {
     try (FixtureSession session = FixtureSession.launchMain()) {
       session.initialize("uncaught", "critical");
@@ -127,6 +133,7 @@ public class BreakpointsAndEvaluateIT {
   }
 
   @Test
+  @DisplayName("set variable writes through to the frame")
   public void setVariableWritesThroughToTheFrame() throws Exception {
     try (FixtureSession session = FixtureSession.launchMain()) {
       session.initialize("uncaught", "critical");

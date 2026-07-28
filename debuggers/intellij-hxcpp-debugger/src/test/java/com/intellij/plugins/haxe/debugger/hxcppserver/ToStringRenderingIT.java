@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,9 +21,11 @@ import org.junit.jupiter.api.Test;
  * which is exactly the risk the off-default guards; the eval-target unit
  * tests (ValuesTest) cover the recursion path where it IS catchable.
  */
+@DisplayName("HXCPP debugger: to string rendering (integration)")
 public class ToStringRenderingIT {
 
   @Test
+  @DisplayName("labels follow the live toggle")
   public void labelsFollowTheLiveToggle() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
       session.initialize();
@@ -65,6 +68,7 @@ public class ToStringRenderingIT {
   }
 
   @Test
+  @DisplayName("maps list their entries")
   public void mapsListTheirEntries() throws Exception {
     // A haxe.ds map's raw fields are its native hash handle ("h = Dynamic"),
     // which is what used to render — entries must list instead, like the

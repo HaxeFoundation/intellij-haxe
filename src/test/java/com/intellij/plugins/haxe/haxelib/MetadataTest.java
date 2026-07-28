@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.google.gson.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.haxelib.HaxelibMetadata.*;
 
+@DisplayName("Haxelib: metadata")
 public class MetadataTest {
 
   public static final String NAME_DATA = "useless_lib";
@@ -98,12 +100,14 @@ public class MetadataTest {
 
 
   @Test
+  @DisplayName("parsing")
   public void testParsing() throws Exception {
     HaxelibMetadata md = getTestMetadata();
     assertEquals(createTestElement(), md.getTestInterface().getRoot());
   }
 
   @Test
+  @DisplayName("accessors")
   public void testAccessors() throws Exception {
     HaxelibMetadata md = getTestMetadata();
     assertEquals(NAME_DATA, md.getName());

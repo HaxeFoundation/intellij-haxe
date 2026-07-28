@@ -17,57 +17,68 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Completion: keyword")
 public class KeywordCompletionTest extends HaxeCompletionTestBase {
   public KeywordCompletionTest() {
     super("completion", "keywords");
   }
 
   @Test
+  @DisplayName("else")
   public void testElse() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("empty")
   public void testEmpty() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("function 1")
   public void testFunction1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("function 2")
   public void testFunction2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("statement 1")
   public void testStatement1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("statement 2")
   public void testStatement2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("reference")
   public void testReference() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("inherit 1")
   public void testInherit1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("inherit 2")
   public void testInherit2() throws Throwable {
     doTest();
   }

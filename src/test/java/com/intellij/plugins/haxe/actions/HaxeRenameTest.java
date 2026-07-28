@@ -34,6 +34,7 @@ import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.util.ArrayUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
  * @author: Fedor.Korotkov
  */
 @CustomLog
+@DisplayName("Refactoring: rename")
 public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -172,76 +174,91 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("local variable 1")
   public void testLocalVariable1() throws Throwable {
     doTest("fooNew");
   }
 
   @Test
+  @DisplayName("local variable 2")
   public void testLocalVariable2() throws Throwable {
     doTest("fooNew");
   }
 
   @Test
+  @DisplayName("function parameter")
   public void testFunctionParameter() throws Throwable {
     doTest("fooNew");
   }
 
   @Test
+  @DisplayName("method")
   public void testMethod() throws Throwable {
     doTest("fooNew");
   }
 
   @Test
+  @DisplayName("main class")
   public void testMainClass() throws Throwable {
     doTest("MainClassAfter");
   }
 
   @Test
+  @DisplayName("static field")
   public void testStaticField() throws Throwable {
     doTest("fooNew", "additional/StaticFieldHelper.hx");
   }
 
   @Test
+  @DisplayName("static method")
   public void testStaticMethod() throws Throwable {
     doTest("fooNew", "additional/StaticMethodHelper.hx");
   }
 
   @Test
+  @DisplayName("catch parameter")
   public void testCatchParameter() throws Throwable {
     doTest("error");
   }
 
   @Test
+  @DisplayName("for var")
   public void testForVar() throws Throwable {
     doTest("index");
   }
 
   @Test
+  @DisplayName("rename generic param")
   public void testRenameGenericParam() throws Throwable {
     doTest("P");
   }
 
   @Test
+  @DisplayName("do not rename constructor 1")
   public void testDoNotRenameConstructor1() throws Throwable {
     doTestOnNthSelection(1, "After");
   }
 
   @Test
+  @DisplayName("do not rename constructor 2")
   public void testDoNotRenameConstructor2() throws Throwable {
     doTestOnNthSelection(2, "After");
   }
 
   @Test
+  @DisplayName("do not rename constructor 3")
   public void testDoNotRenameConstructor3() throws Throwable {
     doTestOnNthSelection(3, "After");
   }
 
   @Test
+  @DisplayName("do not rename constructor name")
   public void testDoNotRenameConstructorName() throws Throwable {
     doTest("foo");
   }
 
   @Test
+  @DisplayName("rename module and class 1")
   public void testRenameModuleAndClass1() {
     Map<String, String> expectedRenames = Map.of(
             "FILE:RenameModuleAndClass.hx", "NewClassAndModuleName.hx",
@@ -252,6 +269,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("rename module and class 2")
   public void testRenameModuleAndClass2() {
     Map<String, String> expectedRenames = Map.of(
             "CLASS:RenameModuleAndClass", "NewClassAndModuleName"
@@ -260,6 +278,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("rename module and class 3")
   public void testRenameModuleAndClass3() {
     Map<String, String> expectedRenames = Map.of();
     doTestWithoutFileVerify("NewClassAndModuleName", MessageConstants.CANCEL, expectedRenames);

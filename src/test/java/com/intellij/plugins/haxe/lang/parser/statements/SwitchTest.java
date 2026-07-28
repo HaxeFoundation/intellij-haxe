@@ -18,36 +18,43 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: switch")
 public class SwitchTest extends StatementTestBase {
   public SwitchTest() {
     super("switch");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("case with empty brackets")
   public void testCaseWithEmptyBrackets() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("fat arrow expression")
   public void testFatArrowExpression() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("extractor expression")
   public void testExtractorExpression() throws Throwable {
     doTest(true);
   }
   @Test
+  @DisplayName("chained extractors expression")
   public void testChainedExtractorsExpression() throws Throwable {
     doTest(true);
   }

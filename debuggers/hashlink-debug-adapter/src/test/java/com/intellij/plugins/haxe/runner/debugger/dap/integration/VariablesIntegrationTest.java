@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariableKind;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,10 +23,12 @@ import org.junit.jupiter.api.Test;
  * layouts end to end. One value kind per test; each test stops at the fixture
  * line where that value is in scope.
  */
+@DisplayName("HashLink debugger: variables (integration)")
 public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- locals (frame offsets) ---
 
   @Test
+  @DisplayName("reads int locals at breakpoint")
   public void readsIntLocalsAtBreakpoint() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
@@ -43,6 +46,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads stack passed arguments after step in")
   public void readsStackPassedArgumentsAfterStepIn() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
@@ -62,6 +66,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("tracks local values across loop iterations")
   public void tracksLocalValuesAcrossLoopIterations() throws Exception {
     runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
@@ -78,6 +83,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- objects ---
 
   @Test
+  @DisplayName("expands object fields")
   public void expandsObjectFields() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
     Variable p = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "p");
@@ -98,6 +104,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("closure array elements render as functions")
   public void closureArrayElementsRenderAsFunctions() throws Exception {
     // An Array<()->Int> element reaches its value through a DYNAMIC slot: the
     // runtime fun-type header must resolve (RuntimeTypes KFUN) so the element
@@ -119,6 +126,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("to string rendering toggle is accepted and inert for now")
   public void toStringRenderingToggleIsAcceptedAndInertForNow() throws Exception {
     // The custom custom/setToStringRendering request is part of the wire
     // contract (the IDE's live gear toggle sends it), but the adapter only
@@ -138,6 +146,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- statics ---
 
   @Test
+  @DisplayName("reads static fields")
   public void readsStaticFields() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
 
@@ -161,6 +170,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- rich values, one kind per test (all in scope at FIXTURE_RICH_LINE) ---
 
   @Test
+  @DisplayName("reads int array elements")
   public void readsIntArrayElements() throws Exception {
     // Array<Int> -> hl.types.ArrayBytes_Int: elements straight from the bytes
     Variable ints = findVariable(richLocals(), "ints");
@@ -175,6 +185,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads string array elements")
   public void readsStringArrayElements() throws Exception {
     // Array<String> -> hl.types.ArrayObj: elements typed via the varray's runtime type
     Variable names = findVariable(richLocals(), "names");
@@ -188,6 +199,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("unboxes dynamic holding an int")
   public void unboxesDynamicHoldingAnInt() throws Exception {
     // vdynamic: runtime type @ +0, payload @ +8
     Variable dyn = findVariable(richLocals(), "dyn");
@@ -198,6 +210,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads enum constructor and params")
   public void readsEnumConstructorAndParams() throws Exception {
     Variable shade = findVariable(richLocals(), "shade");
     assertNotNull(shade, "local shade present");
@@ -210,6 +223,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads anonymous structure fields")
   public void readsAnonymousStructureFields() throws Exception {
     // anonymous structure (virtual): fields via the indirect pointers
     Variable anon = findVariable(richLocals(), "anon");
@@ -223,6 +237,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("renders closure as function")
   public void rendersClosureAsFunction() throws Exception {
     Variable f = findVariable(richLocals(), "f");
     assertNotNull(f, "local f present");
@@ -232,6 +247,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads compiler boxed captured local")
   public void readsCompilerBoxedCapturedLocal() throws Exception {
     // a local mutated by a closure is boxed by genhl into a 1-element array;
     // it must stay inspectable (expand to the current value), not render raw
@@ -245,6 +261,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads ref local through indirection")
   public void readsRefLocalThroughIndirection() throws Exception {
     // hl.Ref.make(n) yields an HRef(i32) local: the value must read through
     // the indirection, not render as a raw pointer
@@ -256,6 +273,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads dynamic array elements")
   public void readsDynamicArrayElements() throws Exception {
     // Array<Dynamic> -> hl.types.ArrayDyn: elements via the wrapped ArrayBase
     Variable dynArray = findVariable(richLocals(), "dynArray");
@@ -269,6 +287,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads dynamic object fields")
   public void readsDynamicObjectFields() throws Exception {
     // a Dynamic with dynamic field writes is a runtime dynobj: fields are
     // resolved through the hashed lookup table (typedef/anon-through-Dynamic case)
@@ -283,6 +302,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads string map entries")
   public void readsStringMapEntries() throws Exception {
     Variable map = findVariable(richLocals(), "stringMap");
     assertNotNull(map, "local stringMap present");
@@ -295,6 +315,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads int map entries")
   public void readsIntMapEntries() throws Exception {
     Variable map = findVariable(richLocals(), "intMap");
     assertNotNull(map, "local intMap present");
@@ -306,6 +327,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads enum value map entries")
   public void readsEnumValueMapEntries() throws Exception {
     // haxe.ds.EnumValueMap is a pure-Haxe balanced tree, walked in order
     Variable map = findVariable(richLocals(), "enumMap");
@@ -319,6 +341,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads bare native map abstract")
   public void readsBareNativeMapAbstract() throws Exception {
     // a raw hl_bytes_map abstract (StringMap internals, no wrapper): the
     // abstract pointer IS the native map and lists its entries directly
@@ -333,6 +356,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("resolves abstract name through dynamic")
   public void resolvesAbstractNameThroughDynamic() throws Exception {
     // a Dynamic holding an abstract: the runtime HABSTRACT kind resolves the
     // abstract's name, so the map decodes instead of showing "Dynamic @ 0x…"
@@ -344,6 +368,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads packed struct field")
   public void readsPackedStructField() throws Exception {
     // @:packed field: the Vec2 struct is inlined into the PackedHolder
     // instance — wrong packed offsets would corrupt id/tail too
@@ -365,6 +390,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("reads struct local")
   public void readsStructLocal() throws Exception {
     // a @:struct class local (HStruct): fields at base 0, no hl_type* header
     Variable vec = findVariable(richLocals(), "vec");
@@ -378,6 +404,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("expands closure captured value")
   public void expandsClosureCapturedValue() throws Exception {
     // a bound closure (hasValue == 1): the capture environment is a child;
     // here f captures one mutated local, boxed by genhl into a 1-element array
@@ -398,6 +425,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- scoping (shadowed names, dead bindings) ---
 
   @Test
+  @DisplayName("shadowing loop variable replaces outer inside loop")
   public void shadowingLoopVariableReplacesOuterInsideLoop() throws Exception {
     // `for (x in 0...n)` shadowing an outer String x: inside the loop there
     // must be exactly ONE x row, and it is the loop Int
@@ -410,6 +438,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("shadowing loop variable goes out of scope after loop")
   public void shadowingLoopVariableGoesOutOfScopeAfterLoop() throws Exception {
     // after the loop the name must fall back to the outer String binding —
     // no ghost row tracking the recycled loop register
@@ -425,6 +454,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- registers scope ---
 
   @Test
+  @DisplayName("registers scope lists cpu and vm registers")
   public void registersScopeListsCpuAndVmRegisters() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_LOOP_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -451,6 +481,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("registers on caller frames omit cpu state")
   public void registersOnCallerFramesOmitCpuState() throws Exception {
     // CPU registers are thread state: shown on the top frame only, while every
     // frame lists its own VM registers
@@ -469,6 +500,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- evaluate (variable paths) ---
 
   @Test
+  @DisplayName("evaluates local and paths")
   public void evaluatesLocalAndPaths() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -485,6 +517,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("evaluates leaf member paths")
   public void evaluatesLeafMemberPaths() throws Exception {
     // The Variables view renders a String as a childless leaf (its content,
     // not bytes/length), so the direct reference walk cannot descend into it;
@@ -512,6 +545,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("evaluates string local length")
   public void evaluatesStringLocalLength() throws Exception {
     // the reported case: `s.length` on a plain String local (s = "orig10")
     runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
@@ -524,6 +558,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("evaluates this field and statics")
   public void evaluatesThisFieldAndStatics() throws Exception {
     runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -538,6 +573,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("evaluates class qualified statics")
   public void evaluatesClassQualifiedStatics() throws Exception {
     // stop in Main (NOT Config / pkg.Deep): the class names must resolve from a
     // FOREIGN frame, which the locals → this → frame-statics order cannot
@@ -579,6 +615,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("evaluate rejects bad expressions with a clear message")
   public void evaluateRejectsBadExpressionsWithAClearMessage() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -599,6 +636,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- arbitrary expressions: operators folded adapter-side ---
 
   @Test
+  @DisplayName("evaluates arithmetic and logic expressions")
   public void evaluatesArithmeticAndLogicExpressions() throws Exception {
     // Mutate.demo checkpoint: n=5, flag=false, obj=Point(1,2,"p"), arr=[5,10,15], idx=1
     runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
@@ -636,6 +674,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("evaluates ternary and type checks")
   public void evaluatesTernaryAndTypeChecks() throws Exception {
     // Mutate.demo checkpoint: n=5, flag=false, obj=Point(1,2,"p"), arr=[5,10,15], idx=1
     runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
@@ -670,6 +709,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("assigns expression results")
   public void assignsExpressionResults() throws Exception {
     runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -692,6 +732,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- container-element writes + instance method calls ---
 
   @Test
+  @DisplayName("writes array elements through evaluate")
   public void writesArrayElementsThroughEvaluate() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -707,6 +748,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("calls instance methods and mutates a map")
   public void callsInstanceMethodsAndMutatesAMap() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -729,6 +771,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("map bracket syntax sugars to get and set")
   public void mapBracketSyntaxSugarsToGetAndSet() throws Exception {
     // map[k] / map[k]=v are compile-time sugar for get/set; the evaluator
     // offers the same syntax by rewriting to the method calls.
@@ -755,6 +798,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("boxes primitives into dynamic arguments")
   public void boxesPrimitivesIntoDynamicArguments() throws Exception {
     // stringMap is Map<String,Int>: values are stored BOXED (Dynamic). Passing
     // the int literal 9 requires boxing it into a vdynamic.
@@ -772,6 +816,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("method call rejects unknown methods clearly")
   public void methodCallRejectsUnknownMethodsClearly() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
@@ -787,6 +832,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- instance methods ---
 
   @Test
+  @DisplayName("statics scope appears in instance methods")
   public void staticsScopeAppearsInInstanceMethods() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
 
@@ -803,6 +849,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("shows this in instance method")
   public void showsThisInInstanceMethod() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
 

@@ -3,11 +3,13 @@ package com.intellij.plugins.haxe.ide.inlay.semantic;
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider;
 import com.intellij.plugins.haxe.ide.inlay.HaxeInlayTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests that use inlay to verify type evaluations without beeing affected by assign hints.
  */
+@DisplayName("Inlay hints: for semantic")
 public class HaxeInlayForSemanticTest extends HaxeInlayTestBase {
 
   InlayHintsProvider hintsProvider = new HaxeInlayLocalVariableHintsProvider();
@@ -26,6 +28,7 @@ public class HaxeInlayForSemanticTest extends HaxeInlayTestBase {
 
   // test to generate preview used in inlay settings example
   @Test
+  @DisplayName("operator dynamic test")
   public void testOperatorDynamicTest() throws Exception {
     doTest(hintsProvider);
   }

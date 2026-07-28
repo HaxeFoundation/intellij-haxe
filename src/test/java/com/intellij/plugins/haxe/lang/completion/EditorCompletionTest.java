@@ -17,44 +17,53 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Completion: editor")
 public class EditorCompletionTest extends HaxeCompletionTestBase {
   public EditorCompletionTest() {
     super("completion", "editor");
   }
 
   @Test
+  @DisplayName("generic brace 1")
   public void testGenericBrace1() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("generic brace 2")
   public void testGenericBrace2() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("generic brace 3")
   public void testGenericBrace3() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("less")
   public void testLess() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("string 1")
   public void testString1() {
     doTest('{');
   }
 
   @Test
+  @DisplayName("string 2")
   public void testString2() {
     doTest('{');
   }
 
   @Test
+  @DisplayName("string 3")
   public void testString3() {
     doTest('{');
   }

@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -14,8 +15,10 @@ import org.junit.jupiter.api.Test;
  * kind per test. Every test starts stopped at the loop breakpoint in main, where
  * the next statement is the call to add().
  */
+@DisplayName("HashLink debugger: stepping (integration)")
 public class SteppingIntegrationTest extends DapIntegrationTestBase {
   @Test
+  @DisplayName("step into enters callee")
   public void stepIntoEntersCallee() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     assertEquals("breakpoint", atLoop.getBody().getReason());
@@ -32,6 +35,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step into enters a closure callee")
   public void stepIntoEntersAClosureCallee() throws Exception {
     // `var fn = grab; fn()` — the callee exists only at RUNTIME (OCallClosure
     // has no static findex). Step-into resolves the closure register's
@@ -51,6 +55,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step into enters a closure from array access")
   public void stepIntoEntersAClosureFromArrayAccess() throws Exception {
     // `callbacks[idx]()` — a REAL array (runtime index, not analyzer-folded):
     // the closure register is loaded BY the array access on the same line, so
@@ -72,6 +77,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("stepping inside a closure entered callee stays inside")
   public void steppingInsideAClosureEnteredCalleeStaysInside() throws Exception {
     // user-reported: after ENTERING a closure-called function, the very next
     // step jumped back out to the caller (and the caller position skipped a
@@ -92,6 +98,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("stepping inside an array closure entered callee stays inside")
   public void steppingInsideAnArrayClosureEnteredCalleeStaysInside() throws Exception {
     // same, entered through the DEFERRED path (callbacks[idx]())
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
@@ -110,6 +117,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step out returns to caller")
   public void stepOutReturnsToCaller() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     assertTrue(request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess(), "stepIn accepted");
@@ -126,6 +134,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step over stays in caller")
   public void stepOverStaysInCaller() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
@@ -140,6 +149,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step over a long running call waits for the landing")
   public void stepOverALongRunningCallWaitsForTheLanding() throws Exception {
     // Regression: a step over a slow call (Sys.sleep(3)) produces no debug
     // events for seconds. The step must WAIT for its landing — an earlier
@@ -160,6 +170,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step over a caught throw lands in the catch block")
   public void stepOverACaughtThrowLandsInTheCatchBlock() throws Exception {
     // Regression (user-reported): stepping over `throw` inside a try left the
     // function entirely instead of landing in the catch. The CFG treated OThrow

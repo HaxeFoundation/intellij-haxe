@@ -16,14 +16,17 @@
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: anonymous types")
 public class AnonymousTypesTest extends DeclarationTestBase {
   public AnonymousTypesTest() {
     super("anonymous");
   }
 
   @Test
+  @DisplayName("anonymous type empty body")
   public void testAnonymousTypeEmptyBody() throws Throwable {
     doTest(true);
   }

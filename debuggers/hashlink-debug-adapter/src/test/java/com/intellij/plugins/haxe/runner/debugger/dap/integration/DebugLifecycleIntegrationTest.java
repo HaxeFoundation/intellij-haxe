@@ -13,6 +13,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -21,9 +22,11 @@ import org.junit.jupiter.api.Test;
  * These are deliberately flow tests — the subject under test is the ordering and
  * completeness of the lifecycle, not a single feature.
  */
+@DisplayName("HashLink debugger: debug lifecycle (integration)")
 public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("full breakpoint lifecycle")
   public void fullBreakpointLifecycle() throws Exception {
     initialize();
     Response launch = launch();
@@ -84,6 +87,7 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("runs to completion without breakpoints")
   public void runsToCompletionWithoutBreakpoints() throws Exception {
     initialize();
     assertTrue(launch().isSuccess());
@@ -105,6 +109,7 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("nonexistent program fails but adapter still serves disconnect")
   public void nonexistentProgramFailsButAdapterStillServesDisconnect() throws Exception {
     initialize();
     Response launch = launch("does-not-exist.hl");

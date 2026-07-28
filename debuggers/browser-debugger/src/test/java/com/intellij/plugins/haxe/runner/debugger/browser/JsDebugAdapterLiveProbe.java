@@ -39,6 +39,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -57,6 +58,7 @@ import org.junit.jupiter.api.Timeout;
  *
  * Skips when node/adapter/chromium are not provisioned under {@code <root>/node}.
  */
+@DisplayName("Browser debugger: js debug adapter (live)")
 public class JsDebugAdapterLiveProbe {
   private static final long TIMEOUT = 15_000;
 
@@ -306,6 +308,7 @@ public class JsDebugAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("load time breakpoint hits on first load")
   public void loadTimeBreakpointHitsOnFirstLoad() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-load");
@@ -345,6 +348,7 @@ public class JsDebugAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("step in targets and runtime completions")
   public void stepInTargetsAndRuntimeCompletions() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-smart");
@@ -433,6 +437,7 @@ public class JsDebugAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("step in targets under the ide exact sequence")
   public void stepInTargetsUnderTheIdeExactSequence() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-idelike");
@@ -603,6 +608,7 @@ public class JsDebugAdapterLiveProbe {
 
   @Test
   @Timeout(60)
+  @DisplayName("step in targets on a bare expression statement")
   public void stepInTargetsOnABareExpressionStatement() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-expr");
@@ -637,6 +643,7 @@ public class JsDebugAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("step in targets known limitation on last statement of function")
   public void stepInTargetsKnownLimitationOnLastStatementOfFunction() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-lastline");
@@ -661,6 +668,7 @@ public class JsDebugAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("step in targets inside a dom event handler")
   public void stepInTargetsInsideADomEventHandler() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-click");
@@ -724,6 +732,7 @@ public class JsDebugAdapterLiveProbe {
    */
   @Test
   @Timeout(60)
+  @DisplayName("worker appears as additional thread through the mux")
   public void workerAppearsAsAdditionalThreadThroughTheMux() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = Files.createTempDirectory("haxe-jsdbg-worker");
@@ -831,6 +840,7 @@ public class JsDebugAdapterLiveProbe {
 
   @Test
   @Timeout(60)
+  @DisplayName("full session with child via start debugging")
   public void fullSessionWithChildViaStartDebugging() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path fixture = buildFixture();

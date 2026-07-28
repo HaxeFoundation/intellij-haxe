@@ -14,8 +14,10 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Browser debugger: content http server")
 public class ContentHttpServerTest {
   /** Request paths the resolver cannot even parse into a path on Windows. */
   private static final List<String> UNPARSEABLE_PATHS =
@@ -46,6 +48,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("serves files with types and no store")
   public void servesFilesWithTypesAndNoStore() throws Exception {
     HttpResponse<String> html = get("/index.html");
     assertEquals(200, html.statusCode());
@@ -59,6 +62,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("directory serves its index")
   public void directoryServesItsIndex() throws Exception {
     HttpResponse<String> response = get("/");
     assertEquals(200, response.statusCode());
@@ -66,11 +70,13 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("missing file is 404")
   public void missingFileIs404() throws Exception {
     assertEquals(404, get("/nope.js").statusCode());
   }
 
   @Test
+  @DisplayName("traversal outside the root is 404")
   public void traversalOutsideTheRootIs404() throws Exception {
     assertTrue(Files.isRegularFile(outside), "precondition: the secret exists");
     // raw and percent-encoded traversal must both fail (the JDK client
@@ -91,6 +97,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("unparseable names are rejected not errors")
   public void unparseableNamesAreRejectedNotErrors() throws Exception {
     // on Windows these throw InvalidPathException inside the resolver; they
     // must surface as a client error (404 from the resolver, or 400 when the
@@ -102,6 +109,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("symlink inside the root cannot escape it")
   public void symlinkInsideTheRootCannotEscapeIt() throws Exception {
     try {
       Files.createSymbolicLink(root.resolve("escape.txt"), outside);
@@ -116,6 +124,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("symlink staying inside the root still serves")
   public void symlinkStayingInsideTheRootStillServes() throws Exception {
     try {
       Files.createSymbolicLink(root.resolve("alias.js"), root.resolve("app.js"));
@@ -128,6 +137,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("write methods are rejected")
   public void writeMethodsAreRejected() throws Exception {
     HttpResponse<String> response = http.send(
       HttpRequest.newBuilder(URI.create(server.getBaseUrl() + "index.html"))
@@ -138,6 +148,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("first page refresh injects exactly once")
   public void firstPageRefreshInjectsExactlyOnce() throws Exception {
     server.refreshFirstPage(2);
     String first = get("/index.html").body();
@@ -150,6 +161,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("head has no body")
   public void headHasNoBody() throws Exception {
     HttpResponse<String> response = http.send(
       HttpRequest.newBuilder(URI.create(server.getBaseUrl() + "index.html"))

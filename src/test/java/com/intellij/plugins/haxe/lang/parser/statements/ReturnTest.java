@@ -17,48 +17,57 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: return")
 public class ReturnTest extends StatementTestBase {
   public ReturnTest() {
     super("return");
   }
 
   @Test
+  @DisplayName("value")
   public void testValue() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("void")
   public void testVoid() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("object literal")
   public void testObjectLiteral() throws Throwable {
     // github.com/tivo/intellij-haxe/issues/278
     doTest(true);
   }
 
   @Test
+  @DisplayName("ternary expression")
   public void testTernaryExpression() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("block statement")
   public void testBlockStatement() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("variable declaration")
   public void testVariableDeclaration() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("array comprehension")
   public void testArrayComprehension() throws Throwable {
     doTest(true);
   }

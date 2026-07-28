@@ -37,11 +37,13 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Intention: type add import action")
 public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -97,18 +99,21 @@ public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixture
 
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
     doTest();
   }
 
   @Test
+  @DisplayName("helper")
   public void testHelper() throws Throwable {
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
     doTest();
   }
 
   @Test
+  @DisplayName("module")
   public void testModule() throws Throwable {
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Types.hx");
     doTest();

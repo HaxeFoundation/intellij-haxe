@@ -16,6 +16,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
  * The whole lifecycle is one test: an hxcpp session is expensive to start
  * and every stage depends on the previous one anyway.
  */
+@DisplayName("HXCPP debugger (vshaxe): launch (integration)")
 public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
   @BeforeEach
   public void setUp() throws Exception {
@@ -32,6 +34,7 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("full debug lifecycle against the real server")
   public void fullDebugLifecycleAgainstTheRealServer() throws Exception {
     initializeAndLaunch();
 
@@ -129,6 +132,7 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("conditional breakpoint stops only when the condition is true")
   public void conditionalBreakpointStopsOnlyWhenTheConditionIsTrue() throws Exception {
     initializeAndLaunch();
 

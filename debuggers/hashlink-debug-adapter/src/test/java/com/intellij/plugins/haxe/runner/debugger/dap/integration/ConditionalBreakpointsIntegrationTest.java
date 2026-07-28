@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -18,9 +19,11 @@ import org.junit.jupiter.api.Test;
  * against real HashLink on the Main.hx loop (line 18: total = add(total, i),
  * i in 0..3), where at i==2 the accumulated total is exactly 1.
  */
+@DisplayName("HashLink debugger: conditional breakpoints (integration)")
 public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("stops only when the condition is true")
   public void stopsOnlyWhenTheConditionIsTrue() throws Exception {
     initialize();
     assertTrue(launch().isSuccess(), "launch");
@@ -38,6 +41,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
   }
 
   @Test
+  @DisplayName("condition can be an expression over several locals")
   public void conditionCanBeAnExpressionOverSeveralLocals() throws Exception {
     initialize();
     assertTrue(launch().isSuccess(), "launch");
@@ -57,6 +61,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
   }
 
   @Test
+  @DisplayName("an always false condition never stops")
   public void anAlwaysFalseConditionNeverStops() throws Exception {
     initialize();
     assertTrue(launch().isSuccess(), "launch");
@@ -82,6 +87,7 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
   }
 
   @Test
+  @DisplayName("abroken condition fails safe by stopping")
   public void abrokenConditionFailsSafeByStopping() throws Exception {
     initialize();
     assertTrue(launch().isSuccess(), "launch");

@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumBodyImpl;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Created by Boch on 20.04.2015.
  */
+@DisplayName("Resolve: haxe resolve")
 public class HaxeResolveTest extends HaxeMultiFileTestBase {
   @NotNull
   @Override
@@ -84,6 +86,7 @@ public class HaxeResolveTest extends HaxeMultiFileTestBase {
   //For example accessing flash.display.StageAlign.TOP_LEFT in some class;
   //https://github.com/TiVo/intellij-haxe/issues/39
   @Test
+  @DisplayName("resolve extern enum by full path")
   public void testResolveExternEnumByFullPath() throws Exception {
     doTest();
   }

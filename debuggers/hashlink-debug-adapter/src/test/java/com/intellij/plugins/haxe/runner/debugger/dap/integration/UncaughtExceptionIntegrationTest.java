@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
  * no {@code catch} will handle. The fixture throws "caught-one" inside a try, then
  * "uncaught-one" with no handler — we must stop on the latter.
  */
+@DisplayName("HashLink debugger: uncaught exception (integration)")
 public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {
 
   @BeforeEach
@@ -24,6 +26,7 @@ public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("uncaught only skips caught and stops on uncaught")
   public void uncaughtOnlySkipsCaughtAndStopsOnUncaught() throws Exception {
     initialize();
     assertTrue(launch(uncaughtFixtureHl.toString()).isSuccess(), "launch succeeds");

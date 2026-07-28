@@ -24,10 +24,12 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.*;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.util.ArrayUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+@DisplayName("Navigation: goto symbol contributor")
 public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -83,6 +85,7 @@ public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
+  @DisplayName("basic symbols")
   public void testBasicSymbols() throws Throwable {
     doTest();
   }

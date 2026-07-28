@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +29,7 @@ import com.intellij.xdebugger.impl.XDebuggerHistoryManager;
  * suppresses auto-popup for tagged fragments only; evaluate and watches
  * editors keep completion.
  */
+@DisplayName("Debugger: set value completion suppression")
 public class HaxeSetValueCompletionSuppressionTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -59,6 +61,7 @@ public class HaxeSetValueCompletionSuppressionTest extends HaxeCodeInsightFixtur
 
   /** A set-value expression (present in the "setValue" history) gets its fragment tagged. */
   @Test
+  @DisplayName("set value fragment suppresses autopopup")
   public void testSetValueFragmentSuppressesAutopopup() {
     XExpression expression = expression("42");
     XDebuggerHistoryManager.getInstance(getProject()).addRecentExpression("setValue", expression);
@@ -68,6 +71,7 @@ public class HaxeSetValueCompletionSuppressionTest extends HaxeCodeInsightFixtur
 
   /** An evaluate/watches expression (not in that history) keeps completion. */
   @Test
+  @DisplayName("evaluate fragment keeps autopopup")
   public void testEvaluateFragmentKeepsAutopopup() {
     XDebuggerHistoryManager.getInstance(getProject()).addRecentExpression("setValue", expression("42"));
     PsiFile fragment = createFragment(expression("someIdentifier"));

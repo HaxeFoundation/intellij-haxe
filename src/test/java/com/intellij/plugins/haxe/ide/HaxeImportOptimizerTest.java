@@ -22,11 +22,13 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * Created by fedorkorotkov.
  */
+@DisplayName("Refactoring: import optimizer")
 public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -34,66 +36,79 @@ public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("helper 1")
   public void testHelper1() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("simple 1")
   public void testSimple1() throws Throwable {
     runOptimizeAction("com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("simple 2")
   public void testSimple2() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("in")
   public void testIn() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("wildcard")
   public void testWildcard() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("duplicate")
   public void testDuplicate() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("keepusedimports")
   public void testKeepusedimports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("removeunusedin")
   public void testRemoveunusedin() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("removeduplicatein")
   public void testRemoveduplicatein() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("keepwildcardimports")
   public void testKeepwildcardimports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
+  @DisplayName("reorder imports")
   public void testReorderImports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx", "com/foo/IFoo.hx", "com/foo/Unused.hx");
   }
 
   @Test
+  @DisplayName("reorder imports with comments")
   public void testReorderImportsWithComments() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx", "com/foo/IFoo.hx", "com/foo/Unused.hx");
   }
 
   @Test
+  @DisplayName("reorder imports issue 493")
   public void testReorderImportsIssue493() throws Throwable {
     runOptimizeAction("js/Browser.hx", "js/Cookie.hx", "js/Lib.hx");
   }

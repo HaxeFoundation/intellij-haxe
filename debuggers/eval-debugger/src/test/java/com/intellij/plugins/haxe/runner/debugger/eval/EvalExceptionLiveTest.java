@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -19,11 +20,13 @@ import org.junit.jupiter.api.Timeout;
  * to catch a stall on the exception path. If the adapter deadlocked, the
  * bounded requests here would time out and FAIL rather than hang forever.
  */
+@DisplayName("Eval debugger: exception (live)")
 public class EvalExceptionLiveTest extends EvalLiveTestBase {
   private static final int THROW_LINE = 9;
 
   @Timeout(60)
   @Test
+  @DisplayName("uncaught exception stops inspects and terminates without stalling")
   public void uncaughtExceptionStopsInspectsAndTerminatesWithoutStalling() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());

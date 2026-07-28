@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Timeout;
  * breakpoints mid-verb (response + breakpointStop notification);
  * these tests pin the adapter's step-emulation loops to the same contract.
  */
+@DisplayName("Eval debugger: step breakpoint (live)")
 public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
   // EvalStepBp.hx load-bearing lines
   private static final int HELPER_BP_LINE = 11;
@@ -32,6 +34,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
 
   @Test
   @Timeout(60)
+  @DisplayName("step out stops at a breakpoint further down the function")
   public void stepOutStopsAtABreakpointFurtherDownTheFunction() throws Exception {
     int threadId = runToFirstBreakpoint(WORK_START_LINE, WORK_LATER_BP_LINE);
     assertEquals(WORK_START_LINE, topFrame(threadId).getLine(), "parked at the top of work");
@@ -46,6 +49,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
 
   @Test
   @Timeout(60)
+  @DisplayName("step over stops at a breakpoint inside the stepped over call")
   public void stepOverStopsAtABreakpointInsideTheSteppedOverCall() throws Exception {
     int threadId = runToFirstBreakpoint(HELPER_CALL_LINE, HELPER_BP_LINE);
     assertEquals(HELPER_CALL_LINE, topFrame(threadId).getLine(), "parked on the helper() call");
@@ -60,6 +64,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
 
   @Test
   @Timeout(60)
+  @DisplayName("stepping off a breakpoint line does not insta stop on its own breakpoint")
   public void steppingOffABreakpointLineDoesNotInstaStopOnItsOwnBreakpoint() throws Exception {
     int threadId = runToFirstBreakpoint(WORK_START_LINE);
     assertEquals(WORK_START_LINE, topFrame(threadId).getLine(), "parked at the top of work");

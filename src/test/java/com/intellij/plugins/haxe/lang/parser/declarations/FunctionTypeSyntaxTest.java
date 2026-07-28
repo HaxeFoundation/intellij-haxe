@@ -15,8 +15,10 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: function type syntax")
 public class FunctionTypeSyntaxTest extends DeclarationTestBase {
   public FunctionTypeSyntaxTest() {
     super("function/functionTypes");
@@ -24,11 +26,13 @@ public class FunctionTypeSyntaxTest extends DeclarationTestBase {
 
 
   @Test
+  @DisplayName("old function type syntax")
   public void testOldFunctionTypeSyntax() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("new function type syntax")
   public void testNewFunctionTypeSyntax() throws Throwable {
     doTest(true);
   }

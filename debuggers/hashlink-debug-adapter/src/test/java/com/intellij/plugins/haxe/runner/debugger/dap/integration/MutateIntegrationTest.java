@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,9 +23,11 @@ import org.junit.jupiter.api.Test;
  * steer execution (a written bool takes a branch; written locals/fields/
  * elements change the printed result).
  */
+@DisplayName("HashLink debugger: mutate (integration)")
 public class MutateIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("writes locals fields and elements and steers execution")
   public void writesLocalsFieldsAndElementsAndSteersExecution() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -50,6 +53,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("assigns through evaluate expression")
   public void assignsThroughEvaluateExpression() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -67,6 +71,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("rejects allocating and mistyped writes with clear messages")
   public void rejectsAllocatingAndMistypedWritesWithClearMessages() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -85,6 +90,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("write on the use line takes effect")
   public void writeOnTheUseLineTakesEffect() throws Exception {
     // stop ON the line that uses the parameter (a prior use one line earlier,
     // no call between): the write must still reach the executed code. Pins
@@ -101,6 +107,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("write to float arg on its use line takes effect")
   public void writeToFloatArgOnItsUseLineTakesEffect() throws Exception {
     // the user-reported case: a Float parameter traced on the callee's FIRST
     // line. Float args ARRIVE in XMM0 and the trace consumes that register,
@@ -115,6 +122,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("write to register passed int arg warns and applies to later uses")
   public void writeToRegisterPassedIntArgWarnsAndAppliesToLaterUses() throws Exception {
     // the arrival-register caveat is an x86-64 calling-convention behavior;
     // 32-bit HL passes args on the stack, so it does not exist there

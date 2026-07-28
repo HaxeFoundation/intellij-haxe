@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test;
  * never arrive must fail promptly with an honest "connection" message — not
  * sleep out its full timeout and then claim the adapter was merely slow.
  */
+@DisplayName("DAP protocol: client")
 public class DapClientTest {
   private static final long TIMEOUT = 5_000;
 
@@ -48,6 +50,7 @@ public class DapClientTest {
   }
 
   @Test
+  @DisplayName("in flight request fails fast when the connection dies")
   public void inFlightRequestFailsFastWhenTheConnectionDies() throws Exception {
     // the timeout is deliberately huge: the failure must come from the
     // connection death, not from waiting out the timer
@@ -71,6 +74,7 @@ public class DapClientTest {
   }
 
   @Test
+  @DisplayName("request after connection death fails immediately")
   public void requestAfterConnectionDeathFailsImmediately() throws Exception {
     serverSide.close();
     long deadline = System.currentTimeMillis() + TIMEOUT;

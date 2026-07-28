@@ -16,6 +16,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -23,8 +24,10 @@ import org.junit.jupiter.api.Test;
  * handshake, provisional breakpoints, error responses, sequence numbers, and
  * clean shutdown. One protocol behaviour per test.
  */
+@DisplayName("HashLink debugger: debug adapter (integration)")
 public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   @Test
+  @DisplayName("initialize replies with capabilities and initialized event")
   public void initializeRepliesWithCapabilitiesAndInitializedEvent() throws Exception {
     Response response = sendInitialize();
 
@@ -39,6 +42,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("set breakpoints before launch are provisional")
   public void setBreakpointsBeforeLaunchAreProvisional() throws Exception {
     // Without a launched program the adapter cannot resolve breakpoints yet, so
     // it answers provisionally (unverified); they are re-verified after launch.
@@ -69,6 +73,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("configuration done is acknowledged")
   public void configurationDoneIsAcknowledged() throws Exception {
     sendInitialize();
     Response response = request(new ConfigurationDoneRequest());
@@ -77,6 +82,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("launch without program is rejected")
   public void launchWithoutProgramIsRejected() throws Exception {
     sendInitialize();
     // a launch with no 'program' argument must fail validation rather than hang
@@ -85,6 +91,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("threads returns stub main thread")
   public void threadsReturnsStubMainThread() throws Exception {
     sendInitialize();
     Response response = request(new ThreadsRequest());
@@ -97,6 +104,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("unknown command yields error response")
   public void unknownCommandYieldsErrorResponse() throws Exception {
     Request request = new Request();
     request.setCommand("fooBar");
@@ -111,6 +119,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("responses echo request seq and adapter seq is monotonic")
   public void responsesEchoRequestSeqAndAdapterSeqIsMonotonic() throws Exception {
     Response first = sendInitialize();
     Response second = request(new ConfigurationDoneRequest());
@@ -124,6 +133,7 @@ public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("disconnect is acknowledged and adapter exits cleanly")
   public void disconnectIsAcknowledgedAndAdapterExitsCleanly() throws Exception {
     sendInitialize();
     Response response = request(new DisconnectRequest());

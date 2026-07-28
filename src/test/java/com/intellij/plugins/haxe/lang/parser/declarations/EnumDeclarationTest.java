@@ -17,37 +17,44 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: enum declaration")
 public class EnumDeclarationTest extends DeclarationTestBase {
   public EnumDeclarationTest() {
     super("enum");
   }
 
   @Test
+  @DisplayName("axis")
   public void testAxis() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("cell")
   public void testCell() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("color 3")
   public void testColor3() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("http code")
   public void testHttpCode() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("http code hx 4")
   public void testHttpCodeHx4() throws Throwable {
     doTest(true);
   }

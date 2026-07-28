@@ -17,42 +17,50 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * Created by as3boyan on 09.08.14.
  */
+@DisplayName("Parsing: property declaration")
 public class PropertyDeclarationTest extends DeclarationTestBase {
   public PropertyDeclarationTest() {
     super("property");
   }
 
   @Test
+  @DisplayName("property")
   public void testProperty() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("static initializer")
   public void testStaticInitializer() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("static initializer without semicolon bare")
   public void testStaticInitializerWithoutSemicolonBare() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("static initializer without semicolon")
   public void testStaticInitializerWithoutSemicolon() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("missing semicolon")
   public void testMissingSemicolon() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("final meta on property")
   public void testFinalMetaOnProperty() throws Throwable {
     doTest(true);
   }

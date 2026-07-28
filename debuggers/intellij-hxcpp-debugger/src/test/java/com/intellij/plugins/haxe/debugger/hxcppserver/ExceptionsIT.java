@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.debugger.hxcppserver;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,9 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * access stops as a critical error EVEN inside try/catch (a runtime property
  * under an attached debugger); disabled filters resume silently.
  */
+@DisplayName("HXCPP debugger: exceptions (integration)")
 public class ExceptionsIT {
 
   @Test
+  @DisplayName("an uncaught throw stops at the throw site")
   public void anUncaughtThrowStopsAtTheThrowSite() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("uncaught")) {
       session.initialize("uncaught", "critical");
@@ -49,6 +52,7 @@ public class ExceptionsIT {
   }
 
   @Test
+  @DisplayName("a caught throw never stops")
   public void aCaughtThrowNeverStops() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("caught")) {
       session.initialize("uncaught", "critical");
@@ -60,6 +64,7 @@ public class ExceptionsIT {
   }
 
   @Test
+  @DisplayName("a null access stops as a critical error even inside try catch")
   public void aNullAccessStopsAsACriticalErrorEvenInsideTryCatch() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("caught-null")) {
       session.initialize("uncaught", "critical");
@@ -81,6 +86,7 @@ public class ExceptionsIT {
    * text names the concrete class and the message.
    */
   @Test
+  @DisplayName("the thrown filter stops at a caught exception construction")
   public void theThrownFilterStopsAtACaughtExceptionConstruction() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("typedthrow")) {
       session.initialize("uncaught", "critical", "thrown");
@@ -110,6 +116,7 @@ public class ExceptionsIT {
    * filter is OFF — only the typed filter can cause this stop.
    */
   @Test
+  @DisplayName("a typed filter stops its class even with an inherited constructor")
   public void aTypedFilterStopsItsClassEvenWithAnInheritedConstructor() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("typedthrow")) {
       session.initialize("uncaught", "critical");
@@ -126,6 +133,7 @@ public class ExceptionsIT {
   }
 
   @Test
+  @DisplayName("a typed filter for another class does not stop")
   public void aTypedFilterForAnotherClassDoesNotStop() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("typedthrow")) {
       session.initialize("uncaught", "critical");
@@ -143,6 +151,7 @@ public class ExceptionsIT {
    * freely), then setExceptionBreakpoints turns it on and the next throw stops.
    */
   @Test
+  @DisplayName("enabling the thrown filter mid session takes effect")
   public void enablingTheThrownFilterMidSessionTakesEffect() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("throwloop")) {
       session.initialize("uncaught", "critical"); // thrown OFF
@@ -164,6 +173,7 @@ public class ExceptionsIT {
    * see README gotcha 15 — but a line breakpoint on such a line always works.)
    */
   @Test
+  @DisplayName("line breakpoints inside try and catch fire")
   public void lineBreakpointsInsideTryAndCatchFire() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("caught")) {
       session.initialize("uncaught", "critical");
@@ -185,6 +195,7 @@ public class ExceptionsIT {
   }
 
   @Test
+  @DisplayName("disabled filters resume an uncaught throw silently")
   public void disabledFiltersResumeAnUncaughtThrowSilently() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("uncaught")) {
       session.initialize(/* all filters off */);

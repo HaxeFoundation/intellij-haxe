@@ -17,29 +17,35 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: if")
 public class IfTest extends StatementTestBase {
   public IfTest() {
     super("if");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("if else")
   public void testIfElse() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("multiple if else")
   public void testMultipleIfElse() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("condition")
   public void testCondition() throws Throwable {
     doTest(true);
   }

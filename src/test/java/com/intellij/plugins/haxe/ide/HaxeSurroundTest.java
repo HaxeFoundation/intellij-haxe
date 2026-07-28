@@ -24,11 +24,13 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.surroundWith.*;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Editor: surround")
 public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -65,26 +67,31 @@ public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("if")
   public void testIf() throws Exception {
     doTest(new HaxeIfSurrounder());
   }
 
   @Test
+  @DisplayName("if else")
   public void testIfElse() throws Exception {
     doTest(new HaxeIfElseSurrounder());
   }
 
   @Test
+  @DisplayName("while")
   public void testWhile() throws Exception {
     doTest(new HaxeWhileSurrounder());
   }
 
   @Test
+  @DisplayName("do while")
   public void testDoWhile() throws Exception {
     doTest(new HaxeDoWhileSurrounder());
   }
 
   @Test
+  @DisplayName("try catch")
   public void testTryCatch() throws Exception {
     doTest(new HaxeTryCatchSurrounder());
   }

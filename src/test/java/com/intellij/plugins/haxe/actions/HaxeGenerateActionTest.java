@@ -23,11 +23,13 @@ import com.intellij.plugins.haxe.ide.generation.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.plugins.haxe.HaxeLightCodeInsightTestBase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Code generation: generate action")
 public class HaxeGenerateActionTest extends HaxeLightCodeInsightTestBase {
 
   @Override
@@ -70,69 +72,82 @@ public class HaxeGenerateActionTest extends HaxeLightCodeInsightTestBase {
   }
 
   @Test
+  @DisplayName("implement 1")
   public void testImplement1() throws Throwable {
     configureByFile("Implement1.hx");
     doImplementTest();
   }
 
   @Test
+  @DisplayName("implement 2")
   public void testImplement2() throws Throwable {
     configureByFile("Implement2.hx");
     doImplementTest();
   }
 
   @Test
+  @DisplayName("override 1")
   public void testOverride1() throws Throwable {
     configureByFile("Override1.hx");
     doOverrideTest();
   }
 
   @Test
+  @DisplayName("override 2")
   public void testOverride2() throws Throwable {
     configureByFile("Override2.hx");
     doOverrideTest();
   }
 
   @Test
+  @DisplayName("getter 1")
   public void testGetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }
 
   @Test
+  @DisplayName("getter 2")
   public void testGetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }
 
   @Test
+  @DisplayName("setter 1")
   public void testSetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.SETTER);
   }
 
   @Test
+  @DisplayName("setter 2")
   public void testSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.SETTER);
   }
 
   @Test
+  @DisplayName("getter setter 1")
   public void testGetterSetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
 
   @Test
+  @DisplayName("getter setter 2")
   public void testGetterSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
 
   @Test
+  @DisplayName("constructor")
   public void testConstructor() throws Throwable {
     doConstructorTest();
   }
 
   @Test
+  @DisplayName("constructor 2")
   public void testConstructor2() throws Throwable {
     doConstructorTest();
   }
   @Test
+  @DisplayName("constructor in abstract")
   public void testConstructorInAbstract() throws Throwable {
     doConstructorTest();
   }

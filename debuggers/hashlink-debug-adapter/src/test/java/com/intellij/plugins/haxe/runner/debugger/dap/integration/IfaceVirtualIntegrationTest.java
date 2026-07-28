@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,9 +21,11 @@ import org.junit.jupiter.api.Test;
  * (a method's slot holds the function's CODE pointer, which must never be
  * dereferenced as a value). Both therefore resolve to the INSTANCE.
  */
+@DisplayName("HashLink debugger: iface virtual (integration)")
 public class IfaceVirtualIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("an interface typed local shows the instance and its values")
   public void anInterfaceTypedLocalShowsTheInstanceAndItsValues() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_IFACE, FIXTURE_IFACE_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
@@ -42,6 +45,7 @@ public class IfaceVirtualIntegrationTest extends DapIntegrationTestBase {
 
   /** The per-interface cache field is compiler-internal and stays hidden. */
   @Test
+  @DisplayName("the hidden interface cache field is not shown")
   public void theHiddenInterfaceCacheFieldIsNotShown() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_IFACE, FIXTURE_IFACE_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());

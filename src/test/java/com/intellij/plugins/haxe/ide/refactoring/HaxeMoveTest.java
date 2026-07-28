@@ -35,6 +35,7 @@ import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackages
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesProcessor;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,6 +47,7 @@ import java.util.Collection;
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Refactoring: move")
 public class HaxeMoveTest extends HaxeMultiFileTestBase {
 
   @Override
@@ -103,21 +105,25 @@ public class HaxeMoveTest extends HaxeMultiFileTestBase {
   }
 
   @Test
+  @DisplayName("move file 1")
   public void testMoveFile1() throws Exception {
     doTest("util/ArrayUtils.hx", "bar");
   }
 
   @Test
+  @DisplayName("move file 2")
   public void testMoveFile2() throws Exception {
     doTest("util/ArrayUtils.hx", "");
   }
 
   @Test
+  @DisplayName("move package")
   public void testMovePackage() throws Exception {
     doTest("util", "foo");
   }
 
   @Test
+  @DisplayName("move class")
   public void testMoveClass() throws Exception {
     final String testHx = "pack1/Moved.hx";
     final String targetDirName = "pack2";

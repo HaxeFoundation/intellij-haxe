@@ -36,6 +36,7 @@ import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
 import com.intellij.util.LocalTimeCounter;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import static com.intellij.plugins.haxe.ide.HaxeFindUsagesHandlerFactory.TestInt
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Navigation: find usages")
 public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -74,60 +76,70 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("properties 1")
   public void testProperties1() throws Throwable {
     myFixture.configureByFiles("Properties1.hx");
     doTest(1);
   }
 
   @Test
+  @DisplayName("properties 2")
   public void testProperties2() throws Throwable {
     myFixture.configureByFiles("Properties2.hx");
     doTest(1);
   }
 
   @Test
+  @DisplayName("var declaration")
   public void testVarDeclaration() throws Throwable {
     myFixture.configureByFiles("VarDeclaration.hx", "com/bar/Foo.hx");
     doTest(0);
   }
 
   @Test
+  @DisplayName("local function parameter")
   public void testLocalFunctionParameter() throws Throwable {
     myFixture.configureByFiles("LocalFunctionParameter.hx", "com/bar/Foo.hx");
     doTest(3);
   }
 
   @Test
+  @DisplayName("for declaration")
   public void testForDeclaration() throws Throwable {
     myFixture.configureByFiles("ForDeclaration.hx", "com/bar/IBar.hx");
     doTest(3);
   }
 
   @Test
+  @DisplayName("local var declaration 1")
   public void testLocalVarDeclaration1() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration1.hx");
     doTest(1);
   }
 
   @Test
+  @DisplayName("local var declaration 2")
   public void testLocalVarDeclaration2() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration2.hx");
     doTest(1);
   }
 
   @Test
+  @DisplayName("function parameter")
   public void testFunctionParameter() throws Throwable {
     myFixture.configureByFiles("FunctionParameter.hx");
     doTest(2);
   }
 
   @Test
+  @DisplayName("class declaration")
   public void testClassDeclaration() throws Throwable {
     myFixture.configureByFiles("com/bar/ClassToFind.hx", "ClassDeclaration.hx");
     doTest(7);
   }
 
   @Test
+  @DisplayName("class constructor")
   public void testClassConstructor() throws Throwable {
     myFixture.configureByFiles("ClassConstructor.hx");
     doTest(3);
@@ -220,16 +232,19 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
 
 
   @Test
+  @DisplayName("find current class")
   public void testFindCurrentClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_CURRENT_CLASS);
   }
 
   @Test
+  @DisplayName("find base class")
   public void testFindBaseClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_BASE_CLASS);
   }
 
   @Test
+  @DisplayName("find ancestor class")
   public void testFindAncestorClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_ANCESTOR_CLASSES);
   }

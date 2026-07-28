@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test;
  * frame's locals inspectable. The OThrow-based "all" filter, by contrast,
  * must NOT catch it.
  */
+@DisplayName("HashLink debugger: vm exception (integration)")
 public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
 
   @BeforeEach
@@ -31,6 +33,7 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("vm filter stops at the null access with the real message and locals")
   public void vmFilterStopsAtTheNullAccessWithTheRealMessageAndLocals() throws Exception {
     initialize();
     assertTrue(launch(vmFixtureHl.toString()).isSuccess(), "launch succeeds");
@@ -64,6 +67,7 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("all filter does not catch a vm raised error")
   public void allFilterDoesNotCatchAVmRaisedError() throws Exception {
     initialize();
     assertTrue(launch(vmFixtureHl.toString()).isSuccess(), "launch succeeds");

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,10 +18,12 @@ import org.junit.jupiter.api.Test;
  * scope — while its static methods worked (those are bindings of the
  * container itself).
  */
+@DisplayName("HashLink debugger: packaged statics (integration)")
 public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
   private static final int DEEP_INSTANCE_LINE = 21; // pkg/Deep.hx readMarker()
 
   @Test
+  @DisplayName("unqualified statics resolve in a packaged instance frame")
   public void unqualifiedStaticsResolveInAPackagedInstanceFrame() throws Exception {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -32,6 +35,7 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
 
   /** The same mapping drives the Statics scope, so it must appear here too. */
   @Test
+  @DisplayName("the statics scope appears in a packaged instance frame")
   public void theStaticsScopeAppearsInAPackagedInstanceFrame() throws Exception {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -45,6 +49,7 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
 
   /** Guards the shapes that already worked: top-level, and static frames. */
   @Test
+  @DisplayName("unqualified statics keep working elsewhere")
   public void unqualifiedStaticsKeepWorkingElsewhere() throws Exception {
     StoppedEvent atInstance = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
     assertEquals("2", evaluated(topFrameId(atInstance.getBody().getThreadId()), "axes"), "top-level class, instance frame");

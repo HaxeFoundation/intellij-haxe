@@ -34,12 +34,14 @@ import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoCon
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext;
 import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoContext;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Editor: parameter info")
 public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
 
 
@@ -92,74 +94,89 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
 
 
   @Test
+  @DisplayName("param info 1")
   public void testParamInfo1() throws Throwable {
     doTest("p1:Int, p2:Null<Unknown>, p3:Node", 0);
   }
 
   @Test
+  @DisplayName("param info 2")
   public void testParamInfo2() throws Throwable {
     doTest("p1:Int, p2:Null<Unknown>, p3:Node", 2);
   }
 
   @Test
+  @DisplayName("param info 3")
   public void testParamInfo3() throws Throwable {
     doTest("x:Int, y:Int", 0);
   }
 
   @Test
+  @DisplayName("param info 4")
   public void testParamInfo4() throws Throwable {
     doTest("x:Int, y:Int", 0);
   }
 
   @Test
+  @DisplayName("param info 5")
   public void testParamInfo5() throws Throwable {
     doTest("x:Int, y:Int", 1);
   }
 
   @Test
+  @DisplayName("param info 6")
   public void testParamInfo6() throws Throwable {
     doTest("x:Int, y:Int = 239", 1);
   }
 
   @Test
+  @DisplayName("param info 7")
   public void testParamInfo7() throws Throwable {
     configureLoggerForDebugging();
     doTest("t:Node", 0);
   }
 
   @Test
+  @DisplayName("param info 8")
   public void testParamInfo8() throws Throwable {
     doTest("t:Node", 0);
   }
 
   @Test
+  @DisplayName("param info 9")
   public void testParamInfo9() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Null<Unknown> = null", 2);
   }
 
   @Test
+  @DisplayName("param info 10")
   public void testParamInfo10() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:T = null", 3);
   }
   @Test
+  @DisplayName("param info 11")
   public void testParamInfo11() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
   @Test
+  @DisplayName("param info 12")
   public void testParamInfo12() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
   @Test
+  @DisplayName("param info 13")
   public void testParamInfo13() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
 
   @Test
+  @DisplayName("param info extension method")
   public void testParamInfoExtensionMethod() throws Throwable {
     doTest("?quotes:Bool = null", 0);
   }
 
   @Test
+  @DisplayName("param info macro method")
   public void testParamInfoMacroMethod() throws Throwable {
     doTest("valueB:Int = 1, ValueC:Float = 1.0", 1);
   }

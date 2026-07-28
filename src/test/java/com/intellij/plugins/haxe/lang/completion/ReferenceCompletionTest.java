@@ -20,100 +20,119 @@
 package com.intellij.plugins.haxe.lang.completion;
 
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Completion: reference")
 public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public ReferenceCompletionTest() {
     super("completion", "references");
   }
 
   @Test
+  @DisplayName("test 1")
   public void testTest1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 2")
   public void testTest2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 3")
   public void testTest3() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 4")
   public void testTest4() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 5")
   public void testTest5() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 6")
   public void testTest6() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 7")
   public void testTest7() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 8")
   public void testTest8() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("test 9")
   public void testTest9() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("self method")
   public void testSelfMethod() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("this members")
   public void testThisMembers() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("super members")
   public void testSuperMembers() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("class name")
   public void testClassName() throws Throwable {
     myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ClassName.txt");
   }
 
   @Test
+  @DisplayName("class name 2")
   public void testClassName2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("import in statement")
   public void testImportInStatement() throws Throwable {
     myFixture.configureByFiles("ImportInStatement.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ImportInStatement.txt");
   }
 
   @Test
+  @DisplayName("import static")
   public void testImportStatic() throws Throwable {
     myFixture.configureByFiles("ImportStaticStatement.hx", "com/util/StringUtil.hx");
     doTestVariantsInner("ImportStaticStatement.txt");
   }
 
   @Test
+  @DisplayName("package completion in package statement 1")
   public void testPackageCompletionInPackageStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     configureFileByText("Baz.hx", "package <caret>");
@@ -122,6 +141,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("package completion in package statement 2")
   public void testPackageCompletionInPackageStatement2() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
@@ -131,6 +151,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("package completion in import statement 1")
   public void testPackageCompletionInImportStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
@@ -140,6 +161,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("package completion in import statement 2")
   public void testPackageCompletionInImportStatement2() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
@@ -149,6 +171,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("package completion in import statement 3")
   public void testPackageCompletionInImportStatement3() {
     myFixture.addFileToProject("com/foo/Bar.hx", "package com.foo;\nclass Bar {}");
     myFixture.addFileToProject("com/foo/Baz.hx", "package com.foo;\nclass Baz {}");
@@ -158,47 +181,55 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("private method")
   public void testPrivateMethod() throws Throwable {
     myFixture.configureByFiles("PrivateMethod.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("PrivateMethod.txt");
   }
 
   @Test
+  @DisplayName("public getter")
   public void testPublicGetter() throws Throwable {
     myFixture.configureByFiles("PublicGetter.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("PublicGetter.txt");
   }
 
   @Test
+  @DisplayName("self private method")
   public void testSelfPrivateMethod() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("std type 1")
   public void testStdType1() throws Throwable {
     myFixture.configureByFiles("StdType1.hx", "std/String.hx");
     doTestVariantsInner("StdType1.txt");
   }
 
   @Test
+  @DisplayName("std type 2")
   public void testStdType2() throws Throwable {
     myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
     doTestVariantsInner("StdType2.txt");
   }
 
   @Test
+  @DisplayName("using util 1")
   public void testUsingUtil1() throws Throwable {
     myFixture.configureByFiles("UsingUtil1.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("UsingUtil1.txt");
   }
 
   @Test
+  @DisplayName("using util 2")
   public void testUsingUtil2() throws Throwable {
     myFixture.configureByFiles("UsingUtil2.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("UsingUtil2.txt");
   }
 
   @Test
+  @DisplayName("using util 3")
   public void testUsingUtil3() throws Throwable {
     myFixture.configureByFiles("UsingUtil3.hx", "com/util/Tools.hx", "com/util/StringUtil.hx", "com/util/MathUtil.hx", "std/String.hx",
                                "std/StdTypes.hx");
@@ -207,11 +238,13 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   //https://github.com/TiVo/intellij-haxe/issues/28
   @Test
+  @DisplayName("typedef optional field")
   public void testTypedefOptionalField() throws Throwable {
     myFixture.configureByFiles("TypedefOptionalField.hx");
     doTestVariantsInner("TypedefOptionalField.txt");
   }
   @Test
+  @DisplayName("type parameter constraints")
   public void testTypeParameterConstraints() throws Throwable {
     myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx", "std/Array.hx");
     doTestInclude();
@@ -219,27 +252,32 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   //https://github.com/TiVo/intellij-haxe/issues/262
   @Test
+  @DisplayName("static member")
   public void testStaticMember() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("static private member")
   public void testStaticPrivateMember() throws Throwable {
     doTestInclude();
   }
 
   //https://github.com/TiVo/intellij-haxe/issues/262
   @Test
+  @DisplayName("static field")
   public void testStaticField() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("method local var")
   public void testMethodLocalVar() throws Throwable {
     doTestInclude();
   }
 
   @Test
+  @DisplayName("method arg")
   public void testMethodArg() throws Throwable {
     doTestInclude();
   }
@@ -269,29 +307,34 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 //  }
 
   @Test
+  @DisplayName("string code")
   public void testStringCode() throws Throwable {
     doTestInclude();
   }
 
   @Test
+  @DisplayName("local typedef")
   public void testLocalTypedef() throws Throwable {
     myFixture.configureByFiles("com/testing/LocalTypedef.hx", "com/util/Bar.hx");
     doTestVariantsInner("com/testing/LocalTypedef.txt");
   }
 
   @Test
+  @DisplayName("generic from super package")
   public void testGenericFromSuperPackage() throws Throwable {
     myFixture.configureByFiles("generic1/clients/Client.hx", "generic1/GenericInSuperPackage.hx");
     doTestVariantsInner("generic1/clients/Client.txt");
   }
 
   @Test
+  @DisplayName("lower case")
   public void testLowerCase() throws Throwable {
     myFixture.configureByFiles("LowerCase.hx", "com/util/Bar.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx");
     doTestVariantsInner("LowerCase.txt");
   }
 
   @Test
+  @DisplayName("root package name")
   public void testRootPackageName() throws Throwable {
     myFixture.configureByFiles("com/testing/RootPackageName.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("com/testing/RootPackageName.txt");
@@ -302,40 +345,47 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("anonymous extends")
   public void testAnonymousExtends() throws Throwable {
     doTestInclude();
   }
 
   @Test
+  @DisplayName("anonymous chain")
   public void testAnonymousChain() throws Throwable {
     doTestInclude();
   }
 
   @Test
+  @DisplayName("anonymous generic chain")
   public void testAnonymousGenericChain() throws Throwable {
     myFixture.configureByFiles("std/String.hx");
     doTestInclude();
   }
 
   @Test
+  @DisplayName("anonymous iterator")
   public void testAnonymousIterator() throws Throwable {
     myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
     doTestInclude();
   }
 
   @Test
+  @DisplayName("generic in map")
   public void testGenericInMap() throws Throwable {
     myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
     doTestInclude();
   }
 
   @Test
+  @DisplayName("generic anonymous field in map")
   public void testGenericAnonymousFieldInMap() throws Throwable {
     myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
     doTestInclude();
   }
 
   @Test
+  @DisplayName("generic to generic reference")
   public void testGenericToGenericReference() throws Throwable {
     myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
     doTestInclude();
@@ -348,85 +398,101 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   //}
 
   @Test
+  @DisplayName("import generic sub type")
   public void testImportGenericSubType() throws Throwable {
     myFixture.configureByFiles("ImportGenericSubType.hx", "generic1/ClassWithGenericSubClass.hx", "std/StdTypes.hx");
     doTestVariantsInner("ImportGenericSubType.txt");
   }
 
   @Test
+  @DisplayName("import hx file")
   public void testImportHxFile() throws Throwable {
     myFixture.configureByFiles("ImportHxFile.hx", "import.hx", "com/util/MathUtil.hx");
     doTestVariantsInner("ImportHxFile.txt");
   }
   @Test
+  @DisplayName("import hx file using")
   public void testImportHxFileUsing() throws Throwable {
     myFixture.configureByFiles("ImportHxFile.hx", "import.hx", "com/util/MyStringUtil.hx");
     doTestVariantsInner("ImportHxFileUsing.txt");
   }
 
   @Test
+  @DisplayName("null typedef")
   public void testNullTypedef() throws Throwable {
     myFixture.configureByFiles("NullTypedef.hx", "std/StdTypes.hx", "std/String.hx");
     doTestVariantsInner("NullTypedef.txt");
   }
 
   @Test
+  @DisplayName("ref typedef")
   public void testRefTypedef() throws Throwable {
     myFixture.configureByFiles("RefTypedef.hx", "std/String.hx");
     doTestVariantsInner("RefTypedef.txt");
   }
 
   @Test
+  @DisplayName("abstract enum fields")
   public void testAbstractEnumFields() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
+  @DisplayName("abstract enum fields 2")
   public void testAbstractEnumFields2() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
+  @DisplayName("abstract enum fields 3")
   public void testAbstractEnumFields3() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
+  @DisplayName("abstract forward")
   public void testAbstractForward() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
+  @DisplayName("abstract forward 1")
   public void testAbstractForward1() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
+  @DisplayName("abstract forward 2")
   public void testAbstractForward2() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
+  @DisplayName("abstract forward 3")
   public void testAbstractForward3() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
+  @DisplayName("abstract forward 4")
   public void testAbstractForward4() throws Throwable {
     doTestInclude("std/Array.hx");
   }
 
   @Test
+  @DisplayName("abstract forward 5")
   public void testAbstractForward5() throws Throwable {
     doTestInclude("std/Array.hx");
   }
 
   @Test
+  @DisplayName("abstract via null")
   public void testAbstractViaNull() throws Throwable {
     doTestInclude("std/StdTypes.hx", "std/String.hx");
   }
 
   @Test
+  @DisplayName("abstract with generic underlying type")
   public void testAbstractWithGenericUnderlyingType() throws Throwable {
     // Issue #772
     doTestInclude("std/StdTypes.hx", "std/String.hx");
@@ -445,83 +511,98 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   */
 
   @Test
+  @DisplayName("extensions 1")
   public void testExtensions1() throws Throwable {
     myFixture.configureByFiles("Extensions1.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions1.txt");
   }
 
   @Test
+  @DisplayName("extensions 2")
   public void testExtensions2() throws Throwable {
     myFixture.configureByFiles("Extensions2.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions2.txt");
   }
 
   @Test
+  @DisplayName("extensions 3")
   public void testExtensions3() throws Throwable {
     myFixture.configureByFiles("Extensions3.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions3.txt");
   }
 
   @Test
+  @DisplayName("extensions 4")
   public void testExtensions4() throws Throwable {
     myFixture.configureByFiles("Extensions4.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions4.txt");
   }
 
   @Test
+  @DisplayName("extensions 5")
   public void testExtensions5() throws Throwable {
     myFixture.configureByFiles("Extensions5.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions5.txt");
   }
 
   @Test
+  @DisplayName("for loop variable 1")
   public void testForLoopVariable1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("for loop variable 2")
   public void testForLoopVariable2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("for loop variable 3")
   public void testForLoopVariable3() throws Throwable {
     doTestInclude("std/StdTypes.hx", "std/Array.hx");
   }
 
   @Test
+  @DisplayName("for loop variable 4")
   public void testForLoopVariable4() throws Throwable {
     doTest();
   }
 
 
   @Test
+  @DisplayName("non qualified abstract enum fields")
   public void testNonQualifiedAbstractEnumFields() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
+  @DisplayName("non qualified abstract enum fields 2")
   public void testNonQualifiedAbstractEnumFields2() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
+  @DisplayName("non qualified abstract enum fields 3")
   public void testNonQualifiedAbstractEnumFields3() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
   // TODO mlo: verify both identical  named enum values are in completion list
+  @DisplayName("inner enum")
   public void testInnerEnum() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("parenthesized expression")
   public void testParenthesizedExpression() throws Throwable {
     doTestInclude("std/StdTypes.hx", "std/String.hx");
   }
 
   @Test
+  @DisplayName("type parameter from argument")
   public void testTypeParameterFromArgument() throws Throwable {
     doTestInclude("std/StdTypes.hx", "std/Array.hx", "std/Vector.hx", "std/String.hx");
   }

@@ -7,23 +7,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("HXCPP debugger (vshaxe): json rpc json")
 public class JsonRpcJsonTest {
 
   @Test
+  @DisplayName("encode request carries id method params")
   public void encodeRequestCarriesIdMethodParams() {
     String json = JsonRpcJson.encode(new JsonRpcRequest(7, "continue", Map.of("threadId", 0)));
     assertEquals("{\"id\":7,\"method\":\"continue\",\"params\":{\"threadId\":0}}", json);
   }
 
   @Test
+  @DisplayName("encode null params as empty object")
   public void encodeNullParamsAsEmptyObject() {
     String json = JsonRpcJson.encode(new JsonRpcRequest(1, "pause", null));
     assertEquals("{\"id\":1,\"method\":\"pause\",\"params\":{}}", json);
   }
 
   @Test
+  @DisplayName("decode success response")
   public void decodeSuccessResponse() {
     JsonRpcServerMessage message = JsonRpcJson.decode("{\"id\":3,\"result\":[{\"id\":0,\"name\":\"main\"}]}");
     assertTrue(message instanceof JsonRpcResponse);
@@ -34,6 +39,7 @@ public class JsonRpcJsonTest {
   }
 
   @Test
+  @DisplayName("decode error response")
   public void decodeErrorResponse() {
     JsonRpcServerMessage message = JsonRpcJson.decode(
       "{\"id\":4,\"error\":{\"code\":422,\"message\":\"wrong request\"}}");
@@ -44,6 +50,7 @@ public class JsonRpcJsonTest {
   }
 
   @Test
+  @DisplayName("decode void result response")
   public void decodeVoidResultResponse() {
     JsonRpcResponse response = (JsonRpcResponse)JsonRpcJson.decode("{\"id\":5}");
     assertFalse(response.isError());
@@ -51,6 +58,7 @@ public class JsonRpcJsonTest {
   }
 
   @Test
+  @DisplayName("decode notification")
   public void decodeNotification() {
     JsonRpcServerMessage message = JsonRpcJson.decode(
       "{\"method\":\"breakpointStop\",\"params\":{\"threadId\":2}}");
@@ -61,6 +69,7 @@ public class JsonRpcJsonTest {
   }
 
   @Test
+  @DisplayName("decode response echoing request fields")
   public void decodeResponseEchoingRequestFields() {
     // Server.hx answers by sending the request object back with result/error
     // filled in, so a response also carries method and params — id decides.
@@ -73,6 +82,7 @@ public class JsonRpcJsonTest {
   }
 
   @Test
+  @DisplayName("decode rejects neither id nor method")
   public void decodeRejectsNeitherIdNorMethod() {
     assertThrows(IllegalArgumentException.class, () -> JsonRpcJson.decode("{\"something\":\"else\"}"));
   }

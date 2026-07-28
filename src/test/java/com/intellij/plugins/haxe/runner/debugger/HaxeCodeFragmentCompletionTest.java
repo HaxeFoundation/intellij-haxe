@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,6 +23,7 @@ import java.util.List;
  * class's extends list in handleSuperExpression. Without the boundary
  * crossing both typed as Dynamic/unknown and the popup came up empty.
  */
+@DisplayName("Debugger: code fragment completion")
 public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -53,16 +55,19 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
+  @DisplayName("this completion lists own members")
   public void testThisCompletionListsOwnMembers() {
     assertContainsElements(fragmentCompletions("this."), "count", "update");
   }
 
   @Test
+  @DisplayName("this completion lists inherited members")
   public void testThisCompletionListsInheritedMembers() {
     assertContainsElements(fragmentCompletions("this."), "inherited", "baseAction");
   }
 
   @Test
+  @DisplayName("super completion lists super class members")
   public void testSuperCompletionListsSuperClassMembers() {
     assertContainsElements(fragmentCompletions("super."), "inherited", "baseAction");
   }

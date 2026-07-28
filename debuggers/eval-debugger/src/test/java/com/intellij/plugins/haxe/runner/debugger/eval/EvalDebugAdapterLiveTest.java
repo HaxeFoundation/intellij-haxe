@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
  * stop, stack/scopes/variables, evaluate, step, resume, terminate — against
  * the fixture in test-fixtures/EvalMain.hx. Skips when haxe is not on PATH.
  */
+@DisplayName("Eval debugger: debug adapter (live)")
 public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
 
   private static final int BREAK_LINE = 10;
@@ -50,6 +52,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   private static final int COLL_LINE = 51;        // Coll.collections println (items array live)
 
   @Test
+  @DisplayName("full session breakpoint inspect step and finish")
   public void fullSessionBreakpointInspectStepAndFinish() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     InitializeRequestArguments initArgs = new InitializeRequestArguments();
@@ -134,6 +137,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("single step into enters the nested callee")
   public void singleStepIntoEntersTheNestedCallee() throws Exception {
     // `var nested = outer(inner(3));` — eval's raw stepIn is sub-expression
     // granular (it stops on each column of the line before entering a callee),
@@ -178,6 +182,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("smart step into skips to the chosen callee")
   public void smartStepIntoSkipsToTheChosenCallee() throws Exception {
     // `var nested = outer(inner(3));` — smart-step to OUTER must walk the
     // line's sub-expressions, step THROUGH inner() without reporting it, and
@@ -225,6 +230,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("chained calls step out returns mid line for the next pick")
   public void chainedCallsStepOutReturnsMidLineForTheNextPick() throws Exception {
     // `cfg.test1(1).test2().test3().test1(2);` — the user-reported flow:
     // smart-step into test2, step OUT, and be back ON THE CHAIN LINE (not
@@ -291,6 +297,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("expression stepping mode steps one sub expression with spans")
   public void expressionSteppingModeStepsOneSubExpressionWithSpans() throws Exception {
     // toggle ON: a single DAP stepIn performs ONE raw interpreter sub-step
     // (same line, position advanced) and the frame carries the exact span
@@ -336,6 +343,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("set variable edits a local through the variables view")
   public void setVariableEditsALocalThroughTheVariablesView() throws Exception {
     // the variables view's inline Set Value: DAP setVariable against the
     // scope's variablesReference, answered with the variable's NEW state,
@@ -399,6 +407,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("set variable edits an array element by its bracket name")
   public void setVariableEditsAnArrayElementByItsBracketName() throws Exception {
     // array children are named "[0]"/"[1]"/... by the VM and edited against
     // the ARRAY's variablesReference with that bracket name — exactly what
@@ -481,6 +490,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   }
 
   @Test
+  @DisplayName("setting a strings derived rows is refused without touching the vm")
   public void settingAStringsDerivedRowsIsRefusedWithoutTouchingTheVm() throws Exception {
     // a String expands to length/byteLength; WRITING those crashes the eval
     // VM ("Cannot run Haxe code in a non-Haxe thread" assert, then a 10s

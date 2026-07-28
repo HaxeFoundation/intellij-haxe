@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,9 +21,11 @@ import org.junit.jupiter.api.Test;
  * must never be reused across stops, or a stale request silently aliases onto
  * whatever the new stop allocated under the same number.
  */
+@DisplayName("HashLink debugger: step scope consistency")
 public class StepScopeConsistencyTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("scopes stay ordered and stale references die across a step")
   public void scopesStayOrderedAndStaleReferencesDieAcrossAStep() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     int threadId = stopped.getBody().getThreadId();

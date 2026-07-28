@@ -23,11 +23,13 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.HaxeTestFinder;
 import com.intellij.psi.PsiFile;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Navigation: test finder")
 public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
   private HaxeTestFinder myTestFinder = null;
 
@@ -59,16 +61,19 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("foo 1")
   public void testFoo1() throws Throwable {
     doFindTestsTest(1);
   }
 
   @Test
+  @DisplayName("foo 2")
   public void testFoo2() throws Throwable {
     doFindTestsTest(1);
   }
 
   @Test
+  @DisplayName("foo 3")
   public void testFoo3() throws Throwable {
     doFindTestsTest(myFixture.configureByFiles(
       "Foo3.hx",
@@ -78,11 +83,13 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("foo 4 test")
   public void testFoo4Test() throws Throwable {
     doFindClassesTest(1);
   }
 
   @Test
+  @DisplayName("foo 5 test")
   public void testFoo5Test() throws Throwable {
     doFindClassesTest(1);
   }

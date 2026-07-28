@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,63 +26,76 @@ import org.junit.jupiter.api.Test;
  * <p/>
  * Created by Usievaład Kimajeŭ on 7.06.2016.
  */
+@DisplayName("Inspection: deprecated")
 public class HaxeDeprecatedInspectionTest extends HaxeCodeInsightFixtureTestCase {
   @Test
+  @DisplayName("method")
   public void testMethod() {
     doTest("Method.hx");
   }
 
   @Test
+  @DisplayName("method static")
   public void testMethodStatic() {
     doTest("MethodStatic.hx");
   }
 
   @Test
+  @DisplayName("method static text")
   public void testMethodStaticText() {
     doTest("MethodStaticText.hx");
   }
 
   @Test
+  @DisplayName("method text")
   public void testMethodText() {
     doTest("MethodText.hx");
   }
 
   @Test
+  @DisplayName("property")
   public void testProperty() {
     doTest("Property.hx");
   }
 
   @Test
+  @DisplayName("property static")
   public void testPropertyStatic() {
     doTest("PropertyStatic.hx");
   }
 
   @Test
+  @DisplayName("property static text")
   public void testPropertyStaticText() {
     doTest("PropertyStaticText.hx");
   }
 
   @Test
+  @DisplayName("property text")
   public void testPropertyText() {
     doTest("PropertyText.hx");
   }
 
   @Test
+  @DisplayName("variable")
   public void testVariable() {
     doTest("Variable.hx");
   }
 
   @Test
+  @DisplayName("variable static")
   public void testVariableStatic() {
     doTest("VariableStatic.hx");
   }
 
   @Test
+  @DisplayName("variable static text")
   public void testVariableStaticText() {
     doTest("VariableStaticText.hx");
   }
 
   @Test
+  @DisplayName("variable text")
   public void testVariableText() {
     doTest("VariableText.hx");
   }

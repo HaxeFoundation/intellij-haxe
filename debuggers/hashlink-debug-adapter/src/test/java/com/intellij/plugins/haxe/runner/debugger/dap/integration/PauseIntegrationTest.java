@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
  * thread against real HashLink, using a busy-loop fixture so the interrupt lands
  * in Haxe rather than a native call.
  */
+@DisplayName("HashLink debugger: pause (integration)")
 public class PauseIntegrationTest extends DapIntegrationTestBase {
 
   @BeforeEach
@@ -28,6 +30,7 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("pause interrupts running debuggee in haxe code then resumes to exit")
   public void pauseInterruptsRunningDebuggeeInHaxeCodeThenResumesToExit() throws Exception {
     initialize();
     assertTrue(launch(spinFixtureHl.toString()).isSuccess(), "launch succeeds");

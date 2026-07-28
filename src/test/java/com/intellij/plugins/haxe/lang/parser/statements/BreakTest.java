@@ -17,17 +17,20 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: break")
 public class BreakTest extends StatementTestBase {
   public BreakTest() {
     super("break");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }

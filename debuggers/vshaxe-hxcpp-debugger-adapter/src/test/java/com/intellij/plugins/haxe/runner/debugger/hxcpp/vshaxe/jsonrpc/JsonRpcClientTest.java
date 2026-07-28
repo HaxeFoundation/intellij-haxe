@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -26,6 +27,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Drives {@link JsonRpcClient} against a scripted fake server on a loopback
  * socket: the test thread plays the server through {@link #serverIn}/{@link #serverOut}.
  */
+@DisplayName("HXCPP debugger (vshaxe): json rpc client")
 public class JsonRpcClientTest {
   private static final long TIMEOUT = 5_000;
 
@@ -53,6 +55,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("request gets its response")
   public void requestGetsItsResponse() throws Exception {
     CountDownLatch requestSeen = new CountDownLatch(1);
     Thread server = new Thread(() -> {
@@ -74,6 +77,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("responses are matched by id not arrival order")
   public void responsesAreMatchedByIdNotArrivalOrder() throws Exception {
     // two concurrent requests answered in reverse order must land with their owners
     Thread server = new Thread(() -> {
@@ -104,6 +108,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("notifications are queued not dropped")
   public void notificationsAreQueuedNotDropped() throws Exception {
     serverSend("{\"method\":\"threadStart\",\"params\":{\"threadId\":1}}");
     serverSend("{\"method\":\"breakpointStop\",\"params\":{\"threadId\":1}}");
@@ -118,6 +123,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("notification arriving before response does not steal it")
   public void notificationArrivingBeforeResponseDoesNotStealIt() throws Exception {
     Thread server = new Thread(() -> {
       try {
@@ -139,6 +145,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("error response surfaces as exception")
   public void errorResponseSurfacesAsException() throws Exception {
     Thread server = new Thread(() -> {
       try {
@@ -162,6 +169,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("missing response times out with method in message")
   public void missingResponseTimesOutWithMethodInMessage() throws Exception {
     try {
       client.sendRequest("threads", null, 100);
@@ -175,6 +183,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("in flight request fails fast when the connection dies")
   public void inFlightRequestFailsFastWhenTheConnectionDies() throws Exception {
     // the timeout is deliberately huge: the failure must come from the
     // connection death, not from waiting out the timer
@@ -198,6 +207,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("request after connection death fails immediately")
   public void requestAfterConnectionDeathFailsImmediately() throws Exception {
     serverSide.close();
     long deadline = System.currentTimeMillis() + TIMEOUT;
@@ -217,6 +227,7 @@ public class JsonRpcClientTest {
   }
 
   @Test
+  @DisplayName("utf 8 survives the wire")
   public void utf8SurvivesTheWire() throws Exception {
     Thread server = new Thread(() -> {
       try {

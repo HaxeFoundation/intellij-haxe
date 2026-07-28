@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
  *       type strings never contain.</li>
  * </ul>
  */
+@DisplayName("Debugger: variable source navigator")
 public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -65,12 +67,14 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   // --- which cases need which mechanism ---
 
   @Test
+  @DisplayName("declared member resolves through the chain alone")
   public void testDeclaredMemberResolvesThroughTheChainAlone() {
     shapesProject();
     assertNotNull(resolve("s.base", null, null), "a member of the DECLARED type needs no fallback");
   }
 
   @Test
+  @DisplayName("subtype only member does not resolve through declared types")
   public void testSubtypeOnlyMemberDoesNotResolveThroughDeclaredTypes() {
     shapesProject();
     assertNull(resolve("s.radius", null, null), "the declared type Shape knows no `radius`: chain resolution fails even for PRIMARY classes"
@@ -78,12 +82,14 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("subtype only member resolves via runtime type fallback")
   public void testSubtypeOnlyMemberResolvesViaRuntimeTypeFallback() {
     shapesProject();
     assertNotNull(resolve("s.radius", "shapes.Circle", "radius"), "the runtime type reported by the debugger knows `radius`");
   }
 
   @Test
+  @DisplayName("inherited member found through runtime subtype")
   public void testInheritedMemberFoundThroughRuntimeSubtype() {
     shapesProject();
     // an unresolvable path forces the fallback; `base` is declared on Shape,
@@ -94,6 +100,7 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   // --- the ancillary-class naming trap ---
 
   @Test
+  @DisplayName("ancillary class qualified name includes the module")
   public void testAncillaryClassQualifiedNameIncludesTheModule() {
     myFixture.addFileToProject("pack/Module.hx",
                                "package pack;\nclass Module {}\nclass Secondary { public var marker:Int = 1; }");
@@ -111,6 +118,7 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("ancillary runtime type resolves by runtime name")
   public void testAncillaryRuntimeTypeResolvesByRuntimeName() {
     myFixture.addFileToProject("pack/Module.hx",
                                "package pack;\nclass Module {}\nclass Secondary { public var marker:Int = 1; }");
@@ -131,6 +139,7 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("this member resolves through the fragment")
   public void testThisMemberResolvesThroughTheFragment() {
     instanceFrameProject();
     assertNotNull(resolve("this.count", null, null), "this.count resolves through the fragment: the resolver falls back to the"
@@ -138,12 +147,14 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("this inherited member resolves through the fragment")
   public void testThisInheritedMemberResolvesThroughTheFragment() {
     instanceFrameProject();
     assertNotNull(resolve("this.inherited", null, null), "this.inherited resolves via the super-class walk from the context class");
   }
 
   @Test
+  @DisplayName("bare this navigates to the enclosing class")
   public void testBareThisNavigatesToTheEnclosingClass() {
     instanceFrameProject();
     assertNotNull(resolve("this", null, null), "bare this names no member; it navigates to the enclosing class");
@@ -164,12 +175,14 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("this own member from a frame inside an object literal")
   public void testThisOwnMemberFromAFrameInsideAnObjectLiteral() {
     objectLiteralFrameProject();
     assertNotNull(resolve("this.count", null, null), "this.count needs HaxeReferenceImpl's fallback to skip the literal");
   }
 
   @Test
+  @DisplayName("this inherited member from a frame inside an object literal")
   public void testThisInheritedMemberFromAFrameInsideAnObjectLiteral() {
     objectLiteralFrameProject();
     assertNotNull(resolve("this.inherited", null, null), "this.inherited needs HaxeResolver's fallback to skip the literal");
@@ -177,6 +190,7 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
 
   /** The parity baseline the two tests above must match: real-file resolution skips literals. */
   @Test
+  @DisplayName("real file this member inside an object literal resolves")
   public void testRealFileThisMemberInsideAnObjectLiteralResolves() {
     myFixture.configureByText("Widget.hx", """
       class Widget { var count:Int = 1;
@@ -187,12 +201,14 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   // --- graceful misses ---
 
   @Test
+  @DisplayName("unknown runtime type falls through to no navigation")
   public void testUnknownRuntimeTypeFallsThroughToNoNavigation() {
     shapesProject();
     assertNull(resolve("ghost.x", "vm.Internal.Thing", "x"), "a VM-internal type name misses the index without blowing up");
   }
 
   @Test
+  @DisplayName("non identifier member skips the fallback")
   public void testNonIdentifierMemberSkipsTheFallback() {
     shapesProject();
     assertNull(resolve("ghost.x", "shapes.Circle", "[0]"), "array-index children have no member to look up");

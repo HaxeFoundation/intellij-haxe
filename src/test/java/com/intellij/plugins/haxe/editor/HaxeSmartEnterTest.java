@@ -24,6 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.List;
 /**
  * Created by as3boyan on 07.10.14.
  */
+@DisplayName("Editor: smart enter")
 public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -51,31 +53,37 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("missing class body")
   public void testMissingClassBody() {
     doTest();
   }
 
   @Test
+  @DisplayName("partial class body 1")
   public void testPartialClassBody1() {
     doTest();
   }
 
   @Test
+  @DisplayName("partial class body 2")
   public void testPartialClassBody2() {
     doTest();
   }
 
   @Test
+  @DisplayName("if fixer")
   public void testIfFixer() {
       doTest();
   }
 
   @Test
+  @DisplayName("semicolon fixer fix return")
   public void testSemicolonFixerFixReturn() {
     doTest();
   }
 
   @Test
+  @DisplayName("semicolon fixer fix after last valid element")
   public void testSemicolonFixerFixAfterLastValidElement() {
     doTest();
   }

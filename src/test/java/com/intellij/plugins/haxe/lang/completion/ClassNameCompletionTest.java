@@ -17,11 +17,13 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Completion: class name")
 public class ClassNameCompletionTest extends HaxeCompletionTestBase {
   public ClassNameCompletionTest() {
     super("completion", "types");
@@ -34,26 +36,31 @@ public class ClassNameCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("extends")
   public void testExtends() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("implements")
   public void testImplements() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("method")
   public void testMethod() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("type parameter")
   public void testTypeParameter() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("class helper")
   public void testClassHelper() throws Throwable {
     doTest();
   }

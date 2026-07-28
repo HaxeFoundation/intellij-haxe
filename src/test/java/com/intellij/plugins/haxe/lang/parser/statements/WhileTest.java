@@ -17,24 +17,29 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: while")
 public class WhileTest extends StatementTestBase {
   public WhileTest() {
     super("while");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("condition")
   public void testCondition() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("do")
   public void testDo() throws Throwable {
     doTest(true);
   }

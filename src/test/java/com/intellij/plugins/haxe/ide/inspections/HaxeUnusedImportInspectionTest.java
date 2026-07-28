@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,48 +26,58 @@ import org.junit.jupiter.api.Test;
  * <p/>
  * Created by Usievaład Kimajeŭ on 27.05.2016.
  */
+@DisplayName("Inspection: unused import")
 public class HaxeUnusedImportInspectionTest extends HaxeCodeInsightFixtureTestCase {
   @Test
+  @DisplayName("unused alias typedef")
   public void testUnusedAliasTypedef() {
     doTest("UnusedAliasTypedef.hx");
   }
 
   @Test
+  @DisplayName("unused class")
   public void testUnusedClass() {
     doTest("UnusedClass.hx");
   }
 
   @Test
+  @DisplayName("unused interface")
   public void testUnusedInterface() {
     doTest("UnusedInterface.hx");
   }
 
   @Test
+  @DisplayName("unused typedef")
   public void testUnusedTypedef() {
     doTest("UnusedTypedef.hx");
   }
 
   @Test
+  @DisplayName("used alias typedef")
   public void testUsedAliasTypedef() {
     doTest("UsedAliasTypedef.hx");
   }
 
   @Test
+  @DisplayName("used class")
   public void testUsedClass() {
     doTest("UsedClass.hx");
   }
 
   @Test
+  @DisplayName("used interface")
   public void testUsedInterface() {
     doTest("UsedInterface.hx");
   }
 
   @Test
+  @DisplayName("used typedef")
   public void testUsedTypedef() {
     doTest("UsedTypedef.hx");
   }
 
   @Test
+  @DisplayName("mixed use")
   public void testMixedUse() {
     doTest("MixedUse.hx");
   }

@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -19,11 +20,13 @@ import org.junit.jupiter.api.Test;
  * Uses Main.hx line 20, the demo line with eight calls:
  * throwDemo(); inspectDemo(); Rich.demo(); Shadowed.demo(); ...
  */
+@DisplayName("HashLink debugger: smart step into (integration)")
 public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
 
   private static final int FIXTURE_DEMO_LINE = 20;
 
   @Test
+  @DisplayName("step in targets lists the calls on the line in execution order")
   public void stepInTargetsListsTheCallsOnTheLineInExecutionOrder() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int frameId = topFrameId(atDemo.getBody().getThreadId());
@@ -39,6 +42,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("a closure call is offered with its runtime target")
   public void aClosureCallIsOfferedWithItsRuntimeTarget() throws Exception {
     // `fn()` has no static callee (OCallClosure): the target list resolves
     // the closure's RUNTIME fun pointer and labels it with the actual function
@@ -51,6 +55,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step in with a target id enters the chosen call skipping the ones before")
   public void stepInWithATargetIdEntersTheChosenCallSkippingTheOnesBefore() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();
@@ -80,6 +85,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
    * while the not-yet-executed calls later on the line still are.
    */
   @Test
+  @DisplayName("a finished call is not offered again after stepping out")
   public void aFinishedCallIsNotOfferedAgainAfterSteppingOut() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();

@@ -17,19 +17,23 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: module declaration")
 public class ModuleDeclarationTest extends DeclarationTestBase {
   public ModuleDeclarationTest() {
     super("module");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("subtypes")
   public void testSubtypes() throws Throwable {
     doTest(true);
   }

@@ -15,6 +15,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import java.util.List;
 import java.util.function.IntFunction;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -27,17 +28,20 @@ import org.junit.jupiter.api.Timeout;
  * stack. The fix resumes the VM off the uncaught exception, ending the session
  * cleanly. These tests would HANG (and hit the method timeout) if it regressed.
  */
+@DisplayName("Eval debugger: step exception (live)")
 public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   private static final int THROW_LINE = 9;
 
   @Test
   @Timeout(60)
+  @DisplayName("stepping over an uncaught throw terminates without stalling")
   public void steppingOverAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
     stepUntilTerminated(EvalLiveTestBase::nextRequest);
   }
 
   @Test
   @Timeout(60)
+  @DisplayName("stepping into an uncaught throw terminates without stalling")
   public void steppingIntoAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
     stepUntilTerminated(EvalLiveTestBase::stepInRequest);
   }
@@ -51,6 +55,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    */
   @Test
   @Timeout(60)
+  @DisplayName("stepping at the exception stop answers promptly and terminates")
   public void steppingAtTheExceptionStopAnswersPromptlyAndTerminates() throws Exception {
     int threadId = runIntoExceptionStop().getBody().getThreadId();
     hydrateStopLikeTheIde(threadId, "exception stop");
@@ -91,6 +96,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    */
   @Test
   @Timeout(60)
+  @DisplayName("resume after stepping at the exception stop terminates promptly")
   public void resumeAfterSteppingAtTheExceptionStopTerminatesPromptly() throws Exception {
     int threadId = runIntoExceptionStop().getBody().getThreadId();
 

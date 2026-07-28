@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
  * the full thread list and — the decisive check — against each thread's OWN stack
  * and locals (worker: workerLocal=222; main: v=111).
  */
+@DisplayName("HashLink debugger: threads (integration)")
 public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 
   private static final int WORKER_LINE = 39; // Threads.worker(): Sys.println("worker:" + workerLocal)
@@ -31,6 +33,7 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("inspects every thread stack and locals when suspended")
   public void inspectsEveryThreadStackAndLocalsWhenSuspended() throws Exception {
     // launch the dedicated multi-threaded program and break in the worker
     initialize();
@@ -61,6 +64,7 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("step over a blocking call keeps the session running and responsive")
   public void stepOverABlockingCallKeepsTheSessionRunningAndResponsive() throws Exception {
     // The worker parks on gate.wait() (never released). Stepping over it plants
     // a landing that is never reached — CORRECT debugger semantics is to keep

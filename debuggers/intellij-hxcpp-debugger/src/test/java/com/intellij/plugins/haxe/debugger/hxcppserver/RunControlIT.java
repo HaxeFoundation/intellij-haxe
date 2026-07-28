@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,9 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * real-world session wedges (getter deadlock, fault-in-renderer) and the
  * multi-threaded shape real apps have.
  */
+@DisplayName("HXCPP debugger: run control (integration)")
 public class RunControlIT {
 
   @Test
+  @DisplayName("pause inspect resume twice stays responsive")
   public void pauseInspectResumeTwiceStaysResponsive() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("spin")) {
       session.initialize("uncaught", "critical");
@@ -43,6 +46,7 @@ public class RunControlIT {
   }
 
   @Test
+  @DisplayName("breakpoints stay armed across a pause")
   public void breakpointsStayArmedAcrossAPause() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("spin")) {
       session.initialize("uncaught", "critical");
@@ -69,6 +73,7 @@ public class RunControlIT {
   }
 
   @Test
+  @DisplayName("step over at a breakpoint reports a step stop")
   public void stepOverAtABreakpointReportsAStepStop() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("spin")) {
       session.initialize("uncaught", "critical");
@@ -91,6 +96,7 @@ public class RunControlIT {
    * while main is paused, and resume brings main back.
    */
   @Test
+  @DisplayName("workers keep running while main is paused")
   public void workersKeepRunningWhileMainIsPaused() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("threads")) {
       session.initialize("uncaught", "critical");
@@ -119,6 +125,7 @@ public class RunControlIT {
    * the getter — the raw backing value shows and the session stays live.
    */
   @Test
+  @DisplayName("rendering never runs getters even against a held lock")
   public void renderingNeverRunsGettersEvenAgainstAHeldLock() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("getterlock")) {
       session.initialize("uncaught", "critical");

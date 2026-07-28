@@ -21,11 +21,13 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Annotation: haxe annotation")
 public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -61,6 +63,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("inherited field in object literal")
   public void testInheritedFieldInObjectLiteral() throws Exception {
     doUnresolvedSymbolWarningsOnlyTest();
   }
@@ -69,27 +72,32 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
    * When an object-literal member has no value expression HaxeObjectLiteralElement.getExpression() should not return null.
    */
   @Test
+  @DisplayName("incomplete object literal member")
   public void testIncompleteObjectLiteralMember() throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
     myFixture.doHighlighting();
   }
 
   @Test
+  @DisplayName("IDEA 100331")
   public void testIDEA_100331() throws Throwable {
     doTest("test/TArray.hx");
   }
 
   @Test
+  @DisplayName("IDEA 100331 2")
   public void testIDEA_100331_2() throws Throwable {
     doTest("test/TArray.hx");
   }
 
   @Test
+  @DisplayName("IDEA 106515")
   public void testIDEA_106515() throws Throwable {
     doTest("test/TArray.hx");
   }
 
   @Test
+  @DisplayName("IDEA 106515 2")
   public void testIDEA_106515_2() throws Throwable {
     doTest("test/TArray.hx");
   }
@@ -101,6 +109,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
    * @throws Throwable
    */
   @Test
+  @DisplayName("IDEA resolve import without type")
   public void testIDEA_ResolveImportWithoutType() throws Throwable {
     final String[] paths = {"test/stdTools.hx", getTestName(false) + ".hx"};
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
@@ -112,66 +121,79 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
 
 
   @Test
+  @DisplayName("value type unresolved on dynamic map")
   public void testValueTypeUnresolvedOnDynamicMap() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("value type known from type tag on map access")
   public void testValueTypeKnownFromTypeTagOnMapAccess() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("value type known on map access")
   public void testValueTypeKnownOnMapAccess() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("value type inferred on map access")
   public void testValueTypeInferredOnMapAccess() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("inferred type on array access")
   public void testInferredTypeOnArrayAccess() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("known type on array access")
   public void testKnownTypeOnArrayAccess() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("known type from type tag on array access")
   public void testKnownTypeFromTypeTagOnArrayAccess() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("dynamic array cant be accessed")
   public void testDynamicArrayCantBeAccessed() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("method access through nullable")
   public void testMethodAccessThroughNullable() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("var access through nullable")
   public void testVarAccessThroughNullable() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("method access through abstract")
   public void testMethodAccessThroughAbstract() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("method access through abstract and null")
   public void testMethodAccessThroughAbstractAndNull() throws Exception {
     doUnresolvedSymbolTest();
   }
 
   @Test
+  @DisplayName("for loop variable type")
   public void testForLoopVariableType() throws Exception {
     usingHaxeToolkit(); // need ArrayAccess & ArrayIterator from std
     doUnresolvedSymbolTest();

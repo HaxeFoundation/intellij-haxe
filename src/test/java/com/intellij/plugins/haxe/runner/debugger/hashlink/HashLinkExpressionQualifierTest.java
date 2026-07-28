@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
  * (before sending) is what keeps a side-effecting sub-expression from being
  * re-evaluated on a lazy retry.
  */
+@DisplayName("Debugger: hashlink expression qualifier")
 public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -46,18 +48,21 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("imported class is qualified")
   public void testImportedClassIsQualified() {
     PsiElement context = importingContext();
     assertEquals("pkg.Deep.marker", HashLinkExpressionQualifier.rewrite(getProject(), context, "Deep.marker"));
   }
 
   @Test
+  @DisplayName("already qualified is unchanged")
   public void testAlreadyQualifiedIsUnchanged() {
     PsiElement context = importingContext();
     assertEquals("pkg.Deep.marker", HashLinkExpressionQualifier.rewrite(getProject(), context, "pkg.Deep.marker"));
   }
 
   @Test
+  @DisplayName("non class leftmost is unchanged")
   public void testNonClassLeftmostIsUnchanged() {
     PsiElement context = importingContext();
     // `here` is a local, not a class — leave it for the adapter's frame-local
@@ -71,6 +76,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * increase()} is never re-evaluated by a lazy "resolve-then-retry".
    */
   @Test
+  @DisplayName("compound expression qualifies only the class")
   public void testCompoundExpressionQualifiesOnlyTheClass() {
     PsiElement context = importingContext();
     assertEquals("increase() + pkg.Deep.marker",
@@ -84,6 +90,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * inherited its context's imports, {@code Deep.resolve()} returned {@code null}.
    */
   @Test
+  @DisplayName("fragment resolves imported class against context")
   public void testFragmentResolvesImportedClassAgainstContext() {
     PsiElement context = importingContext();
     PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Deep.marker", context, false);
@@ -105,6 +112,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * resolve cache — the same reason the daemon must re-resolve after an import.
    */
   @Test
+  @DisplayName("fragment stored import resolves without touching text")
   public void testFragmentStoredImportResolvesWithoutTouchingText() {
     myFixture.addFileToProject("pkg/Deep.hx",
                                "package pkg;\nclass Deep { public static var marker:Int = 99; }");
@@ -130,6 +138,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * class of that short name, so it evaluates without the user adding an import.
    */
   @Test
+  @DisplayName("unreachable unique class qualified by project fallback")
   public void testUnreachableUniqueClassQualifiedByProjectFallback() {
     myFixture.addFileToProject("far/Widget.hx",
                                "package far;\nclass Widget { public static var count:Int = 3; }");
@@ -143,6 +152,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
 
   /** Two classes share the short name — ambiguous, so the qualifier leaves it bare. */
   @Test
+  @DisplayName("ambiguous class name is left bare")
   public void testAmbiguousClassNameIsLeftBare() {
     myFixture.addFileToProject("a/Widget.hx",
                                "package a;\nclass Widget { public static var count:Int = 1; }");
@@ -164,6 +174,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * {@code import} statement that would break evaluation.
    */
   @Test
+  @DisplayName("add import helper holds import on fragment instead of text")
   public void testAddImportHelperHoldsImportOnFragmentInsteadOfText() {
     myFixture.addFileToProject("far/Widget.hx",
                                "package far;\nclass Widget { public static var count:Int = 3; }");
@@ -193,6 +204,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
   }
 
   @Test
+  @DisplayName("same package class needs no import")
   public void testSamePackageClassNeedsNoImport() {
     myFixture.addFileToProject("pkg/Deep.hx",
                                "package pkg;\nclass Deep { public static var marker:Int = 99; }");

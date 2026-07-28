@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.List;
 /**
  * Created by Boch on 05.02.2016.
  */
+@DisplayName("Resolve: variable")
 public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -42,6 +44,7 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
 
   //https://github.com/TiVo/intellij-haxe/issues/234
   @Test
+  @DisplayName("variable")
   public void testVariable() throws Exception {
     PsiFile[] files = myFixture.configureByFiles("Test.hx", "List.hx");
 

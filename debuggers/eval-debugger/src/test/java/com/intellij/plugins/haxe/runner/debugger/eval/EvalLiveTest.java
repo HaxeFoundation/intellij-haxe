@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test;
  *
  * The line constant mirrors the marked line in test-fixtures/EvalMain.hx.
  */
+@DisplayName("Eval debugger: eval (live)")
 public class EvalLiveTest {
   private static final int BREAK_LINE = 10;
   private static final long TIMEOUT_MS = 15_000;
@@ -94,6 +96,7 @@ public class EvalLiveTest {
   }
 
   @Test
+  @DisplayName("breakpoint stop stack trace and clean exit")
   public void breakpointStopStackTraceAndCleanExit() throws Exception {
     CountDownLatch stopped = new CountDownLatch(1);
     int[] stoppedThread = {-1};

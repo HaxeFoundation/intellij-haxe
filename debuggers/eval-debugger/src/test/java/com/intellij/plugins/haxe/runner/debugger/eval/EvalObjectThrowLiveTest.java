@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -24,10 +25,12 @@ import org.junit.jupiter.api.Timeout;
  * whose exception breakpoints are disabled (empty filters) never stops on
  * the uncaught throw at all — the VM's DEFAULT would.
  */
+@DisplayName("Eval debugger: object throw (live)")
 public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
 
   @Test
   @Timeout(60)
+  @DisplayName("resume at the uncaught object stop lets the program die naturally")
   public void resumeAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
@@ -41,6 +44,7 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
 
   @Test
   @Timeout(60)
+  @DisplayName("stepping at the uncaught object stop lets the program die naturally")
   public void steppingAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
@@ -51,6 +55,7 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
 
   @Test
   @Timeout(60)
+  @DisplayName("with exception breakpoints disabled an uncaught throw never stops")
   public void withExceptionBreakpointsDisabledAnUncaughtThrowNeverStops() throws Exception {
     // the IDE sends EMPTY filters when every exception breakpoint is disabled;
     // that must override the VM's stop-on-uncaught DEFAULT: no stop, just the

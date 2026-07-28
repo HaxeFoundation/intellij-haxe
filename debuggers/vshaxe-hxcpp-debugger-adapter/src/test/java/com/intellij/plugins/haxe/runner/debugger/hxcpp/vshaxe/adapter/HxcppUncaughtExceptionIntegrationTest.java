@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
  * the process's Critical Error output) before termination. There is nothing
  * to configure: setExceptionBreakpoints is an honest no-op.
  */
+@DisplayName("HXCPP debugger (vshaxe): uncaught exception (integration)")
 public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestBase {
 
   @BeforeEach
@@ -25,6 +27,7 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
   }
 
   @Test
+  @DisplayName("uncaught throw stops at the throw line and surfaces the text")
   public void uncaughtThrowStopsAtTheThrowLineAndSurfacesTheText() throws Exception {
     initializeAndLaunch();
     // must not fail even though the server has no handler for it

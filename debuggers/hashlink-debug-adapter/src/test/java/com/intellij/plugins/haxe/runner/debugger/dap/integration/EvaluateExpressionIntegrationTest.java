@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -15,10 +16,12 @@ import org.junit.jupiter.api.Test;
  * `Cls.member + x` into `"this.<pkg-root>" cannot be resolved to a writable
  * location`; a static frame has no `this` to probe and was unaffected.
  */
+@DisplayName("HashLink debugger: evaluate expression (integration)")
 public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
   private static final int DEEP_INSTANCE_LINE = 21; // pkg/Deep.hx readMarker()
 
   @Test
+  @DisplayName("class qualified statics combine inside an instance frame")
   public void classQualifiedStaticsCombineInsideAnInstanceFrame() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -31,6 +34,7 @@ public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
 
   /** The packaged shape the user hits: a dotted class path as the root. */
   @Test
+  @DisplayName("package qualified statics combine inside an instance frame")
   public void packageQualifiedStaticsCombineInsideAnInstanceFrame() throws Exception {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -42,6 +46,7 @@ public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
 
   /** A static frame has no `this`, so these always worked — keep them working. */
   @Test
+  @DisplayName("static frames keep combining statics")
   public void staticFramesKeepCombiningStatics() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());

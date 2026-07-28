@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -15,9 +16,11 @@ import org.junit.jupiter.api.Test;
  * value in the description, and an inspectable frame. Uses the fixture's caught
  * {@code throw "boom"} in Main.throwDemo() as a deterministic early throw.
  */
+@DisplayName("HashLink debugger: exception breakpoints (integration)")
 public class ExceptionBreakpointsIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("breaks on thrown exception with value and frame")
   public void breaksOnThrownExceptionWithValueAndFrame() throws Exception {
     // pre-4.3 compilers wrap `throw "boom"` through Exception.thrown with a
     // message layout the adapter does not decode (the description degrades to
