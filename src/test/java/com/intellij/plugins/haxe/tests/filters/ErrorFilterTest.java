@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ErrorFilterTest {
 
   @Test
-  @DisplayName("link")
+  @DisplayName("link - creates hyperlink for stack line file reference")
   public void testLink() {
     // This tests whether hyperlinks (Filter.Result) are created properly,
     // not whether error parsing or filters work.

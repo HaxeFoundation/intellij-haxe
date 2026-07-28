@@ -42,13 +42,13 @@ public class HaxeGoToSuperTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("gts 1")
+  @DisplayName("gts 1 - class to its superclass")
   public void testGts1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("gts 2")
+  @DisplayName("gts 2 - implementation method to interface method")
   public void testGts2() throws Throwable {
     doTest();
   }

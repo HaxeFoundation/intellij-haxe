@@ -189,43 +189,43 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("allow unknown generics 1")
+  @DisplayName("allow unknown generics 1 - mismatch still reported on known type args")
   public void testAllowUnknownGenerics1() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("abstract assignment from to 1")
+  @DisplayName("abstract assignment from to 1 - from cast allows array literal")
   public void testAbstractAssignmentFromTo1() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("abstract assignment from to 2")
+  @DisplayName("abstract assignment from to 2 - no casts rejects array literal")
   public void testAbstractAssignmentFromTo2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("abstract assignment from to 3")
+  @DisplayName("abstract assignment from to 3 - to cast alone rejects array literal")
   public void testAbstractAssignmentFromTo3() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("abstract assignment from to 4")
+  @DisplayName("abstract assignment from to 4 - from and to allow both directions")
   public void testAbstractAssignmentFromTo4() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("abstract assignment from to 5")
+  @DisplayName("abstract assignment from to 5 - from alone rejects assignment to array")
   public void testAbstractAssignmentFromTo5() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("abstract assignment from to 6")
+  @DisplayName("abstract assignment from to 6 - chained abstract casts")
   public void testAbstractAssignmentFromTo6() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -255,13 +255,13 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("uc first class name")
+  @DisplayName("Uppercase - first class name")
   public void testUcFirstClassName() throws Exception {
     doTestActions("Change name");
   }
 
   @Test
-  @DisplayName("uc first class name 2")
+  @DisplayName("Uppercase - first class name 2 - lowercase names flagged in extends and params")
   public void testUcFirstClassName2() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -291,25 +291,25 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("override signature 2")
+  @DisplayName("override signature 2 - wrong types arity and overriding nothing")
   public void testOverrideSignature2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("override signature 3")
+  @DisplayName("override signature 3 - extra optional and required args")
   public void testOverrideSignature3() throws Exception {
     doTestActions("Remove argument");
   }
 
   @Test
-  @DisplayName("override signature 4")
+  @DisplayName("override signature 4 - args added to parameterless base")
   public void testOverrideSignature4() throws Exception {
     doTestActions("Remove argument");
   }
 
   @Test
-  @DisplayName("override signature 5")
+  @DisplayName("override signature 5 - rtti override without errors")
   public void testOverrideSignature5() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -498,13 +498,13 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("null t assignment 1")
+  @DisplayName("null t assignment 1 - int literal accepted")
   public void testNullTAssignment1() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("null t assignment 2")
+  @DisplayName("null t assignment 2 - string rejected")
   public void testNullTAssignment2() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -952,12 +952,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("function bind 1")
+  @DisplayName("function bind 1 - bind on function typed variable")
   public void testFunctionBind1() throws Exception {
     doTestNoFixWithWarnings();
   }
   @Test
-  @DisplayName("function bind 2")
+  @DisplayName("function bind 2 - bind on instance method")
   public void testFunctionBind2() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -1067,7 +1067,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("is keyword for 4 2")
+  @DisplayName("is keyword for haxe 4.2 - unparenthesized is allowed in 4.2")
   public void testIsKeywordFor4_2() throws Throwable {
     HashSet skipAnnotators = new HashSet();
     skipAnnotators.add(HaxeSemanticAnnotatorInspections.IsTypeExpressionInspection4dot1Compatible.class);
@@ -1075,7 +1075,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("is keyword for 4 1")
+  @DisplayName("is keyword for haxe 4.1 - unparenthesized is flagged pre 4.2")
   public void testIsKeywordFor4_1() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
@@ -1232,7 +1232,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
-  @DisplayName("operator abstract test 2")
+  @DisplayName("operator abstract test 2 - in operator overload type check")
   public void testOperatorAbstractTest2() throws Throwable {
     doTestNoFixWithWarnings();
   }
@@ -1360,7 +1360,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
-  @DisplayName("type tags should not resolve to enum value 2")
+  @DisplayName("type tags should not resolve to enum value 2 - class named enum values coexist")
   public void testTypeTagsShouldNotResolveToEnumValue2() throws Throwable {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings("test/EnumWithClassNameValues.hx");
@@ -1384,37 +1384,37 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("assign function type 1")
+  @DisplayName("assign function type 1 - argument variance across class hierarchy")
   public void testAssignFunctionType1() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("assign function type 2")
+  @DisplayName("assign function type 2 - dynamic and null wrapped arguments")
   public void testAssignFunctionType2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("assign function type 3")
+  @DisplayName("assign function type 3 - optional and default arguments")
   public void testAssignFunctionType3() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("assign function type 4")
+  @DisplayName("assign function type 4 - explicit abstract casts on arguments")
   public void testAssignFunctionType4() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("assign function type 5")
+  @DisplayName("assign function type 5 - abstract typed function as argument")
   public void testAssignFunctionType5() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   @Test
-  @DisplayName("assign function type 6")
+  @DisplayName("assign function type 6 - superclass argument inside function argument")
   public void testAssignFunctionType6() throws Exception {
     doTestNoFixWithWarnings();
   }

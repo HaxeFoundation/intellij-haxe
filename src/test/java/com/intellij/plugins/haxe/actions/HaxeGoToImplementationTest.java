@@ -46,25 +46,25 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("gti 1")
+  @DisplayName("gti 1 - interface to implementing class")
   public void testGti1() throws Throwable {
     doTest(2);
   }
 
   @Test
-  @DisplayName("gti 2")
+  @DisplayName("gti 2 - interface method to implementation")
   public void testGti2() throws Throwable {
     doTest(1);
   }
 
   @Test
-  @DisplayName("gti 3")
+  @DisplayName("gti 3 - interface with multiple implementing classes")
   public void testGti3() throws Throwable {
     doTest(2);
   }
 
   @Test
-  @DisplayName("gti 4")
+  @DisplayName("gti 4 - interface field to implementations")
   public void testGti4() throws Throwable {
     doTest(2);
   }

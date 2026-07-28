@@ -56,13 +56,13 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("iter")
+  @DisplayName("iter - for loop over array template")
   public void testIter() throws Throwable {
     doTest("Iter.hx", "Array.hx");
   }
 
   @Test
-  @DisplayName("itar")
+  @DisplayName("itar - indexed for loop template")
   public void testItar() throws Throwable {
     doTest("Itar.hx", "Array.hx");
   }

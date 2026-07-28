@@ -30,7 +30,7 @@ public class SmartCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("enum 1")
+  @DisplayName("enum 1 - qualified enum value for typed var")
   public void testEnum1() throws Throwable {
     doTest();
   }

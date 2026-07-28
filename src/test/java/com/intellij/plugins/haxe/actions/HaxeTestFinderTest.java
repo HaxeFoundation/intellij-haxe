@@ -61,19 +61,19 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("foo 1")
+  @DisplayName("finds suffixed FooTest class")
   public void testFoo1() throws Throwable {
     doFindTestsTest(1);
   }
 
   @Test
-  @DisplayName("foo 2")
+  @DisplayName("finds prefixed TestFoo class")
   public void testFoo2() throws Throwable {
     doFindTestsTest(1);
   }
 
   @Test
-  @DisplayName("foo 3")
+  @DisplayName("finds tests by both conventions in test subdirectory")
   public void testFoo3() throws Throwable {
     doFindTestsTest(myFixture.configureByFiles(
       "Foo3.hx",
@@ -83,14 +83,9 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("foo 4 test")
+  @DisplayName("finds subject class from its test class")
   public void testFoo4Test() throws Throwable {
     doFindClassesTest(1);
   }
 
-  @Test
-  @DisplayName("foo 5 test")
-  public void testFoo5Test() throws Throwable {
-    doFindClassesTest(1);
-  }
 }

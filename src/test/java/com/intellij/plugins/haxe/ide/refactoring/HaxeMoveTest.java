@@ -105,13 +105,13 @@ public class HaxeMoveTest extends HaxeMultiFileTestBase {
   }
 
   @Test
-  @DisplayName("move file 1")
+  @DisplayName("move file 1 - file into a package")
   public void testMoveFile1() throws Exception {
     doTest("util/ArrayUtils.hx", "bar");
   }
 
   @Test
-  @DisplayName("move file 2")
+  @DisplayName("move file 2 - file to source root")
   public void testMoveFile2() throws Exception {
     doTest("util/ArrayUtils.hx", "");
   }

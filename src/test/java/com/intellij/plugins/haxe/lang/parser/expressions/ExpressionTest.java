@@ -44,49 +44,49 @@ public class ExpressionTest extends HaxeParsingTestBase {
   }
 
   @Test
-  @DisplayName("test 1")
+  @DisplayName("test 1 - local function declared and called")
   public void testTest1() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 2")
+  @DisplayName("test 2 - closure capturing a local var")
   public void testTest2() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 3")
+  @DisplayName("test 3 - chained calls with field and array access")
   public void testTest3() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 4")
+  @DisplayName("test 4 - arithmetic precedence and unary operators")
   public void testTest4() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 5")
+  @DisplayName("test 5 - new in call chains and bitwise or")
   public void testTest5() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 6")
+  @DisplayName("test 6 - object and regex literals")
   public void testTest6() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 7")
+  @DisplayName("test 7 - switch as return value with casts")
   public void testTest7() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test 8")
+  @DisplayName("test 8 - if and try as expressions")
   public void testTest8() throws Throwable {
     doTest(true);
   }

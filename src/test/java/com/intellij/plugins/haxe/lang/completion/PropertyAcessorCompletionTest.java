@@ -14,27 +14,27 @@ public class PropertyAcessorCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("get 1")
+  @DisplayName("get 1 - first accessor position")
   public void testGet1() throws Throwable {
     doTest();
   }
   @Test
-  @DisplayName("get 2")
+  @DisplayName("get 2 - before existing set")
   public void testGet2() throws Throwable {
     doTest();
   }
   @Test
-  @DisplayName("get 3")
+  @DisplayName("get 3 - before trailing comma")
   public void testGet3() throws Throwable {
     doTest();
   }
   @Test
-  @DisplayName("set 1")
+  @DisplayName("set 1 - second accessor after get")
   public void testSet1() throws Throwable {
     doTest();
   }
   @Test
-  @DisplayName("set 2")
+  @DisplayName("set 2 - second accessor with empty first")
   public void testSet2() throws Throwable {
     doTest();
   }

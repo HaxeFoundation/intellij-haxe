@@ -174,13 +174,13 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("local variable 1")
+  @DisplayName("local variable 1 - rename from assignment usage")
   public void testLocalVariable1() throws Throwable {
     doTest("fooNew");
   }
 
   @Test
-  @DisplayName("local variable 2")
+  @DisplayName("local variable 2 - rename from declaration")
   public void testLocalVariable2() throws Throwable {
     doTest("fooNew");
   }
@@ -234,19 +234,19 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("do not rename constructor 1")
+  @DisplayName("do not rename constructor 1 - rename from class declaration")
   public void testDoNotRenameConstructor1() throws Throwable {
     doTestOnNthSelection(1, "After");
   }
 
   @Test
-  @DisplayName("do not rename constructor 2")
+  @DisplayName("do not rename constructor 2 - rename from return type usage")
   public void testDoNotRenameConstructor2() throws Throwable {
     doTestOnNthSelection(2, "After");
   }
 
   @Test
-  @DisplayName("do not rename constructor 3")
+  @DisplayName("do not rename constructor 3 - rename from new expression")
   public void testDoNotRenameConstructor3() throws Throwable {
     doTestOnNthSelection(3, "After");
   }
@@ -258,7 +258,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("rename module and class 1")
+  @DisplayName("rename module and class 1 - confirm renames file module and class")
   public void testRenameModuleAndClass1() {
     Map<String, String> expectedRenames = Map.of(
             "FILE:RenameModuleAndClass.hx", "NewClassAndModuleName.hx",
@@ -269,7 +269,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("rename module and class 2")
+  @DisplayName("rename module and class 2 - decline renames class only")
   public void testRenameModuleAndClass2() {
     Map<String, String> expectedRenames = Map.of(
             "CLASS:RenameModuleAndClass", "NewClassAndModuleName"
@@ -278,7 +278,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("rename module and class 3")
+  @DisplayName("rename module and class 3 - cancel renames nothing")
   public void testRenameModuleAndClass3() {
     Map<String, String> expectedRenames = Map.of();
     doTestWithoutFileVerify("NewClassAndModuleName", MessageConstants.CANCEL, expectedRenames);

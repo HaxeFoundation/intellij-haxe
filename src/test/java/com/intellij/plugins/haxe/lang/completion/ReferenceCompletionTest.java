@@ -33,55 +33,55 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("test 1")
+  @DisplayName("test 1 - local variable in scope")
   public void testTest1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 2")
+  @DisplayName("test 2 - function parameter")
   public void testTest2() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 3")
+  @DisplayName("test 3 - excludes nested function parameter")
   public void testTest3() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 4")
+  @DisplayName("test 4 - field and parameter together")
   public void testTest4() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 5")
+  @DisplayName("test 5 - sibling method")
   public void testTest5() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 6")
+  @DisplayName("test 6 - no self suggestion in method name position")
   public void testTest6() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 7")
+  @DisplayName("test 7 - no self suggestion in var name position")
   public void testTest7() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 8")
+  @DisplayName("test 8 - members via constrained type parameter")
   public void testTest8() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("test 9")
+  @DisplayName("test 9 - enum values by prefix")
   public void testTest9() throws Throwable {
     doTest();
   }
@@ -112,7 +112,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("class name 2")
+  @DisplayName("class name 2 - enums by prefix")
   public void testClassName2() throws Throwable {
     doTest();
   }
@@ -132,7 +132,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("package completion in package statement 1")
+  @DisplayName("package completion in package statement 1 - top level package")
   public void testPackageCompletionInPackageStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     configureFileByText("Baz.hx", "package <caret>");
@@ -141,7 +141,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("package completion in package statement 2")
+  @DisplayName("package completion in package statement 2 - nested packages by prefix")
   public void testPackageCompletionInPackageStatement2() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
@@ -151,7 +151,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("package completion in import statement 1")
+  @DisplayName("package completion in import statement 1 - top level package")
   public void testPackageCompletionInImportStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
@@ -161,7 +161,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("package completion in import statement 2")
+  @DisplayName("package completion in import statement 2 - nested packages by prefix")
   public void testPackageCompletionInImportStatement2() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
@@ -171,7 +171,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("package completion in import statement 3")
+  @DisplayName("package completion in import statement 3 - classes in package")
   public void testPackageCompletionInImportStatement3() {
     myFixture.addFileToProject("com/foo/Bar.hx", "package com.foo;\nclass Bar {}");
     myFixture.addFileToProject("com/foo/Baz.hx", "package com.foo;\nclass Baz {}");
@@ -201,35 +201,35 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("std type 1")
+  @DisplayName("std type 1 - string members")
   public void testStdType1() throws Throwable {
     myFixture.configureByFiles("StdType1.hx", "std/String.hx");
     doTestVariantsInner("StdType1.txt");
   }
 
   @Test
-  @DisplayName("std type 2")
+  @DisplayName("std type 2 - array members after split")
   public void testStdType2() throws Throwable {
     myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
     doTestVariantsInner("StdType2.txt");
   }
 
   @Test
-  @DisplayName("using util 1")
+  @DisplayName("using util 1 - int extension methods")
   public void testUsingUtil1() throws Throwable {
     myFixture.configureByFiles("UsingUtil1.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("UsingUtil1.txt");
   }
 
   @Test
-  @DisplayName("using util 2")
+  @DisplayName("using util 2 - int extension absent on string")
   public void testUsingUtil2() throws Throwable {
     myFixture.configureByFiles("UsingUtil2.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("UsingUtil2.txt");
   }
 
   @Test
-  @DisplayName("using util 3")
+  @DisplayName("using util 3 - excluded for string receiver")
   public void testUsingUtil3() throws Throwable {
     myFixture.configureByFiles("UsingUtil3.hx", "com/util/Tools.hx", "com/util/StringUtil.hx", "com/util/MathUtil.hx", "std/String.hx",
                                "std/StdTypes.hx");
@@ -438,13 +438,13 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("abstract enum fields 2")
+  @DisplayName("abstract enum fields 2 - instance members not values")
   public void testAbstractEnumFields2() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
-  @DisplayName("abstract enum fields 3")
+  @DisplayName("abstract enum fields 3 - unresolved value gives no members")
   public void testAbstractEnumFields3() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
@@ -456,31 +456,31 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("abstract forward 1")
+  @DisplayName("abstract forward 1 - only listed fields forwarded")
   public void testAbstractForward1() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
-  @DisplayName("abstract forward 2")
+  @DisplayName("abstract forward 2 - bare forward exposes all fields")
   public void testAbstractForward2() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
-  @DisplayName("abstract forward 3")
+  @DisplayName("abstract forward 3 - forwarded fields on this inside abstract")
   public void testAbstractForward3() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
   }
 
   @Test
-  @DisplayName("abstract forward 4")
+  @DisplayName("abstract forward 4 - listed array fields on generic abstract")
   public void testAbstractForward4() throws Throwable {
     doTestInclude("std/Array.hx");
   }
 
   @Test
-  @DisplayName("abstract forward 5")
+  @DisplayName("abstract forward 5 - empty forward list exposes all fields")
   public void testAbstractForward5() throws Throwable {
     doTestInclude("std/Array.hx");
   }
@@ -511,60 +511,60 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   */
 
   @Test
-  @DisplayName("extensions 1")
+  @DisplayName("extensions 1 - interface receiver gets interface extension")
   public void testExtensions1() throws Throwable {
     myFixture.configureByFiles("Extensions1.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions1.txt");
   }
 
   @Test
-  @DisplayName("extensions 2")
+  @DisplayName("extensions 2 - class receiver adds class extension")
   public void testExtensions2() throws Throwable {
     myFixture.configureByFiles("Extensions2.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions2.txt");
   }
 
   @Test
-  @DisplayName("extensions 3")
+  @DisplayName("extensions 3 - subclass accumulates hierarchy extensions")
   public void testExtensions3() throws Throwable {
     myFixture.configureByFiles("Extensions3.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions3.txt");
   }
 
   @Test
-  @DisplayName("extensions 4")
+  @DisplayName("extensions 4 - deepest subclass gets all extensions")
   public void testExtensions4() throws Throwable {
     myFixture.configureByFiles("Extensions4.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions4.txt");
   }
 
   @Test
-  @DisplayName("extensions 5")
+  @DisplayName("extensions 5 - unrelated class gets only its own extension")
   public void testExtensions5() throws Throwable {
     myFixture.configureByFiles("Extensions5.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions5.txt");
   }
 
   @Test
-  @DisplayName("for loop variable 1")
+  @DisplayName("for loop variable 1 - loop var and source in body")
   public void testForLoopVariable1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("for loop variable 2")
+  @DisplayName("for loop variable 2 - outer loop var in nested header")
   public void testForLoopVariable2() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("for loop variable 3")
+  @DisplayName("for loop variable 3 - all in prefixed locals in inner loop")
   public void testForLoopVariable3() throws Throwable {
     doTestInclude("std/StdTypes.hx", "std/Array.hx");
   }
 
   @Test
-  @DisplayName("for loop variable 4")
+  @DisplayName("for loop variable 4 - loop vars in inner body")
   public void testForLoopVariable4() throws Throwable {
     doTest();
   }
@@ -577,13 +577,13 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("non qualified abstract enum fields 2")
+  @DisplayName("non qualified abstract enum fields 2 - members on unqualified value")
   public void testNonQualifiedAbstractEnumFields2() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
   @Test
-  @DisplayName("non qualified abstract enum fields 3")
+  @DisplayName("non qualified abstract enum fields 3 - unresolved unqualified value")
   public void testNonQualifiedAbstractEnumFields3() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }

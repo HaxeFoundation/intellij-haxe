@@ -42,25 +42,25 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("function 1")
+  @DisplayName("function 1 - after public in empty class")
   public void testFunction1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("function 2")
+  @DisplayName("function 2 - after public below existing method")
   public void testFunction2() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("statement 1")
+  @DisplayName("statement 1 - statement keywords in method body")
   public void testStatement1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("statement 2")
+  @DisplayName("statement 2 - excludes else and catch without context")
   public void testStatement2() throws Throwable {
     doTest();
   }
@@ -72,13 +72,13 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("inherit 1")
+  @DisplayName("inherit 1 - extends in class header")
   public void testInherit1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("inherit 2")
+  @DisplayName("inherit 2 - implements after extends")
   public void testInherit2() throws Throwable {
     doTest();
   }

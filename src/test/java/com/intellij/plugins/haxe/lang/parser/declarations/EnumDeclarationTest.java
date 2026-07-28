@@ -30,19 +30,19 @@ public class EnumDeclarationTest extends DeclarationTestBase {
   }
 
   @Test
-  @DisplayName("axis")
+  @DisplayName("axis - plain value list")
   public void testAxis() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("cell")
+  @DisplayName("cell - generic enum with constructor parameters")
   public void testCell() throws Throwable {
     doTest(true);
   }
 
   @Test
-  @DisplayName("color 3")
+  @DisplayName("color 3 - mixed plain and parameterized constructors")
   public void testColor3() throws Throwable {
     doTest(true);
   }
@@ -54,7 +54,7 @@ public class EnumDeclarationTest extends DeclarationTestBase {
   }
 
   @Test
-  @DisplayName("http code hx 4")
+  @DisplayName("http code haxe 4 - enum abstract with int values (haxe 4)")
   public void testHttpCodeHx4() throws Throwable {
     doTest(true);
   }

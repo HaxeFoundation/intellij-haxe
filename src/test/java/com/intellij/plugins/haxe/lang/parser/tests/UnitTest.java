@@ -25,13 +25,13 @@ public class UnitTest extends TestsTestBase {
   }
 
   @Test
-  @DisplayName("test")
+  @DisplayName("test - utest framework base class parses")
   public void testTest() {
     doTest(true);
   }
 
   @Test
-  @DisplayName("test ops")
+  @DisplayName("test ops - operator precedence expressions parse")
   public void testTestOps() {
     doTest(true);
   }

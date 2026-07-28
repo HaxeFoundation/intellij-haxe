@@ -79,25 +79,25 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("IDEA 100331")
+  @DisplayName("IDEA 100331 - declared type parameter resolves")
   public void testIDEA_100331() throws Throwable {
     doTest("test/TArray.hx");
   }
 
   @Test
-  @DisplayName("IDEA 100331 2")
+  @DisplayName("IDEA 100331 2 - undeclared type parameter is unresolved")
   public void testIDEA_100331_2() throws Throwable {
     doTest("test/TArray.hx");
   }
 
   @Test
-  @DisplayName("IDEA 106515")
+  @DisplayName("IDEA 106515 - unresolved type in static call")
   public void testIDEA_106515() throws Throwable {
     doTest("test/TArray.hx");
   }
 
   @Test
-  @DisplayName("IDEA 106515 2")
+  @DisplayName("IDEA 106515 2 - unresolved type as bare statement")
   public void testIDEA_106515_2() throws Throwable {
     doTest("test/TArray.hx");
   }

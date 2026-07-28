@@ -50,37 +50,37 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   }
 
   @Test
-  @DisplayName("replace all 1")
+  @DisplayName("replace all 1 - literal occurrences in loop and init")
   public void testReplaceAll1() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("replace all 2")
+  @DisplayName("replace all 2 - ternary expression occurrences")
   public void testReplaceAll2() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("replace all 3")
+  @DisplayName("replace all 3 - ternary occurrences with inplace rename")
   public void testReplaceAll3() throws Throwable {
     doTestInplace(null);
   }
 
   @Test
-  @DisplayName("replace one 1")
+  @DisplayName("replace one 1 - only the selected occurrence")
   public void testReplaceOne1() throws Throwable {
     doTest(null, false);
   }
 
   @Test
-  @DisplayName("suggest name 1")
+  @DisplayName("suggest name 1 - name derived from getTest call")
   public void testSuggestName1() throws Throwable {
     doTestSuggestions(HaxeCallExpression.class, "test");
   }
 
   @Test
-  @DisplayName("suggest name 2")
+  @DisplayName("suggest name 2 - name derived from test call")
   public void testSuggestName2() throws Throwable {
     doTestSuggestions(HaxeCallExpression.class, "test1");
   }
@@ -182,7 +182,7 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   }
 
   @Test
-  @DisplayName("extract regex 2")
+  @DisplayName("extract regex 2 - selection inside a regex literal")
   public void testExtractRegex2() throws Throwable {
     doTestInplace(null, true, null);
   }

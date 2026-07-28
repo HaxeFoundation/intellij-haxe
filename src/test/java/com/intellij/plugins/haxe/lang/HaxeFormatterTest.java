@@ -247,7 +247,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("brace placement 1")
+  @DisplayName("brace placement 1 - next line shifted braces")
   public void testBracePlacement1() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.NEXT_LINE_SHIFTED2;
@@ -256,7 +256,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("brace placement 2")
+  @DisplayName("brace placement 2 - end of line class braces next line methods")
   public void testBracePlacement2() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;

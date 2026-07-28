@@ -62,14 +62,14 @@ public class ConditionalCompilationTest extends StatementTestBase {
   }
 
   @Test
-  @DisplayName("true")
+  @DisplayName("if true block")
   public void testTrue() throws Throwable {
     // #if true
     doTest(true);
   }
 
   @Test
-  @DisplayName("not true")
+  @DisplayName("if not true block")
   public void testNotTrue() throws Throwable {
     // #if !true
     doTest(true);

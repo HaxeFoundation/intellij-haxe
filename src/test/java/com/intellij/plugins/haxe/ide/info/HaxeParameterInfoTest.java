@@ -94,77 +94,77 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
 
 
   @Test
-  @DisplayName("param info 1")
+  @DisplayName("param info 1 - inherited generic method at empty args")
   public void testParamInfo1() throws Throwable {
     doTest("p1:Int, p2:Null<Unknown>, p3:Node", 0);
   }
 
   @Test
-  @DisplayName("param info 2")
+  @DisplayName("param info 2 - highlights third parameter")
   public void testParamInfo2() throws Throwable {
     doTest("p1:Int, p2:Null<Unknown>, p3:Node", 2);
   }
 
   @Test
-  @DisplayName("param info 3")
+  @DisplayName("param info 3 - caret inside first argument")
   public void testParamInfo3() throws Throwable {
     doTest("x:Int, y:Int", 0);
   }
 
   @Test
-  @DisplayName("param info 4")
+  @DisplayName("param info 4 - caret at end of first argument")
   public void testParamInfo4() throws Throwable {
     doTest("x:Int, y:Int", 0);
   }
 
   @Test
-  @DisplayName("param info 5")
+  @DisplayName("param info 5 - caret after comma highlights second")
   public void testParamInfo5() throws Throwable {
     doTest("x:Int, y:Int", 1);
   }
 
   @Test
-  @DisplayName("param info 6")
+  @DisplayName("param info 6 - default valued parameter")
   public void testParamInfo6() throws Throwable {
     doTest("x:Int, y:Int = 239", 1);
   }
 
   @Test
-  @DisplayName("param info 7")
+  @DisplayName("param info 7 - generic resolved through class chain")
   public void testParamInfo7() throws Throwable {
     configureLoggerForDebugging();
     doTest("t:Node", 0);
   }
 
   @Test
-  @DisplayName("param info 8")
+  @DisplayName("param info 8 - generic parameter resolved to concrete type")
   public void testParamInfo8() throws Throwable {
     doTest("t:Node", 0);
   }
 
   @Test
-  @DisplayName("param info 9")
+  @DisplayName("param info 9 - constructor with optional parameters")
   public void testParamInfo9() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Null<Unknown> = null", 2);
   }
 
   @Test
-  @DisplayName("param info 10")
+  @DisplayName("param info 10 - generic constructor parameters")
   public void testParamInfo10() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:T = null", 3);
   }
   @Test
-  @DisplayName("param info 11")
+  @DisplayName("param info 11 - rest args at first rest position")
   public void testParamInfo11() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
   @Test
-  @DisplayName("param info 12")
+  @DisplayName("param info 12 - rest args at middle position")
   public void testParamInfo12() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
   @Test
-  @DisplayName("param info 13")
+  @DisplayName("param info 13 - rest args at last position")
   public void testParamInfo13() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }

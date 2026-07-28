@@ -46,7 +46,7 @@ public class ImportDeclarationTest extends DeclarationTestBase {
   }
 
   @Test
-  @DisplayName("in")
+  @DisplayName("in - import alias with in keyword")
   public void testIn() throws Throwable {
     doTest(true);
   }

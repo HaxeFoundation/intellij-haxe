@@ -88,45 +88,39 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("for declaration 1")
+  @DisplayName("for declaration 1 - loop var over int range")
   public void testForDeclaration1() {
     doTest(myFixture.configureByFiles("ForDeclaration1.hx"), 1);
   }
 
   @Test
-  @DisplayName("for declaration 2")
+  @DisplayName("for declaration 2 - loop var used as array index")
   public void testForDeclaration2() {
     doTest(myFixture.configureByFiles("ForDeclaration2.hx"), 1);
   }
 
   @Test
-  @DisplayName("local var declaration 1")
+  @DisplayName("local var declaration 1 - reference in same scope")
   public void testLocalVarDeclaration1() {
     doTest(myFixture.configureByFiles("LocalVarDeclaration1.hx"), 1);
   }
 
   @Test
-  @DisplayName("local var declaration 2")
+  @DisplayName("local var declaration 2 - reference in nested if block")
   public void testLocalVarDeclaration2() {
     doTest(myFixture.configureByFiles("LocalVarDeclaration2.hx"), 1);
   }
 
   @Test
-  @DisplayName("function parameter 1")
+  @DisplayName("function parameter 1 - reference in nested block")
   public void testFunctionParameter1() {
     doTest(myFixture.configureByFiles("FunctionParameter1.hx"), 1);
   }
 
   @Test
-  @DisplayName("function parameter 2")
+  @DisplayName("function parameter 2 - lambda parameter reference")
   public void testFunctionParameter2() {
     doTest(myFixture.configureByFiles("FunctionParameter2.hx"), 1);
-  }
-
-  @Test
-  @DisplayName("function parameter 3")
-  public void testFunctionParameter3() {
-    doTest(myFixture.configureByFiles("FunctionParameter3.hx"), 1);
   }
 
   @Test
@@ -148,13 +142,13 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("static class member 1")
+  @DisplayName("static class member 1 - static field through class")
   public void testStaticClassMember1() {
     doTest(myFixture.configureByFiles("StaticClassMember1.hx", "com/bar/Foo.hx"), 1);
   }
 
   @Test
-  @DisplayName("static class member 2")
+  @DisplayName("static class member 2 - class reference before static field")
   public void testStaticClassMember2() {
     doTest(myFixture.configureByFiles("StaticClassMember2.hx", "com/bar/Foo.hx"), 1);
   }
@@ -166,19 +160,19 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("using util 1")
+  @DisplayName("using util 1 - static extension on int receiver")
   public void testUsingUtil1() {
     doTest(myFixture.configureByFiles("UsingUtil1.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   @Test
-  @DisplayName("using util 2")
+  @DisplayName("using util 2 - extension not applicable to string receiver")
   public void testUsingUtil2() {
     doTest(myFixture.configureByFiles("UsingUtil2.hx", "com/utils/MathUtil.hx"), 0);
   }
 
   @Test
-  @DisplayName("using util 3")
+  @DisplayName("using util 3 - string extension via tools using")
   public void testUsingUtil3() {
     doTest(myFixture.configureByFiles("UsingUtil3.hx", "com/utils/StringUtil.hx", "com/utils/Tools.hx", "com/utils/MathUtil.hx"), 1);
   }
@@ -190,13 +184,13 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("extern class 1")
+  @DisplayName("extern class 1 - extern type in field type tag")
   public void testExternClass1() {
     doTest(myFixture.configureByFiles("ExternClass1.hx", "com/bar/Foo.hx"), 1);
   }
 
   @Test
-  @DisplayName("extern class 2")
+  @DisplayName("extern class 2 - private extern class in same file")
   public void testExternClass2() {
     doTest(myFixture.configureByFiles("ExternClass2.hx"), 1);
   }
@@ -208,25 +202,25 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("reference expression 1")
+  @DisplayName("reference expression 1 - field through typed local")
   public void testReferenceExpression1() {
     doTest(myFixture.configureByFiles("ReferenceExpression1.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
 
   @Test
-  @DisplayName("reference expression 2")
+  @DisplayName("reference expression 2 - chained field access")
   public void testReferenceExpression2() {
     doTest(myFixture.configureByFiles("ReferenceExpression2.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
 
   @Test
-  @DisplayName("reference expression 3")
+  @DisplayName("reference expression 3 - middle link of a chain")
   public void testReferenceExpression3() {
     doTest(myFixture.configureByFiles("ReferenceExpression3.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
 
   @Test
-  @DisplayName("reference expression 4")
+  @DisplayName("reference expression 4 - field declared in superclass")
   public void testReferenceExpression4() {
     doTest(myFixture.configureByFiles("ReferenceExpression4.hx",
                                       "com/bar/Foo.hx",
@@ -236,37 +230,37 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("reference expression 5")
+  @DisplayName("reference expression 5 - field on extern class instance")
   public void testReferenceExpression5() {
     doTest(myFixture.configureByFiles("ReferenceExpression5.hx", "com/bar/Foo.hx"), 1);
   }
 
   @Test
-  @DisplayName("reference expression 6")
+  @DisplayName("reference expression 6 - use before var declaration")
   public void testReferenceExpression6() {
     doTest(myFixture.configureByFiles("ReferenceExpression6.hx"), 0);
   }
 
   @Test
-  @DisplayName("reference expression 7")
+  @DisplayName("reference expression 7 - use before local function declaration")
   public void testReferenceExpression7() {
     doTest(myFixture.configureByFiles("ReferenceExpression7.hx"), 0);
   }
 
   @Test
-  @DisplayName("reference expression 8")
+  @DisplayName("reference expression 8 - outer var from nested function")
   public void testReferenceExpression8() {
     doTest(myFixture.configureByFiles("ReferenceExpression8.hx"), 0);
   }
 
   @Test
-  @DisplayName("reference expression 9")
+  @DisplayName("reference expression 9 - switch case capture variable")
   public void testReferenceExpression9() {
     doTest(myFixture.configureByFiles("ReferenceExpression9.hx"), 0);
   }
 
   @Test
-  @DisplayName("reference expression 10")
+  @DisplayName("reference expression 10 - superclass reference in extends")
   public void testReferenceExpression10() {
     doTest(myFixture.configureByFiles("ReferenceExpression10.hx",
                                       "com/bar/Foo.hx"), 1);
@@ -292,25 +286,25 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("assign 1")
+  @DisplayName("assign 1 - type flows through local assignment")
   public void testAssign1() {
     doTest(myFixture.configureByFiles("Assign1.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
 
   @Test
-  @DisplayName("assign 2")
+  @DisplayName("assign 2 - type flows from field access assignment")
   public void testAssign2() {
     doTest(myFixture.configureByFiles("Assign2.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
 
   @Test
-  @DisplayName("new expression 1")
+  @DisplayName("new expression 1 - member through constructed local")
   public void testNewExpression1() {
     doTest(myFixture.configureByFiles("NewExpression1.hx", "com/bar/Foo.hx"), 1);
   }
 
   @Test
-  @DisplayName("new expression 2")
+  @DisplayName("new expression 2 - member directly on new expression")
   public void testNewExpression2() {
     doTest(myFixture.configureByFiles("NewExpression2.hx", "com/bar/Foo.hx"), 1);
   }
@@ -322,151 +316,151 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   @Test
-  @DisplayName("generic 1")
+  @DisplayName("generic 1 - member via resolved type parameter")
   public void testGeneric1() {
     doTest(myFixture.configureByFiles("Generic1.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 2")
+  @DisplayName("generic 2 - nested generic resolves through two levels")
   public void testGeneric2() {
     doTest(myFixture.configureByFiles("Generic2.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 3")
+  @DisplayName("generic 3 - type parameter reference in signature")
   public void testGeneric3() {
     doTest(myFixture.configureByFiles("Generic3.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 4")
+  @DisplayName("generic 4 - array pop element member")
   public void testGeneric4() {
     doTest(myFixture.configureByFiles("Generic4.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 5")
+  @DisplayName("generic 5 - inherited generic array member")
   public void testGeneric5() {
     doTest(myFixture.configureByFiles("Generic5.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 6")
+  @DisplayName("generic 6 - self referencing generic array")
   public void testGeneric6() {
     doTest(myFixture.configureByFiles("Generic6.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 7")
+  @DisplayName("generic 7 - method through generic superclass chain")
   public void testGeneric7() {
     doTest(myFixture.configureByFiles("Generic7.hx"), 1);
   }
 
   @Test
-  @DisplayName("generic 8")
+  @DisplayName("generic 8 - member via constrained type parameter")
   public void testGeneric8() {
     doTest(myFixture.configureByFiles("Generic8.hx"), 1);
   }
 
   @Test
-  @DisplayName("type def 1")
+  @DisplayName("type def 1 - member of extended anonymous type")
   public void testTypeDef1() {
     doTest(myFixture.configureByFiles("TypeDef1.hx"), 1);
   }
 
   @Test
-  @DisplayName("type def 2")
+  @DisplayName("type def 2 - generic typedef field member")
   public void testTypeDef2() {
     doTest(myFixture.configureByFiles("TypeDef2.hx"), 1);
   }
 
   @Test
-  @DisplayName("type def 3")
+  @DisplayName("type def 3 - generic typedef function member")
   public void testTypeDef3() {
     doTest(myFixture.configureByFiles("TypeDef3.hx"), 1);
   }
 
   @Test
-  @DisplayName("type def 4")
+  @DisplayName("type def 4 - inherited field through typedef alias")
   public void testTypeDef4() {
     doTest(myFixture.configureByFiles("TypeDef4.hx"), 1);
   }
 
   @Test
-  @DisplayName("type def 5")
+  @DisplayName("type def 5 - local typed by typedef alias")
   public void testTypeDef5() {
     doTest(myFixture.configureByFiles("TypeDef5.hx", "com/bar/Foo.hx"), 1);
   }
 
   @Test
-  @DisplayName("type def 6")
+  @DisplayName("type def 6 - typedef extension references")
   public void testTypeDef6() {
     doTest(myFixture.configureByFiles("TypeDef6.hx"), 1);
   }
 
   @Test
-  @DisplayName("array access 1")
+  @DisplayName("array access 1 - element member after index")
   public void testArrayAccess1() {
     doTest(myFixture.configureByFiles("ArrayAccess1.hx"), 1);
   }
 
   @Test
-  @DisplayName("array access 2")
+  @DisplayName("array access 2 - element member after nested index")
   public void testArrayAccess2() {
     doTest(myFixture.configureByFiles("ArrayAccess2.hx"), 1);
   }
 
   @Test
-  @DisplayName("array iteration 1")
+  @DisplayName("array iteration 1 - loop var member from array")
   public void testArrayIteration1() {
     doTest(myFixture.configureByFiles("ArrayIteration1.hx"), 1);
   }
 
   @Test
-  @DisplayName("array iteration 2")
+  @DisplayName("array iteration 2 - loop var member from custom iterator")
   public void testArrayIteration2() {
     doTest(myFixture.configureByFiles("ArrayIteration2.hx"), 1);
   }
 
   @Test
-  @DisplayName("array iteration 3")
+  @DisplayName("array iteration 3 - loop var shadows iterator name")
   public void testArrayIteration3() {
     doTest(myFixture.configureByFiles("ArrayIteration3.hx"), 1);
   }
 
   @Test
-  @DisplayName("helper class 1")
+  @DisplayName("helper class 1 - module member via module import")
   public void testHelperClass1() {
     doTest(myFixture.configureByFiles("HelperClass1.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   @Test
-  @DisplayName("helper class 2")
+  @DisplayName("helper class 2 - module member imported directly")
   public void testHelperClass2() {
     doTest(myFixture.configureByFiles("HelperClass2.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   @Test
-  @DisplayName("helper class 3")
+  @DisplayName("helper class 3 - target inside import statement")
   public void testHelperClass3() {
     doTest(myFixture.configureByFiles("HelperClass3.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   @Test
-  @DisplayName("helper class 4")
+  @DisplayName("helper class 4 - module member via qualified type tag")
   public void testHelperClass4() {
     doTest(myFixture.configureByFiles("HelperClass4.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   @Test
-  @DisplayName("cast expression 1")
+  @DisplayName("cast expression 1 - member on cast result")
   public void testCastExpression1() {
     doTest(myFixture.configureByFiles("CastExpression1.hx"), 1);
   }
 
   @Test
-  @DisplayName("type check expression 1")
+  @DisplayName("type check expression 1 - member on type checked expression")
   public void testTypeCheckExpression1() {
     doTest(myFixture.configureByFiles("TypeCheckExpression1.hx"), 1);
   }

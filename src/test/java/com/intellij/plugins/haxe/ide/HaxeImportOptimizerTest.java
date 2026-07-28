@@ -36,25 +36,25 @@ public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("helper 1")
+  @DisplayName("helper 1 - drops imports unused by extends")
   public void testHelper1() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
-  @DisplayName("simple 1")
+  @DisplayName("simple 1 - removes the only unused import")
   public void testSimple1() throws Throwable {
     runOptimizeAction("com/foo/Foo.hx");
   }
 
   @Test
-  @DisplayName("simple 2")
+  @DisplayName("simple 2 - keeps used removes unused")
   public void testSimple2() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
-  @DisplayName("in")
+  @DisplayName("in - keeps used aliased import")
   public void testIn() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
@@ -72,25 +72,25 @@ public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("keepusedimports")
+  @DisplayName("keep used imports - import used by field type stays")
   public void testKeepusedimports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
-  @DisplayName("removeunusedin")
+  @DisplayName("remove unused in - drops unused aliased import")
   public void testRemoveunusedin() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
-  @DisplayName("removeduplicatein")
+  @DisplayName("remove duplicate in - drops duplicated aliased import")
   public void testRemoveduplicatein() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
   @Test
-  @DisplayName("keepwildcardimports")
+  @DisplayName("keep wildcard imports - wildcard stays when explicit duplicate removed")
   public void testKeepwildcardimports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }

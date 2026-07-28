@@ -76,14 +76,14 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("properties 1")
+  @DisplayName("properties 1 - usages from property declaration")
   public void testProperties1() throws Throwable {
     myFixture.configureByFiles("Properties1.hx");
     doTest(1);
   }
 
   @Test
-  @DisplayName("properties 2")
+  @DisplayName("properties 2 - usages from setter accessor")
   public void testProperties2() throws Throwable {
     myFixture.configureByFiles("Properties2.hx");
     doTest(1);
@@ -111,14 +111,14 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("local var declaration 1")
+  @DisplayName("local var declaration 1 - usage in same scope")
   public void testLocalVarDeclaration1() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration1.hx");
     doTest(1);
   }
 
   @Test
-  @DisplayName("local var declaration 2")
+  @DisplayName("local var declaration 2 - usage in nested if block")
   public void testLocalVarDeclaration2() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration2.hx");
     doTest(1);

@@ -72,65 +72,65 @@ public class HaxeGenerateActionTest extends HaxeLightCodeInsightTestBase {
   }
 
   @Test
-  @DisplayName("implement 1")
+  @DisplayName("implement 1 - interface methods with type parameter")
   public void testImplement1() throws Throwable {
     configureByFile("Implement1.hx");
     doImplementTest();
   }
 
   @Test
-  @DisplayName("implement 2")
+  @DisplayName("implement 2 - interface with var and property members")
   public void testImplement2() throws Throwable {
     configureByFile("Implement2.hx");
     doImplementTest();
   }
 
   @Test
-  @DisplayName("override 1")
+  @DisplayName("override 1 - generic superclass method")
   public void testOverride1() throws Throwable {
     configureByFile("Override1.hx");
     doOverrideTest();
   }
 
   @Test
-  @DisplayName("override 2")
+  @DisplayName("override 2 - skips already overridden members")
   public void testOverride2() throws Throwable {
     configureByFile("Override2.hx");
     doOverrideTest();
   }
 
   @Test
-  @DisplayName("getter 1")
+  @DisplayName("getter 1 - for plain public vars")
   public void testGetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }
 
   @Test
-  @DisplayName("getter 2")
+  @DisplayName("getter 2 - for vars with accessor lists")
   public void testGetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }
 
   @Test
-  @DisplayName("setter 1")
+  @DisplayName("setter 1 - for plain public vars")
   public void testSetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.SETTER);
   }
 
   @Test
-  @DisplayName("setter 2")
+  @DisplayName("setter 2 - for vars with accessor lists")
   public void testSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.SETTER);
   }
 
   @Test
-  @DisplayName("getter setter 1")
+  @DisplayName("getter setter 1 - for static and instance vars")
   public void testGetterSetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
 
   @Test
-  @DisplayName("getter setter 2")
+  @DisplayName("getter setter 2 - skips existing getters")
   public void testGetterSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
@@ -142,7 +142,7 @@ public class HaxeGenerateActionTest extends HaxeLightCodeInsightTestBase {
   }
 
   @Test
-  @DisplayName("constructor 2")
+  @DisplayName("constructor 2 - delegates to super constructor parameters")
   public void testConstructor2() throws Throwable {
     doConstructorTest();
   }

@@ -57,7 +57,7 @@ public class HaxeCompilerMessageTest {
   }
 
   @Test
-  @DisplayName("link message 2")
+  @DisplayName("link message 2 - with trailing newline")
   public void testLinkMessage2() throws Throwable {
     doInfoTest(" - Link : ApplicationMain: xcrun\n");
   }

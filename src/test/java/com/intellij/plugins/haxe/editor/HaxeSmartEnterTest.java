@@ -59,13 +59,13 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("partial class body 1")
+  @DisplayName("partial class body 1 - unopened class body completed")
   public void testPartialClassBody1() {
     doTest();
   }
 
   @Test
-  @DisplayName("partial class body 2")
+  @DisplayName("partial class body 2 - unclosed brace completed")
   public void testPartialClassBody2() {
     doTest();
   }
