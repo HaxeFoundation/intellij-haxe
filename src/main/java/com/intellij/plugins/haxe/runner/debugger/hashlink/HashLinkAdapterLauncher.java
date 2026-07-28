@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.runner.debugger.hashlink;
 import com.intellij.execution.ExecutionException;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import java.io.BufferedReader;
@@ -61,10 +62,17 @@ public final class HashLinkAdapterLauncher {
 
   /** The adapter bytecode shipped inside the plugin directory. */
   public static Path bundledAdapterPath() throws ExecutionException {
-    //TODO  we must replace this API once there is an alternative made available
-    // ref: https://platform.jetbrains.com/t/pluginmanagercore-getplugin-is-now-internal/4272/32
-    IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID));
-    Path adapter = plugin != null ? plugin.getPluginPath().resolve(ADAPTER_RELATIVE_PATH) : null;
+//    TODO  we must replace this API once there is an alternative made available
+//    ref: https://platform.jetbrains.com/t/pluginmanagercore-getplugin-is-now-internal/4272/32
+//    IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID));
+//    Path adapter = plugin != null ? plugin.getPluginPath().resolve(ADAPTER_RELATIVE_PATH) : null;
+
+    // temp (or maybe permanent?) workaround while we wait for pluginManager API
+    Path jar = PathManager.getJarForClass(HashLinkAdapterLauncher.class);
+    Path lib = jar != null ? jar.getParent() : null;
+    Path pluginHome = lib != null ? lib.getParent() : null;
+    Path adapter = pluginHome != null ? pluginHome.resolve(ADAPTER_RELATIVE_PATH) : null;
+
     if (adapter == null || !Files.isRegularFile(adapter)) {
       throw new ExecutionException(HaxeDebuggerBundle.message("haxe.hl.adapter.missing", String.valueOf(adapter)));
     }
