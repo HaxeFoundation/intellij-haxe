@@ -3,11 +3,12 @@ package com.intellij.plugins.haxe.debugger.hxcppserver;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Smart step into (the custom custom/stepIntoFunction request): a temporary
@@ -15,8 +16,10 @@ import static org.junit.Assert.assertTrue;
  * instance targets, packaged class names, the step-over fallback for a callee
  * that never runs, and the no-op stop for a class name the runtime rejects.
  */
+@DisplayName("HXCPP debugger: smart step (integration)")
 public class SmartStepIT {
   @Test
+  @DisplayName("enters the chosen callee including later and packaged ones")
   public void entersTheChosenCalleeIncludingLaterAndPackagedOnes() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
       session.initialize("uncaught", "critical");
@@ -52,6 +55,7 @@ public class SmartStepIT {
   }
 
   @Test
+  @DisplayName("an instance method chain enters the chosen link")
   public void anInstanceMethodChainEntersTheChosenLink() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("chain")) {
       session.initialize("uncaught", "critical");
@@ -74,6 +78,7 @@ public class SmartStepIT {
    * alone stops at the first. The argument value proves which one was entered.
    */
   @Test
+  @DisplayName("occurrence picks the later invocation of a duplicated callee")
   public void occurrencePicksTheLaterInvocationOfADuplicatedCallee() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("dupchain")) {
       session.initialize("uncaught", "critical");
@@ -90,11 +95,12 @@ public class SmartStepIT {
       assertEquals("DupChainTarget.dup", top.getName());
       // no exact-line assert: the entry stop reports the signature line for
       // functions with parameters. The ARGUMENT proves which invocation.
-      assertEquals("the SECOND invocation passes v=2", "2", session.evaluate("v", top.getId()));
+      assertEquals("2", session.evaluate("v", top.getId()), "the SECOND invocation passes v=2");
     }
   }
 
   @Test
+  @DisplayName("a callee that never runs falls back to a step over")
   public void aCalleeThatNeverRunsFallsBackToAStepOver() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
       session.initialize("uncaught", "critical");
@@ -104,8 +110,7 @@ public class SmartStepIT {
       stepIntoFunction(session, threadId, "SmartStepTarget", "nosuchfn");
       StoppedEvent landed = session.awaitStopped();
       assertEquals("step", landed.getBody().getReason());
-      assertNotEquals("moved off the line like a plain step over",
-                      FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(landed)).getLine());
+      assertNotEquals(FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(landed)).getLine(), "moved off the line like a plain step over");
     }
   }
 
@@ -115,6 +120,7 @@ public class SmartStepIT {
    * (it could run forever): it re-reports the current stop instead.
    */
   @Test
+  @DisplayName("a runtime unknown class name is a no op stop")
   public void aRuntimeUnknownClassNameIsANoOpStop() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("smartstep")) {
       session.initialize("uncaught", "critical");
@@ -124,8 +130,7 @@ public class SmartStepIT {
       stepIntoFunction(session, threadId, "MainEx.SmartStepTarget", "one");
       StoppedEvent unmoved = session.awaitStopped();
       assertEquals("step", unmoved.getBody().getReason());
-      assertEquals("did not move (and did not run away)",
-                   FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(unmoved)).getLine());
+      assertEquals(FixtureSession.SMART_LINE, session.topFrame(session.stoppedThread(unmoved)).getLine(), "did not move (and did not run away)");
     }
   }
 
@@ -143,8 +148,7 @@ public class SmartStepIT {
     arguments.setFunctionName(functionName);
     arguments.setOccurrence(occurrence);
     request.setArguments(arguments);
-    assertTrue("stepIntoFunction " + className + "." + functionName + " #" + occurrence,
-               session.request(request).isSuccess());
+    assertTrue(session.request(request).isSuccess(), "stepIntoFunction " + className + "." + functionName + " #" + occurrence);
   }
 
   // stop at the smart line, remove line breakpoints so only the temp can fire

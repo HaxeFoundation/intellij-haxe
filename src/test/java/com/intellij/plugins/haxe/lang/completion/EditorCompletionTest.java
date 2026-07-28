@@ -17,44 +17,53 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Completion: editor")
 public class EditorCompletionTest extends HaxeCompletionTestBase {
   public EditorCompletionTest() {
     super("completion", "editor");
   }
 
   @Test
+  @DisplayName("generic brace 1 - lt auto closes after new ClassName")
   public void testGenericBrace1() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("generic brace 2 - lt auto closes in class declaration")
   public void testGenericBrace2() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("generic brace 3 - lt auto closes after extends")
   public void testGenericBrace3() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("less - comparison lt does not auto close")
   public void testLess() {
     doTest('<');
   }
 
   @Test
+  @DisplayName("string 1 - dollar at string end expands to interpolation braces")
   public void testString1() {
     doTest('{');
   }
 
   @Test
+  @DisplayName("string 2 - dollar inside single quoted text expands to interpolation braces")
   public void testString2() {
     doTest('{');
   }
 
   @Test
+  @DisplayName("string 3 - dollar before trailing text expands to interpolation braces")
   public void testString3() {
     doTest('{');
   }

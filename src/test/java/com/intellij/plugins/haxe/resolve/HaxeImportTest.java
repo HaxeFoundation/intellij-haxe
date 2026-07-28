@@ -21,8 +21,10 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Resolve: import")
 public class HaxeImportTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -45,6 +47,7 @@ public class HaxeImportTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("imports")
   public void testImports() {
     doTest("import.hx", "somepkg/import.hx", "somepkg/Helper.hx");
   }

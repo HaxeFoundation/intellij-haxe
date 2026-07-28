@@ -17,6 +17,9 @@
  */
 package com.intellij.plugins.haxe.lang;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -27,7 +30,8 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -35,6 +39,7 @@ import java.io.FileWriter;
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Formatting: formatter")
 public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   protected CommonCodeStyleSettings myTestStyleSettings;
 
@@ -106,21 +111,25 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("default")
   public void testDefault() throws Exception {
     doTest();
   }
 
   @Test
+  @DisplayName("statements")
   public void testStatements() throws Exception {
     doTest();
   }
 
   @Test
+  @DisplayName("array utils")
   public void testArrayUtils() throws Exception {
     doTest();
   }
 
   @Test
+  @DisplayName("space before parentheses")
   public void testSpaceBeforeParentheses() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES = true;
@@ -134,6 +143,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("space around operators")
   public void testSpaceAroundOperators() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
@@ -146,6 +156,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("space left braces")
   public void testSpaceLeftBraces() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_METHOD_LBRACE = false;
@@ -161,6 +172,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("space within")
   public void testSpaceWithin() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES = true;
@@ -174,6 +186,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("space others")
   public void testSpaceOthers() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_WHILE_KEYWORD = false;
@@ -190,11 +203,13 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
   @Test
+  @DisplayName("indent typedef")
   public void testIndentTypedef() throws Exception {
     doTest();
   }
 
   @Test
+  @DisplayName("wrapping meth")
   public void testWrappingMeth() throws Exception {
     myTestStyleSettings.METHOD_ANNOTATION_WRAP = CommonCodeStyleSettings.WRAP_AS_NEEDED;
     myTestStyleSettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE = true;
@@ -222,6 +237,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("alignment")
   public void testAlignment() throws Exception {
     myTestStyleSettings.ALIGN_MULTILINE_PARAMETERS = true;
     myTestStyleSettings.ALIGN_MULTILINE_BINARY_OPERATION = true;
@@ -231,6 +247,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("brace placement 1 - next line shifted braces")
   public void testBracePlacement1() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.NEXT_LINE_SHIFTED2;
@@ -239,6 +256,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("brace placement 2 - end of line class braces next line methods")
   public void testBracePlacement2() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;
@@ -247,6 +265,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("comment alignment normal")
   public void testCommentAlignmentNormal() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = true;
     myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = false;
@@ -254,12 +273,14 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("comment alignment keep left")
   public void testCommentAlignmentKeepLeft() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = true;
     myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = true;
     doTest();
   }
   @Test
+  @DisplayName("indent tabs")
   public void testIndentTabs() throws Exception {
     myTestStyleSettings.getIndentOptions().USE_TAB_CHARACTER = true;
     myTestStyleSettings.getIndentOptions().INDENT_SIZE = 1;
@@ -267,6 +288,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
   @Test
+  @DisplayName("indent spaces")
   public void testIndentSpaces() throws Exception {
     myTestStyleSettings.getIndentOptions().USE_TAB_CHARACTER = false;
     myTestStyleSettings.getIndentOptions().INDENT_SIZE = 3;
@@ -274,6 +296,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("line feeds with comments")
   public void testLineFeedsWithComments() throws Exception {
     doTest();
   }

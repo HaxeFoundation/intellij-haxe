@@ -21,8 +21,10 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Resolve: expression")
 public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -45,31 +47,37 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("string array expressions")
   public void testStringArrayExpressions() {
     doTest();
   }
 
   @Test
+  @DisplayName("new with immediate")
   public void testNewWithImmediate() {
     doTest();
   }
 
   @Test
+  @DisplayName("array access")
   public void testArrayAccess() {
     doTest();
   }
 
   @Test
+  @DisplayName("dynamic extension")
   public void testDynamicExtension() {
     doTest();
   }
 
   @Test
+  @DisplayName("enum extensions")
   public void testEnumExtensions() {
     doTest();
   }
 
   @Test
+  @DisplayName("enum using meta extension")
   public void testEnumUsingMetaExtension() {
     doTest("colors/Color.hx");
   }

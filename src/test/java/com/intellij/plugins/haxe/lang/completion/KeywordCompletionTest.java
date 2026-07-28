@@ -17,57 +17,68 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Completion: keyword")
 public class KeywordCompletionTest extends HaxeCompletionTestBase {
   public KeywordCompletionTest() {
     super("completion", "keywords");
   }
 
   @Test
+  @DisplayName("else")
   public void testElse() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("empty")
   public void testEmpty() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("function 1 - after public in empty class")
   public void testFunction1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("function 2 - after public below existing method")
   public void testFunction2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("statement 1 - statement keywords in method body")
   public void testStatement1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("statement 2 - excludes else and catch without context")
   public void testStatement2() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("reference")
   public void testReference() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("inherit 1 - extends in class header")
   public void testInherit1() throws Throwable {
     doTest();
   }
 
   @Test
+  @DisplayName("inherit 2 - implements after extends")
   public void testInherit2() throws Throwable {
     doTest();
   }

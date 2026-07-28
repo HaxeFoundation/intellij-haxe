@@ -1,8 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -13,8 +13,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -23,13 +24,14 @@ import tools.jackson.databind.ObjectMapper;
  * fake reads 2-byte-LE-framed requests and answers with 4-byte-LE-framed
  * responses, mirroring the real asymmetric framing end to end.
  */
+@DisplayName("Eval debugger: connection")
 public class EvalConnectionTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private EvalConnection connection;
   private Thread fakeVm;
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (connection != null) {
       connection.close();
@@ -37,9 +39,10 @@ public class EvalConnectionTest {
   }
 
   @Test
+  @DisplayName("correlates responses by id and unwraps result")
   public void correlatesResponsesByIdAndUnwrapsResult() throws Exception {
     startFake(request -> {
-      assertEquals("strict envelope", "2.0", request.path("jsonrpc").asString());
+      assertEquals("2.0", request.path("jsonrpc").asString(), "strict envelope");
       int id = request.path("id").asInt();
       return List.of("""
           {
@@ -56,6 +59,7 @@ public class EvalConnectionTest {
   }
 
   @Test
+  @DisplayName("error responses surface as protocol exceptions")
   public void errorResponsesSurfaceAsProtocolExceptions() throws Exception {
     startFake(request -> {
       int id = request.path("id").asInt();
@@ -74,6 +78,7 @@ public class EvalConnectionTest {
   }
 
   @Test
+  @DisplayName("id less messages route to the event listener")
   public void idLessMessagesRouteToTheEventListener() throws Exception {
     startFake(request -> {
       // reply to the request, then push an unrelated notification
@@ -100,6 +105,7 @@ public class EvalConnectionTest {
   }
 
   @Test
+  @DisplayName("transport death fails pending requests")
   public void transportDeathFailsPendingRequests() throws Exception {
     startFake(request -> null); // never answers
     connection.start();

@@ -2,9 +2,10 @@ package com.intellij.plugins.haxe.ide.inlay;
 
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayFieldHintsProvider;
-import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayReturnTypeHintsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Inlay hints: field type")
 public class HaxeFieldTypeInlayTest extends HaxeInlayTestBase {
 
   InlayHintsProvider hintsProvider = new HaxeInlayFieldHintsProvider();
@@ -23,6 +24,7 @@ public class HaxeFieldTypeInlayTest extends HaxeInlayTestBase {
 
   // test to generate preview used in inlay settings example
   @Test
+  @DisplayName("preview")
   public void testPreview() throws Exception {
     doTest(hintsProvider);
   }

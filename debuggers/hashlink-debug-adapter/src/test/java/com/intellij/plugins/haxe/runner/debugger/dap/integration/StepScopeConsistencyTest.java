@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
@@ -9,7 +9,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Replays the IDE's request sequence around a step: render the frame (scopes,
@@ -20,9 +21,11 @@ import org.junit.Test;
  * must never be reused across stops, or a stale request silently aliases onto
  * whatever the new stop allocated under the same number.
  */
+@DisplayName("HashLink debugger: step scope consistency")
 public class StepScopeConsistencyTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("scopes stay ordered and stale references die across a step")
   public void scopesStayOrderedAndStaleReferencesDieAcrossAStep() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     int threadId = stopped.getBody().getThreadId();
@@ -30,12 +33,12 @@ public class StepScopeConsistencyTest extends DapIntegrationTestBase {
 
     // initial render, as the IDE does it
     List<Scope> before = scopesOf(frameId);
-    assertEquals("first scope before step", "Locals", before.get(0).getName());
-    assertEquals("last scope before step", "Registers", before.get(before.size() - 1).getName());
+    assertEquals("Locals", before.get(0).getName(), "first scope before step");
+    assertEquals("Registers", before.get(before.size() - 1).getName(), "last scope before step");
     List<Variable> localsBefore = variables(before.get(0).getVariablesReference());
-    assertNotNull("locals contain i", findVariable(localsBefore, "i"));
+    assertNotNull(findVariable(localsBefore, "i"), "locals contain i");
     int registersRefBefore = before.get(before.size() - 1).getVariablesReference();
-    assertNotNull("registers contain SP", findVariable(variables(registersRefBefore), "SP"));
+    assertNotNull(findVariable(variables(registersRefBefore), "SP"), "registers contain SP");
 
     // step over
     request(nextRequest(threadId));
@@ -44,18 +47,16 @@ public class StepScopeConsistencyTest extends DapIntegrationTestBase {
 
     // re-render: same shape, fresh references
     List<Scope> after = scopesOf(frameId2);
-    assertEquals("first scope after step", "Locals", after.get(0).getName());
-    assertEquals("last scope after step", "Registers", after.get(after.size() - 1).getName());
+    assertEquals("Locals", after.get(0).getName(), "first scope after step");
+    assertEquals("Registers", after.get(after.size() - 1).getName(), "last scope after step");
     List<Variable> localsAfter = variables(after.get(0).getVariablesReference());
-    assertNotNull("locals still contain i after step", findVariable(localsAfter, "i"));
-    assertEquals("no CPU rows leaked into Locals", null, findVariable(localsAfter, "SP"));
-    assertNotNull("registers still contain SP after step",
-                  findVariable(variables(after.get(after.size() - 1).getVariablesReference()), "SP"));
+    assertNotNull(findVariable(localsAfter, "i"), "locals still contain i after step");
+    assertEquals(null, findVariable(localsAfter, "SP"), "no CPU rows leaked into Locals");
+    assertNotNull(findVariable(variables(after.get(after.size() - 1).getVariablesReference()), "SP"), "registers still contain SP after step");
 
     // the pre-step reference is dead, not aliased
     List<Variable> stale = variables(registersRefBefore);
-    assertEquals("a stale pre-step reference resolves to nothing (got " + names(stale) + ")",
-                 0, stale.size());
+    assertEquals(0, stale.size(), "a stale pre-step reference resolves to nothing (got " + names(stale) + ")");
 
     request(new DisconnectRequest());
   }

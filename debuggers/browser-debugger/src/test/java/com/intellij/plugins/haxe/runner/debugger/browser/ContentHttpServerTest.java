@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -11,11 +11,13 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Browser debugger: content http server")
 public class ContentHttpServerTest {
   /** Request paths the resolver cannot even parse into a path on Windows. */
   private static final List<String> UNPARSEABLE_PATHS =
@@ -27,7 +29,7 @@ public class ContentHttpServerTest {
   private Path outside;
   private ContentHttpServer server;
 
-  @Before
+  @BeforeEach
   public void serveFixture() throws IOException {
     Path parent = Files.createTempDirectory("content-server-test");
     root = Files.createDirectory(parent.resolve("www"));
@@ -38,7 +40,7 @@ public class ContentHttpServerTest {
     server = new ContentHttpServer(root);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (server != null) {
       server.close();
@@ -46,6 +48,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("serves files with types and no store")
   public void servesFilesWithTypesAndNoStore() throws Exception {
     HttpResponse<String> html = get("/index.html");
     assertEquals(200, html.statusCode());
@@ -59,6 +62,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("directory serves its index")
   public void directoryServesItsIndex() throws Exception {
     HttpResponse<String> response = get("/");
     assertEquals(200, response.statusCode());
@@ -66,13 +70,15 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("missing file is 404")
   public void missingFileIs404() throws Exception {
     assertEquals(404, get("/nope.js").statusCode());
   }
 
   @Test
+  @DisplayName("traversal outside the root is 404")
   public void traversalOutsideTheRootIs404() throws Exception {
-    assertTrue("precondition: the secret exists", Files.isRegularFile(outside));
+    assertTrue(Files.isRegularFile(outside), "precondition: the secret exists");
     // raw and percent-encoded traversal must both fail (the JDK client
     // normalizes plain "..", so also test the encoded form end to end)
     assertEquals(404, get("/../secret.txt").statusCode());
@@ -91,23 +97,25 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("unparseable names are rejected not errors")
   public void unparseableNamesAreRejectedNotErrors() throws Exception {
     // on Windows these throw InvalidPathException inside the resolver; they
     // must surface as a client error (404 from the resolver, or 400 when the
     // JDK server rejects the request first), never an unhandled exception
     for (String path : UNPARSEABLE_PATHS) {
       int status = get(path).statusCode();
-      assertTrue(path + " -> " + status, status == 404 || status == 400);
+      assertTrue(status == 404 || status == 400, path + " -> " + status);
     }
   }
 
   @Test
+  @DisplayName("symlink inside the root cannot escape it")
   public void symlinkInsideTheRootCannotEscapeIt() throws Exception {
     try {
       Files.createSymbolicLink(root.resolve("escape.txt"), outside);
       Files.createSymbolicLink(root.resolve("escapedir"), outside.getParent());
     } catch (IOException | UnsupportedOperationException e) {
-      Assume.assumeNoException("cannot create symlinks here (Windows non-admin) - skipping", e);
+      Assumptions.abort("cannot create symlinks here (Windows non-admin) - skipping: " + e);
     }
     // both links point OUTSIDE the content root: the textual path is inside,
     // the real location is not - must 404, never serve
@@ -116,11 +124,12 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("symlink staying inside the root still serves")
   public void symlinkStayingInsideTheRootStillServes() throws Exception {
     try {
       Files.createSymbolicLink(root.resolve("alias.js"), root.resolve("app.js"));
     } catch (IOException | UnsupportedOperationException e) {
-      Assume.assumeNoException("cannot create symlinks here (Windows non-admin) - skipping", e);
+      Assumptions.abort("cannot create symlinks here (Windows non-admin) - skipping: " + e);
     }
     HttpResponse<String> response = get("/alias.js");
     assertEquals(200, response.statusCode());
@@ -128,6 +137,7 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("write methods are rejected")
   public void writeMethodsAreRejected() throws Exception {
     HttpResponse<String> response = http.send(
       HttpRequest.newBuilder(URI.create(server.getBaseUrl() + "index.html"))
@@ -138,19 +148,20 @@ public class ContentHttpServerTest {
   }
 
   @Test
+  @DisplayName("first page refresh injects exactly once")
   public void firstPageRefreshInjectsExactlyOnce() throws Exception {
     server.refreshFirstPage(2);
     String first = get("/index.html").body();
-    assertTrue("meta refresh injected into the first response: " + first,
-               first.contains("<meta http-equiv=\"refresh\" content=\"2\">"));
-    assertTrue("original content preserved", first.contains("hello"));
+    assertTrue(first.contains("<meta http-equiv=\"refresh\" content=\"2\">"), "meta refresh injected into the first response: " + first);
+    assertTrue(first.contains("hello"), "original content preserved");
     String second = get("/index.html").body();
-    assertEquals("second response is served clean", "<html>hello</html>", second);
+    assertEquals("<html>hello</html>", second, "second response is served clean");
     // scripts are never touched by the injection
     assertEquals("console.log('x');", get("/app.js").body());
   }
 
   @Test
+  @DisplayName("head has no body")
   public void headHasNoBody() throws Exception {
     HttpResponse<String> response = http.send(
       HttpRequest.newBuilder(URI.create(server.getBaseUrl() + "index.html"))

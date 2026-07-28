@@ -4,20 +4,23 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Pause/resume/step against the live fixtures — the scenarios that caught the
  * real-world session wedges (getter deadlock, fault-in-renderer) and the
  * multi-threaded shape real apps have.
  */
+@DisplayName("HXCPP debugger: run control (integration)")
 public class RunControlIT {
 
   @Test
+  @DisplayName("pause inspect resume twice stays responsive")
   public void pauseInspectResumeTwiceStaysResponsive() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("spin")) {
       session.initialize("uncaught", "critical");
@@ -33,7 +36,7 @@ public class RunControlIT {
         StackFrame top = session.topFrame(threadId);
         int reference = session.localsReference(top.getId());
         List<Variable> locals = session.variables(reference);
-        assertTrue("round " + round + ": spin locals present", !locals.isEmpty());
+        assertTrue(!locals.isEmpty(), "round " + round + ": spin locals present");
 
         int beats = session.outputCount("beat");
         session.resume(threadId);
@@ -43,6 +46,7 @@ public class RunControlIT {
   }
 
   @Test
+  @DisplayName("breakpoints stay armed across a pause")
   public void breakpointsStayArmedAcrossAPause() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("spin")) {
       session.initialize("uncaught", "critical");
@@ -59,7 +63,7 @@ public class RunControlIT {
       session.pause();
       StoppedEvent paused = session.awaitStopped();
       // a breakpoint may win the race with the pause; both are healthy stops
-      assertTrue("stop reason", List.of("pause", "breakpoint").contains(paused.getBody().getReason()));
+      assertTrue(List.of("pause", "breakpoint").contains(paused.getBody().getReason()), "stop reason");
       session.stackTrace(session.stoppedThread(paused));
 
       session.resume(session.stoppedThread(paused));
@@ -69,6 +73,7 @@ public class RunControlIT {
   }
 
   @Test
+  @DisplayName("step over at a breakpoint reports a step stop")
   public void stepOverAtABreakpointReportsAStepStop() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("spin")) {
       session.initialize("uncaught", "critical");
@@ -81,7 +86,7 @@ public class RunControlIT {
       session.next(threadId);
       StoppedEvent stepped = session.awaitStopped();
       assertEquals("step", stepped.getBody().getReason());
-      assertNotEquals("the step moved off the line", lineBefore, session.topFrame(threadId).getLine());
+      assertNotEquals(lineBefore, session.topFrame(threadId).getLine(), "the step moved off the line");
     }
   }
 
@@ -91,6 +96,7 @@ public class RunControlIT {
    * while main is paused, and resume brings main back.
    */
   @Test
+  @DisplayName("workers keep running while main is paused")
   public void workersKeepRunningWhileMainIsPaused() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("threads")) {
       session.initialize("uncaught", "critical");
@@ -106,7 +112,7 @@ public class RunControlIT {
       int beatsWhilePaused = session.outputCount("beat");
       int workersAtPause = session.outputCount("worker");
       session.awaitOutputAbove("worker", workersAtPause); // workers still alive
-      assertEquals("main is really paused", beatsWhilePaused, session.outputCount("beat"));
+      assertEquals(beatsWhilePaused, session.outputCount("beat"), "main is really paused");
 
       session.resume(threadId);
       session.awaitOutputAbove("beat", beatsWhilePaused); // main runs again
@@ -119,6 +125,7 @@ public class RunControlIT {
    * the getter — the raw backing value shows and the session stays live.
    */
   @Test
+  @DisplayName("rendering never runs getters even against a held lock")
   public void renderingNeverRunsGettersEvenAgainstAHeldLock() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("getterlock")) {
       session.initialize("uncaught", "critical");
@@ -131,8 +138,7 @@ public class RunControlIT {
       int reference = session.localsReference(session.topFrame(threadId).getId());
       Variable box = session.variable(session.variables(reference), "box");
       List<Variable> fields = session.variables(box.getVariablesReference());
-      assertEquals("raw backing value, getter never invoked", "13",
-                   session.variable(fields, "danger").getValue());
+      assertEquals("13", session.variable(fields, "danger").getValue(), "raw backing value, getter never invoked");
 
       int beats = session.outputCount("beat");
       session.resume(threadId);

@@ -17,14 +17,19 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInsight.navigation.GotoTargetHandler;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Navigation: go to implementation")
 public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -35,27 +40,31 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFile(getTestName(false) + ".hx");
     GotoTargetHandler.GotoData data = CodeInsightTestUtil.gotoImplementation(myFixture.getEditor(), myFixture.getFile());
 
-    assertNotNull(myFixture.getFile().toString(), data);
+    assertNotNull(data, myFixture.getFile().toString());
     // TODO: listen updater task?
     assertEquals(expectedLength, data.targets.length);
   }
 
   @Test
+  @DisplayName("gti 1 - interface to implementing class")
   public void testGti1() throws Throwable {
     doTest(2);
   }
 
   @Test
+  @DisplayName("gti 2 - interface method to implementation")
   public void testGti2() throws Throwable {
     doTest(1);
   }
 
   @Test
+  @DisplayName("gti 3 - interface with multiple implementing classes")
   public void testGti3() throws Throwable {
     doTest(2);
   }
 
   @Test
+  @DisplayName("gti 4 - interface field to implementations")
   public void testGti4() throws Throwable {
     doTest(2);
   }

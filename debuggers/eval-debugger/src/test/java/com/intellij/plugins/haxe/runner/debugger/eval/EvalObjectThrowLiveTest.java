@@ -1,28 +1,17 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Uncaught haxe.Exception INSTANCES (as opposed to bare string throws) put
@@ -36,30 +25,37 @@ import org.junit.Test;
  * whose exception breakpoints are disabled (empty filters) never stops on
  * the uncaught throw at all — the VM's DEFAULT would.
  */
+@DisplayName("Eval debugger: object throw (live)")
 public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("resume at the uncaught object stop lets the program die naturally")
   public void resumeAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
     String description = stopped.getBody().getDescription();
-    assertTrue("stop carries the thrown text", description != null && description.contains("uncaught-object"));
+    assertTrue(description != null && description.contains("uncaught-object"), "stop carries the thrown text");
 
     ContinueRequest resume = continueRequest(stopped.getBody().getThreadId());
-    assertTrue("resume at the uncaught stop", request(resume).isSuccess());
+    assertTrue(request(resume).isSuccess(), "resume at the uncaught stop");
     awaitNaturalDeath();
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("stepping at the uncaught object stop lets the program die naturally")
   public void steppingAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
     StepInRequest stepIn = stepInRequest(stopped.getBody().getThreadId());
-    assertTrue("stepIn at the uncaught stop", request(stepIn).isSuccess());
+    assertTrue(request(stepIn).isSuccess(), "stepIn at the uncaught stop");
     awaitNaturalDeath();
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("with exception breakpoints disabled an uncaught throw never stops")
   public void withExceptionBreakpointsDisabledAnUncaughtThrowNeverStops() throws Exception {
     // the IDE sends EMPTY filters when every exception breakpoint is disabled;
     // that must override the VM's stop-on-uncaught DEFAULT: no stop, just the
@@ -76,12 +72,12 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
   private void startSession(List<String> filters) throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());
-    assertTrue("initialize", request(initialize).isSuccess());
+    assertTrue(request(initialize).isSuccess(), "initialize");
     dapClient.pollEvent(TIMEOUT);
     launch();
 
     SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(filters);
-    assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
+    assertTrue(request(exceptions).isSuccess(), "setExceptionBreakpoints");
     configurationDone();
   }
 
@@ -90,7 +86,7 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
     while (System.currentTimeMillis() < deadline) {
       Event event = dapClient.pollEvent(250);
       if (event instanceof StoppedEvent stopped) {
-        assertEquals("the stop is the exception", "exception", stopped.getBody().getReason());
+        assertEquals("exception", stopped.getBody().getReason(), "the stop is the exception");
         return stopped;
       }
       if (event instanceof TerminatedEvent) {
@@ -105,8 +101,8 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
     while (System.currentTimeMillis() < deadline) {
       Event event = dapClient.pollEvent(250);
       if (event instanceof TerminatedEvent) {
-        assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
-        assertNotEquals("died from the uncaught exception (non-zero exit)", 0, haxe.exitValue());
+        assertTrue(haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "haxe exited");
+        assertNotEquals(0, haxe.exitValue(), "died from the uncaught exception (non-zero exit)");
         return;
       }
       if (event instanceof StoppedEvent stopped) {

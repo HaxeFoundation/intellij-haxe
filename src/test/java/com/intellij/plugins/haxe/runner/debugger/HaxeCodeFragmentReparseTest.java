@@ -1,5 +1,12 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -17,6 +24,7 @@ import com.intellij.psi.PsiFile;
  * fragment type: "AssertionError: Unknown element type: HAXE_CODE_FRAGMENT".
 
  */
+@DisplayName("Debugger: code fragment reparse")
 public class HaxeCodeFragmentReparseTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -28,6 +36,8 @@ public class HaxeCodeFragmentReparseTest extends HaxeCodeInsightFixtureTestCase 
     return HaxeElementGenerator.createExpressionCodeFragment(getProject(), text, null, true);
   }
 
+  @Test
+  @DisplayName("typing into a fragment reparses without error")
   public void testTypingIntoAFragmentReparsesWithoutError() {
     PsiFile fragment = fragment("counter");
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -40,9 +50,11 @@ public class HaxeCodeFragmentReparseTest extends HaxeCodeInsightFixtureTestCase 
     });
 
     assertEquals("counter + 1", fragment.getText());
-    assertNotNull("reparsed fragment still has a parsed tree", fragment.getFirstChild());
+    assertNotNull(fragment.getFirstChild(), "reparsed fragment still has a parsed tree");
   }
 
+  @Test
+  @DisplayName("repeated edits keep the fragment alive")
   public void testRepeatedEditsKeepTheFragmentAlive() {
     PsiFile fragment = fragment("a");
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -58,6 +70,6 @@ public class HaxeCodeFragmentReparseTest extends HaxeCodeInsightFixtureTestCase 
     }
 
     assertEquals("a.b + c", fragment.getText());
-    assertTrue("fragment survives repeated reparses", fragment.isValid());
+    assertTrue(fragment.isValid(), "fragment survives repeated reparses");
   }
 }

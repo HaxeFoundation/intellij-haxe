@@ -22,16 +22,14 @@ import com.intellij.codeInsight.AbstractEnterActionTestCase;
 
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author winmain
  */
+@DisplayName("Editor: enter action")
 public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
-
-    public void setUp() throws Exception {
-        super.setUp();
-    }
 
     @Override
     public void tearDown() throws Exception {
@@ -51,6 +49,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter in abstract")
     public void testEnterInAbstract() throws Throwable {
         doTextTest("hx",
                 """
@@ -65,6 +64,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter in class")
     public void testEnterInClass() throws Throwable {
         doTextTest("hx",
                 """
@@ -79,6 +79,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter in enum")
     public void testEnterInEnum() throws Throwable {
         doTextTest("hx",
                 """
@@ -93,6 +94,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter in extern class")
     public void testEnterInExternClass() throws Throwable {
         doTextTest("hx",
                 """
@@ -107,6 +109,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter in interface")
     public void testEnterInInterface() throws Throwable {
         doTextTest("hx",
                 """
@@ -121,6 +124,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter after documentation start")
     public void testEnterAfterDocumentationStart() throws Throwable {
         doTextTest("hx",
                 """
@@ -140,6 +144,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter after documentation start when closed")
     public void testEnterAfterDocumentationStartWhenClosed() throws Throwable {
         doTextTest("hx",
                 """
@@ -161,6 +166,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     }
 
     @Test
+    @DisplayName("enter after documentation start on line with content")
     public void testEnterAfterDocumentationStartOnLineWithContent() throws Throwable {
         doTextTest("hx",
                 """

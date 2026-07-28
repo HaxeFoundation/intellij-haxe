@@ -1,5 +1,13 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStepHandler;
@@ -20,6 +28,7 @@ import java.util.List;
  * the highlights — and the user, choosing by highlight, stepped into the
  * wrong method.
  */
+@DisplayName("Debugger: hashlink smart step into order")
 public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -44,16 +53,19 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
     return AdapterTargetsSmartStepHandler.callNameElementsInExecutionOrder(getProject(), position);
   }
 
+  @Test
+  @DisplayName("nested calls collect in execution order inner first")
   public void testNestedCallsCollectInExecutionOrderInnerFirst() {
     // b.reset() is the ARGUMENT: it executes first although it is textually last
     List<PsiElement> names = namesOnCaretLine("a.reset(b.reset());");
     assertEquals(2, names.size());
     assertEquals("reset", names.get(0).getText());
     assertEquals("reset", names.get(1).getText());
-    assertTrue("the inner (textually later) call executes first",
-               names.get(0).getTextOffset() > names.get(1).getTextOffset());
+    assertTrue(names.get(0).getTextOffset() > names.get(1).getTextOffset(), "the inner (textually later) call executes first");
   }
 
+  @Test
+  @DisplayName("chained calls collect in execution order left to right")
   public void testChainedCallsCollectInExecutionOrderLeftToRight() {
     List<PsiElement> names = namesOnCaretLine("a.first().second();");
     assertEquals(2, names.size());
@@ -61,6 +73,8 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
     assertEquals("second", names.get(1).getText());
   }
 
+  @Test
+  @DisplayName("same named targets pair with their own occurrence")
   public void testSameNamedTargetsPairWithTheirOwnOccurrence() {
     List<PsiElement> names = namesOnCaretLine("a.reset(b.reset());");
     // the adapter reports execution order: B.reset (the argument) first
@@ -69,12 +83,9 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
     List<TextRange> ranges = AdapterTargetsSmartStepHandler.matchCallRanges(targets, names);
 
     assertEquals(2, ranges.size());
-    assertEquals("B.reset highlights the inner (textually later) call",
-                 names.get(0).getTextRange(), ranges.get(0));
-    assertEquals("A.reset highlights the outer (textually first) call",
-                 names.get(1).getTextRange(), ranges.get(1));
-    assertTrue("the highlights must not be swapped",
-               ranges.get(0).getStartOffset() > ranges.get(1).getStartOffset());
+    assertEquals(names.get(0).getTextRange(), ranges.get(0), "B.reset highlights the inner (textually later) call");
+    assertEquals(names.get(1).getTextRange(), ranges.get(1), "A.reset highlights the outer (textually first) call");
+    assertTrue(ranges.get(0).getStartOffset() > ranges.get(1).getStartOffset(), "the highlights must not be swapped");
   }
 
   /**
@@ -83,6 +94,8 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
    * duplicate callee must pair with its LATER occurrence, not steal the
    * already-executed one at the start of the line.
    */
+  @Test
+  @DisplayName("remaining targets pair with the later occurrence of a duplicate name")
   public void testRemainingTargetsPairWithTheLaterOccurrenceOfADuplicateName() {
     // full line: first, second, first (execution order = source order for a chain)
     List<PsiElement> names = namesOnCaretLine("a.first().second().first();");
@@ -93,11 +106,12 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
     List<TextRange> ranges = AdapterTargetsSmartStepHandler.matchCallRanges(targets, names);
 
     assertEquals(2, ranges.size());
-    assertEquals("second highlights its own call", names.get(1).getTextRange(), ranges.get(0));
-    assertEquals("the remaining first() highlights the LAST occurrence",
-                 names.get(2).getTextRange(), ranges.get(1));
+    assertEquals(names.get(1).getTextRange(), ranges.get(0), "second highlights its own call");
+    assertEquals(names.get(2).getTextRange(), ranges.get(1), "the remaining first() highlights the LAST occurrence");
   }
 
+  @Test
+  @DisplayName("unmatchable target gets no highlight but keeps alignment")
   public void testUnmatchableTargetGetsNoHighlightButKeepsAlignment() {
     List<PsiElement> names = namesOnCaretLine("a.first().second();");
     // an extra target the PSI knows nothing about (e.g. an inlined helper)
@@ -107,10 +121,12 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
 
     assertEquals(3, ranges.size());
     assertEquals(names.get(0).getTextRange(), ranges.get(0));
-    assertNull("no PSI call to highlight for the unknown target", ranges.get(1));
+    assertNull(ranges.get(1), "no PSI call to highlight for the unknown target");
     assertEquals(names.get(1).getTextRange(), ranges.get(2));
   }
 
+  @Test
+  @DisplayName("js debug paren labels match by name")
   public void testJsDebugParenLabelsMatchByName() {
     // js-debug labels its targets "name(...)" (source-map-mapped, with a
     // parameter placeholder) - the paren must not fool the name extraction
@@ -123,6 +139,8 @@ public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCa
     assertEquals(names.get(1).getTextRange(), ranges.get(1));
   }
 
+  @Test
+  @DisplayName("simple callee name handles both dialects")
   public void testSimpleCalleeNameHandlesBothDialects() {
     assertEquals("method",
                  AdapterTargetsSmartStepHandler.simpleCalleeName("pack.Class.method"));

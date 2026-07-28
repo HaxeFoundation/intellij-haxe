@@ -1,12 +1,13 @@
 package com.intellij.plugins.haxe.debugger.hxcppserver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Object labels via the debuggee's own toString(), toggled LIVE through the
@@ -20,9 +21,11 @@ import org.junit.Test;
  * which is exactly the risk the off-default guards; the eval-target unit
  * tests (ValuesTest) cover the recursion path where it IS catchable.
  */
+@DisplayName("HXCPP debugger: to string rendering (integration)")
 public class ToStringRenderingIT {
 
   @Test
+  @DisplayName("labels follow the live toggle")
   public void labelsFollowTheLiveToggle() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
       session.initialize();
@@ -33,20 +36,16 @@ public class ToStringRenderingIT {
 
       // default OFF: class names, even for classes that declare toString
       List<Variable> before = session.variables(session.localsReference(frameId));
-      assertEquals("off: class-name label despite a declared toString",
-                   "Labeled", session.variable(before, "labeled").getValue());
-      assertEquals("off: plain class label", "PlainBox", session.variable(before, "plain").getValue());
+      assertEquals("Labeled", session.variable(before, "labeled").getValue(), "off: class-name label despite a declared toString");
+      assertEquals("PlainBox", session.variable(before, "plain").getValue(), "off: plain class label");
 
       // toggle ON (live, mid-stop): the SAME stop re-lists with new labels
-      assertTrue("toggle on accepted",
-                 session.request(SetToStringRenderingRequest.of(true)).isSuccess());
+      assertTrue(session.request(SetToStringRenderingRequest.of(true)).isSuccess(), "toggle on accepted");
 
       List<Variable> on = session.variables(session.localsReference(frameId));
-      assertEquals("on: the object's own toString", "Labeled#7", session.variable(on, "labeled").getValue());
-      assertEquals("on: no toString declared still means the class name (no code runs)",
-                   "PlainBox", session.variable(on, "plain").getValue());
-      assertEquals("on: a THROWING toString degrades to the class name",
-                   "MoodyLabel", session.variable(on, "moody").getValue());
+      assertEquals("Labeled#7", session.variable(on, "labeled").getValue(), "on: the object's own toString");
+      assertEquals("PlainBox", session.variable(on, "plain").getValue(), "on: no toString declared still means the class name (no code runs)");
+      assertEquals("MoodyLabel", session.variable(on, "moody").getValue(), "on: a THROWING toString degrades to the class name");
 
       // maps switch from the entry count to their own content preview. The
       // preview comes from the map's std toString, whose punctuation varies by
@@ -55,21 +54,21 @@ public class ToStringRenderingIT {
       String mapPreview = session.variable(on, "meta").getValue();
       boolean showsEveryEntry = mapPreview.contains("build") && mapPreview.contains("92")
                                 && mapPreview.contains("name") && mapPreview.contains("7");
-      assertTrue("on: a map renders its entries as a content preview, got: " + mapPreview, showsEveryEntry);
+      assertTrue(showsEveryEntry, "on: a map renders its entries as a content preview, got: " + mapPreview);
 
       // toggle OFF again: back to class names - the flag is truly live
-      assertTrue("toggle off accepted",
-                 session.request(SetToStringRenderingRequest.of(false)).isSuccess());
+      assertTrue(session.request(SetToStringRenderingRequest.of(false)).isSuccess(), "toggle off accepted");
       List<Variable> after = session.variables(session.localsReference(frameId));
-      assertEquals("off again: class-name label", "Labeled", session.variable(after, "labeled").getValue());
+      assertEquals("Labeled", session.variable(after, "labeled").getValue(), "off again: class-name label");
 
       // the throwing toString left the server healthy: run to a clean exit
       session.resume(threadId);
-      assertEquals("clean exit after the toggles", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "clean exit after the toggles");
     }
   }
 
   @Test
+  @DisplayName("maps list their entries")
   public void mapsListTheirEntries() throws Exception {
     // A haxe.ds map's raw fields are its native hash handle ("h = Dynamic"),
     // which is what used to render — entries must list instead, like the
@@ -83,15 +82,15 @@ public class ToStringRenderingIT {
 
       List<Variable> locals = session.variables(session.localsReference(frameId));
       Variable meta = session.variable(locals, "meta");
-      assertEquals("entry-count summary, not the class name", "Map(2)", meta.getValue());
-      assertTrue("a populated map expands", meta.getVariablesReference() > 0);
+      assertEquals("Map(2)", meta.getValue(), "entry-count summary, not the class name");
+      assertTrue(meta.getVariablesReference() > 0, "a populated map expands");
 
       List<Variable> entries = session.variables(meta.getVariablesReference());
       assertEquals("92", session.variable(entries, "\"build\"").getValue());
       assertEquals("7", session.variable(entries, "\"name\"").getValue());
 
       session.resume(threadId);
-      assertEquals("clean exit", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "clean exit");
     }
   }
 }

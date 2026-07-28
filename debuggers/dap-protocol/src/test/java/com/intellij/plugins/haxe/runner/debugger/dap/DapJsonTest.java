@@ -1,30 +1,35 @@
 package com.intellij.plugins.haxe.runner.debugger.dap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("DAP protocol: json")
 public class DapJsonTest {
 
   @Test
+  @DisplayName("encode omits null fields")
   public void encodeOmitsNullFields() {
     InitializeRequest request = new InitializeRequest();
     request.setSeq(1);
 
     String json = DapJson.encode(request);
-    assertFalse("null arguments must be omitted", json.contains("arguments"));
+    assertFalse(json.contains("arguments"), "null arguments must be omitted");
     assertTrue(json.contains("\"command\":\"initialize\""));
     assertTrue(json.contains("\"type\":\"request\""));
   }
 
   @Test
+  @DisplayName("encode includes assigned arguments")
   public void encodeIncludesAssignedArguments() {
     InitializeRequest request = new InitializeRequest();
     request.setSeq(1);
@@ -34,10 +39,11 @@ public class DapJsonTest {
 
     String json = DapJson.encode(request);
     assertTrue(json.contains("\"adapterID\":\"intellij-haxe\""));
-    assertFalse("unset optional argument fields must be omitted", json.contains("clientID"));
+    assertFalse(json.contains("clientID"), "unset optional argument fields must be omitted");
   }
 
   @Test
+  @DisplayName("decode discriminates initialize response")
   public void decodeDiscriminatesInitializeResponse() {
     String json = """
         {
@@ -60,6 +66,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("decode discriminates set breakpoints response")
   public void decodeDiscriminatesSetBreakpointsResponse() {
     String json = """
         {
@@ -88,6 +95,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("failed response decodes as error response regardless of command")
   public void failedResponseDecodesAsErrorResponseRegardlessOfCommand() {
     String json = """
         {
@@ -113,6 +121,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("error response decodes code and variables")
   public void errorResponseDecodesCodeAndVariables() {
     // A stable machine-readable code (Message.id) plus structured details
     // (Message.variables) the client branches on instead of the human text.
@@ -141,6 +150,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("decode discriminates initialized event")
   public void decodeDiscriminatesInitializedEvent() {
     ProtocolMessage message = DapJson.decode("""
         {
@@ -153,6 +163,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("unknown event decodes as generic event")
   public void unknownEventDecodesAsGenericEvent() {
     ProtocolMessage message = DapJson.decode("""
         {
@@ -166,6 +177,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("unknown fields are ignored")
   public void unknownFieldsAreIgnored() {
     ProtocolMessage message = DapJson.decode("""
         {
@@ -178,17 +190,19 @@ public class DapJsonTest {
     assertTrue(message instanceof Request);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
+  @DisplayName("unknown message type is rejected")
   public void unknownMessageTypeIsRejected() {
-    DapJson.decode("""
+    assertThrows(IllegalArgumentException.class, () -> DapJson.decode("""
         {
           "seq": 1,
           "type": "telegram"
         }
-        """);
+        """));
   }
 
   @Test
+  @DisplayName("launch request encodes typed arguments")
   public void launchRequestEncodesTypedArguments() {
     LaunchRequest request = new LaunchRequest();
     request.setSeq(2);
@@ -200,10 +214,11 @@ public class DapJsonTest {
     String json = DapJson.encode(request);
     assertTrue(json.contains("\"program\":\"/project/out/app.hl\""));
     assertTrue(json.contains("\"args\":[\"--flag\"]"));
-    assertFalse("unset cwd must be omitted", json.contains("cwd"));
+    assertFalse(json.contains("cwd"), "unset cwd must be omitted");
   }
 
   @Test
+  @DisplayName("next request encodes thread id")
   public void nextRequestEncodesThreadId() {
     NextRequest request = new NextRequest();
     request.setSeq(4);
@@ -214,10 +229,11 @@ public class DapJsonTest {
     String json = DapJson.encode(request);
     assertTrue(json.contains("\"command\":\"next\""));
     assertTrue(json.contains("\"threadId\":7"));
-    assertFalse("unset granularity omitted", json.contains("granularity"));
+    assertFalse(json.contains("granularity"), "unset granularity omitted");
   }
 
   @Test
+  @DisplayName("decode discriminates step responses")
   public void decodeDiscriminatesStepResponses() {
     ProtocolMessage next = DapJson.decode(
       """
@@ -257,6 +273,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("decode discriminates scopes and variables responses")
   public void decodeDiscriminatesScopesAndVariablesResponses() {
     String scopes = """
         {
@@ -307,6 +324,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("variable decodes icon kind")
   public void variableDecodesIconKind() {
     String vars = """
         {
@@ -343,11 +361,12 @@ public class DapJsonTest {
         """;
     VariablesResponse vm = (VariablesResponse)DapJson.decode(vars);
     assertEquals(VariableKind.ARGUMENT, vm.getBody().getVariables().get(0).getKind());
-    assertEquals("absent kind decodes to UNSPECIFIED", VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(1).getKind());
-    assertEquals("unknown kind decodes to UNSPECIFIED", VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(2).getKind());
+    assertEquals(VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(1).getKind(), "absent kind decodes to UNSPECIFIED");
+    assertEquals(VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(2).getKind(), "unknown kind decodes to UNSPECIFIED");
   }
 
   @Test
+  @DisplayName("decode discriminates stack trace response")
   public void decodeDiscriminatesStackTraceResponse() {
     String json = """
         {
@@ -382,6 +401,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("decode discriminates stopped event")
   public void decodeDiscriminatesStoppedEvent() {
     String json = """
         {
@@ -407,6 +427,7 @@ public class DapJsonTest {
   }
 
   @Test
+  @DisplayName("decode discriminates lifecycle events")
   public void decodeDiscriminatesLifecycleEvents() {
     assertTrue(DapJson.decode("""
         {

@@ -3,11 +3,12 @@ package com.intellij.plugins.haxe.debugger.hxcppserver;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The M6 exception matrix against the scenario fixture: an uncatchable throw
@@ -15,9 +16,11 @@ import static org.junit.Assert.assertTrue;
  * access stops as a critical error EVEN inside try/catch (a runtime property
  * under an attached debugger); disabled filters resume silently.
  */
+@DisplayName("HXCPP debugger: exceptions (integration)")
 public class ExceptionsIT {
 
   @Test
+  @DisplayName("an uncaught throw stops at the throw site")
   public void anUncaughtThrowStopsAtTheThrowSite() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("uncaught")) {
       session.initialize("uncaught", "critical");
@@ -26,11 +29,9 @@ public class ExceptionsIT {
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
       assertEquals("Uncaught exception", stopped.getBody().getDescription());
-      assertTrue("the runtime message names the thrown value",
-                 stopped.getBody().getText().contains("boom-uncaught"));
+      assertTrue(stopped.getBody().getText().contains("boom-uncaught"), "the runtime message names the thrown value");
       int threadId = session.stoppedThread(stopped);
-      assertEquals("stopped AT the throw, before unwinding",
-                   FixtureSession.EX_THROW_LINE, session.topFrame(threadId).getLine());
+      assertEquals(FixtureSession.EX_THROW_LINE, session.topFrame(threadId).getLine(), "stopped AT the throw, before unwinding");
 
       // locals at the throw site are inspectable
       assertEquals("42", session.evaluate("marker", session.topFrame(threadId).getId()));
@@ -40,28 +41,30 @@ public class ExceptionsIT {
       arguments.setThreadId(threadId);
       info.setArguments(arguments);
       ExceptionInfoResponse response = (ExceptionInfoResponse)session.request(info);
-      assertTrue("exceptionInfo", response.isSuccess());
+      assertTrue(response.isSuccess(), "exceptionInfo");
       assertEquals("unhandled", response.getBody().getBreakMode());
       assertTrue(response.getBody().getDescription().contains("boom-uncaught"));
 
       // resuming an uncatchable throw unwinds and terminates normally
       session.resume(threadId);
-      assertNotEquals("the program terminated with the error", 0, session.awaitExit());
+      assertNotEquals(0, session.awaitExit(), "the program terminated with the error");
     }
   }
 
   @Test
+  @DisplayName("a caught throw never stops")
   public void aCaughtThrowNeverStops() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("caught")) {
       session.initialize("uncaught", "critical");
       session.configurationDone();
       assertEquals(0, session.awaitExit());
-      assertTrue("the catch ran", session.outputSnapshot().contains("caught:boom-caught"));
-      assertTrue("the program completed", session.outputSnapshot().contains("ex-end"));
+      assertTrue(session.outputSnapshot().contains("caught:boom-caught"), "the catch ran");
+      assertTrue(session.outputSnapshot().contains("ex-end"), "the program completed");
     }
   }
 
   @Test
+  @DisplayName("a null access stops as a critical error even inside try catch")
   public void aNullAccessStopsAsACriticalErrorEvenInsideTryCatch() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("caught-null")) {
       session.initialize("uncaught", "critical");
@@ -83,6 +86,7 @@ public class ExceptionsIT {
    * text names the concrete class and the message.
    */
   @Test
+  @DisplayName("the thrown filter stops at a caught exception construction")
   public void theThrownFilterStopsAtACaughtExceptionConstruction() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("typedthrow")) {
       session.initialize("uncaught", "critical", "thrown");
@@ -91,7 +95,7 @@ public class ExceptionsIT {
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
       assertEquals("Thrown exception", stopped.getBody().getDescription());
-      assertTrue(stopped.getBody().getText(), stopped.getBody().getText().contains("AppError"));
+      assertTrue(stopped.getBody().getText().contains("AppError"), stopped.getBody().getText());
       assertTrue(stopped.getBody().getText().contains("kaboom"));
 
       // the Exception ctor frames are trimmed: the TOP frame is the throw site
@@ -101,7 +105,7 @@ public class ExceptionsIT {
 
       session.resume(session.stoppedThread(stopped));
       assertEquals(0, session.awaitExit());
-      assertTrue("the catch still ran", session.outputSnapshot().contains("caught-app:kaboom"));
+      assertTrue(session.outputSnapshot().contains("caught-app:kaboom"), "the catch still ran");
     }
   }
 
@@ -112,6 +116,7 @@ public class ExceptionsIT {
    * filter is OFF — only the typed filter can cause this stop.
    */
   @Test
+  @DisplayName("a typed filter stops its class even with an inherited constructor")
   public void aTypedFilterStopsItsClassEvenWithAnInheritedConstructor() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("typedthrow")) {
       session.initialize("uncaught", "critical");
@@ -120,7 +125,7 @@ public class ExceptionsIT {
 
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
-      assertTrue(stopped.getBody().getText(), stopped.getBody().getText().contains("AppError: kaboom"));
+      assertTrue(stopped.getBody().getText().contains("AppError: kaboom"), stopped.getBody().getText());
 
       session.resume(session.stoppedThread(stopped));
       assertEquals(0, session.awaitExit());
@@ -128,13 +133,14 @@ public class ExceptionsIT {
   }
 
   @Test
+  @DisplayName("a typed filter for another class does not stop")
   public void aTypedFilterForAnotherClassDoesNotStop() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("typedthrow")) {
       session.initialize("uncaught", "critical");
       session.setExceptionFilters(java.util.List.of("uncaught", "critical"), java.util.List.of("SomeOtherError"));
       session.configurationDone();
-      assertEquals("the non-matching construction was resumed silently", 0, session.awaitExit());
-      assertTrue("the catch ran", session.outputSnapshot().contains("caught-app:kaboom"));
+      assertEquals(0, session.awaitExit(), "the non-matching construction was resumed silently");
+      assertTrue(session.outputSnapshot().contains("caught-app:kaboom"), "the catch ran");
     }
   }
 
@@ -145,6 +151,7 @@ public class ExceptionsIT {
    * freely), then setExceptionBreakpoints turns it on and the next throw stops.
    */
   @Test
+  @DisplayName("enabling the thrown filter mid session takes effect")
   public void enablingTheThrownFilterMidSessionTakesEffect() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("throwloop")) {
       session.initialize("uncaught", "critical"); // thrown OFF
@@ -154,7 +161,7 @@ public class ExceptionsIT {
       session.setExceptionFilters(java.util.List.of("uncaught", "critical", "thrown"), java.util.List.of());
       StoppedEvent stopped = session.awaitStopped();
       assertEquals("exception", stopped.getBody().getReason());
-      assertTrue(stopped.getBody().getText(), stopped.getBody().getText().contains("AppError"));
+      assertTrue(stopped.getBody().getText().contains("AppError"), stopped.getBody().getText());
       session.resume(session.stoppedThread(stopped));
     }
   }
@@ -166,6 +173,7 @@ public class ExceptionsIT {
    * see README gotcha 15 — but a line breakpoint on such a line always works.)
    */
   @Test
+  @DisplayName("line breakpoints inside try and catch fire")
   public void lineBreakpointsInsideTryAndCatchFire() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("caught")) {
       session.initialize("uncaught", "critical");
@@ -182,18 +190,19 @@ public class ExceptionsIT {
       assertEquals("breakpoint", insideCatch.getBody().getReason());
       assertEquals(28, session.topFrame(session.stoppedThread(insideCatch)).getLine());
       session.resume(session.stoppedThread(insideCatch));
-      assertEquals("program completes normally", 0, session.awaitExit());
+      assertEquals(0, session.awaitExit(), "program completes normally");
     }
   }
 
   @Test
+  @DisplayName("disabled filters resume an uncaught throw silently")
   public void disabledFiltersResumeAnUncaughtThrowSilently() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("uncaught")) {
       session.initialize(/* all filters off */);
       session.configurationDone();
       // no stop: the program unwinds and dies on its own
       assertNotEquals(0, session.awaitExit());
-      assertTrue("it reached the throw", session.outputSnapshot().contains("ex-start:uncaught"));
+      assertTrue(session.outputSnapshot().contains("ex-start:uncaught"), "it reached the throw");
     }
   }
 }

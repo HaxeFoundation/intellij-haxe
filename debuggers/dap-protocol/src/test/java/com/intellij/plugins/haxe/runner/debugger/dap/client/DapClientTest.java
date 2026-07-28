@@ -1,8 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.client;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
@@ -13,9 +13,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives {@link DapClient} against a fake adapter on a loopback socket. The
@@ -23,6 +24,7 @@ import org.junit.Test;
  * never arrive must fail promptly with an honest "connection" message — not
  * sleep out its full timeout and then claim the adapter was merely slow.
  */
+@DisplayName("DAP protocol: client")
 public class DapClientTest {
   private static final long TIMEOUT = 5_000;
 
@@ -31,7 +33,7 @@ public class DapClientTest {
   private Socket serverSide;
   private InputStream serverIn;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     listener = new ServerSocket(0);
     Socket clientSocket = new Socket("127.0.0.1", listener.getLocalPort());
@@ -40,7 +42,7 @@ public class DapClientTest {
     client = new DapClient(new DapConnection(clientSocket));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     client.close();
     serverSide.close();
@@ -48,6 +50,7 @@ public class DapClientTest {
   }
 
   @Test
+  @DisplayName("in flight request fails fast when the connection dies")
   public void inFlightRequestFailsFastWhenTheConnectionDies() throws Exception {
     // the timeout is deliberately huge: the failure must come from the
     // connection death, not from waiting out the timer
@@ -61,32 +64,32 @@ public class DapClientTest {
       }
     });
     caller.start();
-    assertNotNull("the request reached the wire", DapFraming.readPayload(serverIn));
+    assertNotNull(DapFraming.readPayload(serverIn), "the request reached the wire");
     serverSide.close(); // the adapter/debuggee dies mid-request
 
     Exception e = failure.get(2, TimeUnit.SECONDS); // must beat the 60s timer by far
-    assertNotNull("the in-flight request must fail, not report success", e);
-    assertTrue("an honest message, not a timeout: " + e.getMessage(),
-               e.getMessage().contains("connection"));
+    assertNotNull(e, "the in-flight request must fail, not report success");
+    assertTrue(e.getMessage().contains("connection"), "an honest message, not a timeout: " + e.getMessage());
     caller.join(TIMEOUT);
   }
 
   @Test
+  @DisplayName("request after connection death fails immediately")
   public void requestAfterConnectionDeathFailsImmediately() throws Exception {
     serverSide.close();
     long deadline = System.currentTimeMillis() + TIMEOUT;
     while (!client.isConnectionFinished() && System.currentTimeMillis() < deadline) {
       Thread.sleep(10);
     }
-    assertTrue("reader noticed the death", client.isConnectionFinished());
+    assertTrue(client.isConnectionFinished(), "reader noticed the death");
 
     long start = System.currentTimeMillis();
     try {
       client.sendRequest(new ThreadsRequest(), 60_000);
       fail("expected IOException");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("connection"));
+      assertTrue(e.getMessage().contains("connection"), e.getMessage());
     }
-    assertTrue("failed by the flag, not the timer", System.currentTimeMillis() - start < 5_000);
+    assertTrue(System.currentTimeMillis() - start < 5_000, "failed by the flag, not the timer");
   }
 }

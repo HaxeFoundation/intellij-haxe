@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.ide;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInspection.InspectionToolProvider;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
@@ -11,7 +13,8 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 
+@DisplayName("Annotation: allow access annotator")
 public class HaxeAllowAccessAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     @Override
     public void setUp() throws Exception {
@@ -74,29 +78,35 @@ public class HaxeAllowAccessAnnotatorTest extends HaxeCodeInsightFixtureTestCase
 
 
     @Test
+    @DisplayName("static access")
     public void testStaticAccess() throws Exception {
         doTest();
     }
 
     @Test
+    @DisplayName("meta access")
     public void testMetaAccess() throws Exception {
         doTest("accesscontrol/AccessMetaTestClass.hx");
     }
 
 
     @Test
+    @DisplayName("test method allow on property")
     public void testTestMethodAllowOnProperty() throws Exception {
         doTest("accesscontrol/PrivateStaticMembers.hx");
     }
     @Test
+    @DisplayName("test class allow on field")
     public void testTestClassAllowOnField() throws Exception {
         doTest("accesscontrol/PrivateStaticMembers.hx");
     }
     @Test
+    @DisplayName("test class allow on class")
     public void testTestClassAllowOnClass() throws Exception {
         doTest("accesscontrol/PrivateStaticMembers.hx");
     }
     @Test
+    @DisplayName("test module level")
     public void testTestModuleLevel() throws Exception {
         doTest("accesscontrol/PrivateStaticMembers.hx");
     }

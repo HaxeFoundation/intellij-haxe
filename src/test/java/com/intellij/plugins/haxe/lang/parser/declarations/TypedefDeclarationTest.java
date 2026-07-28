@@ -17,27 +17,32 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: typedef declaration")
 public class TypedefDeclarationTest extends DeclarationTestBase {
   public TypedefDeclarationTest() {
     super("typedef");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("points")
   public void testPoints() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("macro type declaration")
   public void testMacroTypeDeclaration() throws Throwable {
     doTest(true);
   }

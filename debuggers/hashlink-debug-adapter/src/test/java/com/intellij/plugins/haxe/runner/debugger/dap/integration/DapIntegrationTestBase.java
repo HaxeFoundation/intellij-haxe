@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
@@ -29,9 +29,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Base class for the integration tests that drive the real adapter bytecode with
@@ -133,16 +133,14 @@ public abstract class DapIntegrationTestBase {
     }
   }
 
-  @Before
+  @BeforeEach
   public void startAdapter() throws IOException {
     String adapter = System.getProperty("dap.adapter.hl", "");
-    Assume.assumeTrue("adapter bytecode not built - skipping",
-                      !adapter.isEmpty() && Files.isRegularFile(Path.of(adapter)));
+    Assumptions.assumeTrue(!adapter.isEmpty() && Files.isRegularFile(Path.of(adapter)), "adapter bytecode not built - skipping");
 
     if (needsFixture()) {
       String fixtureProperty = System.getProperty("dap.fixture.hl", "");
-      Assume.assumeTrue("debuggee fixture not built - skipping",
-                        !fixtureProperty.isEmpty() && Files.isRegularFile(Path.of(fixtureProperty)));
+      Assumptions.assumeTrue(!fixtureProperty.isEmpty() && Files.isRegularFile(Path.of(fixtureProperty)), "debuggee fixture not built - skipping");
       fixtureHl = Path.of(fixtureProperty);
       fixtureSrcDir = Path.of(System.getProperty("dap.fixture.src.dir", ""));
       String threadsProperty = System.getProperty("dap.fixture.threads.hl", "");
@@ -171,9 +169,8 @@ public abstract class DapIntegrationTestBase {
       }
     }
     Optional<Path> hl = HlExecutableResolver.resolve();
-    Assume.assumeTrue("HashLink executable not found (set -PhashlinkBin / -Dhashlink.executable, "
-                      + "HASHLINK_BIN / HASHLINK / HASHLINKPATH, or put hl on PATH) - skipping",
-                      hl.isPresent());
+    Assumptions.assumeTrue(hl.isPresent(), "HashLink executable not found (set -PhashlinkBin / -Dhashlink.executable, "
+                      + "HASHLINK_BIN / HASHLINK / HASHLINKPATH, or put hl on PATH) - skipping");
     hlExecutable = hl.get().toString();
 
     ProcessBuilder builder = new ProcessBuilder(hlExecutable, adapter, "--port", "0")
@@ -197,7 +194,7 @@ public abstract class DapIntegrationTestBase {
     return Map.of();
   }
 
-  @After
+  @AfterEach
   public void stopAdapter() throws Exception {
     if (client != null) {
       try {
@@ -242,9 +239,8 @@ public abstract class DapIntegrationTestBase {
   protected static void assumeFixtureHaxe43Plus() {
     // "known limitation:" marks a DELIBERATE version/OS constraint; the matrix
     // report groups these apart from ordinary missing-prerequisite skips
-    Assume.assumeTrue("known limitation: not supported by the current debugger adapter below haxe 4.3 "
-                      + "(pre-4.3 throw wrapping / catch-handler debug info) - skipping",
-                      fixtureHaxeAtLeast(4, 3));
+    Assumptions.assumeTrue(fixtureHaxeAtLeast(4, 3), "known limitation: not supported by the current debugger adapter below haxe 4.3 "
+                      + "(pre-4.3 throw wrapping / catch-handler debug info) - skipping");
   }
 
   // True when the PATH haxe reports at least major.minor; also true when the
@@ -357,13 +353,13 @@ public abstract class DapIntegrationTestBase {
     args.setAdapterID("intellij-haxe-test");
     args.setClientID("junit");
     request.setArguments(args);
-    assertTrue("initialize succeeds", request(request).isSuccess());
-    assertNotNull("initialized event", client.pollEvent(TIMEOUT));
+    assertTrue(request(request).isSuccess(), "initialize succeeds");
+    assertNotNull(client.pollEvent(TIMEOUT), "initialized event");
   }
 
   /** configurationDone + assert success: the step that lets the debuggee run. */
   protected void configurationDone() throws Exception {
-    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess(), "configurationDone");
   }
 
   /** An evaluate request in {@code frameId}; the caller decides what failure means. */
@@ -381,7 +377,7 @@ public abstract class DapIntegrationTestBase {
   /** {@link #evaluateRaw} that must succeed. */
   protected EvaluateResponse evaluate(int frameId, String expression) throws Exception {
     Response response = evaluateRaw(frameId, expression);
-    assertTrue("evaluate '" + expression + "' succeeds: " + response.getMessage(), response.isSuccess());
+    assertTrue(response.isSuccess(), "evaluate '" + expression + "' succeeds: " + response.getMessage());
     return (EvaluateResponse)response;
   }
 
@@ -450,8 +446,8 @@ public abstract class DapIntegrationTestBase {
   /** initialize + launch the fixture + one breakpoint + configurationDone + first stop. */
   protected StoppedEvent runToBreakpoint(String fixtureFile, int line) throws Exception {
     initialize();
-    assertTrue("launch succeeds", launch().isSuccess());
-    assertTrue("setBreakpoints succeeds", setBreakpoint(fixtureFile, line).isSuccess());
+    assertTrue(launch().isSuccess(), "launch succeeds");
+    assertTrue(setBreakpoint(fixtureFile, line).isSuccess(), "setBreakpoints succeeds");
     configurationDone();
     return awaitStopped();
   }
@@ -462,7 +458,7 @@ public abstract class DapIntegrationTestBase {
   protected StoppedEvent awaitStopped() throws Exception {
     while (true) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected a stopped event", event);
+      assertNotNull(event, "expected a stopped event");
       if (event instanceof StoppedEvent stopped) {
         lastThreadId = stopped.getBody().getThreadId();
         return stopped;
@@ -477,7 +473,7 @@ public abstract class DapIntegrationTestBase {
 
   /** continue on the last stopped thread, then wait for the next stop. */
   protected StoppedEvent continueToNextStop() throws Exception {
-    assertTrue("continue succeeds", request(continueRequest(lastThreadId)).isSuccess());
+    assertTrue(request(continueRequest(lastThreadId)).isSuccess(), "continue succeeds");
     return awaitStopped();
   }
 
@@ -587,7 +583,7 @@ public abstract class DapIntegrationTestBase {
 
   protected StackTraceResponse stackTrace(int threadId) throws Exception {
     StackTraceResponse response = (StackTraceResponse)request(stackTraceRequest(threadId));
-    assertTrue("has a top frame", response.getBody().getStackFrames().size() >= 1);
+    assertTrue(response.getBody().getStackFrames().size() >= 1, "has a top frame");
     return response;
   }
 

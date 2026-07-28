@@ -19,12 +19,14 @@ package com.intellij.plugins.haxe;
 
 import com.intellij.codeInsight.daemon.impl.HighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -34,30 +36,43 @@ import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.impl.PsiManagerEx;
-import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
+import com.intellij.testFramework.junit5.RunInEdt;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 /**
- * Created by fedorkorotkov.
+ * Jupiter code-insight fixture base. Lifecycle stays template-method shaped:
+ * jupiter drives the final run* hooks, which call the overridable
+ * {@link #setUp()}/{@link #tearDown()} so subclasses keep their
+ * {@code super.setUp()} ordering (several set {@code myHaxeToolkit} first).
+ * All methods run on the EDT, matching the JUnit3-era runBare dispatch.
  */
-abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
+@RunInEdt(writeIntent = true)
+abstract public class HaxeCodeInsightFixtureTestCase {
   private final IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
 
   protected CodeInsightTestFixture myFixture;
   private ModuleFixtureBuilder moduleFixtureBuilder;
+  private Disposable testRootDisposable;
+  private String testName;
+  private final List<Throwable> suppressedExceptions = new ArrayList<>();
 
   protected String myHaxeToolkit = null;
 
-  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   protected HaxeCodeInsightFixtureTestCase() {
-    super();
     Logger.setUnitTestMode();
     Logger.setFactory(category -> {
       DefaultLogger logger = new DefaultLogger(category);
@@ -67,10 +82,30 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     //HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  final void runSetUp(TestInfo info) throws Exception {
+    testName = info.getTestMethod().orElseThrow().getName();
+    testRootDisposable = Disposer.newDisposable(getClass().getName());
+    setUp();
+  }
 
+  @AfterEach
+  final void runTearDown() throws Exception {
+    try {
+      tearDown();
+    }
+    finally {
+      Disposer.dispose(testRootDisposable);
+    }
+    if (!suppressedExceptions.isEmpty()) {
+      Exception failure = new Exception("suppressed exception(s) during tearDown");
+      suppressedExceptions.forEach(failure::addSuppressed);
+      suppressedExceptions.clear();
+      throw failure;
+    }
+  }
+
+  protected void setUp() throws Exception {
     testFixtureFactory.registerFixtureBuilder(MyHaxeModuleFixtureBuilderImpl.class, MyHaxeModuleFixtureBuilderImpl.class);
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = testFixtureFactory.createFixtureBuilder(getName());
     myFixture = testFixtureFactory.createCodeInsightFixture(projectBuilder.getFixture());
@@ -117,7 +152,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     return null != myHaxeToolkit;
   }
 
-  @Override
   protected void tearDown() throws Exception {
     try {
       HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
@@ -128,10 +162,25 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     }
     finally {
       myFixture = null;
-      super.tearDown();
     }
   }
 
+  /** The JUnit3-style test name ({@code testFoo}); still drives fixture-file lookup. */
+  public String getName() {
+    return testName;
+  }
+
+  public String getTestName(boolean lowercaseFirstLetter) {
+    return PlatformTestUtil.getTestName(testName, lowercaseFirstLetter);
+  }
+
+  public Disposable getTestRootDisposable() {
+    return testRootDisposable;
+  }
+
+  protected void addSuppressedException(@NotNull Throwable e) {
+    suppressedExceptions.add(e);
+  }
 
   /**
    * Return relative path to the test data. Path is relative to the
@@ -148,9 +197,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
    * @return absolute path to the test data.
    */
   @NonNls
-  //protected String getTestDataPath() {
-  //  return PathManager.getHomePath().replace(File.separatorChar, '/') + getBasePath();
-  //}
   public String getTestDataPath() {
     return HaxeTestUtils.BASE_TEST_DATA_PATH + getBasePath();
   }

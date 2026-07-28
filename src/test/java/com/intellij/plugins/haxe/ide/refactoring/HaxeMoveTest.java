@@ -18,25 +18,28 @@
 package com.intellij.plugins.haxe.ide.refactoring;
 
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.HaxeMultiFileTestBase;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.file.PsiDirectoryImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
-import com.intellij.refactoring.MultiFileTestCase;
 import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesProcessor;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +47,8 @@ import java.util.Collection;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeMoveTest extends MultiFileTestCase {
+@DisplayName("Refactoring: move")
+public class HaxeMoveTest extends HaxeMultiFileTestBase {
 
   @Override
   protected void tearDown() throws Exception {
@@ -53,18 +57,8 @@ public class HaxeMoveTest extends MultiFileTestCase {
   }
 
   @Override
-  protected String getTestDataPath() {
-    return HaxeTestUtils.BASE_TEST_DATA_PATH;
-  }
-
-  @Override
   protected String getTestRoot() {
     return "/move/";
-  }
-
-  @Override
-  protected ModuleType getModuleType() {
-    return HaxeModuleType.getInstance();
   }
 
   //Both names are relative to root directory
@@ -80,13 +74,13 @@ public class HaxeMoveTest extends MultiFileTestCase {
         Collection<PsiElement> files = new ArrayList<PsiElement>();
         for (String s : toMove) {
           final VirtualFile child = VfsUtil.findRelativeFile(s, rootDir);
-          assertNotNull("Neither class nor file " + s + " not found", child);
+          assertNotNull(child, "Neither class nor file " + s + " not found");
           PsiElement file = myPsiManager.findFile(child);
           if (file == null) file = JavaPsiFacade.getInstance(myProject).findPackage(s);
           files.add(file);
         }
         final VirtualFile child1 = VfsUtil.findRelativeFile(targetDirName, rootDir);
-        assertNotNull("Target dir " + targetDirName + " not found", child1);
+        assertNotNull(child1, "Target dir " + targetDirName + " not found");
         final PsiDirectory targetDirectory = myPsiManager.findDirectory(child1);
         assertNotNull(targetDirectory);
 
@@ -111,37 +105,41 @@ public class HaxeMoveTest extends MultiFileTestCase {
   }
 
   @Test
+  @DisplayName("move file 1 - file into a package")
   public void testMoveFile1() throws Exception {
     doTest("util/ArrayUtils.hx", "bar");
   }
 
   @Test
+  @DisplayName("move file 2 - file to source root")
   public void testMoveFile2() throws Exception {
     doTest("util/ArrayUtils.hx", "");
   }
 
   @Test
+  @DisplayName("move package")
   public void testMovePackage() throws Exception {
     doTest("util", "foo");
   }
 
   @Test
+  @DisplayName("move class")
   public void testMoveClass() throws Exception {
     final String testHx = "pack1/Moved.hx";
     final String targetDirName = "pack2";
     doTest((rootDir, rootAfter) -> {
       final VirtualFile src = VfsUtil.findRelativeFile(testHx, rootDir);
-      assertNotNull("Class pack1.Moved not found", src);
+      assertNotNull(src, "Class pack1.Moved not found");
 
 
       PsiElement file = myPsiManager.findFile(src);
-      assertNotNull("Psi for " + testHx + " not found", file);
+      assertNotNull(file, "Psi for " + testHx + " not found");
       HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(file, HaxeModule.class);
       PsiElement cls = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClassDeclaration.class);
 
       PackageWrapper pack = new PackageWrapper(myPsiManager, targetDirName);
       VirtualFile targetDir = VfsUtil.findRelativeFile(targetDirName, rootDir);
-      PsiDirectoryImpl dir = new PsiDirectoryImpl(myPsiManager, targetDir);
+      PsiDirectoryImpl dir = new PsiDirectoryImpl((PsiManagerImpl)myPsiManager, targetDir);
 
       ArrayList<PsiElement> list = new ArrayList<>();
       list.add(cls);

@@ -17,17 +17,20 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: continue")
 public class ContinueTest extends StatementTestBase {
   public ContinueTest() {
     super("continue");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }

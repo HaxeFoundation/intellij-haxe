@@ -1,10 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
@@ -21,15 +21,17 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives {@link HxcppDebugAdapter} end to end: a real {@link DapClient} on
  * the DAP side (loopback socket pair, exactly as the plugin will use it) and
  * a {@link FakeHxcppServer} playing the debuggee on the jsonrpc side.
  */
+@DisplayName("HXCPP debugger (vshaxe): debug adapter")
 public class HxcppDebugAdapterTest {
   private static final long TIMEOUT = 5_000;
 
@@ -38,7 +40,7 @@ public class HxcppDebugAdapterTest {
   private FakeHxcppServer server;
   private ServerSocket dapListener;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     adapter = new HxcppDebugAdapter("127.0.0.1", 0, TIMEOUT);
     dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
@@ -49,7 +51,7 @@ public class HxcppDebugAdapterTest {
     server = new FakeHxcppServer(adapter.getDebuggeePort());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     dapClient.close();
     server.close();
@@ -58,6 +60,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("initialize reports capabilities and emits initialized")
   public void initializeReportsCapabilitiesAndEmitsInitialized() throws Exception {
     Response response = dapClient.sendRequest(new InitializeRequest(), TIMEOUT);
     assertTrue(response.isSuccess());
@@ -69,11 +72,13 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("launch succeeds once debuggee is connected")
   public void launchSucceedsOnceDebuggeeIsConnected() throws Exception {
     assertTrue(dapClient.sendRequest(new LaunchRequest(), TIMEOUT).isSuccess());
   }
 
   @Test
+  @DisplayName("launch fails clearly without debuggee")
   public void launchFailsClearlyWithoutDebuggee() throws Exception {
     // separate adapter nobody connects to, with a short accept timeout
     try (HxcppDebugAdapter lonely = new HxcppDebugAdapter("127.0.0.1", 0, 300)) {
@@ -91,6 +96,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("set breakpoints translates and reports verified")
   public void setBreakpointsTranslatesAndReportsVerified() throws Exception {
     server.handle("setBreakpoints", params -> {
       assertEquals("C:\\project\\src\\Main.hx", params.path("file").asString());
@@ -130,6 +136,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("forward slash client paths become native separators")
   public void forwardSlashClientPathsBecomeNativeSeparators() throws Exception {
     // the server matches breakpoint files by EXACT string against the
     // compiler-recorded paths; IDE paths use forward slashes on Windows
@@ -156,6 +163,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("configuration done releases the held debuggee")
   public void configurationDoneReleasesTheHeldDebuggee() throws Exception {
     assertTrue(dapClient.sendRequest(new ConfigurationDoneRequest(), TIMEOUT).isSuccess());
     List<tools.jackson.databind.JsonNode> continues = server.requests("continue");
@@ -164,6 +172,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("breakpoint stop becomes stopped event")
   public void breakpointStopBecomesStoppedEvent() throws Exception {
     server.notify("breakpointStop", """
         {"threadId": 2}
@@ -175,6 +184,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("exception stop maps to thread zero with description")
   public void exceptionStopMapsToThreadZeroWithDescription() throws Exception {
     server.notify("exceptionStop", """
         {"text": "Null Object Reference"}
@@ -186,6 +196,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("thread lifecycle notifications become thread events")
   public void threadLifecycleNotificationsBecomeThreadEvents() throws Exception {
     server.notify("threadStart", """
         {"threadId": 3}
@@ -202,6 +213,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("threads translate")
   public void threadsTranslate() throws Exception {
     server.handle("threads", params -> """
         [
@@ -217,6 +229,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("stack trace maps source and drops artificial frames")
   public void stackTraceMapsSourceAndDropsArtificialFrames() throws Exception {
     server.handle("stackTrace", params -> {
       assertEquals(2, params.path("threadId").asInt());
@@ -241,6 +254,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("variables paths survive into set variable")
   public void variablesPathsSurviveIntoSetVariable() throws Exception {
     server.handle("getScopes", params -> """
         [{"id": 100, "name": "Locals"}]
@@ -301,6 +315,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("object values drop the doubled class name prefix")
   public void objectValuesDropTheDoubledClassNamePrefix() throws Exception {
     // The server prints a class instance as "ShortName, Std.string(obj)" and
     // Std.string without a custom toString is the class name AGAIN — raw
@@ -321,17 +336,14 @@ public class HxcppDebugAdapterTest {
     request.setArguments(arguments);
     VariablesResponse response = (VariablesResponse)dapClient.sendRequest(request, TIMEOUT);
 
-    assertEquals("no toString: the class name once, not doubled",
-                 "ClassB", response.getBody().getVariables().get(0).getValue());
-    assertEquals("custom toString: its text (the type is already shown separately)",
-                 "Widget#3", response.getBody().getVariables().get(1).getValue());
-    assertEquals("primitives pass through untouched",
-                 "7", response.getBody().getVariables().get(2).getValue());
-    assertEquals("maps pass through untouched (no short-name prefix)",
-                 "{a => 1}", response.getBody().getVariables().get(3).getValue());
+    assertEquals("ClassB", response.getBody().getVariables().get(0).getValue(), "no toString: the class name once, not doubled");
+    assertEquals("Widget#3", response.getBody().getVariables().get(1).getValue(), "custom toString: its text (the type is already shown separately)");
+    assertEquals("7", response.getBody().getVariables().get(2).getValue(), "primitives pass through untouched");
+    assertEquals("{a => 1}", response.getBody().getVariables().get(3).getValue(), "maps pass through untouched (no short-name prefix)");
   }
 
   @Test
+  @DisplayName("evaluate result drops the doubled class name prefix")
   public void evaluateResultDropsTheDoubledClassNamePrefix() throws Exception {
     server.handle("evaluate", params -> """
         {"name": "b", "type": "ClassB", "value": "ClassB, ClassB", "variablesReference": 7}
@@ -348,6 +360,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("numeric child names become index expressions")
   public void numericChildNamesBecomeIndexExpressions() throws Exception {
     server.handle("getScopes", params -> """
         [{"id": 100, "name": "Locals"}]
@@ -390,6 +403,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("stale reference is refused after resume")
   public void staleReferenceIsRefusedAfterResume() throws Exception {
     server.handle("getScopes", params -> """
         [{"id": 100, "name": "Locals"}]
@@ -417,6 +431,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("evaluate translates and its result is settable")
   public void evaluateTranslatesAndItsResultIsSettable() throws Exception {
     server.handle("evaluate", params -> switch (params.path("expr").asString()) {
       case "cfg" -> {
@@ -457,6 +472,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("evaluate assignment routes to set variable and verifies")
   public void evaluateAssignmentRoutesToSetVariableAndVerifies() throws Exception {
     server.handle("setVariable", params -> {
       assertEquals("n", params.path("expr").asString());
@@ -487,6 +503,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("evaluate assignment with expression value evaluates the right side first")
   public void evaluateAssignmentWithExpressionValueEvaluatesTheRightSideFirst() throws Exception {
     server.handle("evaluate", params -> switch (params.path("expr").asString()) {
       case "m * 2" -> """
@@ -517,6 +534,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("silently ignored write becomes an honest error")
   public void silentlyIgnoredWriteBecomesAnHonestError() throws Exception {
     // the real server reports success even when the variable was not found
     // in the top frame; the read-back must expose the unchanged value
@@ -538,6 +556,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("comparisons are not assignments")
   public void comparisonsAreNotAssignments() throws Exception {
     server.handle("evaluate", params -> {
       assertEquals("n == 100", params.path("expr").asString());
@@ -555,6 +574,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("top level assignment detection")
   public void topLevelAssignmentDetection() {
     assertEquals(2, HxcppDebugAdapter.topLevelAssignment("n = 100"));
     assertEquals(9, HxcppDebugAdapter.topLevelAssignment("arr[i+1] = x"));
@@ -568,6 +588,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("set variable verifies against the references frame")
   public void setVariableVerifiesAgainstTheReferencesFrame() throws Exception {
     server.handle("getScopes", params -> """
         [{"id": 100, "name": "Locals"}]
@@ -601,6 +622,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("stepping requires the stopped thread")
   public void steppingRequiresTheStoppedThread() throws Exception {
     NextArguments arguments = new NextArguments();
     arguments.setThreadId(2);
@@ -610,7 +632,7 @@ public class HxcppDebugAdapterTest {
     // not stopped at all
     Response notStopped = dapClient.sendRequest(request, TIMEOUT);
     assertFalse(notStopped.isSuccess());
-    assertTrue(notStopped.getMessage(), notStopped.getMessage().contains("not stopped"));
+    assertTrue(notStopped.getMessage().contains("not stopped"), notStopped.getMessage());
 
     stopAtBreakpoint(2);
 
@@ -621,7 +643,7 @@ public class HxcppDebugAdapterTest {
     wrongRequest.setArguments(wrongThread);
     Response wrong = dapClient.sendRequest(wrongRequest, TIMEOUT);
     assertFalse(wrong.isSuccess());
-    assertTrue(wrong.getMessage(), wrong.getMessage().contains("stopped thread"));
+    assertTrue(wrong.getMessage().contains("stopped thread"), wrong.getMessage());
 
     // right thread reaches the server
     NextRequest okRequest = new NextRequest();
@@ -633,12 +655,14 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("pause translates")
   public void pauseTranslates() throws Exception {
     assertTrue(dapClient.sendRequest(new PauseRequest(), TIMEOUT).isSuccess());
     assertEquals(1, server.requests("pause").size());
   }
 
   @Test
+  @DisplayName("server error becomes dap error response")
   public void serverErrorBecomesDapErrorResponse() throws Exception {
     server.handle("threads", params -> {
       throw new RuntimeException("boom");
@@ -648,6 +672,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("request loop survives a failed request")
   public void requestLoopSurvivesAFailedRequest() throws Exception {
     server.handle("threads", params -> {
       throw new RuntimeException("boom");
@@ -661,6 +686,7 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("debuggee disconnect emits terminated")
   public void debuggeeDisconnectEmitsTerminated() throws Exception {
     // make sure the pump is attached before killing the connection
     assertTrue(dapClient.sendRequest(new LaunchRequest(), TIMEOUT).isSuccess());
@@ -669,12 +695,14 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
+  @DisplayName("disconnect responds")
   public void disconnectResponds() throws Exception {
     Response response = dapClient.sendRequest(new DisconnectRequest(), TIMEOUT);
     assertTrue(response.isSuccess());
   }
 
   @Test
+  @DisplayName("unknown event names are ignored without killing the pump")
   public void unknownEventNamesAreIgnoredWithoutKillingThePump() throws Exception {
     server.notify("someFutureThing", "{}");
     server.notify("breakpointStop", """
@@ -705,7 +733,7 @@ public class HxcppDebugAdapterTest {
 
   /** The request failed, and its message names the cause. */
   private static void assertFailedWith(Response response, String expected) {
-    assertFalse("expected failure, got success", response.isSuccess());
-    assertTrue(response.getMessage(), response.getMessage().contains(expected));
+    assertFalse(response.isSuccess(), "expected failure, got success");
+    assertTrue(response.getMessage().contains(expected), response.getMessage());
   }
 }

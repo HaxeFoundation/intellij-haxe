@@ -1,9 +1,9 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
@@ -15,8 +15,9 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * The full DAP lifecycle against the real hxcpp-debug-server, driving the
@@ -25,13 +26,15 @@ import org.junit.Test;
  * The whole lifecycle is one test: an hxcpp session is expensive to start
  * and every stage depends on the previous one anyway.
  */
+@DisplayName("HXCPP debugger (vshaxe): launch (integration)")
 public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     launchFixture("hxcpp.fixture.exe", "Main.hx");
   }
 
   @Test
+  @DisplayName("full debug lifecycle against the real server")
   public void fullDebugLifecycleAgainstTheRealServer() throws Exception {
     initializeAndLaunch();
 
@@ -52,8 +55,7 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
 
     List<StackFrame> frames = stop.frames();
     StackFrame top = stop.top();
-    assertTrue("top frame is '" + top.getName() + "', expected accumulate",
-               top.getName().contains("accumulate"));
+    assertTrue(top.getName().contains("accumulate"), "top frame is '" + top.getName() + "', expected accumulate");
     assertNotNull(top.getSource());
     assertTrue(top.getSource().getPath().endsWith("Main.hx"));
 
@@ -63,7 +65,7 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     ScopesRequest scopesRequest = new ScopesRequest();
     scopesRequest.setArguments(scopesArguments);
     ScopesResponse scopes = require(scopesRequest);
-    assertFalse("no scopes", scopes.getBody().getScopes().isEmpty());
+    assertFalse(scopes.getBody().getScopes().isEmpty(), "no scopes");
 
     Variable doubled = null;
     for (Scope scope : scopes.getBody().getScopes()) {
@@ -78,7 +80,7 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
         }
       }
     }
-    assertNotNull("local 'doubled' not found in any scope", doubled);
+    assertNotNull(doubled, "local 'doubled' not found in any scope");
     // first iteration: v = items[0] = 0, doubled = 0
     assertEquals("0", doubled.getValue().trim());
 
@@ -90,15 +92,14 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     // read-back here and by the program's own trace output at the end
     // (doubled = 55 in iteration 1 makes the final total 115, not 60)
     require(assignmentRequest("doubled = 55", top.getId()));
-    assertEquals("assignment did not stick", "55",
-                 evaluate("doubled", top.getId()).getBody().getResult().trim());
+    assertEquals("55", evaluate("doubled", top.getId()).getBody().getResult().trim(), "assignment did not stick");
 
     // a CALLER-frame variable is not writable (the server hardcodes the top
     // frame and would silently ignore it) — the adapter must say so
-    assertTrue("expected a caller frame", frames.size() >= 2);
+    assertTrue(frames.size() >= 2, "expected a caller frame");
     Response callerAssign = dapClient.sendRequest(assignmentRequest("n = 100", frames.get(1).getId()), TIMEOUT);
-    assertFalse("caller-frame write should be refused, not silently ignored", callerAssign.isSuccess());
-    assertTrue(callerAssign.getMessage(), callerAssign.getMessage().contains("TOP stack frame"));
+    assertFalse(callerAssign.isSuccess(), "caller-frame write should be refused, not silently ignored");
+    assertTrue(callerAssign.getMessage().contains("TOP stack frame"), callerAssign.getMessage());
 
     // --- step over stays in the program -------------------------------------
     NextArguments nextArguments = new NextArguments();
@@ -123,15 +124,15 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     sendContinue(threadId);
 
     awaitEvent(TerminatedEvent.class);
-    assertTrue("debuggee did not exit", debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
-    assertEquals("debuggee output:\n" + output(), 0, debuggee.exitValue());
+    assertTrue(debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "debuggee did not exit");
+    assertEquals(0, debuggee.exitValue(), "debuggee output:\n" + output());
     // 115, not 60: the doubled = 55 write in iteration 1 flowed into the sum —
     // execution-level proof that evaluate assignments reach the debuggee
-    assertTrue("expected trace output, got:\n" + output(),
-               output().contains("total=115 title=fixture"));
+    assertTrue(output().contains("total=115 title=fixture"), "expected trace output, got:\n" + output());
   }
 
   @Test
+  @DisplayName("conditional breakpoint stops only when the condition is true")
   public void conditionalBreakpointStopsOnlyWhenTheConditionIsTrue() throws Exception {
     initializeAndLaunch();
 
@@ -146,17 +147,14 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     Stop stop = awaitStopAtLine(lineOfMarker("accumulate"));
     int threadId = stop.threadId();
     int frameId = stop.top().getId();
-    assertEquals("stopped on the wrong iteration", "20",
-                 evaluate("v", frameId).getBody().getResult().trim());
+    assertEquals("20", evaluate("v", frameId).getBody().getResult().trim(), "stopped on the wrong iteration");
     // acc after two un-stopped iterations: 0 + 0*2 + 10*2 = 20
-    assertEquals("earlier iterations should not have stopped", "20",
-                 evaluate("acc", frameId).getBody().getResult().trim());
+    assertEquals("20", evaluate("acc", frameId).getBody().getResult().trim(), "earlier iterations should not have stopped");
 
     sendContinue(threadId);
     awaitEvent(TerminatedEvent.class);
-    assertTrue("debuggee did not exit", debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
-    assertTrue("expected trace output, got:\n" + output(),
-               output().contains("total=60 title=fixture"));
+    assertTrue(debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "debuggee did not exit");
+    assertTrue(output().contains("total=60 title=fixture"), "expected trace output, got:\n" + output());
   }
 
   private EvaluateResponse evaluate(String expression, int frameId) throws Exception {

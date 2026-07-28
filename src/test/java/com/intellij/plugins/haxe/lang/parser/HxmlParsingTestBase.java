@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2016 AS3Boyan
+ * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,62 +30,95 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.ILazyParseableElementType;
 import com.intellij.testFramework.ParsingTestCase;
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
-abstract public class HxmlParsingTestBase extends ParsingTestCase {
+/**
+ * Jupiter front for the platform's JUnit3-style {@link ParsingTestCase};
+ * same pattern as {@link HaxeParsingTestBase}, for the HXML grammar,
+ * including its conditional write-intent context around engine calls.
+ */
+abstract public class HxmlParsingTestBase {
+  private final Engine engine;
 
   public HxmlParsingTestBase(String... path) {
-    super(getPath(path), HXMLFileType.DEFAULT_EXTENSION, new HXMLParserDefinition());
+    engine = new Engine(String.join("/", path));
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    addExplicitExtension(LanguageASTFactory.INSTANCE, HXMLLanguage.INSTANCE, new ASTFactory() {
-      @Nullable
-      @Override
-      public LazyParseableElement createLazy(ILazyParseableElementType type, CharSequence sequence) {
-        return super.createLazy(type, sequence);
-      }
-
-      @Nullable
-      @Override
-      public CompositeElement createComposite(IElementType type) {
-        return super.createComposite(type);
-      }
-
-      @Nullable
-      @Override
-      public LeafElement createLeaf(IElementType type, CharSequence text) {
-        // We're making our default token type be a PsiJavaToken so that our
-        // PSI tree is more compatible with the Java one, thus, we can use
-        // more of the Java code without doing so much work.
-        //if (HaxeTokenTypeSets.COMMENTS.contains(type)) {
-        //  return new PsiCommentImpl(type, text);
-        //}
-        //return new PsiJavaTokenImpl(type, text);
-        return null;
-      }
-    });
+  @BeforeEach
+  final void startParsingEngine(TestInfo info) throws Exception {
+    // the JUnit3 test name drives the data-file lookup (testSimple -> Simple.hxml)
+    engine.setName(info.getTestMethod().orElseThrow().getName());
+    HaxeParsingTestBase.runEngineStep(engine::start);
   }
 
-  private static String getPath(String... args) {
-    final StringBuilder result = new StringBuilder();
-    for (String folder : args) {
-      if (result.length() > 0) {
-        result.append("/");
-      }
-      result.append(folder);
+  @AfterEach
+  final void stopParsingEngine() throws Exception {
+    engine.stop();
+  }
+
+  protected void doTest(boolean checkResult) {
+    engine.doTest(checkResult);
+  }
+
+  private static final class Engine extends ParsingTestCase {
+    Engine(String path) {
+      super(path, HXMLFileType.DEFAULT_EXTENSION, new HXMLParserDefinition());
     }
-    return result.toString();
-  }
 
-  @Override
-  protected String getTestDataPath() {
-    return HaxeTestUtils.BASE_TEST_DATA_PATH;
-  }
+    @Override
+    protected void setUp() throws Exception {
+      super.setUp();
+      addExplicitExtension(LanguageASTFactory.INSTANCE, HXMLLanguage.INSTANCE, new ASTFactory() {
+        @Nullable
+        @Override
+        public LazyParseableElement createLazy(ILazyParseableElementType type, CharSequence sequence) {
+          return super.createLazy(type, sequence);
+        }
 
-  @Override
-  protected boolean skipSpaces() {
-    return true;
+        @Nullable
+        @Override
+        public CompositeElement createComposite(IElementType type) {
+          return super.createComposite(type);
+        }
+
+        @Nullable
+        @Override
+        public LeafElement createLeaf(IElementType type, CharSequence text) {
+          // We're making our default token type be a PsiJavaToken so that our
+          // PSI tree is more compatible with the Java one, thus, we can use
+          // more of the Java code without doing so much work.
+          //if (HaxeTokenTypeSets.COMMENTS.contains(type)) {
+          //  return new PsiCommentImpl(type, text);
+          //}
+          //return new PsiJavaTokenImpl(type, text);
+          return null;
+        }
+      });
+    }
+
+    @Override
+    protected String getTestDataPath() {
+      return HaxeTestUtils.BASE_TEST_DATA_PATH;
+    }
+
+    @Override
+    protected boolean skipSpaces() {
+      return true;
+    }
+
+    void start() throws Exception {
+      setUp();
+    }
+
+    void stop() throws Exception {
+      tearDown();
+    }
+
+    @Override
+    public void doTest(boolean checkResult) {
+      super.doTest(checkResult);
+    }
   }
 }

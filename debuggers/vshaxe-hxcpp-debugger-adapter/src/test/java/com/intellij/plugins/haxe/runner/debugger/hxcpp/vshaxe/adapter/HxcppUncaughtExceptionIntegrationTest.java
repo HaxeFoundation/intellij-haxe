@@ -1,13 +1,14 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Uncaught-exception behaviour of the real server, pinned empirically: the
@@ -17,14 +18,16 @@ import org.junit.Test;
  * the process's Critical Error output) before termination. There is nothing
  * to configure: setExceptionBreakpoints is an honest no-op.
  */
+@DisplayName("HXCPP debugger (vshaxe): uncaught exception (integration)")
 public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestBase {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     launchFixture("hxcpp.fixture.uncaught.exe", "Uncaught.hx");
   }
 
   @Test
+  @DisplayName("uncaught throw stops at the throw line and surfaces the text")
   public void uncaughtThrowStopsAtTheThrowLineAndSurfacesTheText() throws Exception {
     initializeAndLaunch();
     // must not fail even though the server has no handler for it
@@ -47,8 +50,7 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
       if (event instanceof StoppedEvent following && "exception".equals(following.getBody().getReason())) {
         sawExceptionStop = true;
         String description = following.getBody().getDescription();
-        assertTrue("exception stop should carry the thrown text, got: " + description,
-                   description != null && description.contains("kaboom"));
+        assertTrue(description != null && description.contains("kaboom"), "exception stop should carry the thrown text, got: " + description);
         // releasing the final stop races the process's death — a failed
         // continue IS the expected outcome here
         continueQuietly(following.getBody().getThreadId());
@@ -56,9 +58,8 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
     }
 
     debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
-    assertTrue("the thrown text should surface somewhere (exception stop or Critical Error output); "
-               + "sawExceptionStop=" + sawExceptionStop + ", output:\n" + output(),
-               sawExceptionStop || output().contains("kaboom"));
+    assertTrue(sawExceptionStop || output().contains("kaboom"), "the thrown text should surface somewhere (exception stop or Critical Error output); "
+               + "sawExceptionStop=" + sawExceptionStop + ", output:\n" + output());
   }
 
   private void continueQuietly(int threadId) {

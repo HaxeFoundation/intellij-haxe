@@ -23,80 +23,136 @@ import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.lang.injection.MultiHostRegistrar;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
 import com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.ParsingTestCase;
+import com.intellij.testFramework.TestApplicationManager;
+import com.intellij.util.ThrowableRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
-abstract public class HaxeParsingTestBase extends ParsingTestCase {
+/**
+ * Jupiter front for the platform's JUnit3-style {@link ParsingTestCase}: the
+ * engine below keeps the platform logic (data-file lookup by test name, PSI
+ * dump comparison), while this class drives its lifecycle from jupiter hooks.
+ * Threading is per-step (see {@link #runEngineStep}), not {@code @RunInEdt}:
+ * class-wide EDT dispatch hangs a solo run because the engine's mock
+ * application cannot service IdeEventQueue events.
+ */
+abstract public class HaxeParsingTestBase {
+  private final Engine engine;
+
   public HaxeParsingTestBase(String... path) {
-    super(getPath(path), HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition(), new HaxeMetadataParserDefinition());
+    engine = new Engine(getPath(path));
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    HaxeAstFactory astFactory = new HaxeAstFactory();
-    addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeLanguage.INSTANCE, astFactory);
-    addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeMetadataLanguage.INSTANCE, astFactory);
-
-    registerMetadataParser();
-
-
+  @BeforeEach
+  final void startParsingEngine(TestInfo info) throws Exception {
+    // the JUnit3 test name drives the data-file lookup (testExtends -> Extends.hx)
+    engine.setName(info.getTestMethod().orElseThrow().getName());
+    runEngineStep(engine::start);
   }
 
-
-
-  private <T> void registerMetadataParser() {
-    // Get the metadata parser added because only the first language definition is added by the super.setUp call.
-    // This is basically what configureFromParserDefinition does, but without overriding the globals.
-    HaxeMetadataParserDefinition metaParser = new HaxeMetadataParserDefinition();
-    addExplicitExtension(LanguageParserDefinitions.INSTANCE, HaxeMetadataLanguage.INSTANCE, metaParser);
+  @AfterEach
+  final void stopParsingEngine() throws Exception {
+    // always on the worker: the engine's mock is the current application here,
+    // so an EDT event could not be serviced; tearDown restores the real
+    // application first and then dispatches its own EDT work. Never hold a
+    // write-intent action across this either - those EDT events want the same
+    // lock, livelocking the suite.
+    engine.stop();
   }
 
+  protected void doTest(boolean checkResult) {
+    engine.doTest(checkResult);
+  }
+
+  protected void doTest(boolean checkResult, boolean ensureNoErrorElements) {
+    engine.doTest(checkResult, ensureNoErrorElements);
+  }
+
+  /**
+   * With a real test application booted by heavier tests earlier in the same
+   * JVM, engine setUp must run on the EDT: it closes leaked projects, which
+   * asserts the EDT - and only then CAN the EDT service events. Without one
+   * (solo parsing run) EDT dispatch would hang, and is not needed.
+   */
+  static void runEngineStep(ThrowableRunnable<Exception> step) throws Exception {
+    if (TestApplicationManager.getInstanceIfCreated() == null) {
+      step.run();
+    }
+    else {
+      EdtTestUtil.runInEdtAndWait(step);
+    }
+  }
+
+  protected Project getProject() {
+    return engine.getProject();
+  }
 
   private static String getPath(String... args) {
-    final StringBuilder result = new StringBuilder();
-    for (String folder : args) {
-      if (result.length() > 0) {
-        result.append("/");
-      }
-      result.append(folder);
+    return String.join("/", args);
+  }
+
+  private static final class Engine extends ParsingTestCase {
+    Engine(String path) {
+      super(path, HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition(), new HaxeMetadataParserDefinition());
     }
-    return result.toString();
-  }
-
-  @Override
-  protected String getTestDataPath() {
-    return HaxeTestUtils.BASE_TEST_DATA_PATH;
-  }
-
-  @Override
-  protected boolean skipSpaces() {
-    return true;
-  }
-
-  public static class MockMultiHostInjector implements MultiHostInjector {
-    // Be careful with this.  It is the same extension point name as (and thus will conflict with) MultiHostInjector uses.
-    public static final ExtensionPointName<MockMultiHostInjector> MULTIHOST_INJECTOR_EP_NAME =
-      ExtensionPointName.create("com.intellij.multiHostInjector");
 
     @Override
-    public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {
-
+    protected void setUp() throws Exception {
+      super.setUp();
+      HaxeAstFactory astFactory = new HaxeAstFactory();
+      addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeLanguage.INSTANCE, astFactory);
+      addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeMetadataLanguage.INSTANCE, astFactory);
+      registerMetadataParser();
     }
 
-    @NotNull
+    private void registerMetadataParser() {
+      // Get the metadata parser added because only the first language definition is added by the super.setUp call.
+      // This is basically what configureFromParserDefinition does, but without overriding the globals.
+      HaxeMetadataParserDefinition metaParser = new HaxeMetadataParserDefinition();
+      addExplicitExtension(LanguageParserDefinitions.INSTANCE, HaxeMetadataLanguage.INSTANCE, metaParser);
+    }
+
     @Override
-    public List<? extends Class<? extends PsiElement>> elementsToInjectIn() {
-      return new ArrayList<>();
+    protected String getTestDataPath() {
+      return HaxeTestUtils.BASE_TEST_DATA_PATH;
+    }
+
+    @Override
+    protected boolean skipSpaces() {
+      return true;
+    }
+
+    void start() throws Exception {
+      setUp();
+    }
+
+    void stop() throws Exception {
+      tearDown();
+    }
+
+    @Override
+    public void doTest(boolean checkResult) {
+      super.doTest(checkResult);
+    }
+
+    @Override
+    public void doTest(boolean checkResult, boolean ensureNoErrorElements) {
+      super.doTest(checkResult, ensureNoErrorElements);
     }
   }
+
 }

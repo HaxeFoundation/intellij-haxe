@@ -1,17 +1,13 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.EvaluateResponse;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * A class's own statics resolve WITHOUT a class prefix, the way Haxe source
@@ -22,41 +18,43 @@ import org.junit.Test;
  * scope — while its static methods worked (those are bindings of the
  * container itself).
  */
+@DisplayName("HashLink debugger: packaged statics (integration)")
 public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
   private static final int DEEP_INSTANCE_LINE = 21; // pkg/Deep.hx readMarker()
 
   @Test
+  @DisplayName("unqualified statics resolve in a packaged instance frame")
   public void unqualifiedStaticsResolveInAPackagedInstanceFrame() throws Exception {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
-    assertEquals("static var, unqualified", "99", evaluated(frameId, "marker"));
-    assertEquals("static final, unqualified", "42", evaluated(frameId, "CONSTANT"));
-    assertEquals("still resolvable qualified", "99", evaluated(frameId, "pkg.Deep.marker"));
+    assertEquals("99", evaluated(frameId, "marker"), "static var, unqualified");
+    assertEquals("42", evaluated(frameId, "CONSTANT"), "static final, unqualified");
+    assertEquals("99", evaluated(frameId, "pkg.Deep.marker"), "still resolvable qualified");
   }
 
   /** The same mapping drives the Statics scope, so it must appear here too. */
   @Test
+  @DisplayName("the statics scope appears in a packaged instance frame")
   public void theStaticsScopeAppearsInAPackagedInstanceFrame() throws Exception {
     StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     Scope statics = scopeByPrefix(frameId, "Statics");
-    assertNotNull("a packaged instance frame has a Statics scope", statics);
+    assertNotNull(statics, "a packaged instance frame has a Statics scope");
     Map<String, String> byName = variablesByName(statics.getVariablesReference());
-    assertEquals("the class's static var", "99", byName.get("marker"));
-    assertEquals("the class's static final", "42", byName.get("CONSTANT"));
+    assertEquals("99", byName.get("marker"), "the class's static var");
+    assertEquals("42", byName.get("CONSTANT"), "the class's static final");
   }
 
   /** Guards the shapes that already worked: top-level, and static frames. */
   @Test
+  @DisplayName("unqualified statics keep working elsewhere")
   public void unqualifiedStaticsKeepWorkingElsewhere() throws Exception {
     StoppedEvent atInstance = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
-    assertEquals("top-level class, instance frame", "2",
-                 evaluated(topFrameId(atInstance.getBody().getThreadId()), "axes"));
+    assertEquals("2", evaluated(topFrameId(atInstance.getBody().getThreadId()), "axes"), "top-level class, instance frame");
 
     StoppedEvent atStatic = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
-    assertEquals("top-level class, static frame", "7",
-                 evaluated(topFrameId(atStatic.getBody().getThreadId()), "version"));
+    assertEquals("7", evaluated(topFrameId(atStatic.getBody().getThreadId()), "version"), "top-level class, static frame");
   }
 }

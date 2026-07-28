@@ -26,7 +26,8 @@ dependencies {
     }
 
     testImplementation(project(":debuggers:dap-protocol"))
-    testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
 // ---------------------------------------------------------------------------
@@ -201,6 +202,10 @@ hxcppFixtures.forEach { (name, spec) ->
 }
 
 tasks.named<Test>("test") {
+    useJUnitPlatform()
+    // @Timeout kills a hung test from a watcher thread (JUnit4 timeout semantics);
+    // the default mode would merely wait for the test to come back on its own
+    systemProperty("junit.jupiter.execution.timeout.thread.mode.default", "SEPARATE_THREAD")
     onlyIf {
         if (!debuggerTests) {
             logger.lifecycle("SKIPPING debugger tests (opt in with -PdebuggerTests=true)")

@@ -1,8 +1,5 @@
 class FunctionParameter2{
-    function main(bar:Float){
-        var foo:Float = bar + 1;
-        if(true){
-          trace(ba<caret>r);
-        }
+    function main(){
+        var is_c = function(val) { return va<caret>l == "c"; }
     }
 }

@@ -17,13 +17,16 @@ package com.intellij.plugins.haxe.compiler;
 
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
-import com.intellij.testFramework.UsefulTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by ebishton on 10/29/16.
  */
-public class HaxeCompilerMessageTest extends UsefulTestCase {
+@DisplayName("Compiler: message")
+public class HaxeCompilerMessageTest {
 
   private void doTest(String output, Category cat, String msg, String path, int line, int col) throws Throwable {
     HaxeCompilerMessage e = HaxeCompilerMessage.create("", output);
@@ -48,32 +51,38 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
 
   // hxcpp 3.3 link message
   @Test
+  @DisplayName("link message")
   public void testLinkMessage() throws Throwable {
     doInfoTest(" -  - Link : ApplicationMain: xcrun");
   }
 
   @Test
+  @DisplayName("link message 2 - with trailing newline")
   public void testLinkMessage2() throws Throwable {
     doInfoTest(" - Link : ApplicationMain: xcrun\n");
   }
 
   // hxcpp 3.3 compile message.
   @Test
+  @DisplayName("compile message")
   public void testCompileMessage() throws Throwable {
     doInfoTest(" - Compile : src/ApplicationMain.hx");
   }
 
   @Test
+  @DisplayName("compiling message")
   public void testCompilingMessage() throws Throwable {
     doInfoTest(" - Compiling src/ApplicationMain.hx : <some_message>");
   }
 
   @Test
+  @DisplayName("generating message")
   public void testGeneratingMessage() throws Throwable {
     doInfoTest("Generating out/ApplicationMain.cpp : <some_message>");
   }
 
   @Test
+  @DisplayName("library not installed")
   public void testLibraryNotInstalled() throws Throwable {
     String compilerOutput = "Error: Library Flixel is not installed. Please run haxelib...";
     doTest(compilerOutput, Category.ERROR, "Library Flixel is not installed. Please run haxelib...", null, -1, -1);
@@ -81,12 +90,14 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
 
   // Hxcpp 3.3
   @Test
+  @DisplayName("library not installed hxcpp")
   public void testLibraryNotInstalledHxcpp() throws Throwable {
     String compilerOutput = "Library hxcpp is not installed";
     doErrorTest(compilerOutput, compilerOutput);
   }
 
   @Test
+  @DisplayName("generic error")
   public void testGenericError() throws Throwable {
     String compilerOutput = "Unknown Error : This is an error message.";
     String expected = " (Unknown Error) This is an error message.";
@@ -94,6 +105,7 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   }
 
   @Test
+  @DisplayName("lines error")
   public void testLinesError() throws Throwable {
     String compilerOutput = "Test.hx:4: lines 4-10 : Invalid -main : Test does not have static function main";
     doTest(compilerOutput, Category.ERROR, "Invalid -main : Test does not have static function main",
@@ -101,6 +113,7 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   }
 
   @Test
+  @DisplayName("hxcpp build failure")
   public void testHxcppBuildFailure() throws Throwable {
     String compilerOutput = "Error: Build failed";
     String expected = "Build failed";
@@ -108,6 +121,7 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   }
 
   @Test
+  @DisplayName("unexpected character")
   public void testUnexpectedCharacter() throws Throwable {
     String compilerOutput = "Test.hx:4: characters 6-7 : Unexpected %";
     String expected = "Unexpected %";

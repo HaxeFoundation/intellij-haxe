@@ -19,6 +19,8 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionToolProvider;
 import com.intellij.codeInspection.LocalInspectionTool;

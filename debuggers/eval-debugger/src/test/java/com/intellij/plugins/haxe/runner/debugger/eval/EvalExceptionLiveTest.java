@@ -1,31 +1,18 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Drives an UNCAUGHT exception through the real adapter, doing exactly what
@@ -33,44 +20,47 @@ import org.junit.Test;
  * to catch a stall on the exception path. If the adapter deadlocked, the
  * bounded requests here would time out and FAIL rather than hang forever.
  */
+@DisplayName("Eval debugger: exception (live)")
 public class EvalExceptionLiveTest extends EvalLiveTestBase {
   private static final int THROW_LINE = 9;
 
-  @Test(timeout = 60_000)
+  @Timeout(60)
+  @Test
+  @DisplayName("uncaught exception stops inspects and terminates without stalling")
   public void uncaughtExceptionStopsInspectsAndTerminatesWithoutStalling() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());
-    assertTrue("initialize", request(initialize).isSuccess());
+    assertTrue(request(initialize).isSuccess(), "initialize");
     dapClient.pollEvent(TIMEOUT);
     launch();
 
     // the IDE sends exception filters (the backend reports it can't honor
     // them, but the request must still not wedge the session)
     SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(List.of("uncaught"));
-    assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
+    assertTrue(request(exceptions).isSuccess(), "setExceptionBreakpoints");
 
     configurationDone();
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
-    assertEquals("stopped for an exception", "exception", stopped.getBody().getReason());
+    assertEquals("exception", stopped.getBody().getReason(), "stopped for an exception");
     String description = stopped.getBody().getDescription();
-    assertTrue("carries the thrown text", description != null && description.contains("uncaught-boom"));
+    assertTrue(description != null && description.contains("uncaught-boom"), "carries the thrown text");
     int threadId = stopped.getBody().getThreadId();
 
     // EXACTLY the IDE's reportStopped sequence — this is where a stall shows
-    assertTrue("threads answered at the exception stop", request(new ThreadsRequest()).isSuccess());
+    assertTrue(request(new ThreadsRequest()).isSuccess(), "threads answered at the exception stop");
     StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
-    assertTrue("stackTrace answered at the exception stop", stResponse.isSuccess());
+    assertTrue(stResponse.isSuccess(), "stackTrace answered at the exception stop");
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
-    assertFalse("frames at the exception", frames.isEmpty());
-    assertEquals("top frame is the throwing line", THROW_LINE, frames.get(0).getLine());
+    assertFalse(frames.isEmpty(), "frames at the exception");
+    assertEquals(THROW_LINE, frames.get(0).getLine(), "top frame is the throwing line");
 
     // resume: the program runs off the uncaught exception and the session ends
     ContinueRequest resume = continueRequest(threadId);
-    assertTrue("continue past the exception", request(resume).isSuccess());
+    assertTrue(request(resume).isSuccess(), "continue past the exception");
     awaitTerminated();
-    assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
+    assertTrue(haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "haxe exited");
   }
 
   @Override

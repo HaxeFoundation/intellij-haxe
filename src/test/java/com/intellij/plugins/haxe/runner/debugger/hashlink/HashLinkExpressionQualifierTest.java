@@ -1,5 +1,13 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
@@ -20,6 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
  * (before sending) is what keeps a side-effecting sub-expression from being
  * re-evaluated on a lazy retry.
  */
+@DisplayName("Debugger: hashlink expression qualifier")
 public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -34,20 +43,26 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
     myFixture.configureByText("Main.hx",
                               "import pkg.Deep;\nclass Main { static function main() { var here<caret> = 0; } }");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
     return context;
   }
 
+  @Test
+  @DisplayName("imported class is qualified")
   public void testImportedClassIsQualified() {
     PsiElement context = importingContext();
     assertEquals("pkg.Deep.marker", HashLinkExpressionQualifier.rewrite(getProject(), context, "Deep.marker"));
   }
 
+  @Test
+  @DisplayName("already qualified is unchanged")
   public void testAlreadyQualifiedIsUnchanged() {
     PsiElement context = importingContext();
     assertEquals("pkg.Deep.marker", HashLinkExpressionQualifier.rewrite(getProject(), context, "pkg.Deep.marker"));
   }
 
+  @Test
+  @DisplayName("non class leftmost is unchanged")
   public void testNonClassLeftmostIsUnchanged() {
     PsiElement context = importingContext();
     // `here` is a local, not a class — leave it for the adapter's frame-local
@@ -60,6 +75,8 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * the class name qualified, so a side-effecting sub-expression like {@code
    * increase()} is never re-evaluated by a lazy "resolve-then-retry".
    */
+  @Test
+  @DisplayName("compound expression qualifies only the class")
   public void testCompoundExpressionQualifiesOnlyTheClass() {
     PsiElement context = importingContext();
     assertEquals("increase() + pkg.Deep.marker",
@@ -72,17 +89,18 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * unresolved and no text-mutating "import?" fix is offered). Before the fragment
    * inherited its context's imports, {@code Deep.resolve()} returned {@code null}.
    */
+  @Test
+  @DisplayName("fragment resolves imported class against context")
   public void testFragmentResolvesImportedClassAgainstContext() {
     PsiElement context = importingContext();
     PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Deep.marker", context, false);
 
     HaxeReferenceExpression deep = leftmostReference(fragment, "Deep");
-    assertNotNull("the `Deep` reference is present in the parsed fragment", deep);
+    assertNotNull(deep, "the `Deep` reference is present in the parsed fragment");
 
     PsiElement target = deep.resolve();
-    assertTrue("`Deep` resolves to a class via the inherited context imports, got "
-               + (target == null ? "null" : target.getClass().getSimpleName()),
-               target instanceof HaxeClass);
+    assertTrue(target instanceof HaxeClass, "`Deep` resolves to a class via the inherited context imports, got "
+               + (target == null ? "null" : target.getClass().getSimpleName()));
     assertEquals("pkg.Deep", ((HaxeClass)target).getQualifiedName());
   }
 
@@ -93,25 +111,25 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * never enters the fragment's (evaluated) text. Fresh fragments avoid a poisoned
    * resolve cache — the same reason the daemon must re-resolve after an import.
    */
+  @Test
+  @DisplayName("fragment stored import resolves without touching text")
   public void testFragmentStoredImportResolvesWithoutTouchingText() {
     myFixture.addFileToProject("pkg/Deep.hx",
                                "package pkg;\nclass Deep { public static var marker:Int = 99; }");
     myFixture.configureByText("Main.hx",
                               "package other;\nclass Main { static function main() { var here<caret> = 0; } }");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
 
     PsiFile bare = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Deep.marker", context, false);
-    assertNull("`Deep` is not resolvable from package `other` without an import",
-               leftmostReference(bare, "Deep").resolve());
+    assertNull(leftmostReference(bare, "Deep").resolve(), "`Deep` is not resolvable from package `other` without an import");
 
     PsiFile imported = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Deep.marker", context, false);
     ((HaxeExpressionCodeFragment)imported).importClass("pkg.Deep");
     PsiElement target = leftmostReference(imported, "Deep").resolve();
-    assertTrue("`Deep` resolves after importClass, got " + (target == null ? "null" : target.getClass().getSimpleName()),
-               target instanceof HaxeClass);
+    assertTrue(target instanceof HaxeClass, "`Deep` resolves after importClass, got " + (target == null ? "null" : target.getClass().getSimpleName()));
     assertEquals("pkg.Deep", ((HaxeClass)target).getQualifiedName());
-    assertEquals("the import stays out of the evaluated text", "Deep.marker", imported.getText());
+    assertEquals("Deep.marker", imported.getText(), "the import stays out of the evaluated text");
   }
 
   /**
@@ -119,18 +137,22 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * nor shares a package with is still qualified when it is the project's only
    * class of that short name, so it evaluates without the user adding an import.
    */
+  @Test
+  @DisplayName("unreachable unique class qualified by project fallback")
   public void testUnreachableUniqueClassQualifiedByProjectFallback() {
     myFixture.addFileToProject("far/Widget.hx",
                                "package far;\nclass Widget { public static var count:Int = 3; }");
     myFixture.configureByText("Main.hx",
                               "package other;\nclass Main { static function main() { var here<caret> = 0; } }");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
 
     assertEquals("far.Widget.count", HashLinkExpressionQualifier.rewrite(getProject(), context, "Widget.count"));
   }
 
   /** Two classes share the short name — ambiguous, so the qualifier leaves it bare. */
+  @Test
+  @DisplayName("ambiguous class name is left bare")
   public void testAmbiguousClassNameIsLeftBare() {
     myFixture.addFileToProject("a/Widget.hx",
                                "package a;\nclass Widget { public static var count:Int = 1; }");
@@ -139,7 +161,7 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
     myFixture.configureByText("Main.hx",
                               "package other;\nclass Main { static function main() { var here<caret> = 0; } }");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
 
     assertEquals("Widget.count", HashLinkExpressionQualifier.rewrite(getProject(), context, "Widget.count"));
   }
@@ -151,23 +173,24 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
    * on the fragment and leave the evaluated text untouched — never insert an
    * {@code import} statement that would break evaluation.
    */
+  @Test
+  @DisplayName("add import helper holds import on fragment instead of text")
   public void testAddImportHelperHoldsImportOnFragmentInsteadOfText() {
     myFixture.addFileToProject("far/Widget.hx",
                                "package far;\nclass Widget { public static var count:Int = 3; }");
     myFixture.configureByText("Main.hx",
                               "package other;\nclass Main { static function main() { var here<caret> = 0; } }");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
 
     PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Widget.count", context, false);
     WriteCommandAction.runWriteCommandAction(getProject(),
                                              () -> { HaxeAddImportHelper.addImport("far.Widget", fragment); });
 
-    assertEquals("the import must not enter the evaluated text", "Widget.count", fragment.getText());
-    assertTrue("the import is held on the fragment",
-               ((HaxeExpressionCodeFragment)fragment).getImportedTypeNames().contains("far.Widget"));
+    assertEquals("Widget.count", fragment.getText(), "the import must not enter the evaluated text");
+    assertTrue(((HaxeExpressionCodeFragment)fragment).getImportedTypeNames().contains("far.Widget"), "the import is held on the fragment");
     PsiElement target = leftmostReference(fragment, "Widget").resolve();
-    assertTrue("`Widget` now resolves", target instanceof HaxeClass);
+    assertTrue(target instanceof HaxeClass, "`Widget` now resolves");
     assertEquals("far.Widget", ((HaxeClass)target).getQualifiedName());
   }
 
@@ -180,13 +203,15 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
     return null;
   }
 
+  @Test
+  @DisplayName("same package class needs no import")
   public void testSamePackageClassNeedsNoImport() {
     myFixture.addFileToProject("pkg/Deep.hx",
                                "package pkg;\nclass Deep { public static var marker:Int = 99; }");
     myFixture.configureByText("Main.hx",
                               "package pkg;\nclass Main { static function main() { var here<caret> = 0; } }");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
     assertEquals("pkg.Deep.marker", HashLinkExpressionQualifier.rewrite(getProject(), context, "Deep.marker"));
   }
 }

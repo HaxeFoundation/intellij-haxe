@@ -1,9 +1,9 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.adapter;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.DapPaths;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
@@ -25,7 +25,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * Scaffolding for integration tests against a real debuggee fixture:
@@ -52,8 +52,7 @@ abstract class HxcppIntegrationTestBase {
    */
   protected void launchFixture(String exeProperty, String sourceFile) throws IOException {
     String exeValue = System.getProperty(exeProperty);
-    assumeTrue("fixture exe not built (" + exeProperty + "); haxe/hxcpp toolchain missing?",
-               exeValue != null && Files.isRegularFile(Path.of(exeValue)));
+    assumeTrue(exeValue != null && Files.isRegularFile(Path.of(exeValue)), "fixture exe not built (" + exeProperty + "); haxe/hxcpp toolchain missing?");
     Path exe = Path.of(exeValue);
     fixtureSource = Path.of(System.getProperty("hxcpp.fixture.src.dir"), sourceFile);
     int port = Integer.getInteger("hxcpp.fixture.port", 6973);
@@ -85,7 +84,7 @@ abstract class HxcppIntegrationTestBase {
     gobbler.start();
   }
 
-  @After
+  @AfterEach
   public void tearDownSession() throws IOException {
     if (debuggee != null && debuggee.isAlive()) {
       debuggee.destroyForcibly();
@@ -105,8 +104,7 @@ abstract class HxcppIntegrationTestBase {
   protected void initializeAndLaunch() throws Exception {
     assertTrue(dapClient.sendRequest(new InitializeRequest(), TIMEOUT).isSuccess());
     awaitEvent(InitializedEvent.class);
-    assertTrue("launch failed - did the debuggee connect?",
-               dapClient.sendRequest(new LaunchRequest(), TIMEOUT).isSuccess());
+    assertTrue(dapClient.sendRequest(new LaunchRequest(), TIMEOUT).isSuccess(), "launch failed - did the debuggee connect?");
   }
 
   protected Event awaitEvent(Class<? extends Event> type) throws InterruptedException {
@@ -183,7 +181,7 @@ abstract class HxcppIntegrationTestBase {
   @SuppressWarnings("unchecked")
   protected <T extends Response> T require(Request request) throws Exception {
     Response response = dapClient.sendRequest(request, TIMEOUT);
-    assertTrue("'" + request.getCommand() + "' failed: " + response.getMessage(), response.isSuccess());
+    assertTrue(response.isSuccess(), "'" + request.getCommand() + "' failed: " + response.getMessage());
     return (T)response;
   }
 

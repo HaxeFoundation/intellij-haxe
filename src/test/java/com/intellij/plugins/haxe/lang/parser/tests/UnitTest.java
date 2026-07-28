@@ -15,19 +15,23 @@
  */
 package com.intellij.plugins.haxe.lang.parser.tests;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: unit")
 public class UnitTest extends TestsTestBase {
   public UnitTest() {
     super("unit/src/unit");
   }
 
   @Test
+  @DisplayName("test - utest framework base class parses")
   public void testTest() {
     doTest(true);
   }
 
   @Test
+  @DisplayName("test ops - operator precedence expressions parse")
   public void testTestOps() {
     doTest(true);
   }

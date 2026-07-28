@@ -17,32 +17,38 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: exception")
 public class ExceptionTest extends StatementTestBase {
   public ExceptionTest() {
     super("exception");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("try catch")
   public void testTryCatch() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("multiple try catch")
   public void testMultipleTryCatch() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("throw from ternary")
   public void testThrowFromTernary() throws Throwable {
     doTest(true);
   }

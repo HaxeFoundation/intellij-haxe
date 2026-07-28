@@ -1,15 +1,16 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInTarget;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Smart step into: on a line with several calls, stepInTargets lists them (in
@@ -19,42 +20,42 @@ import org.junit.Test;
  * Uses Main.hx line 20, the demo line with eight calls:
  * throwDemo(); inspectDemo(); Rich.demo(); Shadowed.demo(); ...
  */
+@DisplayName("HashLink debugger: smart step into (integration)")
 public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
 
   private static final int FIXTURE_DEMO_LINE = 20;
 
   @Test
+  @DisplayName("step in targets lists the calls on the line in execution order")
   public void stepInTargetsListsTheCallsOnTheLineInExecutionOrder() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int frameId = topFrameId(atDemo.getBody().getThreadId());
 
     List<StepInTarget> targets = requestStepInTargets(frameId);
 
-    assertTrue("several call targets on the demo line (got " + targets + ")", targets.size() >= 4);
-    assertTrue("first target is the first call on the line (was " + targets.get(0).getLabel() + ")",
-               targets.get(0).getLabel().endsWith("Main.throwDemo"));
-    assertTrue("second target follows source order (was " + targets.get(1).getLabel() + ")",
-               targets.get(1).getLabel().endsWith("Main.inspectDemo"));
-    assertTrue("Rich.demo is offered (targets: " + targets + ")",
-               targets.stream().anyMatch(t -> t.getLabel().endsWith("Rich.demo")));
+    assertTrue(targets.size() >= 4, "several call targets on the demo line (got " + targets + ")");
+    assertTrue(targets.get(0).getLabel().endsWith("Main.throwDemo"), "first target is the first call on the line (was " + targets.get(0).getLabel() + ")");
+    assertTrue(targets.get(1).getLabel().endsWith("Main.inspectDemo"), "second target follows source order (was " + targets.get(1).getLabel() + ")");
+    assertTrue(targets.stream().anyMatch(t -> t.getLabel().endsWith("Rich.demo")), "Rich.demo is offered (targets: " + targets + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("a closure call is offered with its runtime target")
   public void aClosureCallIsOfferedWithItsRuntimeTarget() throws Exception {
     // `fn()` has no static callee (OCallClosure): the target list resolves
     // the closure's RUNTIME fun pointer and labels it with the actual function
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_CALL_LINE);
     List<StepInTarget> targets = requestStepInTargets(topFrameId(atCall.getBody().getThreadId()));
 
-    assertTrue("the closure's runtime target is offered (targets: " + targets + ")",
-               targets.stream().anyMatch(t -> t.getLabel().endsWith("Holder.grab")));
+    assertTrue(targets.stream().anyMatch(t -> t.getLabel().endsWith("Holder.grab")), "the closure's runtime target is offered (targets: " + targets + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step in with a target id enters the chosen call skipping the ones before")
   public void stepInWithATargetIdEntersTheChosenCallSkippingTheOnesBefore() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();
@@ -66,13 +67,13 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
       .orElseThrow();
 
     StepInRequest stepIn = stepInRequest(threadId, richDemo.getId());
-    assertTrue("targeted stepIn accepted", request(stepIn).isSuccess());
+    assertTrue(request(stepIn).isSuccess(), "targeted stepIn accepted");
     StoppedEvent landed = awaitStopped();
 
     assertEquals("step", landed.getBody().getReason());
     var frame = stackTrace(landed.getBody().getThreadId()).getBody().getStackFrames().get(0);
-    assertTrue("landed in Rich.demo (was " + frame.getName() + ")", frame.getName().endsWith("Rich.demo"));
-    assertFalse("did not stop in the earlier calls", frame.getName().contains("throwDemo"));
+    assertTrue(frame.getName().endsWith("Rich.demo"), "landed in Rich.demo (was " + frame.getName() + ")");
+    assertFalse(frame.getName().contains("throwDemo"), "did not stop in the earlier calls");
 
     request(new DisconnectRequest());
   }
@@ -84,6 +85,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
    * while the not-yet-executed calls later on the line still are.
    */
   @Test
+  @DisplayName("a finished call is not offered again after stepping out")
   public void aFinishedCallIsNotOfferedAgainAfterSteppingOut() throws Exception {
     StoppedEvent atDemo = runToBreakpoint(FIXTURE_MAIN, FIXTURE_DEMO_LINE);
     int threadId = atDemo.getBody().getThreadId();
@@ -91,26 +93,24 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
     StepInTarget first = targets.get(0); // Main.throwDemo, per the ordering test
 
     StepInRequest stepIn = stepInRequest(threadId, first.getId());
-    assertTrue("targeted stepIn accepted", request(stepIn).isSuccess());
+    assertTrue(request(stepIn).isSuccess(), "targeted stepIn accepted");
     awaitStopped(); // inside the chosen callee
 
     StepOutRequest stepOut = stepOutRequest(threadId);
-    assertTrue("stepOut accepted", request(stepOut).isSuccess());
+    assertTrue(request(stepOut).isSuccess(), "stepOut accepted");
     StoppedEvent back = awaitStopped(); // back on the demo line, at the finished call's return
 
     List<StepInTarget> after = requestStepInTargets(topFrameId(back.getBody().getThreadId()));
-    assertFalse("the finished call is not offered again (targets: " + after + ")",
-                after.stream().anyMatch(t -> t.getLabel().equals(first.getLabel())));
-    assertTrue("the later calls on the line are still offered (targets: " + after + ")",
-               after.stream().anyMatch(t -> t.getLabel().endsWith("Main.inspectDemo")));
+    assertFalse(after.stream().anyMatch(t -> t.getLabel().equals(first.getLabel())), "the finished call is not offered again (targets: " + after + ")");
+    assertTrue(after.stream().anyMatch(t -> t.getLabel().endsWith("Main.inspectDemo")), "the later calls on the line are still offered (targets: " + after + ")");
 
     request(new DisconnectRequest());
   }
 
   private List<StepInTarget> requestStepInTargets(int frameId) throws Exception {
     var response = request(stepInTargetsRequest(frameId));
-    assertTrue("stepInTargets succeeds", response.isSuccess());
-    assertTrue("typed response", response instanceof StepInTargetsResponse);
+    assertTrue(response.isSuccess(), "stepInTargets succeeds");
+    assertTrue(response instanceof StepInTargetsResponse, "typed response");
     return ((StepInTargetsResponse)response).getBody().getTargets();
   }
 }

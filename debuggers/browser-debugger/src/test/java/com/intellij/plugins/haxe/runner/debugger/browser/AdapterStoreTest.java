@@ -1,8 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,15 +16,17 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Exercises the store against a LOCAL http server (the module's own
  * ContentHttpServer, dogfooded) — no network, no real pins. The archive shape
  * mirrors the firefox vsix: a zip with extension/dist/adapter.bundle.js.
  */
+@DisplayName("Browser debugger: adapter store")
 public class AdapterStoreTest {
   private static final String ENTRY = "extension/dist/adapter.bundle.js";
   private static final String BUNDLE_CONTENT = "// fake adapter bundle";
@@ -35,7 +37,7 @@ public class AdapterStoreTest {
   private byte[] archive;
   private String archiveSha;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     www = Files.createTempDirectory("adapter-store-www");
     storeRoot = Files.createTempDirectory("adapter-store");
@@ -45,7 +47,7 @@ public class AdapterStoreTest {
     server = new ContentHttpServer(www);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (server != null) {
       server.close();
@@ -53,13 +55,13 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("downloads verifies unpacks and caches")
   public void downloadsVerifiesUnpacksAndCaches() throws Exception {
     AdapterStore store = new AdapterStore(storeRoot);
     Path entry = store.resolveEntry(pin(archiveSha), null);
     assertTrue(Files.isRegularFile(entry));
     assertEquals(BUNDLE_CONTENT, Files.readString(entry));
-    assertTrue("completion marker written",
-               Files.isRegularFile(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")));
+    assertTrue(Files.isRegularFile(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")), "completion marker written");
 
     // second resolve is a pure cache hit: kill the server to prove no fetch
     server.close();
@@ -68,6 +70,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("wrong hash refuses the artifact and caches nothing")
   public void wrongHashRefusesTheArtifactAndCachesNothing() throws Exception {
     AdapterStore store = new AdapterStore(storeRoot);
     String wrongSha = "0".repeat(64);
@@ -75,14 +78,14 @@ public class AdapterStoreTest {
       store.resolveEntry(pin(wrongSha), null);
       fail("expected the SHA-256 mismatch to refuse the artifact");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("SHA-256 mismatch"));
+      assertTrue(e.getMessage().contains("SHA-256 mismatch"), e.getMessage());
     }
-    assertTrue("nothing unpacked",
-               !Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0").resolve(ENTRY)));
-    assertTrue("no marker", !Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")));
+    assertTrue(!Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0").resolve(ENTRY)), "nothing unpacked");
+    assertTrue(!Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")), "no marker");
   }
 
   @Test
+  @DisplayName("torn previous attempt is redone")
   public void tornPreviousAttemptIsRedone() throws Exception {
     // simulate a crash mid-unpack: version dir exists WITHOUT the marker
     Path versionDir = storeRoot.resolve("test-adapter").resolve("1.0.0");
@@ -91,10 +94,11 @@ public class AdapterStoreTest {
 
     Path entry = new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), null);
     assertEquals(BUNDLE_CONTENT, Files.readString(entry));
-    assertTrue("torn leftovers discarded", !Files.exists(versionDir.resolve("extension/leftover.txt")));
+    assertTrue(!Files.exists(versionDir.resolve("extension/leftover.txt")), "torn leftovers discarded");
   }
 
   @Test
+  @DisplayName("override directory wins and skips the store")
   public void overrideDirectoryWinsAndSkipsTheStore() throws Exception {
     Path override = Files.createTempDirectory("adapter-override");
     Path overrideEntry = override.resolve(ENTRY);
@@ -107,17 +111,19 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("empty override directory fails with a clear message")
   public void emptyOverrideDirectoryFailsWithAClearMessage() throws Exception {
     Path override = Files.createTempDirectory("adapter-override-empty");
     try {
       new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), override);
       fail("expected the empty override to be rejected");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("does not contain"));
+      assertTrue(e.getMessage().contains("does not contain"), e.getMessage());
     }
   }
 
   @Test
+  @DisplayName("zip slip entries are rejected")
   public void zipSlipEntriesAreRejected() throws Exception {
     byte[] evil = zipWith("../escaped.txt", "evil");
     Files.write(www.resolve("adapter.vsix"), evil);
@@ -125,13 +131,13 @@ public class AdapterStoreTest {
       new AdapterStore(storeRoot).resolveEntry(pin(sha256(evil)), null);
       fail("expected the zip-slip entry to be rejected");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("zip-slip"));
+      assertTrue(e.getMessage().contains("zip-slip"), e.getMessage());
     }
-    assertTrue("nothing escaped the store",
-               !Files.exists(storeRoot.resolve("test-adapter").resolve("escaped.txt")));
+    assertTrue(!Files.exists(storeRoot.resolve("test-adapter").resolve("escaped.txt")), "nothing escaped the store");
   }
 
   @Test
+  @DisplayName("tar gz artifacts unpack")
   public void tarGzArtifactsUnpack() throws Exception {
     byte[] tarGz = tarGzWith("js-debug/src/dapDebugServer.js", "// fake dap server");
     Files.write(www.resolve("adapter.tar.gz"), tarGz);
@@ -142,6 +148,7 @@ public class AdapterStoreTest {
   }
 
   @Test
+  @DisplayName("tar slip entries are rejected")
   public void tarSlipEntriesAreRejected() throws Exception {
     byte[] evil = tarGzWith("../escaped.txt", "evil");
     Files.write(www.resolve("adapter.tar.gz"), evil);
@@ -151,10 +158,9 @@ public class AdapterStoreTest {
       new AdapterStore(storeRoot).resolveEntry(pin, null);
       fail("expected the tar-slip entry to be rejected");
     } catch (IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("tar-slip"));
+      assertTrue(e.getMessage().contains("tar-slip"), e.getMessage());
     }
-    assertTrue("nothing escaped the store",
-               !Files.exists(storeRoot.resolve("test-tgz").resolve("escaped.txt")));
+    assertTrue(!Files.exists(storeRoot.resolve("test-tgz").resolve("escaped.txt")), "nothing escaped the store");
   }
 
   private AdapterPin pin(String sha) {

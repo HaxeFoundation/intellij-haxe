@@ -140,11 +140,13 @@ final class Results {
     return name.endsWith(".xml") && (classNameFilter == null || name.contains(classNameFilter));
   }
 
-  // An Assume skip's message is "org.junit.AssumptionViolatedException: <reason>";
-  // only the reason is worth showing.
+  // A jupiter skip's message is "org.opentest4j.TestAbortedException: Assumption
+  // failed: <reason>"; only the reason is worth showing.
   private static String skipReason(String message) {
+    if (message == null) return "";
     // a leading fully-qualified throwable name up to its ": " separator
-    return message == null ? "" : message.replaceFirst("^[A-Za-z0-9_.$]+(?:Exception|Error): ", "");
+    return message.replaceFirst("^[A-Za-z0-9_.$]+(?:Exception|Error): ", "")
+      .replaceFirst("^Assumption failed: ", "");
   }
 
   private static int intAttr(Element element, String name) {

@@ -17,17 +17,20 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author fedor.korotkov
  */
+@DisplayName("Parsing: for")
 public class ForTest extends StatementTestBase {
   public ForTest() {
     super("for");
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }

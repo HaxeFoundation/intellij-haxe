@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.ide;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInspection.InspectionToolProvider;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
@@ -11,7 +13,8 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 
+@DisplayName("Annotation: access annotator")
 public class HaxeAccessAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     @Override
     public void setUp() throws Exception {
@@ -74,19 +78,23 @@ public class HaxeAccessAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
     // KEYWORD access control
     @Test
+    @DisplayName("access modifiers static access")
     public void testAccessModifiersStaticAccess() throws Exception {
         doTest();
     }
     @Test
+    @DisplayName("access modifiers instance access")
     public void testAccessModifiersInstanceAccess() throws Exception {
         doTest();
     }
     @Test
+    @DisplayName("access modifiers chain access")
     public void testAccessModifiersChainAccess() throws Exception {
         doTest();
     }
     // METADATA access control
     @Test
+    @DisplayName("meta private access")
     public void testMetaPrivateAccess() throws Exception {
         doTest();
     }

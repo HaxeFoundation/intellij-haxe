@@ -1,32 +1,19 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Breakpoints WIN over in-flight steps — the behaviour every sibling backend
@@ -37,6 +24,7 @@ import org.junit.Test;
  * breakpoints mid-verb (response + breakpointStop notification);
  * these tests pin the adapter's step-emulation loops to the same contract.
  */
+@DisplayName("Eval debugger: step breakpoint (live)")
 public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
   // EvalStepBp.hx load-bearing lines
   private static final int HELPER_BP_LINE = 11;
@@ -44,51 +32,53 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
   private static final int HELPER_CALL_LINE = 18;
   private static final int WORK_LATER_BP_LINE = 19;
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("step out stops at a breakpoint further down the function")
   public void stepOutStopsAtABreakpointFurtherDownTheFunction() throws Exception {
     int threadId = runToFirstBreakpoint(WORK_START_LINE, WORK_LATER_BP_LINE);
-    assertEquals("parked at the top of work", WORK_START_LINE, topFrame(threadId).getLine());
+    assertEquals(WORK_START_LINE, topFrame(threadId).getLine(), "parked at the top of work");
 
     StepOutRequest stepOut = stepOutRequest(threadId);
-    assertTrue("stepOut", request(stepOut).isSuccess());
+    assertTrue(request(stepOut).isSuccess(), "stepOut");
 
     StoppedEvent stopped = awaitStopped();
-    assertEquals("step-out yields to the breakpoint below", "breakpoint", stopped.getBody().getReason());
-    assertEquals("stopped ON that breakpoint's line", WORK_LATER_BP_LINE,
-                 topFrame(stopped.getBody().getThreadId()).getLine());
+    assertEquals("breakpoint", stopped.getBody().getReason(), "step-out yields to the breakpoint below");
+    assertEquals(WORK_LATER_BP_LINE, topFrame(stopped.getBody().getThreadId()).getLine(), "stopped ON that breakpoint's line");
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("step over stops at a breakpoint inside the stepped over call")
   public void stepOverStopsAtABreakpointInsideTheSteppedOverCall() throws Exception {
     int threadId = runToFirstBreakpoint(HELPER_CALL_LINE, HELPER_BP_LINE);
-    assertEquals("parked on the helper() call", HELPER_CALL_LINE, topFrame(threadId).getLine());
+    assertEquals(HELPER_CALL_LINE, topFrame(threadId).getLine(), "parked on the helper() call");
 
     NextRequest next = nextRequest(threadId);
-    assertTrue("next", request(next).isSuccess());
+    assertTrue(request(next).isSuccess(), "next");
 
     StoppedEvent stopped = awaitStopped();
-    assertEquals("step-over yields to the breakpoint inside the callee", "breakpoint",
-                 stopped.getBody().getReason());
-    assertEquals("stopped ON the callee's breakpoint line", HELPER_BP_LINE,
-                 topFrame(stopped.getBody().getThreadId()).getLine());
+    assertEquals("breakpoint", stopped.getBody().getReason(), "step-over yields to the breakpoint inside the callee");
+    assertEquals(HELPER_BP_LINE, topFrame(stopped.getBody().getThreadId()).getLine(), "stopped ON the callee's breakpoint line");
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("stepping off a breakpoint line does not insta stop on its own breakpoint")
   public void steppingOffABreakpointLineDoesNotInstaStopOnItsOwnBreakpoint() throws Exception {
     int threadId = runToFirstBreakpoint(WORK_START_LINE);
-    assertEquals("parked at the top of work", WORK_START_LINE, topFrame(threadId).getLine());
+    assertEquals(WORK_START_LINE, topFrame(threadId).getLine(), "parked at the top of work");
 
     NextRequest next = nextRequest(threadId);
-    assertTrue("next", request(next).isSuccess());
+    assertTrue(request(next).isSuccess(), "next");
 
     StoppedEvent stopped = awaitStopped();
-    assertEquals("a normal step off the parked breakpoint line", "step", stopped.getBody().getReason());
+    assertEquals("step", stopped.getBody().getReason(), "a normal step off the parked breakpoint line");
     // the exact landing line wobbles by one (the VM sometimes reports a
     // trailing same-line sub-position first); the contract under test is only
     // that the step LEFT the line instead of insta-stopping on its own bp
     int landedLine = topFrame(stopped.getBody().getThreadId()).getLine();
-    assertTrue("landed past the breakpoint line (was " + landedLine + ")",
-               landedLine > WORK_START_LINE);
+    assertTrue(landedLine > WORK_START_LINE, "landed past the breakpoint line (was " + landedLine + ")");
   }
 
   @Override
@@ -100,7 +90,7 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
   private int runToFirstBreakpoint(int... lines) throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());
-    assertTrue("initialize", request(initialize).isSuccess());
+    assertTrue(request(initialize).isSuccess(), "initialize");
     dapClient.pollEvent(TIMEOUT);
     launch();
 
@@ -117,18 +107,18 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
     }
     bpArgs.setBreakpoints(breakpoints);
     setBreakpoints.setArguments(bpArgs);
-    assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
+    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
     configurationDone();
 
     StoppedEvent stopped = awaitStopped();
-    assertEquals("first stop is the breakpoint", "breakpoint", stopped.getBody().getReason());
+    assertEquals("breakpoint", stopped.getBody().getReason(), "first stop is the breakpoint");
     return stopped.getBody().getThreadId();
   }
 
   private StackFrame topFrame(int threadId) throws Exception {
     StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse response = (StackTraceResponse)request(stackTrace);
-    assertTrue("stackTrace", response.isSuccess());
+    assertTrue(response.isSuccess(), "stackTrace");
     return response.getBody().getStackFrames().get(0);
   }
 }

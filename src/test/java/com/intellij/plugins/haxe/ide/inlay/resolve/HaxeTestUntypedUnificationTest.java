@@ -4,8 +4,10 @@ import com.intellij.codeInsight.hints.declarative.InlayHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayFieldHintsProvider;
 import com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider;
 import com.intellij.plugins.haxe.ide.inlay.HaxeInlayTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Inlay hints: test untyped unification")
 public class HaxeTestUntypedUnificationTest extends HaxeInlayTestBase {
 
   InlayHintsProvider localVarHintsProvider = new HaxeInlayLocalVariableHintsProvider();
@@ -25,10 +27,12 @@ public class HaxeTestUntypedUnificationTest extends HaxeInlayTestBase {
 
 
   @Test
+  @DisplayName("null unification local var")
   public void testNullUnificationLocalVar() throws Exception {
     doTest(localVarHintsProvider);
   }
   @Test
+  @DisplayName("null unification field")
   public void testNullUnificationField() throws Exception {
     doTest(fieldHintsProvider);
   }

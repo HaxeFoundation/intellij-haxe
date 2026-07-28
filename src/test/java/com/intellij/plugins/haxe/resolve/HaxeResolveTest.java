@@ -17,36 +17,28 @@
  */
 package com.intellij.plugins.haxe.resolve;
 
-import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.HaxeMultiFileTestBase;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumBodyImpl;
-import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.refactoring.MultiFileTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Created by Boch on 20.04.2015.
  */
-public class HaxeResolveTest extends MultiFileTestCase {
-  @Override
-  protected String getTestDataPath() {
-    return HaxeTestUtils.BASE_TEST_DATA_PATH;
-  }
-
+@DisplayName("Resolve: haxe resolve")
+public class HaxeResolveTest extends HaxeMultiFileTestBase {
   @NotNull
   @Override
   protected String getTestRoot() {
     return "/resolve/";
-  }
-
-  @Override
-  protected ModuleType getModuleType() {
-    return HaxeModuleType.getInstance();
   }
 
   //Both names are relative to root directory
@@ -56,7 +48,7 @@ public class HaxeResolveTest extends MultiFileTestCase {
       public void performAction(VirtualFile rootDir, VirtualFile rootAfter) throws Exception {
         String pathToTest = "Test.hx";
         final VirtualFile child = VfsUtil.findRelativeFile(pathToTest, rootDir);
-        assertNotNull("Neither class nor file " + pathToTest + " not found", child);
+        assertNotNull(child, "Neither class nor file " + pathToTest + " not found");
         PsiElement file = myPsiManager.findFile(child);
         assertNotNull(file);
 
@@ -94,6 +86,7 @@ public class HaxeResolveTest extends MultiFileTestCase {
   //For example accessing flash.display.StageAlign.TOP_LEFT in some class;
   //https://github.com/TiVo/intellij-haxe/issues/39
   @Test
+  @DisplayName("resolve extern enum by full path")
   public void testResolveExternEnumByFullPath() throws Exception {
     doTest();
   }

@@ -21,15 +21,15 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Editor: live templates")
 public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -56,11 +56,13 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("iter - for loop over array template")
   public void testIter() throws Throwable {
     doTest("Iter.hx", "Array.hx");
   }
 
   @Test
+  @DisplayName("itar - indexed for loop template")
   public void testItar() throws Throwable {
     doTest("Itar.hx", "Array.hx");
   }

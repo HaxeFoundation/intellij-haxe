@@ -25,7 +25,8 @@ dependencies {
     annotationProcessor(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 
-    testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
 val buildHashlinkAdapter = providers.gradleProperty("buildHashlinkAdapter").getOrElse("true").toBoolean()
@@ -206,6 +207,10 @@ tasks.named("check") {
 }
 
 tasks.named<Test>("test") {
+    useJUnitPlatform()
+    // @Timeout kills a hung test from a watcher thread (JUnit4 timeout semantics);
+    // the default mode would merely wait for the test to come back on its own
+    systemProperty("junit.jupiter.execution.timeout.thread.mode.default", "SEPARATE_THREAD")
     onlyIf {
         if (!debuggerTests) {
             logger.lifecycle("SKIPPING debugger tests (opt in with -PdebuggerTests=true)")

@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.ide;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.intellij.codeInspection.InspectionToolProvider;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
@@ -12,7 +14,8 @@ import com.intellij.plugins.haxe.ide.inspections.*;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -21,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 
+@DisplayName("Annotation: unused annotator")
 public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     @Override
     public void setUp() throws Exception {
@@ -72,6 +76,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     }
 
     @Test
+    @DisplayName("unused fields and variables test")
     public void testUnusedFieldsAndVariablesTest() throws Exception {
         myFixture.enableInspections(
                 HaxeUnusedFieldInspection.class,
@@ -81,6 +86,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     }
 
     @Test
+    @DisplayName("unused methods and functions test")
     public void testUnusedMethodsAndFunctionsTest() throws Exception {
         myFixture.enableInspections(
                 HaxeUnusedFunctionInspection.class,
@@ -90,6 +96,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     }
 
     @Test
+    @DisplayName("unused method abstract impl test")
     public void testUnusedMethodAbstractImplTest() throws Exception {
         myFixture.enableInspections(
                 HaxeUnusedFunctionInspection.class,
@@ -99,6 +106,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     }
 
     @Test
+    @DisplayName("unused module level function test")
     public void testUnusedModuleLevelFunctionTest() throws Exception {
         myFixture.enableInspections(
                 HaxeUnusedFunctionInspection.class,

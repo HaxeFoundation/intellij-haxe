@@ -1,5 +1,11 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
+
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
@@ -17,6 +23,7 @@ import java.util.List;
  * class's extends list in handleSuperExpression. Without the boundary
  * crossing both typed as Dynamic/unknown and the popup came up empty.
  */
+@DisplayName("Debugger: code fragment completion")
 public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
@@ -33,7 +40,7 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
         function update() { trace<caret>(count); }
         static function main() { new Widget().update(); } }""");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull("context element at the breakpoint", context);
+    assertNotNull(context, "context element at the breakpoint");
     return context;
   }
 
@@ -47,14 +54,20 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
     return lookups != null ? lookups : List.of();
   }
 
+  @Test
+  @DisplayName("this completion lists own members")
   public void testThisCompletionListsOwnMembers() {
     assertContainsElements(fragmentCompletions("this."), "count", "update");
   }
 
+  @Test
+  @DisplayName("this completion lists inherited members")
   public void testThisCompletionListsInheritedMembers() {
     assertContainsElements(fragmentCompletions("this."), "inherited", "baseAction");
   }
 
+  @Test
+  @DisplayName("super completion lists super class members")
   public void testSuperCompletionListsSuperClassMembers() {
     assertContainsElements(fragmentCompletions("super."), "inherited", "baseAction");
   }

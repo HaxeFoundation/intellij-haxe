@@ -17,17 +17,20 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Fedor.Korotkov
  */
+@DisplayName("Completion: smart")
 public class SmartCompletionTest extends HaxeCompletionTestBase {
   public SmartCompletionTest() {
     super("completion", "smart");
   }
 
   @Test
+  @DisplayName("enum 1 - qualified enum value for typed var")
   public void testEnum1() throws Throwable {
     doTest();
   }

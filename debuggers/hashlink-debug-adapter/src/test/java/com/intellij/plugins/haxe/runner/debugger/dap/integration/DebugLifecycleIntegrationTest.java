@@ -1,9 +1,9 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.DapPaths;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Breakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
@@ -13,7 +13,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives the adapter through whole debug sessions and asserts the EVENT SEQUENCE:
@@ -21,16 +22,18 @@ import org.junit.Test;
  * These are deliberately flow tests — the subject under test is the ordering and
  * completeness of the lifecycle, not a single feature.
  */
+@DisplayName("HashLink debugger: debug lifecycle (integration)")
 public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
 
   @Test
+  @DisplayName("full breakpoint lifecycle")
   public void fullBreakpointLifecycle() throws Exception {
     initialize();
     Response launch = launch();
-    assertTrue("launch succeeds: " + launch.getMessage(), launch.isSuccess());
+    assertTrue(launch.isSuccess(), "launch succeeds: " + launch.getMessage());
 
     Response setBreakpoints = setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
-    assertTrue("setBreakpoints succeeds", setBreakpoints.isSuccess());
+    assertTrue(setBreakpoints.isSuccess(), "setBreakpoints succeeds");
     assertAllVerified(setBreakpoints);
 
     configurationDone();
@@ -44,7 +47,7 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
 
     while (!terminated) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected a debug event", event);
+      assertNotNull(event, "expected a debug event");
       if (event instanceof StoppedEvent stopped) {
         stops++;
         assertEquals("breakpoint", stopped.getBody().getReason());
@@ -54,13 +57,12 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
           // verify threads + stack trace on the first stop
           assertTrue(request(new ThreadsRequest()).isSuccess());
           StackTraceResponse frames = stackTrace(threadId);
-          assertEquals("top frame at breakpoint line", FIXTURE_LOOP_LINE,
-                       frames.getBody().getStackFrames().get(0).getLine());
+          assertEquals(FIXTURE_LOOP_LINE, frames.getBody().getStackFrames().get(0).getLine(), "top frame at breakpoint line");
           String topPath = DapPaths.toForwardSlashes(frames.getBody().getStackFrames().get(0).getSource().getPath());
-          assertTrue("top frame in Main.hx (" + topPath + ")", topPath.endsWith("Main.hx"));
+          assertTrue(topPath.endsWith("Main.hx"), "top frame in Main.hx (" + topPath + ")");
         }
 
-        assertTrue("continue succeeds", request(continueRequest(threadId)).isSuccess());
+        assertTrue(request(continueRequest(threadId)).isSuccess(), "continue succeeds");
       }
       else if (event instanceof OutputEvent out) {
         output.add(out.getBody().getOutput());
@@ -74,17 +76,18 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
       }
     }
 
-    assertEquals("breakpoint hit once per loop iteration", 3, stops);
-    assertTrue("exited event received", exited);
-    assertEquals("clean exit", Integer.valueOf(0), exitCode);
+    assertEquals(3, stops, "breakpoint hit once per loop iteration");
+    assertTrue(exited, "exited event received");
+    assertEquals(Integer.valueOf(0), exitCode, "clean exit");
     String allOutput = String.join("", output);
-    assertTrue("fixture start printed (" + allOutput + ")", allOutput.contains("fixture-start"));
-    assertTrue("fixture total printed", allOutput.contains("fixture-total:3"));
+    assertTrue(allOutput.contains("fixture-start"), "fixture start printed (" + allOutput + ")");
+    assertTrue(allOutput.contains("fixture-total:3"), "fixture total printed");
 
-    assertTrue("disconnect succeeds", request(new DisconnectRequest()).isSuccess());
+    assertTrue(request(new DisconnectRequest()).isSuccess(), "disconnect succeeds");
   }
 
   @Test
+  @DisplayName("runs to completion without breakpoints")
   public void runsToCompletionWithoutBreakpoints() throws Exception {
     initialize();
     assertTrue(launch().isSuccess());
@@ -94,7 +97,7 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
     boolean sawOutput = false;
     while (!terminated) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected an event before termination", event);
+      assertNotNull(event, "expected an event before termination");
       if (event instanceof OutputEvent out && out.getBody().getOutput().contains("fixture-start")) {
         sawOutput = true;
       }
@@ -102,24 +105,25 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
         terminated = true;
       }
     }
-    assertTrue("debuggee produced output", sawOutput);
+    assertTrue(sawOutput, "debuggee produced output");
   }
 
   @Test
+  @DisplayName("nonexistent program fails but adapter still serves disconnect")
   public void nonexistentProgramFailsButAdapterStillServesDisconnect() throws Exception {
     initialize();
     Response launch = launch("does-not-exist.hl");
-    assertTrue("launch of a missing program fails", !launch.isSuccess());
+    assertTrue(!launch.isSuccess(), "launch of a missing program fails");
 
     Response disconnect = request(new DisconnectRequest());
-    assertTrue("adapter still answers disconnect after a failed launch", disconnect.isSuccess());
+    assertTrue(disconnect.isSuccess(), "adapter still answers disconnect after a failed launch");
   }
 
   private static void assertAllVerified(Response response) {
     var body = ((SetBreakpointsResponse)response).getBody();
-    assertTrue("at least one breakpoint returned", body.getBreakpoints().size() >= 1);
+    assertTrue(body.getBreakpoints().size() >= 1, "at least one breakpoint returned");
     for (Breakpoint breakpoint : body.getBreakpoints()) {
-      assertTrue("breakpoint verified", breakpoint.isVerified());
+      assertTrue(breakpoint.isVerified(), "breakpoint verified");
     }
   }
 }

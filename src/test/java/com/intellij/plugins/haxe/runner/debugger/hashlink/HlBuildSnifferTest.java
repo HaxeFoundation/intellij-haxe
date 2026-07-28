@@ -1,22 +1,24 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** hxml/argument scanning for the HashLink-bytecode gate. */
+@DisplayName("Debugger: hl build sniffer")
 public class HlBuildSnifferTest {
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  Path temp;
 
   @Test
+  @DisplayName("finds hl output in arguments")
   public void findsHlOutputInArguments() {
     HlBuildSniffer.HlBuild build = HlBuildSniffer.fromArguments("-main Main -hl out/game.hl -debug");
     assertTrue(build.hlBytecode());
@@ -24,24 +26,28 @@ public class HlBuildSnifferTest {
   }
 
   @Test
+  @DisplayName("double dash form is accepted")
   public void doubleDashFormIsAccepted() {
     assertTrue(HlBuildSniffer.fromArguments("--hl out.hl").hlBytecode());
   }
 
   @Test
+  @DisplayName("hl c native output is not bytecode")
   public void hlCNativeOutputIsNotBytecode() {
     HlBuildSniffer.HlBuild build = HlBuildSniffer.fromArguments("-hl out/main.c");
-    assertFalse("HL/C native output cannot be debugged as bytecode", build.hlBytecode());
+    assertFalse(build.hlBytecode(), "HL/C native output cannot be debugged as bytecode");
     assertEquals("out/main.c", build.output());
   }
 
   @Test
+  @DisplayName("non hl arguments yield none")
   public void nonHlArgumentsYieldNone() {
     assertFalse(HlBuildSniffer.fromArguments("-main Main -js out.js").hlBytecode());
     assertFalse(HlBuildSniffer.fromArguments(null).hlBytecode());
   }
 
   @Test
+  @DisplayName("reads hxml file with comments and per line args")
   public void readsHxmlFileWithCommentsAndPerLineArgs() throws IOException {
     Path hxml = write("build.hxml", """
       # build for hashlink
@@ -57,6 +63,7 @@ public class HlBuildSnifferTest {
   }
 
   @Test
+  @DisplayName("follows hxml includes")
   public void followsHxmlIncludes() throws IOException {
     write("common.hxml", "-cp src\n-hl bin/app.hl\n");
     Path main = write("build.hxml", "common.hxml\n-debug\n");
@@ -64,17 +71,18 @@ public class HlBuildSnifferTest {
   }
 
   @Test
+  @DisplayName("cache refreshes when the file changes")
   public void cacheRefreshesWhenTheFileChanges() throws IOException, InterruptedException {
     Path hxml = write("mutable.hxml", "-js out.js\n");
     assertFalse(HlBuildSniffer.fromHxml(hxml).hlBytecode());
     Thread.sleep(20); // ensure a different modification stamp
     Files.writeString(hxml, "-hl out.hl\n");
     Files.setLastModifiedTime(hxml, java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis() + 1000));
-    assertTrue("cache must notice the changed file", HlBuildSniffer.fromHxml(hxml).hlBytecode());
+    assertTrue(HlBuildSniffer.fromHxml(hxml).hlBytecode(), "cache must notice the changed file");
   }
 
   private Path write(String name, String content) throws IOException {
-    Path file = temp.getRoot().toPath().resolve(name);
+    Path file = temp.resolve(name);
     Files.writeString(file, content);
     return file;
   }

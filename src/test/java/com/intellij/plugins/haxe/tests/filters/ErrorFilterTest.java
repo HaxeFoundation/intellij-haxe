@@ -21,15 +21,18 @@ import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.tests.runner.filters.ErrorFilter;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DisplayName("Run console: error filter")
 public class ErrorFilterTest {
 
   @Test
+  @DisplayName("link - creates hyperlink for stack line file reference")
   public void testLink() {
     // This tests whether hyperlinks (Filter.Result) are created properly,
     // not whether error parsing or filters work.

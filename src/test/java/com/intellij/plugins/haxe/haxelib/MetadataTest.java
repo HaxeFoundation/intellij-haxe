@@ -16,14 +16,18 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.google.gson.*;
-import com.intellij.testFramework.UsefulTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
 import static com.intellij.plugins.haxe.haxelib.HaxelibMetadata.*;
 
-public class MetadataTest extends UsefulTestCase {
+@DisplayName("Haxelib: metadata")
+public class MetadataTest {
 
   public static final String NAME_DATA = "useless_lib";
   public static final String URL_DATA = "https://github.com/jasononeil/useless/";
@@ -96,12 +100,14 @@ public class MetadataTest extends UsefulTestCase {
 
 
   @Test
+  @DisplayName("parsing")
   public void testParsing() throws Exception {
     HaxelibMetadata md = getTestMetadata();
     assertEquals(createTestElement(), md.getTestInterface().getRoot());
   }
 
   @Test
+  @DisplayName("accessors")
   public void testAccessors() throws Exception {
     HaxelibMetadata md = getTestMetadata();
     assertEquals(NAME_DATA, md.getName());

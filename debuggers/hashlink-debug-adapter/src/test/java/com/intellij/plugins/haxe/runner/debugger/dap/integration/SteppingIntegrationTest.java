@@ -1,55 +1,61 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives step over / into / out against a real HashLink debug session, one step
  * kind per test. Every test starts stopped at the loop breakpoint in main, where
  * the next statement is the call to add().
  */
+@DisplayName("HashLink debugger: stepping (integration)")
 public class SteppingIntegrationTest extends DapIntegrationTestBase {
   @Test
+  @DisplayName("step into enters callee")
   public void stepIntoEntersCallee() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     assertEquals("breakpoint", atLoop.getBody().getReason());
-    assertTrue("stopped in main", topFrameName(atLoop.getBody().getThreadId()).endsWith("main"));
+    assertTrue(topFrameName(atLoop.getBody().getThreadId()).endsWith("main"), "stopped in main");
 
-    assertTrue("stepIn accepted", request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess());
+    assertTrue(request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     StoppedEvent inAdd = awaitStopped();
 
     assertEquals("step", inAdd.getBody().getReason());
     String frame = topFrameName(inAdd.getBody().getThreadId());
-    assertTrue("stepped into add (was " + frame + ")", frame.endsWith("add"));
+    assertTrue(frame.endsWith("add"), "stepped into add (was " + frame + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step into enters a closure callee")
   public void stepIntoEntersAClosureCallee() throws Exception {
     // `var fn = grab; fn()` — the callee exists only at RUNTIME (OCallClosure
     // has no static findex). Step-into resolves the closure register's
     // vclosure `fun` pointer at the stop and plants the entry temp there;
     // without that, the step degraded to a step-over (user-reported).
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_CALL_LINE);
-    assertTrue("stopped in the constructor", topFrameName(atCall.getBody().getThreadId()).endsWith("Holder.new"));
+    assertTrue(topFrameName(atCall.getBody().getThreadId()).endsWith("Holder.new"), "stopped in the constructor");
 
-    assertTrue("stepIn accepted", request(stepInRequest(atCall.getBody().getThreadId())).isSuccess());
+    assertTrue(request(stepInRequest(atCall.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();
 
     assertEquals("step", inGrab.getBody().getReason());
     String frame = topFrameName(inGrab.getBody().getThreadId());
-    assertTrue("stepped into the closure's target grab (was " + frame + ")", frame.endsWith("grab"));
+    assertTrue(frame.endsWith("grab"), "stepped into the closure's target grab (was " + frame + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step into enters a closure from array access")
   public void stepIntoEntersAClosureFromArrayAccess() throws Exception {
     // `callbacks[idx]()` — a REAL array (runtime index, not analyzer-folded):
     // the closure register is loaded BY the array access on the same line, so
@@ -58,91 +64,92 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     // callee (user-reported after the plain closure fix).
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
     int atCallLine = stackTrace(atCall.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine();
-    assertEquals("stopped on the array-access call line", FIXTURE_CLOSURE_REAL_ARRAY_LINE, atCallLine);
+    assertEquals(FIXTURE_CLOSURE_REAL_ARRAY_LINE, atCallLine, "stopped on the array-access call line");
 
-    assertTrue("stepIn accepted", request(stepInRequest(atCall.getBody().getThreadId())).isSuccess());
+    assertTrue(request(stepInRequest(atCall.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();
 
     assertEquals("step", inGrab.getBody().getReason());
     String frame = topFrameName(inGrab.getBody().getThreadId());
-    assertTrue("stepped into the array element's target grab (was " + frame + ")", frame.endsWith("grab"));
+    assertTrue(frame.endsWith("grab"), "stepped into the array element's target grab (was " + frame + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("stepping inside a closure entered callee stays inside")
   public void steppingInsideAClosureEnteredCalleeStaysInside() throws Exception {
     // user-reported: after ENTERING a closure-called function, the very next
     // step jumped back out to the caller (and the caller position skipped a
     // line) instead of advancing to the callee's second line
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_CALL_LINE);
     int threadId = atCall.getBody().getThreadId();
-    assertTrue("stepIn accepted", request(stepInRequest(threadId)).isSuccess());
+    assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();
-    assertEquals("landed on grab's first line", FIXTURE_CLOSURE_BODY_LINE,
-                 stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine());
+    assertEquals(FIXTURE_CLOSURE_BODY_LINE, stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine(), "landed on grab's first line");
 
-    assertTrue("next accepted", request(nextRequest(inGrab.getBody().getThreadId())).isSuccess());
+    assertTrue(request(nextRequest(inGrab.getBody().getThreadId())).isSuccess(), "next accepted");
     StoppedEvent second = awaitStopped();
     var frame = stackTrace(second.getBody().getThreadId()).getBody().getStackFrames().get(0);
-    assertTrue("still inside grab (was " + frame.getName() + " line " + frame.getLine() + ")",
-               frame.getName().endsWith("grab"));
-    assertEquals("advanced to grab's second line", FIXTURE_CLOSURE_BODY_LINE2, frame.getLine());
+    assertTrue(frame.getName().endsWith("grab"), "still inside grab (was " + frame.getName() + " line " + frame.getLine() + ")");
+    assertEquals(FIXTURE_CLOSURE_BODY_LINE2, frame.getLine(), "advanced to grab's second line");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("stepping inside an array closure entered callee stays inside")
   public void steppingInsideAnArrayClosureEnteredCalleeStaysInside() throws Exception {
     // same, entered through the DEFERRED path (callbacks[idx]())
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
     int threadId = atCall.getBody().getThreadId();
-    assertTrue("stepIn accepted", request(stepInRequest(threadId)).isSuccess());
+    assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();
-    assertEquals("landed on grab's first line", FIXTURE_CLOSURE_BODY_LINE,
-                 stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine());
+    assertEquals(FIXTURE_CLOSURE_BODY_LINE, stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine(), "landed on grab's first line");
 
-    assertTrue("next accepted", request(nextRequest(inGrab.getBody().getThreadId())).isSuccess());
+    assertTrue(request(nextRequest(inGrab.getBody().getThreadId())).isSuccess(), "next accepted");
     StoppedEvent second = awaitStopped();
     var frame = stackTrace(second.getBody().getThreadId()).getBody().getStackFrames().get(0);
-    assertTrue("still inside grab (was " + frame.getName() + " line " + frame.getLine() + ")",
-               frame.getName().endsWith("grab"));
-    assertEquals("advanced to grab's second line", FIXTURE_CLOSURE_BODY_LINE2, frame.getLine());
+    assertTrue(frame.getName().endsWith("grab"), "still inside grab (was " + frame.getName() + " line " + frame.getLine() + ")");
+    assertEquals(FIXTURE_CLOSURE_BODY_LINE2, frame.getLine(), "advanced to grab's second line");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step out returns to caller")
   public void stepOutReturnsToCaller() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
-    assertTrue("stepIn accepted", request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess());
+    assertTrue(request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     StoppedEvent inAdd = awaitStopped();
 
-    assertTrue("stepOut accepted", request(stepOutRequest(inAdd.getBody().getThreadId())).isSuccess());
+    assertTrue(request(stepOutRequest(inAdd.getBody().getThreadId())).isSuccess(), "stepOut accepted");
     StoppedEvent backInMain = awaitStopped();
 
     assertEquals("step", backInMain.getBody().getReason());
     String frame = topFrameName(backInMain.getBody().getThreadId());
-    assertTrue("stepped out to main (was " + frame + ")", frame.endsWith("main"));
+    assertTrue(frame.endsWith("main"), "stepped out to main (was " + frame + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step over stays in caller")
   public void stepOverStaysInCaller() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
-    assertTrue("next accepted", request(nextRequest(atLoop.getBody().getThreadId())).isSuccess());
+    assertTrue(request(nextRequest(atLoop.getBody().getThreadId())).isSuccess(), "next accepted");
     StoppedEvent afterNext = awaitStopped();
 
     assertEquals("step", afterNext.getBody().getReason());
     String frame = topFrameName(afterNext.getBody().getThreadId());
-    assertTrue("still in main after step over (was " + frame + ")", frame.endsWith("main"));
+    assertTrue(frame.endsWith("main"), "still in main after step over (was " + frame + ")");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step over a long running call waits for the landing")
   public void stepOverALongRunningCallWaitsForTheLanding() throws Exception {
     // Regression: a step over a slow call (Sys.sleep(3)) produces no debug
     // events for seconds. The step must WAIT for its landing — an earlier
@@ -150,20 +157,20 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     // losing the stop entirely (user-reported design flaw, verified here).
     StoppedEvent atSleep = runToBreakpoint(FIXTURE_MAIN, FIXTURE_SLOW_LINE);
     long start = System.currentTimeMillis();
-    assertTrue("next accepted", request(nextRequest(atSleep.getBody().getThreadId())).isSuccess());
+    assertTrue(request(nextRequest(atSleep.getBody().getThreadId())).isSuccess(), "next accepted");
     StoppedEvent landed = awaitStopped();
     long elapsed = System.currentTimeMillis() - start;
 
     assertEquals("step", landed.getBody().getReason());
     var frame = stackTrace(landed.getBody().getThreadId()).getBody().getStackFrames().get(0);
-    assertEquals("landed on the line after the sleep", FIXTURE_SLOW_AFTER_LINE, frame.getLine());
-    assertTrue("the landing took the sleep's duration (" + elapsed + "ms), not a watchdog shortcut",
-               elapsed >= 2500);
+    assertEquals(FIXTURE_SLOW_AFTER_LINE, frame.getLine(), "landed on the line after the sleep");
+    assertTrue(elapsed >= 2500, "the landing took the sleep's duration (" + elapsed + "ms), not a watchdog shortcut");
 
     request(new DisconnectRequest());
   }
 
   @Test
+  @DisplayName("step over a caught throw lands in the catch block")
   public void stepOverACaughtThrowLandsInTheCatchBlock() throws Exception {
     // Regression (user-reported): stepping over `throw` inside a try left the
     // function entirely instead of landing in the catch. The CFG treated OThrow
@@ -174,26 +181,23 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     // haxe 4.1 emits bogus "line 1" debug info for catch-handler ops, so the
     // landing cannot be identified — not supported by the current adapter
     assumeFixtureHaxe43Plus();
-    org.junit.Assume.assumeTrue("uncaught fixture not built - skipping", uncaughtFixtureHl != null);
+    Assumptions.assumeTrue(uncaughtFixtureHl != null, "uncaught fixture not built - skipping");
 
     initialize();
-    assertTrue("launch", launch(uncaughtFixtureHl.toString()).isSuccess());
-    assertTrue("breakpoint on the caught throw",
-               setBreakpoints(fixtureSrcDir.resolve("Uncaught.hx").toString(), 11).isSuccess());
-    assertTrue("configurationDone",
-               request(new ConfigurationDoneRequest()).isSuccess());
+    assertTrue(launch(uncaughtFixtureHl.toString()).isSuccess(), "launch");
+    assertTrue(setBreakpoints(fixtureSrcDir.resolve("Uncaught.hx").toString(), 11).isSuccess(), "breakpoint on the caught throw");
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess(), "configurationDone");
 
     StoppedEvent atThrow = awaitStopped();
     int threadId = atThrow.getBody().getThreadId();
 
-    assertTrue("next accepted", request(nextRequest(threadId)).isSuccess());
+    assertTrue(request(nextRequest(threadId)).isSuccess(), "next accepted");
     StoppedEvent landed = awaitStopped();
 
     assertEquals("step", landed.getBody().getReason());
     var frame = stackTrace(landed.getBody().getThreadId()).getBody().getStackFrames().get(0);
-    assertTrue("still in Uncaught.main (was " + frame.getName() + ")", frame.getName().endsWith("main"));
-    assertTrue("landed in the catch block, lines 12-14 (was line " + frame.getLine() + ")",
-               frame.getLine() >= 12 && frame.getLine() <= 14);
+    assertTrue(frame.getName().endsWith("main"), "still in Uncaught.main (was " + frame.getName() + ")");
+    assertTrue(frame.getLine() >= 12 && frame.getLine() <= 14, "landed in the catch block, lines 12-14 (was line " + frame.getLine() + ")");
 
     request(new DisconnectRequest());
   }

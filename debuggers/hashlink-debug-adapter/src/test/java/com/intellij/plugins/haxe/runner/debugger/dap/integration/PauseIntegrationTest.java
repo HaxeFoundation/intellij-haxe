@@ -1,17 +1,18 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.Map;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Pause: interrupt a freely-running debuggee, report a stop with reason
@@ -20,17 +21,19 @@ import org.junit.Test;
  * thread against real HashLink, using a busy-loop fixture so the interrupt lands
  * in Haxe rather than a native call.
  */
+@DisplayName("HashLink debugger: pause (integration)")
 public class PauseIntegrationTest extends DapIntegrationTestBase {
 
-  @Before
+  @BeforeEach
   public void requireSpinFixture() {
-    Assume.assumeTrue("spin fixture not built - skipping", spinFixtureHl != null);
+    Assumptions.assumeTrue(spinFixtureHl != null, "spin fixture not built - skipping");
   }
 
   @Test
+  @DisplayName("pause interrupts running debuggee in haxe code then resumes to exit")
   public void pauseInterruptsRunningDebuggeeInHaxeCodeThenResumesToExit() throws Exception {
     initialize();
-    assertTrue("launch succeeds", launch(spinFixtureHl.toString()).isSuccess());
+    assertTrue(launch(spinFixtureHl.toString()).isSuccess(), "launch succeeds");
     configurationDone();
 
     // wait until the busy loop is actually running so the pause interrupts a
@@ -39,28 +42,28 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
 
     // interrupt the running debuggee
     PauseRequest pause = pauseRequest(1);
-    assertTrue("pause is acknowledged", request(pause).isSuccess());
+    assertTrue(request(pause).isSuccess(), "pause is acknowledged");
 
     // a stop with reason "pause" arrives on a real thread
     StoppedEvent stopped = awaitStopped();
-    assertEquals("stopped for pause", "pause", stopped.getBody().getReason());
+    assertEquals("pause", stopped.getBody().getReason(), "stopped for pause");
     int threadId = stopped.getBody().getThreadId();
 
     // it landed IN the Haxe busy loop: top frame is Spin.main and its locals are
     // inspectable — the whole point of being able to pause
-    assertEquals("paused in Haxe code", "Spin.main", topFrameName(threadId));
+    assertEquals("Spin.main", topFrameName(threadId), "paused in Haxe code");
     Map<String, String> locals = variablesByName(localsScopeReference(topFrameId(threadId)));
-    assertFalse("loop locals are visible while paused (" + locals.keySet() + ")", locals.isEmpty());
+    assertFalse(locals.isEmpty(), "loop locals are visible while paused (" + locals.keySet() + ")");
 
     // continue resumes the held break-event thread; the debuggee runs to the end
-    assertTrue("continue is acknowledged", request(continueRequest(threadId)).isSuccess());
+    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue is acknowledged");
     awaitTerminated();
   }
 
   private void awaitOutputContaining(String needle) throws Exception {
     while (true) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected output containing '" + needle + "'", event);
+      assertNotNull(event, "expected output containing '" + needle + "'");
       if (event instanceof OutputEvent out && out.getBody().getOutput() != null
           && out.getBody().getOutput().contains(needle)) {
         return;
@@ -71,7 +74,7 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
   private void awaitTerminated() throws Exception {
     while (true) {
       Event event = client.pollEvent(TIMEOUT);
-      assertNotNull("expected termination after continue", event);
+      assertNotNull(event, "expected termination after continue");
       if (event instanceof TerminatedEvent) {
         return;
       }

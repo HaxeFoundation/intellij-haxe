@@ -1,8 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
@@ -13,20 +12,12 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
-import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.function.IntFunction;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Regression for the uncaught-exception STEP lock-up: the user stepped onto a
@@ -37,15 +28,20 @@ import org.junit.Test;
  * stack. The fix resumes the VM off the uncaught exception, ending the session
  * cleanly. These tests would HANG (and hit the method timeout) if it regressed.
  */
+@DisplayName("Eval debugger: step exception (live)")
 public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   private static final int THROW_LINE = 9;
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("stepping over an uncaught throw terminates without stalling")
   public void steppingOverAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
     stepUntilTerminated(EvalLiveTestBase::nextRequest);
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("stepping into an uncaught throw terminates without stalling")
   public void steppingIntoAnUncaughtThrowTerminatesWithoutStalling() throws Exception {
     stepUntilTerminated(EvalLiveTestBase::stepInRequest);
   }
@@ -57,7 +53,9 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    * terminated within a few presses. Mirrors the IDE: after each stop it also
    * asks for threads, like reportStopped does.
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("stepping at the exception stop answers promptly and terminates")
   public void steppingAtTheExceptionStopAnswersPromptlyAndTerminates() throws Exception {
     int threadId = runIntoExceptionStop().getBody().getThreadId();
     hydrateStopLikeTheIde(threadId, "exception stop");
@@ -66,16 +64,15 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       long before = System.currentTimeMillis();
       Response step = request(stepInRequest(threadId));
       long elapsed = System.currentTimeMillis() - before;
-      assertTrue("step press #" + press + " answered promptly, no stall (was " + elapsed + "ms)",
-                 elapsed < 8_000);
-      assertTrue("step press #" + press + " answered (success)", step.isSuccess());
+      assertTrue(elapsed < 8_000, "step press #" + press + " answered promptly, no stall (was " + elapsed + "ms)");
+      assertTrue(step.isSuccess(), "step press #" + press + " answered (success)");
 
       long deadline = System.currentTimeMillis() + 4_000;
       boolean stoppedAgain = false;
       while (System.currentTimeMillis() < deadline) {
         Event event = dapClient.pollEvent(200);
         if (event instanceof TerminatedEvent) {
-          assertTrue("haxe exited", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
+          assertTrue(haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "haxe exited");
           return;
         }
         if (event instanceof StoppedEvent stopped) {
@@ -97,7 +94,9 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    * THEN resume — the resume must be answered promptly and end the session,
    * not sit wedged behind stalled step loops until timeouts kill it.
    */
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(60)
+  @DisplayName("resume after stepping at the exception stop terminates promptly")
   public void resumeAfterSteppingAtTheExceptionStopTerminatesPromptly() throws Exception {
     int threadId = runIntoExceptionStop().getBody().getThreadId();
 
@@ -105,8 +104,8 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       long before = System.currentTimeMillis();
       Response step = request(stepInRequest(threadId));
       long elapsed = System.currentTimeMillis() - before;
-      assertTrue("step press #" + press + " answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
-      assertTrue("step press #" + press + " answered (success)", step.isSuccess());
+      assertTrue(elapsed < 8_000, "step press #" + press + " answered promptly (was " + elapsed + "ms)");
+      assertTrue(step.isSuccess(), "step press #" + press + " answered (success)");
       Event event = dapClient.pollEvent(1_500);
       if (event instanceof TerminatedEvent) {
         return; // wound down before we even resumed - fine
@@ -120,11 +119,11 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
     long elapsed = System.currentTimeMillis() - before;
-    assertTrue("resume answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
-    assertTrue("resume answered (success)", resumed.isSuccess());
+    assertTrue(elapsed < 8_000, "resume answered promptly, no stall (was " + elapsed + "ms)");
+    assertTrue(resumed.isSuccess(), "resume answered (success)");
 
     awaitTerminated();
-    assertTrue("haxe exited after the resume", haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS));
+    assertTrue(haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "haxe exited after the resume");
   }
 
   @Override
@@ -136,7 +135,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   private int stopOnThrowLine() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());
-    assertTrue("initialize", request(initialize).isSuccess());
+    assertTrue(request(initialize).isSuccess(), "initialize");
     dapClient.pollEvent(TIMEOUT);
     launch();
 
@@ -149,7 +148,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     breakpoint.setLine(THROW_LINE);
     bpArgs.setBreakpoints(List.of(breakpoint));
     setBreakpoints.setArguments(bpArgs);
-    assertTrue("setBreakpoints", request(setBreakpoints).isSuccess());
+    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
     configurationDone();
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
@@ -174,8 +173,8 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       long before = System.currentTimeMillis();
       Response step = request(stepFor.apply(threadId));
       long elapsed = System.currentTimeMillis() - before;
-      assertTrue("step #" + i + " was answered (success), was: " + step.getMessage(), step.isSuccess());
-      assertTrue("step #" + i + " answered promptly, no stall (was " + elapsed + "ms)", elapsed < 8_000);
+      assertTrue(step.isSuccess(), "step #" + i + " was answered (success), was: " + step.getMessage());
+      assertTrue(elapsed < 8_000, "step #" + i + " answered promptly, no stall (was " + elapsed + "ms)");
 
       // the terminate may race ahead of / lag behind the step response; poll a
       // short window for it, or for a fresh stop meaning another step is needed
@@ -209,9 +208,8 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
     long before = System.currentTimeMillis();
     Response resumed = request(resume);
     long elapsed = System.currentTimeMillis() - before;
-    assertTrue("continue after the walk answered promptly (was " + elapsed + "ms)", elapsed < 8_000);
-    assertTrue("continue after the walk answered (success), was: " + resumed.getMessage(),
-               resumed.isSuccess());
+    assertTrue(elapsed < 8_000, "continue after the walk answered promptly (was " + elapsed + "ms)");
+    assertTrue(resumed.isSuccess(), "continue after the walk answered (success), was: " + resumed.getMessage());
 
     awaitTerminated();
     haxe.waitFor(3, TimeUnit.SECONDS);
@@ -225,17 +223,16 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   private StoppedEvent runIntoExceptionStop() throws Exception {
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());
-    assertTrue("initialize", request(initialize).isSuccess());
+    assertTrue(request(initialize).isSuccess(), "initialize");
     dapClient.pollEvent(TIMEOUT);
     launch();
 
     SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(List.of("uncaught"));
-    assertTrue("setExceptionBreakpoints", request(exceptions).isSuccess());
+    assertTrue(request(exceptions).isSuccess(), "setExceptionBreakpoints");
     configurationDone();
 
     StoppedEvent stopped = awaitEvent(StoppedEvent.class);
-    assertTrue("stopped for the exception, was: " + stopped.getBody().getReason(),
-               "exception".equals(stopped.getBody().getReason()));
+    assertTrue("exception".equals(stopped.getBody().getReason()), "stopped for the exception, was: " + stopped.getBody().getReason());
     return stopped;
   }
 
@@ -247,11 +244,11 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    */
   private void hydrateStopLikeTheIde(int threadId, String label) throws Exception {
     long before = System.currentTimeMillis();
-    assertTrue(label + ": threads answered", request(new ThreadsRequest()).isSuccess());
+    assertTrue(request(new ThreadsRequest()).isSuccess(), label + ": threads answered");
 
     StackTraceRequest stackTrace = stackTraceRequest(threadId);
     StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
-    assertTrue(label + ": stackTrace answered", stResponse.isSuccess());
+    assertTrue(stResponse.isSuccess(), label + ": stackTrace answered");
 
     List<StackFrame> frames = stResponse.getBody().getStackFrames();
     if (!frames.isEmpty()) {
@@ -273,6 +270,6 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       request(watch); // success optional; promptness is the contract
     }
     long elapsed = System.currentTimeMillis() - before;
-    assertTrue(label + ": full stop hydration stayed prompt (was " + elapsed + "ms)", elapsed < 8_000);
+    assertTrue(elapsed < 8_000, label + ": full stop hydration stayed prompt (was " + elapsed + "ms)");
   }
 }

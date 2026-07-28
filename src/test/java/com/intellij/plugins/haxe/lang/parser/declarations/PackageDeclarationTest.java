@@ -17,24 +17,29 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
+@DisplayName("Parsing: package declaration")
 public class PackageDeclarationTest extends DeclarationTestBase {
   public PackageDeclarationTest() {
     super("package");
   }
 
   @Test
+  @DisplayName("empty")
   public void testEmpty() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("error 182")
   public void testError182() throws Throwable {
       doTest(true);
   }
 
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }

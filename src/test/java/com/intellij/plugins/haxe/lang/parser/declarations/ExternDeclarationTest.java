@@ -17,53 +17,37 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
-import com.intellij.core.CoreInjectedLanguageManager;
-import com.intellij.lang.injection.InjectedLanguageManager;
-import com.intellij.mock.MockDumbService;
-import com.intellij.openapi.extensions.AreaInstance;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.extensions.ExtensionsArea;
-import com.intellij.openapi.extensions.impl.ExtensionsAreaImpl;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbUtil;
-import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.psi.PsiClass;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+@DisplayName("Parsing: extern declaration")
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {
     super("extern");
   }
 
-  @Override
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-
   @Test
+  @DisplayName("simple")
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("interface")
   public void testInterface() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("final")
   public void testFinal() throws Throwable {
     doTest(true);
   }
 
   @Test
+  @DisplayName("extern inline")
   public void testExternInline() throws Throwable {
     doTest(true);
   }
