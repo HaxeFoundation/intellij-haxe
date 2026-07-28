@@ -137,7 +137,7 @@ class HashLinkSmartStepIntoHandler extends XSmartStepIntoHandler<HashLinkSmartSt
   // unimplemented title breaks session initialization, not just the popup.
   @Override
   public String getPopupTitle() {
-    return HaxeDebuggerBundle.message("hashlink.debugger.smart.step.into.title");
+    return HaxeDebuggerBundle.message("dap.debugger.smart.step.into.title");
   }
 
   @Override

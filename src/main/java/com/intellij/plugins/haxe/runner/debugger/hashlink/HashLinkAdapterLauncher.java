@@ -61,6 +61,8 @@ public final class HashLinkAdapterLauncher {
 
   /** The adapter bytecode shipped inside the plugin directory. */
   public static Path bundledAdapterPath() throws ExecutionException {
+    //TODO  we must replace this API once there is an alternative made available
+    // ref: https://platform.jetbrains.com/t/pluginmanagercore-getplugin-is-now-internal/4272/32
     IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID));
     Path adapter = plugin != null ? plugin.getPluginPath().resolve(ADAPTER_RELATIVE_PATH) : null;
     if (adapter == null || !Files.isRegularFile(adapter)) {
