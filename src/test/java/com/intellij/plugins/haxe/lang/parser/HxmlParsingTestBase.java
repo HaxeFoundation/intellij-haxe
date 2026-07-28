@@ -29,7 +29,6 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.ILazyParseableElementType;
 import com.intellij.testFramework.ParsingTestCase;
-import com.intellij.testFramework.junit5.RunInEdt;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,9 +36,9 @@ import org.junit.jupiter.api.TestInfo;
 
 /**
  * Jupiter front for the platform's JUnit3-style {@link ParsingTestCase};
- * same pattern as {@link HaxeParsingTestBase}, for the HXML grammar.
+ * same pattern as {@link HaxeParsingTestBase}, for the HXML grammar,
+ * including its conditional write-intent context around engine calls.
  */
-@RunInEdt(allMethods = true, writeIntent = true)
 abstract public class HxmlParsingTestBase {
   private final Engine engine;
 
@@ -51,7 +50,7 @@ abstract public class HxmlParsingTestBase {
   final void startParsingEngine(TestInfo info) throws Exception {
     // the JUnit3 test name drives the data-file lookup (testSimple -> Simple.hxml)
     engine.setName(info.getTestMethod().orElseThrow().getName());
-    engine.start();
+    HaxeParsingTestBase.runEngineStep(engine::start);
   }
 
   @AfterEach

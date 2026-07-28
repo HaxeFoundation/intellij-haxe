@@ -30,8 +30,10 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
 import com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.ParsingTestCase;
-import com.intellij.testFramework.junit5.RunInEdt;
+import com.intellij.testFramework.TestApplicationManager;
+import com.intellij.util.ThrowableRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +46,10 @@ import java.util.List;
  * Jupiter front for the platform's JUnit3-style {@link ParsingTestCase}: the
  * engine below keeps the platform logic (data-file lookup by test name, PSI
  * dump comparison), while this class drives its lifecycle from jupiter hooks.
+ * Threading is per-step (see {@link #runEngineStep}), not {@code @RunInEdt}:
+ * class-wide EDT dispatch hangs a solo run because the engine's mock
+ * application cannot service IdeEventQueue events.
  */
-@RunInEdt(writeIntent = true)
 abstract public class HaxeParsingTestBase {
   private final Engine engine;
 
@@ -57,11 +61,16 @@ abstract public class HaxeParsingTestBase {
   final void startParsingEngine(TestInfo info) throws Exception {
     // the JUnit3 test name drives the data-file lookup (testExtends -> Extends.hx)
     engine.setName(info.getTestMethod().orElseThrow().getName());
-    engine.start();
+    runEngineStep(engine::start);
   }
 
   @AfterEach
   final void stopParsingEngine() throws Exception {
+    // always on the worker: the engine's mock is the current application here,
+    // so an EDT event could not be serviced; tearDown restores the real
+    // application first and then dispatches its own EDT work. Never hold a
+    // write-intent action across this either - those EDT events want the same
+    // lock, livelocking the suite.
     engine.stop();
   }
 
@@ -71,6 +80,21 @@ abstract public class HaxeParsingTestBase {
 
   protected void doTest(boolean checkResult, boolean ensureNoErrorElements) {
     engine.doTest(checkResult, ensureNoErrorElements);
+  }
+
+  /**
+   * With a real test application booted by heavier tests earlier in the same
+   * JVM, engine setUp must run on the EDT: it closes leaked projects, which
+   * asserts the EDT - and only then CAN the EDT service events. Without one
+   * (solo parsing run) EDT dispatch would hang, and is not needed.
+   */
+  static void runEngineStep(ThrowableRunnable<Exception> step) throws Exception {
+    if (TestApplicationManager.getInstanceIfCreated() == null) {
+      step.run();
+    }
+    else {
+      EdtTestUtil.runInEdtAndWait(step);
+    }
   }
 
   protected Project getProject() {
