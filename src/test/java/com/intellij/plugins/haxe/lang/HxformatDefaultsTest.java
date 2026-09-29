@@ -1,13 +1,13 @@
 package com.intellij.plugins.haxe.lang;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatDefaults;
 import com.intellij.plugins.haxe.ide.formatter.wrapping.HaxeOperatorChainRules;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,7 +37,7 @@ public class HxformatDefaultsTest extends HaxeLightFixtureTestCase {
   @Test
   @DisplayName("indentation and margin")
   public void testIndentationAndMargin() {
-    assertEquals("tab", config.at("/indentation/character").asText());
+    assertEquals("tab", config.at("/indentation/character").asString());
     assertEquals(HxformatDefaults.TAB_WIDTH, config.at("/indentation/tabWidth").asInt());
     assertEquals(HxformatDefaults.MAX_LINE_LENGTH, config.at("/wrapping/maxLineLength").asInt());
   }
@@ -77,10 +77,10 @@ public class HxformatDefaultsTest extends HaxeLightFixtureTestCase {
     assertEquals(HxformatDefaults.BLANK_LINES_BETWEEN_SINGLE_LINE_TYPES, emptyLines.get("betweenSingleLineTypes").asInt());
     assertEquals(HxformatDefaults.BLANK_LINES_AFTER_FILE_HEADER, emptyLines.get("afterFileHeaderComment").asInt());
     assertEquals(HxformatDefaults.BLANK_LINES_BETWEEN_MULTILINE_COMMENTS, emptyLines.get("betweenMultilineComments").asInt());
-    assertEquals("remove", emptyLines.get("afterLeftCurly").asText());
-    assertEquals("remove", emptyLines.get("beforeRightCurly").asText());
-    assertEquals("one", emptyLines.get("beforeDocCommentEmptyLines").asText());
-    assertEquals("one", emptyLines.get("afterFieldsWithDocComments").asText());
+    assertEquals("remove", emptyLines.get("afterLeftCurly").asString());
+    assertEquals("remove", emptyLines.get("beforeRightCurly").asString());
+    assertEquals("one", emptyLines.get("beforeDocCommentEmptyLines").asString());
+    assertEquals("one", emptyLines.get("afterFieldsWithDocComments").asString());
 
     JsonNode classLines = emptyLines.get("classEmptyLines");
     assertEquals(HxformatDefaults.BLANK_LINES_BEGIN_TYPE, classLines.get("beginType").asInt());
@@ -94,7 +94,7 @@ public class HxformatDefaultsTest extends HaxeLightFixtureTestCase {
   /** The value of a named condition in the construct's n-th wrapping rule. */
   private int condition(String construct, int rule, String cond) {
     for (JsonNode candidate : config.at("/wrapping/" + construct + "/rules").get(rule).get("conditions")) {
-      if (cond.equals(candidate.get("cond").asText())) return candidate.get("value").asInt();
+      if (cond.equals(candidate.get("cond").asString())) return candidate.get("value").asInt();
     }
     throw new AssertionError(construct + " rule " + rule + " has no condition " + cond);
   }

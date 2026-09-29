@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.formatter.hxformat;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.intellij.plugins.haxe.HaxeCodeStyleBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
@@ -10,6 +9,7 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.PropertyKey;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -224,7 +224,7 @@ public final class HxformatJsonMapper {
     JsonNode rules = node("wrapping.multiVar.rules");
     if (rules != null && rules.isArray()) {
       for (JsonNode rule : rules) {
-        String type = rule.path("type").asText("");
+        String type = rule.path("type").asString("");
         Integer line = conditionValue(rule, "lineLength >= n");
         if ("onePerLineAfterFirst".equals(type) && line != null) {
           haxe.MULTI_VAR_SPLIT_WIDTH = line;
@@ -292,7 +292,7 @@ public final class HxformatJsonMapper {
    * Returns false for any other shape, and for a threshold the kind lacks.
    */
   private static boolean liftLiteralRule(JsonNode rule, LiteralSetters setters) {
-    String type = rule.path("type").asText("");
+    String type = rule.path("type").asString("");
     boolean builtIn = conditionValue(rule, "hasMultilineItems") != null || conditionValue(rule, "exceedsMaxLineLength") != null;
     boolean equalLengths = conditionValue(rule, "equalItemLengths") != null;
     return switch (type) {
@@ -361,15 +361,15 @@ public final class HxformatJsonMapper {
       for (JsonNode rule : construct.get("rules")) {
         JsonNode ruleType = rule.get("type");
         if (ruleType == null) continue;
-        if (type == null) type = ruleType.asText();
+        if (type == null) type = ruleType.asString();
         if (firesOnOverflow(rule)) {
-          type = ruleType.asText();
+          type = ruleType.asString();
           break;
         }
       }
     }
     if (type == null && construct.get("defaultWrap") != null) {
-      type = construct.get("defaultWrap").asText();
+      type = construct.get("defaultWrap").asString();
     }
     if (type == null) return;
     setter.accept(switch (type) {
@@ -388,7 +388,7 @@ public final class HxformatJsonMapper {
     JsonNode conditions = rule.get("conditions");
     if (conditions == null || !conditions.isArray()) return false;
     for (JsonNode condition : conditions) {
-      boolean overflow = "exceedsMaxLineLength".equals(condition.path("cond").asText(""))
+      boolean overflow = "exceedsMaxLineLength".equals(condition.path("cond").asString(""))
                          && condition.path("value").asInt(1) == 1;
       if (overflow) return true;
     }
@@ -746,7 +746,7 @@ public final class HxformatJsonMapper {
     JsonNode rules = node(path + ".rules");
     if (rules == null || !rules.isArray()) return;
     for (JsonNode rule : rules) {
-      String type = rule.path("type").asText("");
+      String type = rule.path("type").asString("");
       if ("onePerLineAfterFirst".equals(type)) {
         Integer count = conditionValue(rule, "itemCount >= n");
         if (count != null) {
@@ -777,7 +777,7 @@ public final class HxformatJsonMapper {
     JsonNode conditions = rule.get("conditions");
     if (conditions == null || !conditions.isArray()) return null;
     for (JsonNode condition : conditions) {
-      if (cond.equals(condition.path("cond").asText(""))) {
+      if (cond.equals(condition.path("cond").asString(""))) {
         JsonNode value = condition.get("value");
         return value == null || !value.canConvertToInt() ? null : value.intValue();
       }
@@ -857,7 +857,7 @@ public final class HxformatJsonMapper {
     JsonNode value = node(path);
     if (value == null || value.isObject() || value.isArray()) return null;
     consumed.add(path);
-    return value.asText();
+    return value.asString();
   }
 
   @Nullable

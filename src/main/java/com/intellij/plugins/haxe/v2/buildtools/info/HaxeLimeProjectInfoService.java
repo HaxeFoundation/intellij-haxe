@@ -3,8 +3,6 @@ package com.intellij.plugins.haxe.v2.buildtools.info;
 import com.intellij.plugins.haxe.v2.buildtools.LimeProjects;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
@@ -27,6 +25,9 @@ import com.intellij.plugins.haxe.util.HaxePluginPaths;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -56,8 +57,9 @@ public final class HaxeLimeProjectInfoService implements Disposable {
   private static final int DISPLAY_TIMEOUT_MS = 60_000;
   private static final String PARSER_RELATIVE_PATH = "tools/LimeProjectParser.jar";
   // unknown members ignored so a newer bundled tool may add output fields freely
-  private static final ObjectMapper PARSER_OUTPUT_MAPPER = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper PARSER_OUTPUT_MAPPER = JsonMapper.builder()
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build();
 
   private final Project project;
   private final HaxeProjectInfoCache<HaxeBuildFileInfo> cache;

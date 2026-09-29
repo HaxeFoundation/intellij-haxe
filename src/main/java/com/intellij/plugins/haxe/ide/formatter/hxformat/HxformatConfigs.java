@@ -1,7 +1,5 @@
 package com.intellij.plugins.haxe.ide.formatter.hxformat;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
@@ -23,6 +21,8 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -163,7 +163,10 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
     return root;
   }
 
-  /** The file's JSON tree; loadText honors the file's detected charset/BOM. */
+  /**
+   * The file's JSON tree; loadText honors the file's detected charset/BOM.
+   * An unreadable file throws IOException, malformed JSON a JacksonException.
+   */
   @NotNull
   static JsonNode readJsonTree(@NotNull VirtualFile file) throws IOException {
     return MAPPER.readTree(VfsUtilCore.loadText(file));

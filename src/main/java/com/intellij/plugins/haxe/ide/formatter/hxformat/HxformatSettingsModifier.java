@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.formatter.hxformat;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeStyleBundle;
@@ -13,6 +12,7 @@ import com.intellij.psi.codeStyle.modifier.CodeStyleStatusBarUIContributor;
 import com.intellij.psi.codeStyle.modifier.TransientCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Formats a file by the project's OWN hxformat.json (haxe-formatter config)

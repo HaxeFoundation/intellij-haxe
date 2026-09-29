@@ -1,10 +1,11 @@
 package com.intellij.plugins.haxe.profiler.bridge.js;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -105,7 +106,7 @@ final class HaxeCdpConnection implements WebSocket.Listener {
         response.complete(parsed.path("result"));
       }
     }
-    catch (IOException e) {
+    catch (JacksonException e) {
       LOG.warn("unreadable CDP message", e);
     }
   }

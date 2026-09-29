@@ -1,7 +1,5 @@
 package com.intellij.plugins.haxe.profiler.bridge.js;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeProfilerBundle;
@@ -15,6 +13,8 @@ import com.intellij.plugins.haxe.profiler.js.CpuProfileSessionBuilder;
 import com.intellij.plugins.haxe.profiler.js.JsSourceMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -224,7 +224,7 @@ public class HaxeIuJsProfilerCapture implements HaxeJsProfilerCapture {
       try {
         JsonNode metrics = cdp.call("Performance.getMetrics", null).get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         for (JsonNode metric : metrics.path("metrics")) {
-          String name = metric.path("name").asText();
+          String name = metric.path("name").asString();
           if ("JSHeapUsedSize".equals(name)) heapUsed = (long)metric.path("value").asDouble();
           if ("JSHeapTotalSize".equals(name)) heapTotal = (long)metric.path("value").asDouble();
         }
@@ -232,7 +232,6 @@ public class HaxeIuJsProfilerCapture implements HaxeJsProfilerCapture {
       catch (Exception noMetrics) {
         // heap readings are an extra - the sampled profile stands without them
       }
-      // the two jackson namespaces (bridge: fasterxml, core: tools.jackson) meet as plain JSON text
       builder.appendSegment(profile.toString(), frameStamps, heapUsed, heapTotal);
       if (!liveOpened && builder.bytesWritten() >= LIVE_OPEN_BYTES) {
         // the platform parses the partial file and shows the tabs NOW;
@@ -296,8 +295,8 @@ public class HaxeIuJsProfilerCapture implements HaxeJsProfilerCapture {
         try {
           HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
           for (JsonNode target : mapper.readTree(response.body())) {
-            if ("page".equals(target.path("type").asText()) && target.hasNonNull("webSocketDebuggerUrl")) {
-              return target.get("webSocketDebuggerUrl").asText();
+            if ("page".equals(target.path("type").asString()) && target.hasNonNull("webSocketDebuggerUrl")) {
+              return target.get("webSocketDebuggerUrl").asString();
             }
           }
         }
@@ -374,12 +373,12 @@ public class HaxeIuJsProfilerCapture implements HaxeJsProfilerCapture {
 
     /** The CDP events: the tracing session's frame instants and its completion. */
     private void onEvent(JsonNode notification) {
-      String method = notification.path("method").asText("");
+      String method = notification.path("method").asString("");
       if ("Tracing.dataCollected".equals(method)) {
         for (JsonNode event : notification.path("params").path("value")) {
           // one DrawFrame per compositor present - the rest of the frame
           // category (pipeline stages) is not needed
-          if ("DrawFrame".equals(event.path("name").asText())) {
+          if ("DrawFrame".equals(event.path("name").asString())) {
             drawFrameStamps.add(event.path("ts").asLong());
           }
         }

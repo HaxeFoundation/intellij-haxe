@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.formatter.hxformat;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.SchemeFactory;
 import com.intellij.openapi.options.SchemeImportException;
@@ -11,6 +10,8 @@ import com.intellij.plugins.haxe.HaxeCodeStyleBundle;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,7 +70,7 @@ public class HxformatSchemeImporter implements SchemeImporter<CodeStyleScheme> {
     try {
       return HxformatConfigs.readJsonTree(file);
     }
-    catch (IOException e) {
+    catch (IOException | JacksonException e) {
       throw new SchemeImportException(HaxeCodeStyleBundle.message("hxformat.import.parse.error", e.getMessage()));
     }
   }
