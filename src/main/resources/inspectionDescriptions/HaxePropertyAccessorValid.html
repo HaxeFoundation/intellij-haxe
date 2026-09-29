@@ -1,0 +1,14 @@
+<html>
+<body>
+Reports property accessors that are not one of the valid identifiers:
+<code>get</code>, <code>set</code>, <code>default</code>, <code>null</code>,
+<code>never</code> or <code>dynamic</code> (and <code>get</code> is only
+valid on the read side, <code>set</code> on the write side).
+<p><b>Example:</b></p>
+<pre><code>
+class Counter {
+    public var value(set, get):Int;   // sides are swapped
+}
+</code></pre>
+</body>
+</html>

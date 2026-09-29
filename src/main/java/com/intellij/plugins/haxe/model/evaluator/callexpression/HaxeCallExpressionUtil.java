@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
@@ -84,11 +85,45 @@ public class HaxeCallExpressionUtil {
     return createContextForMethodCall(callExpression, null, method);
   }
 
+  /**
+   * Evaluate-with-hole: builds the contexts WITHOUT evaluating the argument
+   * at {@code holeArgumentIndex} (expression-list index). Usage-driven
+   * inference asks a call for the parameter type at an argument's position;
+   * evaluating that argument would recurse into the very question being
+   * asked - the hole removes the re-entry instead of guarding it.
+   */
+  @NotNull
+  public static HaxeCallExpressionContextContainer createContextForMethodCall(@NotNull HaxeCallExpression callExpression,
+                                                                              @NotNull HaxeMethod method,
+                                                                              int holeArgumentIndex) {
+    HaxeMethodModel methodModel = method.getModel();
+
+    List<HaxeMethodModel> methodModels = new ArrayList<>();
+    methodModels.add(methodModel);
+    methodModels.addAll(methodModel.getOverloadsFromMeta());
+
+    List<HaxeCallExpressionContext> list = new ArrayList<>();
+    for (HaxeMethodModel model : methodModels) {
+      list.add(createContextForMethodCall(callExpression, null, method, model, holeArgumentIndex));
+    }
+    return HaxeCallExpressionContextContainer.create(list);
+  }
+
+  @NotNull
+  private static HaxeCallExpressionContext createContextForMethodCall(@NotNull HaxeCallExpression callExpression,
+                                                                      @Nullable SpecificTypeReference assignHint,
+                                                                      @NotNull HaxeMethod methodPsi,
+                                                                      @NotNull HaxeMethodModel methodModel
+  ) {
+    return createContextForMethodCall(callExpression, assignHint, methodPsi, methodModel, -1);
+  }
+
   @NotNull
   private static HaxeCallExpressionContext createContextForMethodCall(@NotNull HaxeCallExpression callExpression,
                                                                      @Nullable SpecificTypeReference assignHint,
                                                                     @NotNull HaxeMethod methodPsi,
-                                                                    @NotNull HaxeMethodModel methodModel
+                                                                    @NotNull HaxeMethodModel methodModel,
+                                                                    int holeArgumentIndex
   ) {
     ProgressIndicatorProvider.checkCanceled();
 
@@ -106,7 +141,7 @@ public class HaxeCallExpressionUtil {
       genericResolver.addAll(MethodsClassResolver);
     }
 
-    List<CallExpressionArgumentModel> argumentList = getArgumentList(callExpression);
+    List<CallExpressionArgumentModel> argumentList = getArgumentList(callExpression, holeArgumentIndex);
     List<CallExpressionParameterModel> parameterList = getParameterList(methodModel);
     ResultHolder returnType = methodModel.getReturnType(null);
     boolean isStaticExtension = callExpression.resolveIsStaticExtension();
@@ -122,7 +157,7 @@ public class HaxeCallExpressionUtil {
 
     HaxeGenericResolver methodTranslatedResolver = translateResolverToMethodDeclaringClass(genericResolver, callieClass, methodPsi);
 
-    boolean canCache = argumentList.stream().allMatch(CallExpressionArgumentModel::isCanCache) && returnType.cacheable;
+    boolean canCache = argumentList.stream().allMatch(CallExpressionArgumentModel::isCanCache) && returnType.isCacheable();
 
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, parentResolver, methodTranslatedResolver);
     evaluation.assignHint = tryCastAssignHintToReturnType(assignHint, returnType); // casting to returnType to make sure typeParams matches.
@@ -189,11 +224,23 @@ public class HaxeCallExpressionUtil {
   @NotNull
   public static HaxeCallExpressionContext createContextForFunctionCall(@NotNull HaxeCallExpression callExpression,
                                                                        @NotNull SpecificFunctionReference function) {
+    return createContextForFunctionCall(callExpression, function, -1);
+  }
+
+  /**
+   * Variant for usage-search queries: the argument at holeArgumentIndex is
+   * not evaluated (its type is what the query exists to determine) but still
+   * occupies its slot for parameter alignment.
+   */
+  @NotNull
+  public static HaxeCallExpressionContext createContextForFunctionCall(@NotNull HaxeCallExpression callExpression,
+                                                                       @NotNull SpecificFunctionReference function,
+                                                                       int holeArgumentIndex) {
     ProgressIndicatorProvider.checkCanceled();
 
     HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
 
-    List<CallExpressionArgumentModel> argumentList = getArgumentList(callExpression);
+    List<CallExpressionArgumentModel> argumentList = getArgumentList(callExpression, holeArgumentIndex);
     List<CallExpressionParameterModel> parameterList = getParameterList(function);
     ResultHolder returnType = function.getReturnType();
 
@@ -276,23 +323,42 @@ public class HaxeCallExpressionUtil {
 
   @NotNull
   public static HaxeCallExpressionContextContainer createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, @Nullable ResultHolder assignHint) {
+    return createContextForConstructorCall(newExpression, assignHint, -1);
+  }
+
+  /**
+   * Variant for usage-search queries: the argument at holeArgumentIndex is
+   * not evaluated (its type is what the query exists to determine) but still
+   * occupies its slot for parameter alignment.
+   */
+  @NotNull
+  public static HaxeCallExpressionContextContainer createContextForConstructorCall(@NotNull HaxeNewExpression newExpression,
+                                                                                   @Nullable ResultHolder assignHint,
+                                                                                   int holeArgumentIndex) {
     List<HaxeMethodModel> methodModels = getConstructorsModelForNewExpression(newExpression);
     List<HaxeCallExpressionContext> list = new ArrayList<>();
     for (HaxeMethodModel methodModel : methodModels) {
       ProgressIndicatorProvider.checkCanceled();
-      HaxeCallExpressionContext call = createContextForConstructorCall(newExpression, methodModel, assignHint);
+      HaxeCallExpressionContext call = createContextForConstructorCall(newExpression, methodModel, assignHint, holeArgumentIndex);
       list.add(call);
     }
     return HaxeCallExpressionContextContainer.create(list);
 
   }
   public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, HaxeMethodModel methodModel, @Nullable ResultHolder assignHint) {
+    return createContextForConstructorCall(newExpression, methodModel, assignHint, -1);
+  }
+
+  private static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression,
+                                                                           HaxeMethodModel methodModel,
+                                                                           @Nullable ResultHolder assignHint,
+                                                                           int holeArgumentIndex) {
 
     HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(newExpression);
-    List<CallExpressionArgumentModel> argumentList = getArgumentList(newExpression);
+    List<CallExpressionArgumentModel> argumentList = getArgumentList(newExpression, holeArgumentIndex);
     ResultHolder type = HaxeTypeResolver.getTypeFromType(newExpression.getType());
     SpecificHaxeClassReference classType = type.getClassType();
-    boolean canCache = type.cacheable && argumentList.stream().allMatch(CallExpressionArgumentModel::isCanCache);
+    boolean canCache = type.isCacheable() && argumentList.stream().allMatch(CallExpressionArgumentModel::isCanCache);
     if (classType != null) {
       SpecificTypeReference typeRef = classType.fullyResolveTypeDefAndUnwrapNullTypeReference();
       if (typeRef instanceof SpecificHaxeClassReference classReference ) {
@@ -354,27 +420,58 @@ public class HaxeCallExpressionUtil {
   }
 
   private static @NotNull List<CallExpressionArgumentModel> getArgumentList(@NotNull HaxeCallExpression callExpression) {
+    return getArgumentList(callExpression, -1);
+  }
+
+  private static @NotNull List<CallExpressionArgumentModel> getArgumentList(@NotNull HaxeCallExpression callExpression,
+                                                                            int holeArgumentIndex) {
     List<CallExpressionArgumentModel> argumentList = new ArrayList<>();
     HaxeCallExpressionList expressionListPsi = callExpression.getExpressionList();
     if (expressionListPsi != null) {
       List<HaxeExpression> expressions = expressionListPsi.getExpressionList();
-      for (HaxeExpression expression : expressions) {
+      for (int i = 0; i < expressions.size(); i++) {
+        HaxeExpression expression = expressions.get(i);
         ProgressIndicatorProvider.checkCanceled();
+        if (i == holeArgumentIndex) {
+          argumentList.add(CallExpressionArgumentModel.holeArgument(expression));
+          continue;
+        }
+        long taintMark = HaxeEvaluationTaint.mark();
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
-        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), !result.isUnknown() && result.cacheable);
+        // Note: incomplete and canCache answer different questions:
+        // - canCache: is the type OBJECT safe to keep in a cache at all
+        //   (valid PSI etc., see ResultHolder.isCacheable)?
+        // - incomplete: might a later evaluation know MORE than this one?
+        //   An argument whose type came out Unknown counts as incomplete,
+        //   not as uncacheable - the evaluation is still stored, just
+        //   marked dirty so consumers never treat it as the final answer
+        //   (see HaxeEvaluationTaint).
+        // Refusing to cache on Unknown instead would mean files whose
+        // types never settle rebuild every call context on every query.
+        boolean incomplete = HaxeEvaluationTaint.taintedSince(taintMark) || result.isUnknown();
+        boolean canCache = result.isCacheable();
+        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), canCache, incomplete);
         argumentList.add(model);
       }
     }
     return argumentList;
   }
-  private static @NotNull List<CallExpressionArgumentModel> getArgumentList(@NotNull HaxeNewExpression newExpression) {
+  private static @NotNull List<CallExpressionArgumentModel> getArgumentList(@NotNull HaxeNewExpression newExpression,
+                                                                            int holeArgumentIndex) {
     List<CallExpressionArgumentModel> argumentList = new ArrayList<>();
       List<HaxeExpression> expressions = newExpression.getExpressionList();
-      for (HaxeExpression expression : expressions) {
+      for (int i = 0; i < expressions.size(); i++) {
+        HaxeExpression expression = expressions.get(i);
         ProgressIndicatorProvider.checkCanceled();
+          if (i == holeArgumentIndex) {
+            argumentList.add(CallExpressionArgumentModel.holeArgument(expression));
+            continue;
+          }
+          long taintMark = HaxeEvaluationTaint.mark();
           ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
-          CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), result.cacheable);
-          model.canCache = result.cacheable;
+          // same incomplete semantics as the call-expression variant above
+          boolean incomplete = HaxeEvaluationTaint.taintedSince(taintMark) || result.isUnknown();
+          CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), result.isCacheable(), incomplete);
           argumentList.add(model);
       }
     return argumentList;

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.BreakpointEvent;
 
 /**
@@ -77,6 +78,40 @@ final class DapBreakpointManager {
   }
 
   /**
+   * One-line description of the line breakpoints this session armed (file
+   * names with 1-based lines), for the session console. The first thing to
+   * check when a session "does not stop": an empty set means the IDE side
+   * never handed the session any breakpoints, while armed-but-unverified ones
+   * show a rejected icon on their gutter line instead. Files the backend
+   * scoped out (a same-named file from a sibling project) are listed as
+   * skipped so their silence is explained too.
+   */
+  synchronized String armedDescription() {
+    StringBuilder armed = new StringBuilder();
+    StringBuilder skipped = new StringBuilder();
+    for (Map.Entry<String, LinkedHashSet<XLineBreakpoint<XBreakpointProperties>>> entry : byFile.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        continue;
+      }
+      StringBuilder target = process.backend().acceptsBreakpointFile(entry.getKey()) ? armed : skipped;
+      if (!target.isEmpty()) {
+        target.append("; ");
+      }
+      target.append(Path.of(entry.getKey()).getFileName()).append(':');
+      String lines = entry.getValue().stream()
+        .map(breakpoint -> String.valueOf(breakpoint.getLine() + 1))
+        .collect(Collectors.joining(","));
+      target.append(lines);
+    }
+    StringBuilder description = new StringBuilder();
+    description.append(armed.isEmpty() ? "no line breakpoints registered" : "line breakpoints armed: " + armed);
+    if (!skipped.isEmpty()) {
+      description.append(" — outside this build's classpaths, not armed: ").append(skipped);
+    }
+    return description.toString();
+  }
+
+  /**
    * Adds a transient run-to-cursor breakpoint at path:line (1-based) and flushes that
    * file. Returns whether the line resolved to executable code (so the caller knows
    * whether resuming will actually stop there). Runs on the request thread.
@@ -108,6 +143,12 @@ final class DapBreakpointManager {
   // Runs on the request thread (or event pump). Returns whether the transient
   // run-to line for this file (if any) resolved to code; true when there is none.
   private boolean flushFile(String path) {
+    // a file the backend scopes out (outside the build's source directories)
+    // is never offered - the debuggee-side name/suffix matching would bind it
+    // onto a same-named file that IS part of this build
+    if (!process.backend().acceptsBreakpointFile(path)) {
+      return false;
+    }
     List<XLineBreakpoint<XBreakpointProperties>> ordered;
     boolean appendRunTo;
     int runToLineLocal;

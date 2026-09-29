@@ -10,14 +10,14 @@ private enum Container {
 }
 
 /**
-	Owns the DAP variablesReference registry and the scopes/variables/setVariable
-	surface. A reference names either a frame's locals or an expandable value;
-	`reset()` clears the registry on every resume, because a reference must never
-	outlive the stop that created it (the debuggee moves on).
+	Owns the DAP variablesReference registry and serves the scopes,
+	variables and setVariable requests. A reference names either a frame's
+	locals or an expandable value. `reset()` clears the registry on every
+	resume, because a reference must never outlive the stop that created it.
 
-	Values are rendered/expanded by Values (pure reflection), so the whole class
-	is exercised under the interpreter over a fake DebuggerApi returning plain
-	Haxe values.
+	Values renders and expands the values by plain reflection, so the unit
+	tests exercise this class under the interpreter, over a fake DebuggerApi
+	that returns plain Haxe values.
 **/
 class VariablesView {
 	final debugger:DebuggerApi;
@@ -53,10 +53,10 @@ class VariablesView {
 		};
 	}
 
-	// One corrupt value slot (real frames hold raw pointers and half-built
-	// state; hxcpp re-raises a critical read error as a THROW on the debug
-	// thread) must poison ONE row, not the whole request — render the error
-	// text in the value column and keep going.
+	// Real frames hold raw pointers and half-built state, and hxcpp re-raises
+	// a critical read error as a THROW on the debug thread. A corrupt slot
+	// must spoil only ONE row, not the whole request, so the row shows the
+	// error text as its value and the listing continues.
 	function safeVariable(name:String, read:() -> Dynamic):Variable {
 		return try {
 			variable(name, read());
@@ -66,9 +66,10 @@ class VariablesView {
 	}
 
 	/**
-		Writes `raw` (a DAP text value) to `name` inside `reference`'s container
-		and returns the DAP result. Frame locals write to ANY frame via the
-		runtime; a value's field writes through reflection.
+		Writes `raw`, a DAP text value, to `name` inside the container of
+		`reference` and returns the DAP result; null for an unknown reference.
+		A frame local is written through the runtime, in ANY frame; a field of
+		a value is written through reflection.
 	**/
 	public function setVariable(reference:Int, name:String, raw:String):Null<{value:String, type:String, variablesReference:Int}> {
 		var container = registry.get(reference);
@@ -92,8 +93,9 @@ class VariablesView {
 	}
 
 	/**
-		Renders a standalone value (an evaluate result) with a child reference
-		when expandable — reusing the same registry so it can be drilled into.
+		Renders a standalone value, such as an evaluate result. An expandable
+		value gets a child reference in the same registry, so it can be
+		expanded like any variable.
 	**/
 	public function present(value:Dynamic):{value:String, type:String, variablesReference:Int} {
 		var described = Values.describe(value);
@@ -120,8 +122,8 @@ class VariablesView {
 		return reference;
 	}
 
-	// A DAP text value -> a Haxe value: bool/int/float/quoted-string literals,
-	// else the raw string. (Constructing objects is out of scope.)
+	// Parses a DAP text value: a bool, null, int, float or quoted-string
+	// literal, else the raw string. Objects cannot be constructed this way.
 	static function parseValue(raw:String):Dynamic {
 		var trimmed = StringTools.trim(raw);
 		if (trimmed == "true") return true;

@@ -1,12 +1,12 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.serializers;
 
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeClassInheritanceStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeTypedefInheritanceStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.stubs.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.io.StringRef;
@@ -53,16 +53,19 @@ public class HaxeClassStubSerializer implements StubSerializer<HaxeClassStub> {
             sink.occurrence(HaxeFullyQualifiedClassNameStubIndex.KEY, qualifiedNameShort);
         }
 
+        // keys are SIMPLE names even for qualified extends references - one
+        // keyspace, matching the file-based inheritance indexes; consumers
+        // verify candidates at query time
         if(stub.getPsi().isTypeDef()) {
             for (String superName : stub.getSuperTypeNames()) {
                 if (superName != null && !superName.isEmpty()) {
-                    sink.occurrence(HaxeTypedefInheritanceStubIndex.KEY, superName);
+                    sink.occurrence(HaxeTypedefInheritanceStubIndex.KEY, HaxeResolveUtil.getSimpleName(superName));
                 }
             }
         }else {
             for (String superName : stub.getSuperTypeNames()) {
                 if (superName != null && !superName.isEmpty()) {
-                    sink.occurrence(HaxeClassInheritanceStubIndex.KEY, superName);
+                    sink.occurrence(HaxeClassInheritanceStubIndex.KEY, HaxeResolveUtil.getSimpleName(superName));
                 }
             }
         }

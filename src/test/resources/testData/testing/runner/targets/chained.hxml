@@ -1,0 +1,8 @@
+-p src
+-lib utest
+--each
+--main TestMain
+--interp
+--next
+--main TestMain
+-hl bin/tests.hl

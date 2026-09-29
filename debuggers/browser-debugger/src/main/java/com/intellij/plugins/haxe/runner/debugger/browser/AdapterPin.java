@@ -20,7 +20,7 @@ public record AdapterPin(String id, String version, String url, String sha256, S
    * vscode-firefox-debug from Open VSX (MIT, by Holger Benl). The .vsix is a
    * plain zip; the bundle is self-contained (plus mappings.wasm beside it).
    * Speaks DAP over TCP with {@code --server=<port>}; wire behaviour pinned
-   * by FirefoxAdapterLiveProbe.
+   * by FirefoxAdapterLiveTest.
    */
   public static final AdapterPin FIREFOX = new AdapterPin(
     "firefox-debug",
@@ -35,7 +35,7 @@ public record AdapterPin(String id, String version, String url, String sha256, S
    * {@code js-debug-dap} tarball from the GitHub release — the SAME engine
    * VS Code ships, entered through dapDebugServer.js (TCP DAP server; child
    * sessions via the startDebugging reverse request + __pendingTargetId).
-   * Wire behaviour pinned by JsDebugAdapterLiveProbe.
+   * Wire behaviour pinned by JsDebugAdapterLiveTest.
    */
   public static final AdapterPin JS_DEBUG = new AdapterPin(
     "js-debug",

@@ -45,5 +45,9 @@ public class HaxeReturnTypeInlayTest extends HaxeInlayTestBase {
     doTest(hintsProvider);
   }
 
-
+  @Test
+  @DisplayName("return type from untyped parameters")
+  public void testReturnTypeFromUntypedParameters() throws Exception {
+    doTest(hintsProvider);
+  }
 }

@@ -12,10 +12,11 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	Lists the children of an expandable value (a `variablesReference` target):
-	object fields, array elements, and later enum params / virtual fields.
-	Element listing is capped: a huge array gets a trailing "…" marker instead of
-	flooding the client (no variable paging is advertised).
+	Lists the children of an expandable value (the target of a
+	`variablesReference`): object fields, array elements, map entries, enum
+	parameters, virtual and dynamic object fields, and a closure's captured
+	value. Arrays list at most MAX_ELEMENTS elements followed by a "…" marker,
+	because the adapter does not offer paging of variables.
 **/
 class ValueChildren {
 	static inline var MAX_ELEMENTS = 512;
@@ -51,7 +52,7 @@ class ValueChildren {
 			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
 				treeMapEntries(pointer, proto);
 			case HAbstract(name) if (maps != null && ValueReader.nativeMapKind(name) != null):
-				// a map-native abstract: the reference pointer is the native map itself
+				// a native map abstract: the pointer is the native map itself
 				mapEntries(pointer, ValueReader.nativeMapKind(name));
 
 			case HDynObj if (dynObjects != null):
@@ -75,17 +76,17 @@ class ValueChildren {
 	}
 
 	/**
-		The address + static type of a single named child (a field name, or a
-		numeric index as a string), for value modification. Reuses the SAME
-		layout arithmetic as `of`, so a write lands exactly where the matching
-		read came from. Returns null when the child isn't individually
-		addressable (maps, enum params, closures) or doesn't exist.
+		The address and static type of one named child (a field name, or an
+		index as a string), for writing a value. It uses the same layout
+		arithmetic as `of`, so a write lands exactly where the displayed value
+		was read. Returns null when the child does not exist or has no address
+		of its own (map entries, enum parameters, closure captures).
 	**/
 	public function targetOf(pointer:Pointer, t:HLType, childName:String):Null<AddressedValue> {
 		return switch (t) {
-			// arrays: a numeric name is an element; anything else falls through to the
-			// class's REAL fields (ArrayBase declares `length` as a physical I32), so
-			// `arr.length` resolves like any object field
+			// arrays: a numeric name is an element; any other name is one of the
+			// class's real fields, so `arr.length` resolves like an object field
+			// (ArrayBase stores `length` as an I32 field)
 			case HObj(proto) if (proto != null && ValueReader.arrayBytesElementType(proto.name) != null):
 				asIndex(childName) >= 0
 					? arrayBytesElementTarget(pointer, ValueReader.arrayBytesElementType(proto.name), childName)
@@ -177,8 +178,8 @@ class ValueChildren {
 		return {address: Int64.add(base, Int64.ofInt(index * align.typeSize(elemType))), type: elemType};
 	}
 
-	// vvirtual: the field's indirect slot pointer (null slot = lives on the
-	// wrapped dynobj, not directly addressable here)
+	// vvirtual: the field's slot holds its address. A null slot means the field
+	// lives on the wrapped dynamic object and has no address here.
 	function virtualFieldTarget(pointer:Pointer, fields:Array<{name:String, t:HLType}>, name:String):Null<AddressedValue> {
 		var objectBacked = !Int64.eq(mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr))), Int64.ofInt(0));
 		for (i in 0...fields.length) {
@@ -187,8 +188,8 @@ class ValueChildren {
 				if (Int64.eq(slot, Int64.ofInt(0))) {
 					return null;
 				}
-				// an object-backed method slot holds CODE, not a value: writing
-				// through it would patch the jit
+				// in a virtual that wraps an object, a method slot points at machine
+				// code; writing through it would overwrite the code
 				return objectBacked && isFunctionField(fields[i].t) ? null : {address: slot, type: fields[i].t};
 			}
 		}
@@ -207,7 +208,7 @@ class ValueChildren {
 		return i == null ? -1 : i;
 	}
 
-	// venum: one child per constructor param at its EnumLayout offset
+	// venum: one child per constructor parameter, at its EnumLayout offset
 	function enumParams(pointer:Pointer, proto:EnumPrototype):Array<VariableInfo> {
 		var index = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		var variables:Array<VariableInfo> = [];
@@ -218,9 +219,9 @@ class ValueChildren {
 		return variables;
 	}
 
-	// vvirtual: header (t, value, next), then an indirect pointer per field; a
-	// null field pointer means the field lives on the WRAPPED value (usually a
-	// dynobj) — resolve it there by name instead of giving up
+	// vvirtual: header (t, value, next), then one slot per field holding the
+	// field's address. A null slot means the field lives on the wrapped value,
+	// usually a dynamic object, where it is looked up by name.
 	function virtualFields(pointer:Pointer, fields:Array<{name:String, t:HLType}>):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		var wrapped = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
@@ -229,7 +230,7 @@ class ValueChildren {
 		for (i in 0...fields.length) {
 			var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));
 			if (objectBacked && isFunctionField(fields[i].t) && !Int64.eq(slot, Int64.ofInt(0))) {
-				// the slot IS the method's code pointer, not an address to read
+				// the slot is the method's code pointer, not an address to read
 				var method = reader.readMethodPointer(slot, fields[i].t);
 				variables.push({name: fields[i].name, value: method.value, type: method.type, reference: 0, kind: VariableKind.Field});
 				continue;
@@ -262,7 +263,7 @@ class ValueChildren {
 		return field != null ? reader.read(field.address, field.type) : null;
 	}
 
-	// runtime dynamic object: one child per lookup-table field
+	// vdynobj: one child per field
 	function dynObjFields(pointer:Pointer):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		for (field in dynObjects.fields(pointer)) {
@@ -272,8 +273,8 @@ class ValueChildren {
 		return variables;
 	}
 
-	// native map entries: name = key display, value read as a dynamic.
-	// `native` is the native map pointer (already dereferenced from any wrapper).
+	// One child per entry of the native map at `native`, named by its key; the
+	// values are read as Dynamic.
 	function mapEntries(native:Pointer, kind:MapKeyKind):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		for (entry in maps.entries(native, kind, keyAddress -> reader.read(keyAddress, HDyn).value)) {
@@ -283,7 +284,7 @@ class ValueChildren {
 		return variables;
 	}
 
-	// EnumValueMap / BalancedTree entries, walked in-order (sorted keys)
+	// EnumValueMap / BalancedTree entries, in key order
 	function treeMapEntries(pointer:Pointer, proto:ObjPrototype):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		for (entry in treeMaps.entries(pointer, proto, keyAddress -> reader.read(keyAddress, HDyn).value)) {
@@ -293,8 +294,8 @@ class ValueChildren {
 		return variables;
 	}
 
-	// vclosure with a bound value (hasValue @ +ptr*2 == 1): one "captured"
-	// child — the bound object or the capture environment — read as a dynamic
+	// A bound vclosure (hasValue @ +ptr*2 == 1) has one "captured" child: its
+	// bound object or capture environment, read as Dynamic.
 	function closureCapture(pointer:Pointer):Array<VariableInfo> {
 		var hasValue = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
 		if (hasValue != 1) {
@@ -314,11 +315,10 @@ class ValueChildren {
 		}
 		var variables:Array<VariableInfo> = [];
 		for (field in objectLayout.fields(proto, t.match(HStruct(_)))) {
-			// genhl emits one EMPTY-NAMED HVirtual field per implemented
-			// interface: the runtime cache for that interface view of the
-			// object (hl_to_virtual). Compiler-internal, and skipped for
-			// DISPLAY only - the LAYOUT must keep it or every field after it
-			// lands at the wrong offset.
+			// genhl adds one empty-named HVirtual field per implemented
+			// interface, where hl_to_virtual caches the interface view of the
+			// object. It is hidden from display only; the layout must keep it,
+			// or every later field lands at the wrong offset.
 			if (field.name == "" && field.type.match(HVirtual(_))) {
 				continue;
 			}
@@ -329,9 +329,9 @@ class ValueChildren {
 		return variables;
 	}
 
-	// hl.types.ArrayDyn (Array<Dynamic>): delegates to the wrapped ArrayBase
-	// (@ +ptr), whose concrete class (ArrayObj / ArrayBytes_*) comes from its
-	// runtime type header. Falls back to plain field expansion when unresolvable.
+	// hl.types.ArrayDyn (Array<Dynamic>) lists the elements of the ArrayBase it
+	// wraps (@ +ptr), whose runtime type header gives its class (ArrayObj or
+	// ArrayBytes_*). When that class cannot be resolved, it lists its fields.
 	function arrayDynElements(pointer:Pointer, t:HLType):Array<VariableInfo> {
 		var inner = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		if (Int64.eq(inner, Int64.ofInt(0))) {
@@ -348,8 +348,8 @@ class ValueChildren {
 		return objectFields(pointer, t);
 	}
 
-	// hl.types.ArrayBytes_<T>: length @ +ptr, bytes @ +ptr*2; elements packed at
-	// the element type's own stride
+	// hl.types.ArrayBytes_<T>: length @ +ptr, bytes @ +ptr*2; the elements are
+	// packed at the element type's size
 	function arrayBytesElements(pointer:Pointer, elemType:HLType):Array<VariableInfo> {
 		var length = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		var bytes = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
@@ -360,8 +360,8 @@ class ValueChildren {
 		return elements(length, i -> reader.read(Int64.add(bytes, Int64.ofInt(i * stride)), elemType));
 	}
 
-	// hl.types.ArrayObj: length @ +ptr, native varray @ +ptr*2; the varray's
-	// pointer slots hold the elements (only `length` of them are live)
+	// hl.types.ArrayObj: length @ +ptr, native varray @ +ptr*2. The varray's
+	// pointer slots hold the elements; only the first `length` are in use.
 	function arrayObjElements(pointer:Pointer):Array<VariableInfo> {
 		var length = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		var native = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
@@ -373,8 +373,8 @@ class ValueChildren {
 		return elements(length, i -> reader.read(Int64.add(base, Int64.ofInt(i * align.ptr)), elemType));
 	}
 
-	// native varray: at @ +ptr (runtime element type), size @ +ptr*2, elements after
-	// the header at the element type's stride
+	// native varray: element type `at` @ +ptr, size @ +ptr*2, then the elements
+	// packed at the element type's size
 	function varrayElements(pointer:Pointer):Array<VariableInfo> {
 		var size = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
 		if (size <= 0) {

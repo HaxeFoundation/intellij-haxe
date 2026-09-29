@@ -15,7 +15,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeStringEscapeUtil;
-import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -25,7 +24,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.STRING_INTERPOLATION_QUOTE_CHECK;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringInterpolationUtil.convertToInterpolationFix;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringInterpolationUtil.stripStringWrapping;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringTemplateUtils.*;
@@ -35,28 +33,14 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
 
 
 
+  // the interpolation-quote check lives in HaxeStringInterpolationQuoteInspection;
+  // this annotator keeps only the INFORMATION-level convert/merge suggestions
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if(!element.isValid()) return;
+    if (AnnotatorUtil.shouldSkip(element)) return;
 
-    if (element instanceof HaxeStringLiteralExpression stringLiteral) {
-      check(stringLiteral, holder);
-    }
     if(element instanceof HaxeAdditiveExpression additiveExpression) {
         checkInterpolation(additiveExpression, holder);
-    }
-  }
-
-
-  public void check(HaxeStringLiteralExpression psi, AnnotationHolder holder) {
-    if (!STRING_INTERPOLATION_QUOTE_CHECK.isEnabled(psi)) return;
-
-    if (isSingleQuotesRequired(psi)) {
-      holder.newAnnotation(HighlightSeverity.WARNING,
-                           HaxeBundle.message(
-                             "haxe.semantic.inspection.message.expression.that.contains.string.interpolation.should.be.wrapped.with.single.quotes"))
-        .withFix(HaxeSurroundFixer.replaceQuotesWithSingleQuotes(psi))
-        .create();
     }
   }
 

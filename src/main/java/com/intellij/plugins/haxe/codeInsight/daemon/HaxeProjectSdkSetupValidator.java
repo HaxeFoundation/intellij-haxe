@@ -19,7 +19,6 @@ import com.intellij.codeInsight.daemon.impl.JavaProjectSdkSetupValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
@@ -30,6 +29,8 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.HaxeProjectBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
@@ -59,9 +60,10 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
     if (result != null) {
       switch (result) {
         case MODULE_SDK_NOT_DEFINED:
-          return HaxeProjectBundle.message("module.sdk.not.defined");
         case PROJECT_SDK_NOT_DEFINED:
-          return HaxeProjectBundle.message("project.sdk.not.defined");
+          // v2 never demands a Project SDK - mixed-language projects use one
+          // SDK per module, configured here or in the tool window's Environment
+          return HaxeProjectBundle.message("module.haxe.sdk.not.configured");
         case MULTIPLE_ROOTS_FOUND:
           return HaxeBundle.message("sdk.roots.multiple");
         case NO_VALID_SDK_ROOTS_FOUND:
@@ -72,6 +74,13 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
     return null;
   }
 
+  /**
+   * Validates what resolution ACTUALLY uses: the module's own SDK dependency
+   * (the applier mirrors the v2 environment/settings choice into it). No
+   * shortcut through the v2 stores here — a configured-but-unapplied SDK must
+   * keep the banner visible, it means the resolve scope is really missing the
+   * std roots.
+   */
   private SdkValidationResult validateSdk(Project project, VirtualFile file) {
     final Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null && !module.isDisposed()) {
@@ -133,7 +142,15 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
       .newBuilder()
       .withProject(project)
       .withSdkTypeFilter(type -> type instanceof HaxeSdkType)
-      .updateSdkForFile(file);
+      // never the project SDK: the choice lands on the MODULE, via the same
+      // path as the tool window's Environment
+      .onSdkSelected(sdk -> {
+        Module module = ModuleUtilCore.findModuleForFile(file, project);
+        if (module != null) {
+          HaxeEnvironmentStore.getInstance(project).setSdkName(module.getName(), sdk.getName());
+          HaxeModuleSdkApplier.getInstance(project).applyAsync(module.getName(), sdk.getName());
+        }
+      });
   }
 }
 

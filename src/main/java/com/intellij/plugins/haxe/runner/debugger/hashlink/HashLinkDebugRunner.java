@@ -4,6 +4,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.file.Path;
@@ -50,9 +51,13 @@ public class HashLinkDebugRunner extends DapDebugRunnerBase<HashLinkRunConfigura
     Module module = configuration.requireModule();
     return new HashLinkBackend(configuration.resolveHlExecutable(module),
                                configuration.resolveProgram(module),
-                               findFreePort());
+                               findFreePort(),
+                               HaxeActionBeforeRunTaskProvider.buildStepSourceDirectories(configuration));
   }
 
+  // TODO: profiling during debug - add --profile here (co-exists with --debug)
+  //       and a "Get profiler snapshot" session action injecting
+  //       hl.Profile.event(Dump) through the adapter's call-injection machinery.
   @Override
   protected GeneralCommandLine createCommandLine(HashLinkRunConfiguration configuration, HashLinkBackend backend)
     throws ExecutionException {
@@ -68,7 +73,7 @@ public class HashLinkDebugRunner extends DapDebugRunnerBase<HashLinkRunConfigura
       .withWorkDirectory(workDir != null ? workDir.toString() : null);
   }
 
-  private static int findFreePort() throws ExecutionException {
+  public static int findFreePort() throws ExecutionException {
     // unavoidable race between closing here and the VM binding it; in practice
     // hl binds immediately at startup and a collision just fails the session
     try (ServerSocket socket = new ServerSocket(0)) {

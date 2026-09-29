@@ -1,0 +1,4 @@
+-cp ${SOURCE_DIR}
+-main ${MAIN_CLASS}
+${LIB_LINE}-dce ${DCE}
+${OUTPUT_LINE}${EXTRA_LINES}

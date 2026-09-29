@@ -33,10 +33,10 @@ public interface HaxeTokenTypeSets {
 
   IElementType MSL_COMMENT = new HaxeElementType("MSL_COMMENT");
   IElementType MML_COMMENT = new HaxeElementType("MML_COMMENT");
-  IElementType DOC_COMMENT = new HaxeElementType("DOC_COMMENT");
+  IElementType DOC_COMMENT = new HaxeDocCommentElementType();
 
   IElementType PPEXPRESSION = new HaxeElementType("PPEXPRESSION");
-  IElementType PPBODY = new HaxeElementType("PPBODY");
+  IElementType PPBODY = new HaxeInactiveBodyElementType();
 
   IElementType WSNLS = new HaxeElementType("WSNLS");
 
@@ -192,12 +192,18 @@ public interface HaxeTokenTypeSets {
     MULTIPLICATIVE_EXPRESSION
   );
 
+  // binary expressions carry their operators as COMPOSITE elements
+  // (additiveOperator etc.) - the bare tokens never appear as their children
   TokenSet BINARY_OPERATORS = TokenSet.create(
     BIT_OPERATION,
     OCOND_OR, OCOND_AND,
+    LOGIC_OR_OPERATOR, LOGIC_AND_OPERATOR,
     COMPARE_OPERATION,
     OPLUS, OMINUS,
     OMUL, OQUOTIENT, OREMAINDER,
+    ADDITIVE_OPERATOR,
+    MULTIPLICATIVE_OPERATOR,
+    MODULO_OPERATOR,
     SHIFT_LEFT_OPERATOR,
     SHIFT_RIGHT_OPERATOR,
     UNSIGNED_SHIFT_RIGHT_OPERATOR

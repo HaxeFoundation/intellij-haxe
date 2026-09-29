@@ -27,17 +27,36 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 
 public class HaxeLexer extends LookAheadLexer {
+  // PPBODY: the flex lexer runs the FULL rule set over inactive conditional
+  // branches and remaps every token (whitespace included) to PPBODY, so a
+  // branch is a contiguous run; merging folds it into one token per region
+  // between directives, the chameleon HaxeInactiveBodyElementType parses
   private static final TokenSet tokensToMerge = TokenSet.create(
     MSL_COMMENT,
     MML_COMMENT,
-    WSNLS
+    WSNLS,
+    PPBODY
   );
 
   @Nullable
   private Project myProject;
 
   public HaxeLexer(Project project) {
-    super(new HaxeMetaCoalescingLexerAdapter(new MergingLexerAdapter(new HaxeFlexLexer(project), tokensToMerge)));
+    this(project, true);
+  }
+
+  private HaxeLexer(Project project, boolean remapInactiveToPpbody) {
+    super(new HaxeMetaCoalescingLexerAdapter(new MergingLexerAdapter(new HaxeFlexLexer(project, remapInactiveToPpbody), tokensToMerge)));
     myProject = project;
+  }
+
+  /**
+   * Lexes inactive conditional branches with their REAL token types instead
+   * of PPBODY, so the editor's token-stream mechanics (brace matching and
+   * auto-close, enter between braces) work in dead code. Only for the editor
+   * highlighter - the parser needs the PPBODY blobs.
+   */
+  public static HaxeLexer forHighlighting(Project project) {
+    return new HaxeLexer(project, false);
   }
 }

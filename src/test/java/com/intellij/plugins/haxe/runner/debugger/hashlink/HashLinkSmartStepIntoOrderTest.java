@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStepHandler;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInTarget;
 import com.intellij.psi.PsiElement;
@@ -29,7 +29,7 @@ import java.util.List;
  * wrong method.
  */
 @DisplayName("Debugger: hashlink smart step into order")
-public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCase {
+public class HashLinkSmartStepIntoOrderTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {

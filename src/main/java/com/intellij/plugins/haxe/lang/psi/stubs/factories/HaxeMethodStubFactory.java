@@ -1,18 +1,15 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.factories;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubElementFactory;
 import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
-import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.function.BiFunction;
 
@@ -65,14 +62,15 @@ public class HaxeMethodStubFactory implements StubElementFactory<HaxeMethodStub,
 
   private static int buildKeywordFlags(@NotNull HaxeMethod psi) {
     int flags = 0;
-    if (psi.isStatic())       flags |= HaxeMethodStub.IS_STATIC;
-    if (psi.isPublic())       flags |= HaxeMethodStub.IS_PUBLIC;
-    if (psi.isOverride())     flags |= HaxeMethodStub.IS_OVERRIDE;
-    if (psi.isAbstract())     flags |= HaxeMethodStub.IS_ABSTRACT;
-    if (psi.isInline())       flags |= HaxeMethodStub.IS_INLINE;
-    if (psi.isOverload())     flags |= HaxeMethodStub.IS_OVERLOAD;
-    if (psi.isMacro())        flags |= HaxeMethodStub.IS_MACRO;
-    if (psi.isDynamic())      flags |= HaxeMethodStub.IS_DYNAMIC;
+    if (psi.isStatic())         flags |= HaxeMethodStub.KEYWORD_STATIC;
+    // only the DECLARED visibility: indexing cannot read other files
+    if (psi.isDeclaredPublic()) flags |= HaxeMethodStub.KEYWORD_PUBLIC;
+    if (psi.isOverride())       flags |= HaxeMethodStub.KEYWORD_OVERRIDE;
+    if (psi.isAbstract())       flags |= HaxeMethodStub.KEYWORD_ABSTRACT;
+    if (psi.isInline())         flags |= HaxeMethodStub.KEYWORD_INLINE;
+    if (psi.isOverload())       flags |= HaxeMethodStub.KEYWORD_OVERLOAD;
+    if (psi.isMacro())          flags |= HaxeMethodStub.KEYWORD_MACRO;
+    if (psi.isDynamic())        flags |= HaxeMethodStub.KEYWORD_DYNAMIC;
     return flags;
   }
 
@@ -81,6 +79,12 @@ public class HaxeMethodStubFactory implements StubElementFactory<HaxeMethodStub,
     if (psi.isConstructor())  flags |= HaxeMethodStub.IS_CONSTRUCTOR;
     if (psi.hasParameters())  flags |= HaxeMethodStub.HAS_PARAMETERS;
     if (psi.isVarArgs())      flags |= HaxeMethodStub.HAS_VARARG_PARAMETERS;
+    // a bare `override` inherits the overridden method's visibility, which
+    // indexing cannot resolve (it may not read other files); the flag defers
+    // that check to query time
+    if (psi.getModel() instanceof HaxeMemberModel member && member.isVisibilityInheritedFromParent()) {
+      flags |= HaxeMethodStub.VISIBILITY_INHERITED;
+    }
     return flags;
   }
 }

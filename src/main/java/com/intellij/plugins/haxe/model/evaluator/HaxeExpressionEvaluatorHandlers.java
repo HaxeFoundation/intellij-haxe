@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.ONLY_COMMENTS;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
-import static com.intellij.plugins.haxe.lang.psi.HaxeResolver.buildExtractVarPath;
+import static com.intellij.plugins.haxe.lang.psi.HaxeResolveChecks.buildExtractVarPath;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.isStaticExtension;
@@ -69,7 +69,7 @@ public class HaxeExpressionEvaluatorHandlers {
                                                HaxeGenericResolver resolver) {
 
     if (element == null ) return null;
-    return evaluatorHandlersRecursionGuard.doPreventingRecursion(element, false, () -> handle(element, context, resolver));
+    return HaxeEvaluationTaint.computeOrTaint(evaluatorHandlersRecursionGuard, element, false, () -> handle(element, context, resolver));
   }
 
 
@@ -463,28 +463,8 @@ public class HaxeExpressionEvaluatorHandlers {
 
           // case var x; / case x = ...;
           else if (subelement instanceof HaxeSwitchCaseCaptureVar || subelement instanceof  HaxeSwitchCaseCapture) {
-            HaxeEnumArgumentExtractor argumentExtractor =  PsiTreeUtil.getParentOfType(subelement, HaxeEnumArgumentExtractor.class, true, HaxeSwitchStatement.class);
-            // if reference is in an argument extractor, get type from enum constructor parameter list (typical "case MyEnumVal( x = {..}")
-            if (argumentExtractor != null) {
-              List<@NotNull PsiElement> argExtractChildren = Arrays.asList(argumentExtractor.getEnumExtractorArgumentList().getChildren());
-              int index = argExtractChildren.indexOf(subelement);
-              if (index > -1) {
-                PsiElement enumConsPsi = argumentExtractor.getEnumValueReference().getReferenceExpression().resolve();
-                if (enumConsPsi instanceof HaxeEnumValueDeclarationConstructor constructor) {
-                  HaxeParameterList parameterList = constructor.getParameterList();
-                  List<HaxeParameter> list = parameterList.getParameterList();
-                  if (index < list.size()) {
-                    HaxeParameter parameter = list.get(index);
-                    return handle(parameter, context, resolver);
-                  }
-                }
-              }
-            }
-            // if not in an arg extractor, then use type from switch (typical in  "case var x:" and "case x = ..." )
-            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(subelement, HaxeSwitchStatement.class);
-            if (switchStatement.getExpression() != null) {
-              return handle(switchStatement.getExpression(), context, resolver);
-          }
+            ResultHolder captureType = handleSwitchCaseCapture(context, resolver, subelement);
+            if (captureType != null) return captureType;
           }
 
           else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
@@ -624,6 +604,33 @@ public class HaxeExpressionEvaluatorHandlers {
     return SpecificHaxeClassReference.getString(element, constant).createHolder();
   }
 
+  /**
+   * The type of a capture ({@code case var x:}, {@code case x = ...:}): the
+   * enum constructor parameter it stands in for inside an argument extractor
+   * ({@code case Some(x = ...)}), otherwise the switch subject's type. Null
+   * when neither is available.
+   */
+  @Nullable
+  static ResultHolder handleSwitchCaseCapture(HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver, @NotNull PsiElement capture) {
+    HaxeEnumArgumentExtractor argumentExtractor = PsiTreeUtil.getParentOfType(capture, HaxeEnumArgumentExtractor.class, true, HaxeSwitchStatement.class);
+    if (argumentExtractor != null) {
+      List<@NotNull PsiElement> argExtractChildren = Arrays.asList(argumentExtractor.getEnumExtractorArgumentList().getChildren());
+      int index = argExtractChildren.indexOf(capture);
+      if (index > -1) {
+        PsiElement enumConsPsi = argumentExtractor.getEnumValueReference().getReferenceExpression().resolve();
+        if (enumConsPsi instanceof HaxeEnumValueDeclarationConstructor constructor) {
+          List<HaxeParameter> parameters = constructor.getParameterList().getParameterList();
+          if (index < parameters.size()) return handle(parameters.get(index), context, resolver);
+        }
+      }
+    }
+    HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(capture, HaxeSwitchStatement.class);
+    if (switchStatement != null && switchStatement.getExpression() != null) {
+      return handle(switchStatement.getExpression(), context, resolver);
+    }
+    return null;
+  }
+
   static ResultHolder handleSwitchCaseCaptureVar(HaxeGenericResolver resolver, HaxeSwitchCaseCaptureVar captureVar) {
     HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(captureVar, HaxeSwitchStatement.class);
     if(switchStatement != null && switchStatement.getExpression() != null){
@@ -723,7 +730,7 @@ public class HaxeExpressionEvaluatorHandlers {
           if (holder == null || holder.isOrContainsTypeParameters()) {
             HaxeComponentName name = parameter.getComponentName();
             final ResultHolder hint = holder;
-            ResultHolder searchResult =  evaluatorHandlersRecursionGuard.computePreventingRecursion(name, true, () -> {
+            ResultHolder searchResult =  HaxeEvaluationTaint.computeOrTaint(evaluatorHandlersRecursionGuard, name, true, () -> {
                 return searchReferencesForType(name, context, resolver, functionLiteral, hint);
             });
             if (searchResult!= null && !searchResult.isUnknown()) holder = searchResult;
@@ -737,9 +744,8 @@ public class HaxeExpressionEvaluatorHandlers {
           return createUnknown(parameter);
         }
       }else {
-        HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
-        ResultHolder holder = searchReferencesForType(parameter.getComponentName(), context, resolver, method.getBody());
-        if (holder!= null && !holder.isUnknown()) {
+        ResultHolder holder = HaxeUntypedParameterInference.inferMethodParameterType(parameter, context, resolver);
+        if (holder != null && !holder.isUnknown()) {
           return holder;
         }
       }
@@ -1013,7 +1019,7 @@ public class HaxeExpressionEvaluatorHandlers {
   }
   static ResultHolder createUnknown(PsiElement element, boolean cacheable) {
       ResultHolder holder = getUnknown(element).createHolder();
-      holder.cacheable = cacheable;
+      holder.setCacheable(cacheable);
       return holder;
   }
 
@@ -1880,20 +1886,20 @@ public class HaxeExpressionEvaluatorHandlers {
 
       if(returnType.getFunctionType() != null){
           ResultHolder holder = returnType.getFunctionType().createHolder();
-          holder.cacheable = allowCaching;
+          holder.setCacheable(allowCaching);
           return holder;
       }
 
       if(returnType.isClassType() || returnType.isEnumValueType()) {
           ResultHolder result = returnType.copy();
-          result.cacheable = allowCaching;
+          result.setCacheable(allowCaching);
           return result;
       }
     }
 
     if (functionType!= null && functionType.isDynamic()) {
         ResultHolder holder = functionType.withoutConstantValue().createHolder();
-        holder.cacheable = allowCaching;
+        holder.setCacheable(allowCaching);
         return holder;
     }
 
@@ -2054,8 +2060,11 @@ public class HaxeExpressionEvaluatorHandlers {
     if (isUnknownLiteralArray(result) && result.containsUnknownOrUnresolvedTypeParameters()) {
       result = searchReferencesForTypeParameters(name, context, resolver, result);
     }
+
     if (result != null && result.containsUnknownOrUnresolvedTypeParameters()) {
-      result = searchReferencesForTypeParameters(name, context, resolver, result);
+      if (!HaxeExpressionUsageUtil.containsOnlyEnclosingTypeParameters(result, varDeclaration)) {
+        result = searchReferencesForTypeParameters(name, context, resolver, result);
+      }
     }
 
     result = tryGetEnumValuesDeclaringClass(result);

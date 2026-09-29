@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.*;
+
 public class HaxeTypeCreator {
 
     private static final  List<String> GENERIC_NAMES = List.of(
@@ -115,10 +117,10 @@ public class HaxeTypeCreator {
 
     private PsiElement createTypePsi(@NotNull Project project, String typeName, @NonNls @NotNull String type) {
         return switch (type) {
-            case "HaxeClass" -> HaxeElementGenerator.createClass(project, typeName);
-            case "HaxeInterface" -> HaxeElementGenerator.createInterface(project, typeName);
-            case "HaxeEnum" -> HaxeElementGenerator.createEnum(project, typeName);
-            case "HaxeAbstract" -> HaxeElementGenerator.createAbstract(project, typeName);
+            case CLASS_TEMPLATE -> HaxeElementGenerator.createClass(project, typeName);
+            case INTERFACE_TEMPLATE -> HaxeElementGenerator.createInterface(project, typeName);
+            case ENUM_TEMPLATE -> HaxeElementGenerator.createEnum(project, typeName);
+            case ABSTRACT_TEMPLATE -> HaxeElementGenerator.createAbstract(project, typeName);
             default -> null;
         };
     }

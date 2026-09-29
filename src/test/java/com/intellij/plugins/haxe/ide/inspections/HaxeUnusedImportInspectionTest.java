@@ -17,9 +17,13 @@
  */
 package com.intellij.plugins.haxe.ide.inspections;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedImportInspection;
 
 /**
  * Test for the HaxeUnusedImportInspection.
@@ -27,7 +31,7 @@ import org.junit.jupiter.api.Test;
  * Created by Usievaład Kimajeŭ on 27.05.2016.
  */
 @DisplayName("Inspection: unused import")
-public class HaxeUnusedImportInspectionTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeUnusedImportInspectionTest extends HaxeLightFixtureTestCase {
   @Test
   @DisplayName("unused alias typedef")
   public void testUnusedAliasTypedef() {
@@ -85,6 +89,28 @@ public class HaxeUnusedImportInspectionTest extends HaxeCodeInsightFixtureTestCa
   @Override
   protected String getBasePath() {
     return "/imports/unused/";
+  }
+
+  /// The compiler-diagnostics unused-import toggle REPLACES this inspection: with both
+  /// the master and the feature toggle on, the static analysis must report nothing.
+  @Test
+  @DisplayName("compiler diagnostics toggle displaces the static inspection")
+  public void testCompilerDiagnosticsToggleDisplacesTheStaticInspection() {
+    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
+    settings.setCompilerDiagnosticsEnabled(true);
+    settings.setDiagnosticsUnusedImportsEnabled(true);
+    try {
+      myFixture.configureByFiles("UnusedClass.hx", "helper/Bar.hx", "helper/Foo.hx", "helper/IFoo.hx", "helper/Typedefs.hx");
+      myFixture.enableInspections(new HaxeUnusedImportInspection());
+
+      boolean unusedImportReported = myFixture.doHighlighting().stream()
+        .anyMatch(info -> info.getDescription() != null && info.getDescription().contains("nused import"));
+      assertFalse(unusedImportReported, "the static inspection must stand down while the compiler owns unused imports");
+    } finally {
+      // the shared light project remembers project-level settings
+      settings.setCompilerDiagnosticsEnabled(false);
+      settings.setDiagnosticsUnusedImportsEnabled(false);
+    }
   }
 
   private void doTest(String fileName) {

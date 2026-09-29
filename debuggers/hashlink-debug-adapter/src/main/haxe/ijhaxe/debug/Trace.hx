@@ -1,25 +1,24 @@
 package ijhaxe.debug;
 
 /**
-	Breadcrumbs to stderr for diagnosing hangs and lost messages; enabled by the
-	DAP_ADAPTER_TRACE environment variable. The integration tests set it and dump
-	the pipe on teardown, so a wedged run self-diagnoses: the last breadcrumb
-	printed tells you where things stopped.
+	Diagnostic lines on stderr for finding hangs and lost messages, enabled by
+	the DAP_ADAPTER_TRACE environment variable. The integration tests set it and
+	print the output on teardown, so the last line of a hung run shows where it
+	stopped.
 **/
 class Trace {
 	public static final ENABLED = Sys.getEnv("DAP_ADAPTER_TRACE") != null;
 
 	/**
-		Guard for hot-path call sites: skips building the message (string
-		concatenation, reflection) when tracing is off, which `log` alone
-		cannot — its argument is evaluated before the ENABLED check runs.
+		Guards hot call sites so they skip building the message when tracing is
+		off. `log` alone cannot do that, because its argument is evaluated
+		before it checks ENABLED.
 	**/
 	public static inline function isEnabled():Bool {
 		return ENABLED;
 	}
 
-	// Worker, writer and session threads all trace; unsynchronized concurrent
-	// stderr writes interleave bytes and produce unreadable evidence.
+	// Several threads trace, and unsynchronized stderr writes interleave their bytes.
 	static final lock = new sys.thread.Mutex();
 
 	public static function log(message:String):Void {

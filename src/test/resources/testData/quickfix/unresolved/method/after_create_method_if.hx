@@ -6,7 +6,7 @@ class Test {
         }
     }
 
-    private function getVal(param:String, i:Int, f:Float):Bool {
+    private function getVal(myStrParam:String, i:Int, f:Float):Bool {
         return false;
     }
 }

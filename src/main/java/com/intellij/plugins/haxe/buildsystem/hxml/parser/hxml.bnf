@@ -32,7 +32,7 @@ qualifiedName ::= (IDENTIFER !(HXML_EXTENSION | SLASH) (DOT IDENTIFER)*) | CLASS
 
 private option ::= (lib | define | classpath | main | property | COMMENT)
 
-value ::= path | qualifiedName  | VALUE_TOKEN
+value ::= hxmlFile | path | qualifiedName  | VALUE_TOKEN
 private endOfLine ::= CRLF
 
 path ::= (DOTDOT | DOT | IDENTIFER | SLASH)+

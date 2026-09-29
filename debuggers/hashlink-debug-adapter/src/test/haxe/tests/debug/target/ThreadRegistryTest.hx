@@ -77,7 +77,7 @@ class ThreadRegistryTest {
 		assert.equals(2, threads.length, "two visible threads");
 		// sorted by id: 5 first (main, unnamed), then 77 (worker, named)
 		assert.equals(5, threads[0].id, "lowest id first");
-		assert.equals("main", threads[0].name, "lowest id is main even though we stopped in 77");
+		assert.equals("main", threads[0].name, "lowest id is main even though the stop is in 77");
 		assert.equals(77, threads[1].id, "higher id second");
 		assert.equals("worker", threads[1].name, "explicit name kept");
 	}
@@ -91,7 +91,7 @@ class ThreadRegistryTest {
 		// visible user thread
 		pokeI32(api, 0x300, 9);
 		pokeI32(api, 0x300 + FLAGS, 0);
-		// invisible (flag bit 16) internal thread -> skipped
+		// an internal thread with the invisible flag (value 16) is skipped
 		pokeI32(api, 0x400, 3);
 		pokeI32(api, 0x400 + FLAGS, 16);
 

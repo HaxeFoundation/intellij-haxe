@@ -23,9 +23,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeLiteralExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
-import com.intellij.psi.impl.source.tree.LeafElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,9 +44,10 @@ abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements
 
   @Override
   public PsiLanguageInjectionHost updateText(@NotNull String text) {
-    ASTNode valueNode = getNode().getFirstChildNode();
-    assert valueNode instanceof LeafElement;
-    ((LeafElement)valueNode).replaceWithText(text);
+    PsiElement expressionFromText = HaxeElementGenerator.createExpressionFromText(getProject(), text);
+    if (expressionFromText instanceof HaxeStringLiteralExpression) {
+      getNode().replaceAllChildrenToChildrenOf(expressionFromText.getNode());
+    }
     return this;
   }
 

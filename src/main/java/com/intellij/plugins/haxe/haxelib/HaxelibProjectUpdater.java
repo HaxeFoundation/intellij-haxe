@@ -28,10 +28,10 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
@@ -39,7 +39,6 @@ import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,6 +54,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
 import com.intellij.plugins.haxe.util.*;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -659,6 +659,11 @@ public class HaxelibProjectUpdater {
     else {
       // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
 
+      // display runs the openfl tool from the project's local .haxelib - project code
+      if (!HaxeProjectTrust.checkForBackgroundEvaluation(project)) {
+        timeLog.stamp("Skipped openfl display: project not trusted.");
+        return;
+      }
       String projectBasePath = project.getBasePath();
       if (null == projectBasePath) {
         projectBasePath = "";
@@ -1585,15 +1590,12 @@ public class HaxelibProjectUpdater {
         updatingProject.setUpdating(true);
       }
 
-      // Waiting for runWhenProjectIsInitialized() ensures that the project is
-      // fully loaded and accessible.  Otherwise, we crash. ;)
-      StartupManager.getInstance(updatingProject.getProject()).runWhenProjectIsInitialized(new Runnable() {
-        public void run() {
-          log.debug("Starting haxelib library sync...");
-          runUpdate();
-        }
+      // A project is queued from its post-startup activity or later, so it is
+      // open; the sync still has to wait for the indexes it reads.
+      DumbService.getInstance(updatingProject.getProject()).runWhenSmart(() -> {
+        log.debug("Starting haxelib library sync...");
+        runUpdate();
       });
-
     }
 
     /**

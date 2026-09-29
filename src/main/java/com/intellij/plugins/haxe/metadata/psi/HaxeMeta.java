@@ -58,6 +58,7 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
 
   HaxeMetadataTypeName ACCESS = new HaxeMetadataTypeName("access"); // <Target path>
   HaxeMetadataTypeName ALLOW = new HaxeMetadataTypeName("allow"); // <Target path>
+  HaxeMetadataTypeName ANALYZER = new HaxeMetadataTypeName("analyzer"); // <Target path>
   HaxeMetadataTypeName ARRAY_ACCESS = new HaxeMetadataTypeName("arrayAccess");
   HaxeMetadataTypeName AUTO_BUILD = new HaxeMetadataTypeName("autoBuild"); // <Build macro call>
   HaxeMetadataTypeName BIND = new HaxeMetadataTypeName("bind");
@@ -71,6 +72,7 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   HaxeMetadataTypeName DEPRECATED = new HaxeMetadataTypeName("deprecated");
   HaxeMetadataTypeName ENUM = new HaxeMetadataTypeName("enum");
   HaxeMetadataTypeName EXPOSE = new HaxeMetadataTypeName("expose"); // <name>
+  HaxeMetadataTypeName EXTERN = new HaxeMetadataTypeName("extern");
   HaxeMetadataTypeName FAKE_ENUM = new HaxeMetadataTypeName("fakeEnum");
   HaxeMetadataTypeName FILE = new HaxeMetadataTypeName("file"); // <File path>
   HaxeMetadataTypeName FINAL = new HaxeMetadataTypeName("final");

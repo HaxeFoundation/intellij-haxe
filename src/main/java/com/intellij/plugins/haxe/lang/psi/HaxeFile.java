@@ -28,7 +28,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.stubs.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
@@ -60,7 +59,7 @@ public class HaxeFile extends PsiFileBase
 
   public HaxeModule getModule() {
     boolean couldBeIndexing = DumbService.isDumb(this.getProject());
-    if(!couldBeIndexing && HaxeStubableFileService.isStubable(this.getVirtualFile())) {
+    if(!couldBeIndexing && HaxeStubableFileService.isStubable(this)) {
       return withGreenStubOrAst(this::moduleWithStub, this::moduleWithAst);
     }else {
       return moduleWithAst(null);

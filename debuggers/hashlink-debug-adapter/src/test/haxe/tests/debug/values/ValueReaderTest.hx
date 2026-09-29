@@ -103,7 +103,7 @@ class ValueReaderTest {
 		var objType = HObj({name: "Main", tsuper: null, fields: [], proto: [], globalValue: null, bindings: []});
 		var decoded = reader(api).read(addr(0x900), objType);
 		assert.isTrue(StringTools.startsWith(decoded.value, "Main @ 0x"), "object shows raw type@addr (was " + decoded.value + ")");
-		assert.equals(0, decoded.reference, "raw fallback is non-expandable in step 1");
+		assert.equals(0, decoded.reference, "raw fallback is not expandable without a reference allocator");
 	}
 
 	static function readsNullBox(assert:Assert):Void {

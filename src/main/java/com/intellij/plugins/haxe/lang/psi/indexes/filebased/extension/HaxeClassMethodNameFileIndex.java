@@ -62,14 +62,16 @@ public class HaxeClassMethodNameFileIndex extends HaxeComponentBaseIndex {
                             HaxeModule module = haxeFile.getModule();
                             if (module != null && module.getModel() instanceof HaxeModuleModel model) {
                                 HaxeClassModel aClass = model.getClass(className);
-                                HaxeMethodModel member = aClass.getMethodSelf(name);
-                                if (member != null) {
-                                    elements.add(member.getMethod());
+                                if(aClass != null) {
+                                    HaxeMethodModel member = aClass.getMethodSelf(name);
+                                    if (member != null) {
+                                        elements.add(member.getMethod());
+                                    }
                                 }
                             }
 
                         }
-                        return false;
+                        return true; // keep iterating; false stops at the FIRST file and drops every other candidate
                     }
                 }, scope);
 

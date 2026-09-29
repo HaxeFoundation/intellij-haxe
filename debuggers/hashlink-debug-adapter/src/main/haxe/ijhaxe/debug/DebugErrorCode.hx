@@ -1,25 +1,24 @@
 package ijhaxe.debug;
 
 /**
-	Machine-readable identifiers for error responses — sent as the DAP
-	`Message.id`. The CODE is the stable contract the client keys off; the
-	human-readable `format` text may change freely without breaking clients.
+	Error codes the adapter sends as the DAP `Message.id`. Clients branch on the
+	code, so it must stay stable; the message text may change freely.
 
-	Underlying values are plain Ints (`to Int`), so they serialize directly into
-	`Message.id`. Kept distinct from the transport-level codes in
-	RequestDispatcher (1000–1002); evaluate/resolution codes live in the 2000s.
+	The values are plain Ints (`to Int`), so they serialize directly into
+	`Message.id`. Generic shares its value with RequestDispatcher's
+	ERROR_INVALID_REQUEST; codes for evaluate and name resolution start at 2000.
 **/
 enum abstract DebugErrorCode(Int) to Int {
 	/**
-		No specific machine meaning — a plain rejection (== ERROR_INVALID_REQUEST).
+		A plain rejection with no specific meaning for the client.
 	**/
 	var Generic = 1001;
 
 	/**
-		A name in an evaluate expression could not be resolved against the frame
-		(not a local, `this` field, or class known to the module). `variables.name`
-		carries the offending identifier so the client can try to resolve it with
-		its own source knowledge (imports) and re-issue a qualified expression.
+		A name in an evaluate expression is not a local, a field of `this` or a
+		class known to the module. `variables.name` holds the name, so the client
+		can resolve it through its own source knowledge (imports) and retry with
+		a qualified expression.
 	**/
 	var UnresolvedName = 2001;
 }

@@ -35,7 +35,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -119,8 +118,6 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
 
     // Collecting matching keys first as processElements cannot be called inside
     // a processAllKeys callback (same index lock -> deadlock assertion).
-    StubIndex stubIndex = StubIndex.getInstance();
-
     final List<String> matchingKeys = new ArrayList<>();
       HaxeClassNameUnifiedIndex.getAllKeys(project).forEach(key -> {
           if (matcher.prefixMatches(key)) matchingKeys.add(key);

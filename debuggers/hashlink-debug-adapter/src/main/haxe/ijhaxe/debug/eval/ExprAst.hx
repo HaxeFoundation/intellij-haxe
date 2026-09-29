@@ -1,10 +1,10 @@
 package ijhaxe.debug.eval;
 
 /**
-	The evaluate-expression AST. Leaves are the constructs the debugger
-	already knows how to resolve (literals, variable paths, calls, `new`);
-	operators are folded ADAPTER-SIDE on typed values — no debuggee code runs
-	for arithmetic itself.
+	The syntax tree of an evaluate expression. Leaves are the constructs the
+	debugger can already resolve: literals, variable paths, calls and `new`.
+	Operators are computed inside the adapter on typed values, so no debuggee
+	code runs for arithmetic.
 **/
 enum Expr {
 	EInt(v:haxe.Int64);
@@ -15,17 +15,17 @@ enum Expr {
 	EIdent(name:String);
 
 	/**
-		`receiver.name` — a field access (or a class-path segment).
+		`receiver.name`: a field access, or one segment of a class path.
 	**/
 	EField(e:Expr, name:String);
 
 	/**
-		`receiver[key]` — array index or map key (decided at eval time).
+		`receiver[key]`: an array index or a map key, decided during evaluation.
 	**/
 	EIndex(e:Expr, key:Expr);
 
 	/**
-		`callee(args)` — callee must be an ident/field chain.
+		`callee(args)`, where the callee must be a variable path.
 	**/
 	ECall(e:Expr, args:Array<Expr>);
 
@@ -40,17 +40,17 @@ enum Expr {
 	EUnop(op:String, e:Expr);
 
 	/**
-		binary operator; `&&`/`||` short-circuit in the interpreter
+		A binary operator. The interpreter short-circuits `&&` and `||`.
 	**/
 	EBinop(op:String, left:Expr, right:Expr);
 
 	/**
-		`cond ? thenExpr : elseExpr` — only the taken branch is evaluated
+		`cond ? thenExpr : elseExpr`. Only the taken branch is evaluated.
 	**/
 	ETernary(cond:Expr, thenExpr:Expr, elseExpr:Expr);
 
 	/**
-		`e is Type` — a runtime type check; `typeName` is a (dotted) class/enum name
+		`e is Type`: a runtime type check against a (dotted) class or enum name.
 	**/
 	EIs(e:Expr, typeName:String);
 

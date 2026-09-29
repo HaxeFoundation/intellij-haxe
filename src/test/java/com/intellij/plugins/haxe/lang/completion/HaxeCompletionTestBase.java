@@ -22,10 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.navigation.NavigationItem;
-import com.intellij.openapi.util.text.CharFilter;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.UsefulTestCase;
@@ -36,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * @author: Fedor.Korotkov
  */
-public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestCase {
+public abstract class HaxeCompletionTestBase extends HaxeLightFixtureTestCase {
   enum CheckType {EQUALS, INCLUDES, EXCLUDES}
 
   private final String myPath;

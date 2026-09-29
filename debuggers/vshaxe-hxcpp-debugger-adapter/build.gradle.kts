@@ -36,7 +36,15 @@ dependencies {
 // non-default so tests never collide with a real debug session on 6972.
 // ---------------------------------------------------------------------------
 val hxcppFixturePort = 6973
-val hxcppDebugServerVersion = "1.2.4" // pinned for reproducible fixture builds
+// pinned for reproducible fixture builds; the pin lives in
+// test-fixtures/fixture.hxml's `-lib hxcpp-debug-server:<version>` line
+// (spin.hxml/uncaught.hxml mirror it)
+val hxcppDebugServerVersion: String by lazy {
+    // the versioned lib reference: `-lib hxcpp-debug-server:1.2.4`
+    Regex("-lib hxcpp-debug-server:(\\S+)")
+        .find(File(projectDir, "test-fixtures/fixture.hxml").readText())?.groupValues?.get(1)
+        ?: error("test-fixtures/fixture.hxml must pin hxcpp-debug-server as `-lib hxcpp-debug-server:<version>`")
+}
 
 // Debugger validation belongs to the dedicated windows CI job: fixtures need
 // haxe + the hxcpp toolchain + a C++ compiler, and the tests target windows.
@@ -67,10 +75,25 @@ val haxeAvailable: Boolean by lazy {
     }
 }
 
+// `haxelib path lib:version` is version-exact and never touches the machine's
+// selected ("current") version - the probe that lets an installed lib be left alone
+val hxcppDebugServerInstalled: Boolean by lazy {
+    try {
+        ProcessBuilder("haxelib", "path", "hxcpp-debug-server:$hxcppDebugServerVersion")
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start().waitFor() == 0
+    } catch (e: Exception) {
+        false
+    }
+}
+
 tasks.register<Exec>("installHxcppDebugServerHaxelib") {
     group = "hxcpp"
-    description = "Installs the pinned 'hxcpp-debug-server' haxelib compiled into the test fixture"
-    onlyIf { debuggerTests && haxeAvailable }
+    description = "Provisions the pinned 'hxcpp-debug-server' haxelib when missing; an installed one is left untouched"
+    // `haxelib install` switches the current-version selection as a side effect,
+    // so it must only ever run when the pinned version is absent
+    onlyIf { debuggerTests && haxeAvailable && !hxcppDebugServerInstalled }
     commandLine = listOf("haxelib", "install", "hxcpp-debug-server", hxcppDebugServerVersion, "--quiet", "--always")
 }
 

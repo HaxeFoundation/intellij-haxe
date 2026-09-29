@@ -1,0 +1,14 @@
+<html>
+<body>
+Reports classes that do not implement all methods of their interfaces, or
+all abstract methods of an abstract base class. The quick fix generates the
+missing implementations.
+<p><b>Example:</b></p>
+<pre><code>
+interface Shape {
+    function area():Float;
+}
+class Circle implements Shape {}   // missing area()
+</code></pre>
+</body>
+</html>

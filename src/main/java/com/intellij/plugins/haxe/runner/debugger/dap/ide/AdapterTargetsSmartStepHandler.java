@@ -52,7 +52,7 @@ import org.jetbrains.concurrency.Promise;
  * ("Expected to have the same number of start and end locations") — the step
  * then degrades to a plain step into the first call. Any following mapped
  * statement on the next line restores the chooser. Pinned by
- * JsDebugAdapterLiveProbe.stepInTargetsKnownLimitationOnLastStatementOfFunction.
+ * JsDebugAdapterLiveTest.stepInTargetsKnownLimitationOnLastStatementOfFunction.
  */
 public class AdapterTargetsSmartStepHandler extends XSmartStepIntoHandler<AdapterTargetsSmartStepHandler.Variant> {
   private final DapDebugProcess process;

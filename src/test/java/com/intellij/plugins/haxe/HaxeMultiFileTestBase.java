@@ -15,6 +15,7 @@ import org.junit.jupiter.api.TestInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.openapi.util.RecursionManager;
 
 /**
  * Jupiter front for the platform's JUnit3-style {@link MultiFileTestCase}
@@ -61,6 +62,13 @@ public abstract class HaxeMultiFileTestBase {
 
   protected void setUp() throws Exception {
     engine.start();
+    // Same opt-outs as HaxeCodeInsightFixtureTestCase: type inference fires
+    // recursion preventions by design, and the resolver deliberately
+    // suppresses ResolveCache writes for uncertain resolves (see
+    // HaxeResolveFrames.suppressCacheWrite) - the platform's missed-cache
+    // assertion would turn both into test failures.
+    RecursionManager.disableAssertOnRecursionPrevention(engine.getTestRootDisposable());
+    RecursionManager.disableMissedCacheAssertions(engine.getTestRootDisposable());
   }
 
   protected void tearDown() throws Exception {

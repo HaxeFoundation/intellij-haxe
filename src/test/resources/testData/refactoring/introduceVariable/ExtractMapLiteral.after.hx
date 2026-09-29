@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var map = ["1" => 1, "2" => 2];
-        for (i in map.keys()) Sys.println(i);
+        var stringIntMap = ["1" => 1, "2" => 2];
+        for (i in stringIntMap.keys()) Sys.println(i);
     }
 }

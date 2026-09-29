@@ -13,31 +13,33 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	Decodes a value at a memory address given its HLType, producing a display
-	string + type label (+ a reference for expandable values). Milestone 4 step 1
-	handles primitives, strings and null; other pointer types render as a raw
-	`<Type> @ 0x..` until object/array expansion (step 2) sets `referenceAllocator`.
+	Decodes the value at a memory address, given its HLType, into a display
+	string, a type label and, for an expandable value, a reference.
+
+	The optional readers below enable richer decoding. Without them a value
+	falls back to a raw `<Type> @ 0x...`, and without `referenceAllocator` no
+	value is expandable.
 **/
 class ValueReader {
 	final mem:MemoryReader;
 	final align:Align;
 
-	// Step 2 sets this to allocate a variablesReference for an expandable value.
+	// Allocates a variablesReference for an expandable value.
 	public var referenceAllocator:Null<(Pointer, HLType) -> Int> = null;
-	// Resolves runtime hl_type* headers (vdynamic payloads, actual object classes).
+	// Resolves runtime hl_type* headers: vdynamic payloads, the actual class of an object.
 	public var runtimeTypes:Null<RuntimeTypes> = null;
-	// Resolves a jitted code address to a function display name (closures).
+	// Names the function at a jitted code address, for closures.
 	public var functionNameResolver:Null<Pointer->Null<String>> = null;
-	// Resolves an hl_symbol stack-trace entry (a code return address) to a
-	// "Class.method (File.hx:line)" label; null → raw pointer fallback.
+	// Turns an hl_symbol stack-trace entry (a code return address) into
+	// "Class.method (File.hx:line)"; without it the raw pointer is shown.
 	public var symbolResolver:Null<Pointer->Null<String>> = null;
-	// Constructor-param offsets, for inline enum display and expansion.
+	// Enum constructor parameter offsets, for enum previews and children.
 	public var enumLayout:Null<EnumLayout> = null;
-	// Runtime dynamic-object reader (Dynamic structures, Reflect/JSON objects).
+	// Reads dynamic objects: Dynamic structures, Reflect-built and JSON objects.
 	public var dynObjects:Null<DynObjReader> = null;
-	// Native map reader for the haxe.ds map wrappers.
+	// Reads the native maps inside the haxe.ds map classes.
 	public var maps:Null<MapReader> = null;
-	// Pure-Haxe balanced-tree map reader (EnumValueMap / BalancedTree).
+	// Reads the pure-Haxe tree maps (EnumValueMap, BalancedTree).
 	public var treeMaps:Null<TreeMapReader> = null;
 
 	public function new(mem:MemoryReader, align:Align) {
@@ -56,8 +58,7 @@ class ValueReader {
 			case HF64: leaf(Std.string(mem.readF64(address)), "Float");
 			case HBool: leaf(mem.readU8(address) != 0 ? "true" : "false", "Bool");
 			case HPacked(inner):
-				// a @:packed field: the field address IS the inline struct
-				// (there is no pointer slot to dereference)
+				// a @:packed field stores its struct inline: no pointer to dereference
 				expandableOrRaw(address, inner.v);
 			default: readPointerValue(address, t);
 		}
@@ -72,37 +73,35 @@ class ValueReader {
 	}
 
 	/**
-		Decodes a value whose pointer is already in hand (e.g. a function's
-		pointer-typed return value in RAX) — no address dereference.
+		Decodes a pointer value that is already in hand rather than stored at an
+		address, such as a pointer returned by a call.
 	**/
 	public function decodeReturnedPointer(ptr:Pointer, t:HLType):DecodedValue {
 		return decodePointed(ptr, t);
 	}
 
-	// Decodes a value whose pointer has already been dereferenced (`ptr` is the
-	// object/box itself). Split from readPointerValue because a vdynamic resolves
-	// to a pointer type without another indirection.
+	// Decodes the value `ptr` points to (the object or box itself). It is
+	// separate from readPointerValue because a vdynamic can hold a pointer-typed
+	// value at its own address, with no slot to dereference.
 	function decodePointed(ptr:Pointer, t:HLType):DecodedValue {
 		return switch (t) {
 			case HObj(proto) if (proto != null && proto.name == "String"):
 				leaf(readString(ptr), "String");
 
 			case HObj(proto) if (proto != null && proto.name == ARRAY_DYN):
-				// hl.types.ArrayDyn wraps an ArrayBase (ptr @ +8) whose length is @ +8
 				arrayValue(ptr, t, arrayDynLength(ptr));
 			case HObj(proto) if (proto != null && isArrayWrapper(proto.name)):
-				// hl.types.ArrayBytes_*/ArrayObj both keep `length` right after the header
+				// hl.types.ArrayBytes_* and ArrayObj keep `length` right after the header
 				arrayValue(ptr, t, mem.readI32(ptr.offset(align.ptr)));
 			case HArray:
-				// varray: at@+ptr, size@+ptr*2
+				// varray: element type @ +ptr, size @ +ptr*2
 				arrayValue(ptr, t, mem.readI32(ptr.offset(align.ptr * 2)));
 
 			case HRef(inner):
-				// a reference: the dereferenced pointer IS the address of the value
-				// (captured-and-mutated closure locals are the common case)
+				// the pointer is the address of the value
 				read(ptr, inner);
 			case HNull(inner):
-				// a box (vdynamic-shaped): the payload union is @ +8 on BOTH bitnesses
+				// a box shaped like a vdynamic, with the value at the payload offset
 				read(ptr.offset(align.dynPayload), inner);
 
 			case HDyn:
@@ -121,27 +120,26 @@ class ValueReader {
 			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
 				readTreeMap(ptr, proto);
 			case HAbstract(name) if (maps != null && nativeMapKind(name) != null):
-				// the abstract value IS the native map pointer (no wrapper indirection)
+				// the abstract value is the native map itself, without a wrapper
 				readNativeMap(ptr, nativeMapKind(name), name);
 
 			case HAbstract("hl_symbol"):
-				// a haxe.Exception.__nativeStack entry: the abstract value is a code
-				// return address. Resolve it to a source location the way the call
-				// stack does, instead of showing an opaque `hl_symbol @ 0x..`.
+				// an entry of haxe.Exception.__nativeStack: a code return address,
+				// shown as a source location like a call stack frame
 				var label = symbolResolver == null ? null : symbolResolver(ptr);
 				leaf(label != null ? label : "hl_symbol @ " + hex(ptr), "StackFrame");
 
 			case HObj(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			case HStruct(_):
-				// structs carry no hl_type* header, so there is nothing to refine
+				// a struct has no hl_type* header to read its runtime type from
 				expandableOrRaw(ptr, t);
 			default:
 				expandableOrRaw(ptr, t);
 		}
 	}
 
-	// haxe.ds.EnumValueMap / BalancedTree: entry count by walking the tree
+	// haxe.ds.EnumValueMap / BalancedTree, previewed with the entry count
 	function readTreeMap(ptr:Pointer, proto:ObjPrototype):DecodedValue {
 		var count = treeMaps.entryCount(ptr, proto);
 		if (count < 0) {
@@ -151,7 +149,7 @@ class ValueReader {
 		return {value: "Map(" + count + ")", type: "Map", reference: reference};
 	}
 
-	// a native map at `native` (a wrapper deref, or the abstract itself)
+	// a native map, reached through a map class or held directly as an abstract
 	function readNativeMap(native:Pointer, kind:MapKeyKind, abstractName:String):DecodedValue {
 		var count = maps.entryCount(native);
 		if (count < 0) {
@@ -162,7 +160,7 @@ class ValueReader {
 	}
 
 	/**
-		The key layout of a native map abstract, or null when not a map native.
+		The key layout of a native map abstract, or null when `name` is not one.
 	**/
 	public static function nativeMapKind(name:String):Null<MapKeyKind> {
 		return switch (name) {
@@ -174,7 +172,7 @@ class ValueReader {
 		}
 	}
 
-	// vdynobj: field names inline in the preview, children on expand
+	// vdynobj: the preview lists the field names, the children hold the values
 	function readDynObj(ptr:Pointer):DecodedValue {
 		var fields = dynObjects.fields(ptr);
 		if (fields.length == 0) {
@@ -185,8 +183,8 @@ class ValueReader {
 		return {value: display, type: "Dynamic", reference: reference};
 	}
 
-	// haxe.ds.StringMap/IntMap/ObjectMap: the native map lives in the wrapper's
-	// first field; preview shows the live entry count
+	// haxe.ds.StringMap/IntMap/ObjectMap keep the native map in their first
+	// field; the preview shows the entry count
 	function readMapWrapper(ptr:Pointer, t:HLType):DecodedValue {
 		var native = mem.readPointer(ptr.offset(align.ptr));
 		var count = maps.entryCount(native);
@@ -198,7 +196,7 @@ class ValueReader {
 	}
 
 	/**
-		The map key layout for a wrapper class name, or null when not a map.
+		The key layout of a haxe.ds map class, or null when `name` is not one.
 	**/
 	public static function mapKeyKind(name:String):Null<MapKeyKind> {
 		return switch (name) {
@@ -209,9 +207,9 @@ class ValueReader {
 		}
 	}
 
-	// venum: constructor index @ +ptr; params inline per EnumLayout. Constructors
-	// without params are leaves; with params the value previews them inline and
-	// expands into one child per param.
+	// venum: constructor index @ +ptr, parameters at their EnumLayout offsets. A
+	// constructor without parameters is a leaf; otherwise the preview shows the
+	// parameters and the value expands into one child per parameter.
 	function readEnum(ptr:Pointer, t:HLType, proto:EnumPrototype):DecodedValue {
 		var index = mem.readI32(ptr.offset(align.ptr));
 		if (index < 0 || index >= proto.constructs.length) {
@@ -230,15 +228,14 @@ class ValueReader {
 		return {value: display, type: typeName(t), reference: reference};
 	}
 
-	// vvirtual: header t/value/next, then one indirect field pointer per field
+	// vvirtual: header t/value/next, then one slot per field
 	function readVirtual(ptr:Pointer, t:HLType, fields:Array<{name:String, t:HLType}>):DecodedValue {
-		// An object-backed virtual (a class instance seen through an interface)
-		// is presented AS the instance: its fields carry real values and its
-		// class name drives source navigation, where the structural member
-		// list has neither - the interface's own members are properties and
-		// methods, which hold no data. Falls back to the member list when the
-		// virtual is standalone (an anonymous structure: value is null) or the
-		// runtime class cannot be resolved.
+		// A virtual that wraps an object (a class instance seen through an
+		// interface) is shown as that object. Its fields hold the real values,
+		// and its class name enables source navigation. The interface's own
+		// members are mostly properties and methods, which hold no data. A
+		// standalone virtual (an anonymous structure, whose value is null), or
+		// one whose class cannot be resolved, is shown as its member list.
 		var wrapped = wrappedInstance(ptr);
 		if (wrapped != null) {
 			return expandableOrRaw(wrapped.ptr, wrapped.type);
@@ -250,9 +247,9 @@ class ValueReader {
 	}
 
 	/**
-		The instance a virtual wraps (`vvirtual.value` @ +ptr) with its RUNTIME
-		class, or null when the virtual carries its own data instead (an
-		anonymous structure) or the class is unresolvable.
+		The object a virtual wraps (`vvirtual.value` @ +ptr), typed by its
+		runtime class. Null when the virtual holds its own data (an anonymous
+		structure) or the class cannot be resolved.
 	**/
 	public function wrappedInstance(ptr:Pointer):Null<{ptr:Pointer, type:HLType}> {
 		if (runtimeTypes == null) {
@@ -270,20 +267,20 @@ class ValueReader {
 	}
 
 	/**
-		A METHOD entry of an object-backed virtual: hl stores the function's
-		CODE pointer directly in the slot (a data field's slot holds the
-		field's ADDRESS instead), so it is named, never dereferenced.
+		A method slot of a virtual that wraps an object. The slot holds the
+		method's code pointer, whereas a data field's slot holds the field's
+		address, so it is only named, never dereferenced.
 	**/
 	public function readMethodPointer(code:Pointer, t:HLType):DecodedValue {
 		var name = functionNameResolver == null ? null : functionNameResolver(code);
 		return leaf(name != null ? "function " + name : "function @ " + hex(code), typeName(t));
 	}
 
-	// vdynamic: runtime type @ +0, payload @ +ptr. Whether the vdynamic address
-	// *is* the value or the value lives in the payload slot follows the VM's
-	// own classification (Tools.isDynamic): objects/virtuals/enums/
-	// arrays/dynobjs ARE vdynamic-compatible; primitives, abstracts, bytes,
-	// refs and structs are carried in the payload.
+	// vdynamic: runtime type @ +0, payload @ Align.dynPayload. The VM's own
+	// classification (Tools.isDynamic) decides where the value is. Objects,
+	// virtuals, enums, arrays and dynamic objects start with a type header, so
+	// the vdynamic IS the value. Primitives, abstracts, bytes, refs and structs
+	// are stored in the payload.
 	function readDynamic(ptr:Pointer):DecodedValue {
 		var resolved = runtimeTypes == null ? null : runtimeTypes.typeAt(mem.readPointer(ptr));
 		if (resolved == null) {
@@ -291,7 +288,7 @@ class ValueReader {
 		}
 		return switch (resolved) {
 			case HDyn:
-				expandableOrRaw(ptr, HDyn); // avoid recursing on a dyn-of-dyn
+				expandableOrRaw(ptr, HDyn); // a Dynamic typed as Dynamic would recurse forever
 			default:
 				Tools.isDynamic(resolved)
 					? decodePointed(ptr, resolved)
@@ -299,9 +296,9 @@ class ValueReader {
 		}
 	}
 
-	// vclosure: function pointer @ +ptr, hasValue i32 @ +ptr*2; when bound
-	// (hasValue == 1) the captured value (the bound object or the capture
-	// environment) sits @ +ptr*3 and the closure expands into it
+	// vclosure: function pointer @ +ptr, hasValue i32 @ +ptr*2. A bound closure
+	// (hasValue == 1) holds its bound object or capture environment @ +ptr*3
+	// and is expandable.
 	function readClosure(ptr:Pointer, t:HLType):DecodedValue {
 		var fun = mem.readPointer(ptr.offset(align.ptr));
 		var name = functionNameResolver == null ? null : functionNameResolver(fun);
@@ -313,8 +310,8 @@ class ValueReader {
 		return leaf(display, typeName(t));
 	}
 
-	// Prefer the object's runtime class (hl_type* header @ +0) over the static
-	// type so a Base-typed slot holding a Sub shows Sub's fields.
+	// The object's runtime class (hl_type* header @ +0) wins over the static
+	// type, so a slot typed Base that holds a Sub shows Sub's fields.
 	function refineObjectType(ptr:Pointer, staticType:HLType):HLType {
 		if (runtimeTypes == null) {
 			return staticType;
@@ -343,10 +340,10 @@ class ValueReader {
 	}
 
 	/**
-		Display text for a vdynamic already in hand — hl_throw's parked exc_value.
-		A bytes-typed dynamic (how hl_error_msg ships runtime error text: "Null
-		access .length", "Out of bounds 5/3", ...) decodes to its NUL-terminated
-		UTF-16 content; anything else formats through the regular decoder.
+		Display text for a thrown vdynamic, such as the exception value hl_throw
+		stores. The VM's own errors ("Null access .length", "Out of bounds 5/3")
+		arrive as a bytes-typed dynamic holding NUL-terminated UTF-16 text, which
+		is returned as is. Any other value goes through the regular decoder.
 	**/
 	public function previewThrownDynamic(ptr:Pointer):Null<String> {
 		var resolved = runtimeTypes == null ? null : runtimeTypes.typeAt(mem.readPointer(ptr));
@@ -360,9 +357,9 @@ class ValueReader {
 		return decoded == null ? null : decoded.value;
 	}
 
-	// Text of a NUL-terminated UTF-16 native string. Read in small chunks so a
-	// missing terminator or an unmapped tail page degrades to what was already
-	// read, not to a failure; capped since a runtime message is short.
+	// Text of a NUL-terminated UTF-16 native string, capped because runtime
+	// messages are short. It reads in small chunks, so a missing terminator or
+	// an unmapped page yields the text read so far instead of failing.
 	function nativeUtf16At(bytesPtr:Pointer):Null<String> {
 		if (bytesPtr.isNull()) {
 			return null;
@@ -428,15 +425,15 @@ class ValueReader {
 	public static inline var ARRAY_DYN = "hl.types.ArrayDyn";
 
 	/**
-		True for the std Array wrappers (hl.types.ArrayBytes_* / ArrayObj / ArrayDyn).
+		True for the classes behind Haxe arrays: hl.types.ArrayBytes_*, ArrayObj and ArrayDyn.
 	**/
 	public static function isArrayWrapper(name:String):Bool {
 		return name != null
 			&& (name == "hl.types.ArrayObj" || name == ARRAY_DYN || StringTools.startsWith(name, ARRAY_BYTES_PREFIX));
 	}
 
-	// ArrayDyn: inner ArrayBase pointer @ +ptr; the wrapper has no length field of
-	// its own, the inner one (@ +ptr) is authoritative. -1 when the inner is null.
+	// ArrayDyn has no length of its own: it wraps an ArrayBase (@ +ptr), whose
+	// length is @ +ptr. -1 when there is no wrapped array.
 	function arrayDynLength(ptr:Pointer):Int {
 		var inner = mem.readPointer(ptr.offset(align.ptr));
 		return inner.isNull() ? -1 : mem.readI32(inner.offset(align.ptr));
@@ -483,8 +480,8 @@ class ValueReader {
 		}
 	}
 
-	// hl `$`-prefixes the LAST segment of a statics container (`pkg.$Cls`), so
-	// the `$` is not always leading.
+	// The class name without a statics container's `$`, which sits on the last
+	// segment (`pkg.$Cls`), not always at the start.
 	static function displayName(name:String):String {
 		if (name == null) {
 			return name;
@@ -495,10 +492,9 @@ class ValueReader {
 			: name;
 	}
 
-	// A function/method type rendered as its Haxe signature: `(Arg, Arg) -> Ret`
-	// (`() -> Void` for no args). The bytecode type table carries the parameter
-	// TYPES but not their names, so the arguments are unnamed. Argument and return
-	// types are named recursively, so nested function types compose.
+	// A function type as a Haxe signature, `(Arg, Arg) -> Ret` or `() -> Void`.
+	// The bytecode records parameter types but not their names. Nested function
+	// types are rendered recursively.
 	static function funSignature(fun:Null<FunPrototype>):String {
 		if (fun == null) {
 			return "Function";

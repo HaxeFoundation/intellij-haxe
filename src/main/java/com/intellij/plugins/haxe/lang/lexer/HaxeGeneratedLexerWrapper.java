@@ -18,6 +18,9 @@
 package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.tree.IElementType;
+
+import java.io.IOException;
 
 /**
  * This class exists solely to add hooks to the generated _HaxeLexer.  A better
@@ -27,14 +30,38 @@ import com.intellij.openapi.project.Project;
  * Created by ebishton on 4/14/17.
  */
 public class HaxeGeneratedLexerWrapper extends _HaxeLexer {
-  public HaxeGeneratedLexerWrapper(Project project) {
+  // snapshotted in advance() because FlexAdapter records yystate() right
+  // before lexing each token - the pair must describe the same instant
+  private boolean valueContextAtTokenStart;
+
+  public HaxeGeneratedLexerWrapper(Project project, boolean remapInactiveToPpbody) {
     super(project);
+    this.remapInactiveToPpbody = remapInactiveToPpbody;
+  }
+
+  /**
+   * Whether the token about to be lexed follows a value-completing token -
+   * the context deciding if a {@code <} is an operator or an XML-literal
+   * start (see {@link HaxeFlexLexer#VALUE_CONTEXT_STATE_FLAG}).
+   */
+  boolean isValueContextAtTokenStart() {
+    return valueContextAtTokenStart;
+  }
+
+  @Override
+  public IElementType advance() throws IOException {
+    valueContextAtTokenStart = lastSignificantToken != null
+                               && HaxeTokenTypeSets.VALUE_COMPLETING_TOKENS.contains(lastSignificantToken);
+    return super.advance();
   }
 
   public void reset(CharSequence buffer, int start, int end, int initialState) {
-    super.reset(buffer, start, end, initialState);
+    super.reset(buffer, start, end, initialState & ~HaxeFlexLexer.VALUE_CONTEXT_STATE_FLAG);
     super.ccsupport.reset(super.context);
-    super.lastSignificantToken = null;
+    // ID stands in for whichever value-completing token preceded the restart
+    // point - only set membership matters to isExpressionExpected()
+    super.lastSignificantToken =
+      (initialState & HaxeFlexLexer.VALUE_CONTEXT_STATE_FLAG) != 0 ? HaxeTokenTypes.ID : null;
 
     super.states.clear();
     super.xmlContexts.clear();

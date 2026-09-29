@@ -5,36 +5,37 @@ import ijhaxe.debug.breakpoints.PatchedBreakpoint;
 import ijhaxe.debug.target.StackFrameLocation;
 
 /**
-	Exception breakpoints: the "all"/"uncaught"/"vm"/per-type filters, arming
-	and disarming the OThrow-site INT3s and the hl_throw entry trap, and the
-	trap-hit handling for both — including the two-phase VM-throw dance (the
-	thrown value is unreadable at hl_throw's entry, so the stop is reported at
-	hl_throw's own break, with the frames parked at the entry).
+	Exception breakpoints: the "all", "uncaught", "vm" and per-type filters. It
+	arms and disarms the INT3s at OThrow sites and at hl_throw's entry, and
+	handles hits on both.
 
-	A friend of DebugSession (@:access): it drives the session's trap machinery
-	(pause-for-memory-write, enterStopped, resumePastSuppressedTrap); the
-	session routes filter commands and exception trap hits here.
+	A VM-raised throw stops in two phases. The thrown value cannot be read at
+	hl_throw's entry, so the throwing frames are walked and parked there, and the
+	stop is reported later at hl_throw's own break.
+
+	A friend of DebugSession (see there): it uses the session's trap machinery
+	(pauseForMemoryWrite, enterStopped, resumePastSuppressedTrap).
 **/
 @:access(ijhaxe.debug.session.DebugSession)
 class ExceptionController {
 	final session:DebugSession;
 
-	// Which exception modes are active: "all" breaks on every throw; "uncaught"
-	// only when no live `try` will catch the throw; `types` on matching classes.
+	// "all" breaks on every throw; "uncaught" only when no live `try` catches it.
 	var breakAll:Bool = false;
 	var breakUncaught:Bool = false;
 
-	// FQNs (or simple names) of exception classes to stop on — the per-type filter.
+	// the per-type filter: full or simple class names of the exceptions to stop on
 	var breakTypes:Array<String> = [];
 
-	// "vm" filter: break on VM-raised errors (null access, bounds, cast, ...)
-	// by trapping hl_throw. Resolved lazily from an OThrow site once, then cached.
+	// The "vm" filter: break on VM-raised errors (null access, out of bounds,
+	// invalid cast) by trapping hl_throw. Its address is mined once from an
+	// OThrow site and cached.
 	var breakVm:Bool = false;
 	var nativeThrowAddress:Null<Pointer> = null;
 
-	// Threads parked between hl_throw's ENTRY trap (where the thrown value is
-	// unreadable) and hl_throw's own hl_debug_break (where exc_value holds it),
-	// with the throwing frames walked at the entry (unwalkable at the break).
+	// Threads between hl_throw's entry trap (where the thrown value cannot be
+	// read) and hl_throw's own hl_debug_break (where exc_value holds it), with
+	// the throwing frames walked at the entry; they cannot be walked at the break.
 	final pendingVmThrow:Map<Int, Bool> = new Map();
 	final vmThrowFrames:Map<Int, Array<StackFrameLocation>> = new Map();
 
@@ -52,12 +53,13 @@ class ExceptionController {
 	}
 
 	/**
-		Reconciles the armed exception INT3s with the desired state. Two independent
-		traps: OThrow sites (armed while "all"/"uncaught"/types is on — the mode only
-		changes whether a hit surfaces) and hl_throw's entry (the "vm" filter,
-		catching VM-raised errors with no bytecode throw). A no-op before launch
-		(breakpoints/sites not built yet — re-run once they are). Arming/disarming
-		writes debuggee memory, so a running debuggee is briefly frozen first.
+		Makes the armed exception INT3s match the filters. There are two
+		independent traps. The OThrow sites are armed while "all", "uncaught" or a
+		type filter is on; the filters only decide whether a hit stops. hl_throw's
+		entry is armed for the "vm" filter and catches VM-raised errors that
+		execute no bytecode throw. Does nothing before launch, when breakpoints and
+		sites do not exist yet; the launch runs it again. Arming writes debuggee
+		memory, so a running debuggee is paused briefly.
 	**/
 	public function apply():Void {
 		if (session.breakpoints == null || session.exceptionSites == null) {
@@ -71,9 +73,7 @@ class ExceptionController {
 			return;
 		}
 		var wasRunning = switch (session.state) { case Running: true; default: false; };
-		if (wasRunning) {
-			session.pauseForMemoryWrite();
-		}
+		var pausedForWrite = wasRunning && session.pauseForMemoryWrite();
 		if (sitesChange) {
 			if (wantSites) session.breakpoints.armExceptions(session.exceptionSites.all());
 			else session.breakpoints.disarmExceptions();
@@ -83,8 +83,8 @@ class ExceptionController {
 				session.breakpoints.armNativeThrow(nativeThrowAddress);
 			} else {
 				session.breakpoints.disarmNativeThrow();
-				// forget throws parked between the entry trap and hl_throw's own
-				// break — the filter is off, so they must not surface as stops
+				// drop throws parked between the entry trap and hl_throw's own
+				// break: the filter is off, so they must not surface as stops
 				for (threadId in pendingVmThrow.keys()) {
 					session.vmExceptions.disarmCatchAll(threadId);
 				}
@@ -92,14 +92,14 @@ class ExceptionController {
 				vmThrowFrames.clear();
 			}
 		}
-		if (wasRunning) {
+		if (pausedForWrite) {
 			session.resumeAfterMemoryWrite();
 		}
 	}
 
-	// Resolves hl_throw's address once (mined from an OThrow site) and caches it;
-	// null when the program has no throw site to mine or the pattern is absent
-	// (the VM-exceptions breakpoint then simply cannot arm).
+	// hl_throw's address, mined once from an OThrow site and cached. Null when
+	// the program has no throw site or the machine-code pattern is not
+	// recognized; the "vm" filter then cannot arm.
 	function resolveNativeThrow():Null<Pointer> {
 		if (nativeThrowAddress == null && session.nativeThrowResolver != null) {
 			nativeThrowAddress = session.nativeThrowResolver.resolve();
@@ -112,39 +112,39 @@ class ExceptionController {
 		return nativeThrowAddress;
 	}
 
-	// An exception is being thrown here and the exception breakpoint is armed.
-	// "all" stops on every throw; "uncaught" stops only when no live `try` will
-	// catch it — a caught throw under uncaught-only is resumed past silently
-	// (same trap-dance as a false conditional breakpoint), so the catch runs.
-	public function handleSiteHit(threadId:Int, excEntry:{bp:PatchedBreakpoint, reg:Int}):Void {
+	// A throw site was hit while exception breakpoints are armed. "all" stops on
+	// every throw, "uncaught" only when no live `try` catches it, and a type
+	// filter on a matching class. A throw that does not stop is stepped past
+	// silently, like a false breakpoint condition, so its catch runs.
+	public function handleSiteHit(threadId:Int, throwSite:{bp:PatchedBreakpoint, reg:Int}):Void {
 		var stop = breakAll
 			|| (breakUncaught && session.throwClassifier.isUncaught(threadId))
-			|| session.throwClassifier.throwMatchesTypes(threadId, excEntry.reg, breakTypes);
+			|| session.throwClassifier.throwMatchesTypes(threadId, throwSite.reg, breakTypes);
 		if (!stop) {
-			session.resumePastSuppressedTrap(threadId, excEntry.bp);
+			session.resumePastSuppressedTrap(threadId, throwSite.bp);
 			return;
 		}
-		// Restore the original byte so the throw itself runs on continue; the
-		// trap dance (stepOverAndResume) single-steps it and re-arms the site.
-		// Reported BEFORE the throw executes, so the frame is the throwing function.
-		session.breakpoints.suspend(excEntry.bp);
-		session.enterStopped(threadId, excEntry.bp);
-		session.emit(EvStoppedException(threadId, session.descriptions.thrown(threadId, excEntry.reg)));
+		// Restore the original byte so the throw runs on continue: the trap dance
+		// in stepOverAndResume single-steps it and re-arms the site. The stop is
+		// reported before the throw executes, so the top frame is the thrower.
+		session.breakpoints.suspend(throwSite.bp);
+		session.enterStopped(threadId, throwSite.bp);
+		session.emit(EvStoppedException(threadId, session.descriptions.thrown(threadId, throwSite.reg)));
 	}
 
-	// hl_throw's entry: EVERY exception passes through here. Only VM-RAISED
-	// errors (null access, bounds, cast, ...) are surfaced — i.e. throws whose
-	// immediate caller is C runtime code, not a jitted OThrow. A bytecode
-	// throw's caller IS jit code, so it is left to the OThrow-based breakpoints
-	// (avoiding a double stop) and resumed past silently here.
+	// hl_throw's entry, which every exception passes. Only VM-raised errors
+	// (null access, out of bounds, invalid cast) surface here: throws whose
+	// immediate caller is C runtime code. A bytecode throw's caller is jitted
+	// code; it is resumed silently here and left to the OThrow-site
+	// breakpoints, which avoids a double stop.
 	//
-	// The thrown value is UNREADABLE at this entry (it sits in an argument
-	// register HL's debug API does not expose), so a VM-raised throw does not
-	// stop here either: HL_EXC_CATCH_ALL is set on the throwing thread and
-	// hl_throw runs on — it stores exc_value and then executes its own
-	// hl_debug_break, where handleVmThrowBreak reports the stop WITH the
-	// actual error message. Only an unreadable thread registry stops here,
-	// with a generic description.
+	// The thrown value cannot be read at this entry: it sits in an argument
+	// register that HL's debug API does not expose. So a VM-raised throw does
+	// not stop here either. HL_EXC_CATCH_ALL is set on the throwing thread and
+	// hl_throw runs on. It stores exc_value and then executes its own
+	// hl_debug_break, where handleVmThrowBreak reports the stop with the actual
+	// error message. Only when the thread registry cannot be read does the stop
+	// happen here, with a generic description.
 	public function handleNativeThrowHit(threadId:Int):Void {
 		var syntheticBp = session.breakpoints.nativeThrowBreakpoint();
 		var vmRaised = session.throwClassifier.raisedByRuntime(threadId);
@@ -156,18 +156,18 @@ class ExceptionController {
 		}
 		if (vmRaised) {
 			pendingVmThrow.set(threadId, true);
-			// walked HERE: at hl_throw's own break the chain is gone
+			// walked here: at hl_throw's own break the frame chain is gone
 			vmThrowFrames.set(threadId, session.stackWalker.walk(threadId));
 		}
 		session.resumePastSuppressedTrap(threadId, syntheticBp);
 	}
 
 	/**
-		hl_throw's own hl_debug_break, requested at the entry trap: exc_value now
-		holds the thrown vdynamic, readable at last (EIP is already past the VM's
-		own int3, so a later continue resumes plainly with no trap dance). True
-		when this trap was ours and the stop was reported; false when the trap
-		belongs to something else (attach/loader noise).
+		Handles hl_throw's own hl_debug_break, requested at the entry trap.
+		exc_value now holds the thrown vdynamic. EIP is already past the VM's
+		int3, so a later continue resumes plainly, without a trap dance. True
+		when the trap belongs to a parked VM throw and the stop was reported;
+		false for any other trap (attach or loader noise).
 	**/
 	public function handleVmThrowBreak(threadId:Int):Bool {
 		if (!pendingVmThrow.exists(threadId) || session.vmExceptions == null || !session.vmExceptions.isThrowBreak(threadId)) {
@@ -181,9 +181,9 @@ class ExceptionController {
 	}
 
 	/**
-		Frames parked at hl_throw's ENTRY for the stop reported at hl_throw's own
-		break (by then execution is deep inside hl_throw, where the frame chain is
-		no longer walkable). Consumed on first use; null when nothing is parked.
+		Takes the frames walked at hl_throw's entry, for the stop reported at
+		hl_throw's own break, where the frame chain can no longer be walked. Null
+		when nothing is parked.
 	**/
 	public function consumeParkedFrames(threadId:Int):Null<Array<StackFrameLocation>> {
 		var parked = vmThrowFrames.get(threadId);

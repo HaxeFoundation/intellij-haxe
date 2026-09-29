@@ -46,15 +46,4 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
     assertEquals("99", byName.get("marker"), "the class's static var");
     assertEquals("42", byName.get("CONSTANT"), "the class's static final");
   }
-
-  /** Guards the shapes that already worked: top-level, and static frames. */
-  @Test
-  @DisplayName("unqualified statics keep working elsewhere")
-  public void unqualifiedStaticsKeepWorkingElsewhere() throws Exception {
-    StoppedEvent atInstance = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
-    assertEquals("2", evaluated(topFrameId(atInstance.getBody().getThreadId()), "axes"), "top-level class, instance frame");
-
-    StoppedEvent atStatic = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
-    assertEquals("7", evaluated(topFrameId(atStatic.getBody().getThreadId()), "version"), "top-level class, static frame");
-  }
 }

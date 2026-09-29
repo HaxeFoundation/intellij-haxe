@@ -57,16 +57,49 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   public boolean isPublic() {
     HaxeClassModel declaringClass = getDeclaringClass();
-    if(declaringClass == null) {
+    return isPublicByDeclarationOrDefault(declaringClass)
+           || (declaringClass != null && isOverriddenPublicMethod());
+  }
+
+  /**
+   * Visibility from this declaration alone — never looks at the parent
+   * class, so it is safe where resolve is forbidden (file-based indexers:
+   * resolving there reads OTHER files' index data mid-indexing, which the
+   * platform rejects). When {@link #isVisibilityInheritedFromParent()} the
+   * returned value is only a public-leaning placeholder — the real
+   * visibility needs the parent chain, and index consumers see that state
+   * via the data's visibilityInherited flag.
+   */
+  public boolean isDeclaredPublic() {
+    HaxeClassModel declaringClass = getDeclaringClass();
+    return isPublicByDeclarationOrDefault(declaringClass) || (declaringClass != null && hasModifier(OVERRIDE) && !hasModifier(PRIVATE));
+  }
+
+  /** The terms {@link #isPublic()} and {@link #isDeclaredPublic()} share — everything but their override term. */
+  private boolean isPublicByDeclarationOrDefault(@Nullable HaxeClassModel declaringClass) {
+    if (declaringClass == null) {
       // Module member
       return !hasModifier(PRIVATE);
-    }else {
-      return hasModifier(PUBLIC)
-             // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
-             || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
-             || declaringClass.hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS)
-             || isOverriddenPublicMethod();
     }
+    return hasModifier(PUBLIC)
+           // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
+           || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
+           || declaringClass.hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS);
+  }
+
+  /**
+   * Whether this member's visibility comes from the OVERRIDDEN method rather
+   * than this declaration: a bare {@code override} with no explicit
+   * public/private, in a class whose defaults do not decide it either. Pure
+   * declaration check — pairs with {@link #isDeclaredPublic()} where the
+   * parent chain cannot be resolved.
+   */
+  public boolean isVisibilityInheritedFromParent() {
+    if (!hasModifier(OVERRIDE) || hasModifier(PUBLIC) || hasModifier(PRIVATE)) return false;
+    HaxeClassModel declaringClass = getDeclaringClass();
+    if (declaringClass == null) return false;
+    if (declaringClass.isInterface() || declaringClass.isExtern()) return false;
+    return !declaringClass.hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS);
   }
 
   public boolean isFinal() {

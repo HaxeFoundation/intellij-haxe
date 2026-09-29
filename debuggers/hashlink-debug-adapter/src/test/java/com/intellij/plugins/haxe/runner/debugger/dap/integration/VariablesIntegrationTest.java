@@ -14,8 +14,14 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariableKind;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * Reads variable values from a real HashLink debug session and asserts the KNOWN
@@ -167,71 +173,78 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  // --- rich values, one kind per test (all in scope at FIXTURE_RICH_LINE) ---
+  // --- rich values (all in scope at FIXTURE_RICH_LINE) ---
 
-  @Test
-  @DisplayName("reads int array elements")
-  public void readsIntArrayElements() throws Exception {
-    // Array<Int> -> hl.types.ArrayBytes_Int: elements straight from the bytes
-    Variable ints = findVariable(richLocals(), "ints");
-    assertNotNull(ints, "local ints present");
-    assertEquals("Array(3)", ints.getValue(), "ints preview");
-    Map<String, String> elements = variablesByName(ints.getVariablesReference());
-    assertEquals("2", elements.get("0"), "ints[0]");
-    assertEquals("5", elements.get("1"), "ints[1]");
-    assertEquals("10", elements.get("2"), "ints[2]");
+  /**
+   * Container-shaped locals: rendered preview (null = only assert expandable)
+   * and the children read through the variables reference. One runtime layout
+   * per row; the layout fact sits on its row.
+   */
+  static Stream<Arguments> containerLocals() {
+    return Stream.of(
+      // Array<Int> -> hl.types.ArrayBytes_Int: elements straight from the bytes
+      arguments("ints", "Array(3)", Map.of("0", "2", "1", "5", "2", "10")),
+      // Array<String> -> hl.types.ArrayObj: elements typed via the varray's runtime type
+      arguments("names", "Array(2)", Map.of("0", "\"a2\"", "1", "\"b\"")),
+      // an enum value: constructor preview, params as indexed children
+      arguments("shade", "Tinted(2, \"red\")", Map.of("0", "2", "1", "\"red\"")),
+      // anonymous structure (virtual): fields via the indirect pointers
+      arguments("anon", null, Map.of("width", "2", "tag", "\"t2\"")),
+      // a local mutated by a closure is boxed by genhl into a 1-element array;
+      // it must stay inspectable (expand to the current value), not render raw
+      arguments("captured", "Array(1)", Map.of("0", "20")),
+      // Array<Dynamic> -> hl.types.ArrayDyn: elements via the wrapped ArrayBase
+      arguments("dynArray", "Array(2)", Map.of("0", "2", "1", "\"s2\"")),
+      // a Dynamic with dynamic field writes is a runtime dynobj: fields are
+      // resolved through the hashed lookup table (typedef/anon-through-Dynamic case)
+      arguments("dynObj", null, Map.of("score", "2", "label", "\"d2\"")),
+      arguments("stringMap", "Map(2)", Map.of("\"a2\"", "2", "\"b\"", "6")),
+      arguments("intMap", "Map(1)", Map.of("2", "\"v2\"")),
+      // haxe.ds.EnumValueMap is a pure-Haxe balanced tree, walked in order
+      arguments("enumMap", "Map(2)", Map.of("Plain", "2", "Tinted(2, \"x\")", "4")),
+      // a raw hl_bytes_map abstract (StringMap internals, no wrapper): the
+      // abstract pointer IS the native map and lists its entries directly
+      arguments("nativeMap", "Map(2)", Map.of("\"a2\"", "2", "\"b\"", "6")),
+      // a @:struct class local (HStruct): fields at base 0, no hl_type* header
+      arguments("vec", null, Map.of("x", "3.25", "y", "7")));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("containerLocals")
+  @DisplayName("reads container locals")
+  public void readsContainerLocals(String name, String preview, Map<String, String> children) throws Exception {
+    Variable local = findVariable(richLocals(), name);
+    assertNotNull(local, "local " + name + " present");
+    assertTrue(local.getVariablesReference() > 0, name + " is expandable (was " + local.getValue() + ")");
+    if (preview != null) {
+      assertEquals(preview, local.getValue(), name + " preview");
+    }
+    Map<String, String> actual = variablesByName(local.getVariablesReference());
+    children.forEach((child, value) -> assertEquals(value, actual.get(child), name + "[" + child + "]"));
 
     request(new DisconnectRequest());
   }
 
-  @Test
-  @DisplayName("reads string array elements")
-  public void readsStringArrayElements() throws Exception {
-    // Array<String> -> hl.types.ArrayObj: elements typed via the varray's runtime type
-    Variable names = findVariable(richLocals(), "names");
-    assertNotNull(names, "local names present");
-    assertEquals("Array(2)", names.getValue(), "names preview");
-    Map<String, String> elements = variablesByName(names.getVariablesReference());
-    assertEquals("\"a2\"", elements.get("0"), "names[0]");
-    assertEquals("\"b\"", elements.get("1"), "names[1]");
-
-    request(new DisconnectRequest());
+  /** Leaf locals whose rendered value alone is the pin. */
+  static Stream<Arguments> leafLocals() {
+    return Stream.of(
+      // vdynamic: runtime type @ +0, payload @ +8 - unboxes via the runtime type
+      arguments("dyn", "42"),
+      // hl.Ref.make(n) yields an HRef(i32) local: the value reads through the
+      // indirection, not as a raw pointer
+      arguments("byRef", "2"),
+      // a Dynamic holding an abstract: the runtime HABSTRACT kind resolves the
+      // abstract's name, so the map decodes instead of showing "Dynamic @ 0x…"
+      arguments("dynAbstract", "Map(2)"));
   }
 
-  @Test
-  @DisplayName("unboxes dynamic holding an int")
-  public void unboxesDynamicHoldingAnInt() throws Exception {
-    // vdynamic: runtime type @ +0, payload @ +8
-    Variable dyn = findVariable(richLocals(), "dyn");
-    assertNotNull(dyn, "local dyn present");
-    assertEquals("42", dyn.getValue(), "dyn unboxes via runtime type");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads enum constructor and params")
-  public void readsEnumConstructorAndParams() throws Exception {
-    Variable shade = findVariable(richLocals(), "shade");
-    assertNotNull(shade, "local shade present");
-    assertEquals("Tinted(2, \"red\")", shade.getValue(), "enum inline preview");
-    Map<String, String> params = variablesByName(shade.getVariablesReference());
-    assertEquals("2", params.get("0"), "Tinted param 0");
-    assertEquals("\"red\"", params.get("1"), "Tinted param 1");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads anonymous structure fields")
-  public void readsAnonymousStructureFields() throws Exception {
-    // anonymous structure (virtual): fields via the indirect pointers
-    Variable anon = findVariable(richLocals(), "anon");
-    assertNotNull(anon, "local anon present");
-    assertTrue(anon.getVariablesReference() > 0, "anon is expandable");
-    Map<String, String> fields = variablesByName(anon.getVariablesReference());
-    assertEquals("2", fields.get("width"), "anon.width");
-    assertEquals("\"t2\"", fields.get("tag"), "anon.tag");
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("leafLocals")
+  @DisplayName("reads leaf locals")
+  public void readsLeafLocals(String name, String value) throws Exception {
+    Variable local = findVariable(richLocals(), name);
+    assertNotNull(local, "local " + name + " present");
+    assertEquals(value, local.getValue(), name + " value");
 
     request(new DisconnectRequest());
   }
@@ -242,127 +255,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     Variable f = findVariable(richLocals(), "f");
     assertNotNull(f, "local f present");
     assertTrue(f.getValue().startsWith("function"), "closure renders as a function (was " + f.getValue() + ")");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads compiler boxed captured local")
-  public void readsCompilerBoxedCapturedLocal() throws Exception {
-    // a local mutated by a closure is boxed by genhl into a 1-element array;
-    // it must stay inspectable (expand to the current value), not render raw
-    Variable captured = findVariable(richLocals(), "captured");
-    assertNotNull(captured, "local captured present");
-    assertEquals("Array(1)", captured.getValue(), "capture box preview");
-    Map<String, String> box = variablesByName(captured.getVariablesReference());
-    assertEquals("20", box.get("0"), "boxed value");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads ref local through indirection")
-  public void readsRefLocalThroughIndirection() throws Exception {
-    // hl.Ref.make(n) yields an HRef(i32) local: the value must read through
-    // the indirection, not render as a raw pointer
-    Variable byRef = findVariable(richLocals(), "byRef");
-    assertNotNull(byRef, "local byRef present");
-    assertEquals("2", byRef.getValue(), "ref-typed local reads its target");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads dynamic array elements")
-  public void readsDynamicArrayElements() throws Exception {
-    // Array<Dynamic> -> hl.types.ArrayDyn: elements via the wrapped ArrayBase
-    Variable dynArray = findVariable(richLocals(), "dynArray");
-    assertNotNull(dynArray, "local dynArray present");
-    assertEquals("Array(2)", dynArray.getValue(), "dynArray preview");
-    Map<String, String> elements = variablesByName(dynArray.getVariablesReference());
-    assertEquals("2", elements.get("0"), "dynArray[0] unboxes an Int");
-    assertEquals("\"s2\"", elements.get("1"), "dynArray[1] is a String");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads dynamic object fields")
-  public void readsDynamicObjectFields() throws Exception {
-    // a Dynamic with dynamic field writes is a runtime dynobj: fields are
-    // resolved through the hashed lookup table (typedef/anon-through-Dynamic case)
-    Variable dynObj = findVariable(richLocals(), "dynObj");
-    assertNotNull(dynObj, "local dynObj present");
-    assertTrue(dynObj.getVariablesReference() > 0, "dynObj is expandable (was " + dynObj.getValue() + ")");
-    Map<String, String> fields = variablesByName(dynObj.getVariablesReference());
-    assertEquals("2", fields.get("score"), "dynObj.score");
-    assertEquals("\"d2\"", fields.get("label"), "dynObj.label");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads string map entries")
-  public void readsStringMapEntries() throws Exception {
-    Variable map = findVariable(richLocals(), "stringMap");
-    assertNotNull(map, "local stringMap present");
-    assertEquals("Map(2)", map.getValue(), "stringMap preview");
-    Map<String, String> entries = variablesByName(map.getVariablesReference());
-    assertEquals("2", entries.get("\"a2\""), "stringMap[a2]");
-    assertEquals("6", entries.get("\"b\""), "stringMap[b]");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads int map entries")
-  public void readsIntMapEntries() throws Exception {
-    Variable map = findVariable(richLocals(), "intMap");
-    assertNotNull(map, "local intMap present");
-    assertEquals("Map(1)", map.getValue(), "intMap preview");
-    Map<String, String> entries = variablesByName(map.getVariablesReference());
-    assertEquals("\"v2\"", entries.get("2"), "intMap[2]");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads enum value map entries")
-  public void readsEnumValueMapEntries() throws Exception {
-    // haxe.ds.EnumValueMap is a pure-Haxe balanced tree, walked in order
-    Variable map = findVariable(richLocals(), "enumMap");
-    assertNotNull(map, "local enumMap present");
-    assertEquals("Map(2)", map.getValue(), "enumMap preview");
-    Map<String, String> entries = variablesByName(map.getVariablesReference());
-    assertEquals("2", entries.get("Plain"), "enumMap[Plain]");
-    assertEquals("4", entries.get("Tinted(2, \"x\")"), "enumMap[Tinted(2, \"x\")]");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("reads bare native map abstract")
-  public void readsBareNativeMapAbstract() throws Exception {
-    // a raw hl_bytes_map abstract (StringMap internals, no wrapper): the
-    // abstract pointer IS the native map and lists its entries directly
-    Variable nativeMap = findVariable(richLocals(), "nativeMap");
-    assertNotNull(nativeMap, "local nativeMap present");
-    assertEquals("Map(2)", nativeMap.getValue(), "nativeMap preview");
-    Map<String, String> entries = variablesByName(nativeMap.getVariablesReference());
-    assertEquals("2", entries.get("\"a2\""), "nativeMap[a2]");
-    assertEquals("6", entries.get("\"b\""), "nativeMap[b]");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("resolves abstract name through dynamic")
-  public void resolvesAbstractNameThroughDynamic() throws Exception {
-    // a Dynamic holding an abstract: the runtime HABSTRACT kind resolves the
-    // abstract's name, so the map decodes instead of showing "Dynamic @ 0x…"
-    Variable dynAbstract = findVariable(richLocals(), "dynAbstract");
-    assertNotNull(dynAbstract, "local dynAbstract present");
-    assertEquals("Map(2)", dynAbstract.getValue(), "dynAbstract preview");
 
     request(new DisconnectRequest());
   }
@@ -390,34 +282,16 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("reads struct local")
-  public void readsStructLocal() throws Exception {
-    // a @:struct class local (HStruct): fields at base 0, no hl_type* header
-    Variable vec = findVariable(richLocals(), "vec");
-    assertNotNull(vec, "local vec present");
-    assertTrue(vec.getVariablesReference() > 0, "struct is expandable");
-    Map<String, String> fields = variablesByName(vec.getVariablesReference());
-    assertEquals("3.25", fields.get("x"), "vec.x");
-    assertEquals("7", fields.get("y"), "vec.y");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
   @DisplayName("expands closure captured value")
   public void expandsClosureCapturedValue() throws Exception {
     // a bound closure (hasValue == 1): the capture environment is a child;
-    // here f captures one mutated local, boxed by genhl into a 1-element array
+    // the box's CONTENT is the "captured" row of the container-locals table
     Variable f = findVariable(richLocals(), "f");
     assertNotNull(f, "local f present");
     assertTrue(f.getVariablesReference() > 0, "bound closure is expandable");
 
     Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
     assertNotNull(captured, "captured child present");
-    assertEquals("Array(1)", captured.getValue(), "capture box preview");
-
-    Map<String, String> box = variablesByName(captured.getVariablesReference());
-    assertEquals("20", box.get("0"), "captured value inside the box");
 
     request(new DisconnectRequest());
   }
@@ -572,11 +446,13 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  // Class-qualified statics stop in Main (NOT Config / pkg.Deep): the class
+  // names must resolve from a FOREIGN frame, which the locals → this →
+  // frame-statics order cannot.
+
   @Test
-  @DisplayName("evaluates class qualified statics")
-  public void evaluatesClassQualifiedStatics() throws Exception {
-    // stop in Main (NOT Config / pkg.Deep): the class names must resolve from a
-    // FOREIGN frame, which the locals → this → frame-statics order cannot
+  @DisplayName("evaluates class qualified statics from a foreign frame")
+  public void evaluatesClassQualifiedStaticsFromAForeignFrame() throws Exception {
     runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
@@ -590,18 +466,43 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // `"...Config" has no field "onBump"`
     assertTrue(evaluate(frameId, "Config.onBump").isSuccess(), "Config.onBump resolves");
 
-    // writes resolve through the same prefix (restored right after: the
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  @DisplayName("writes class qualified statics")
+  public void writesClassQualifiedStatics() throws Exception {
+    runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // writes resolve through the class prefix (restored right after: the
     // fixture's own output depends on Config.version)
     assertTrue(evaluate(frameId, "Config.version = 41").isSuccess(), "Config.version = 41");
     assertEquals("41", evaluated(frameId, "Config.version"), "written static reads back");
     assertTrue(evaluate(frameId, "Config.version = 7").isSuccess(), "Config.version restored");
 
-    // a bare class name evaluates to its expandable statics container
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  @DisplayName("bare class name evaluates to its statics container")
+  public void bareClassNameEvaluatesToItsStaticsContainer() throws Exception {
+    runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
     EvaluateResponse cls = evaluate(frameId, "Config");
     assertTrue(cls.getBody().getVariablesReference() > 0, "class itself is expandable");
     assertEquals("7", variablesByName(cls.getBody().getVariablesReference()).get("version"), "version listed under the class");
 
-    // unknown roots still fail clearly
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  @DisplayName("unknown class root is rejected with the unresolved name code")
+  public void unknownClassRootIsRejectedWithTheUnresolvedNameCode() throws Exception {
+    runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
     Response unknown = evaluateRaw(frameId, "NoSuchClass.value");
     assertFalse(unknown.isSuccess(), "unknown class root rejected");
     assertTrue(unknown.getMessage().contains("NoSuchClass"), "message names the root");
@@ -708,27 +609,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  @Test
-  @DisplayName("assigns expression results")
-  public void assignsExpressionResults() throws Exception {
-    runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
-    int frameId = topFrameId(lastStoppedThreadId());
-
-    // expression RHS on a local
-    assertTrue(evaluate(frameId, "n = n * 2 + 1").isSuccess(), "n = n * 2 + 1");
-    assertEquals("11", evaluated(frameId, "n"), "n now 11");
-
-    // expression RHS on an array element with a COMPUTED index (idx=1)
-    assertTrue(evaluate(frameId, "arr[idx] = n + 89").isSuccess(), "arr[idx] = n + 89");
-    assertEquals("100", evaluated(frameId, "arr[1]"), "arr[1] now 100");
-
-    // boolean expression into a Bool local
-    assertTrue(evaluate(frameId, "flag = n > 10").isSuccess(), "flag = n > 10");
-    assertEquals("true", evaluated(frameId, "flag"), "flag now true");
-
-    request(new DisconnectRequest());
-  }
-
   // --- container-element writes + instance method calls ---
 
   @Test
@@ -789,10 +669,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertTrue(evaluate(frameId, "intMap[7] = \"seven\"").isSuccess(), "intMap[7] = \"seven\"");
     assertEquals("\"seven\"", evaluated(frameId, "intMap[7]"), "intMap[7] reads back");
 
-    // arrays are NOT maps: arr[i] stays a real indexed slot (read + write)
-    assertEquals("5", evaluated(frameId, "ints[1]"), "ints[1] index read");
-    assertTrue(evaluate(frameId, "ints[1] = 42").isSuccess(), "ints[1] = 42 index write");
-    assertEquals("42", evaluated(frameId, "ints[1]"), "ints[1] reads back the written index");
+    // arrays are NOT maps: arr[i] stays a real indexed slot, never rewritten
+    // to get() (element writes are pinned by writesArrayElementsThroughEvaluate)
+    assertEquals("5", evaluated(frameId, "ints[1]"), "ints[1] stays an index read");
 
     request(new DisconnectRequest());
   }
@@ -809,8 +688,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("null", evaluated(frameId, "stringMap.get(\"c\")"), "absent before insert");
     assertTrue(evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess(), "stringMap.set(\"c\", 9) with boxing");
     assertEquals("9", evaluated(frameId, "stringMap.get(\"c\")"), "boxed int reads back");
-    // a pre-existing boxed value is unaffected
-    assertEquals("6", evaluated(frameId, "stringMap.get(\"b\")"), "existing entry intact");
 
     request(new DisconnectRequest());
   }

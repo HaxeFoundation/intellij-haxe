@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.annotator.color;
 
+import com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -20,7 +21,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,9 +46,7 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
   public static final Key<String> PP_EXPRESSION_VALUE = Key.create("haxe.ppexpression.value");
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if(!element.isValid()) return;
-
-    if (element instanceof PsiWhiteSpace) return;
+    if (AnnotatorUtil.shouldSkipColorAnnotation(element)) return;
 
     if (element instanceof HaxePsiToken token) {
 
@@ -79,10 +77,6 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
     if (tt == HaxeTokenTypeSets.CONDITIONAL_ERROR) {
       holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
               .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONAL_ERROR).create();
-    }
-    else if (tt == HaxeTokenTypeSets.PPBODY) {
-      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
-        .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
     }
     else if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
       holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").range(node)

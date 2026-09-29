@@ -5,28 +5,29 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	The expression interpreter's typed currency. Leaves read debuggee
-	memory into one of these; operators fold them adapter-side; sinks (call
-	arguments, assignments, display) convert them back out.
+	A value in the expression interpreter. Reads of debuggee memory produce
+	these, operators combine them inside the adapter, and the consumers (call
+	arguments, assignments, display) convert them back.
 **/
 enum EvalValue {
 	/**
-		Integer (HL ints are 32-bit; 64-bit carried for I64 slots and range).
+		An integer, carried as 64 bits so I64 slots fit. HL's own Int is 32-bit.
 	**/
 	VInt(v:Int64);
 	VFloat(v:Float);
 	VBool(v:Bool);
 
 	/**
-		String CONTENT, adapter-side. `ptr` is the debuggee String when the value
-		came from one (pass-through without re-materializing); null for literals
-		and concat results (materialized on demand via makeString).
+		String CONTENT, held in the adapter. `ptr` is the debuggee String the
+		value was read from, so it can be passed on without creating a new one.
+		It is null for literals and concatenation results; those are created in
+		the debuggee on demand (DebuggeeCallService.makeString).
 	**/
 	VString(v:String, ptr:Null<Pointer>);
 	VNull;
 
 	/**
-		A debuggee-resident pointer value (object/array/map/closure/...).
+		A pointer to a value in the debuggee (object, array, map, closure, ...).
 	**/
 	VObject(raw:Pointer, type:HLType);
 }

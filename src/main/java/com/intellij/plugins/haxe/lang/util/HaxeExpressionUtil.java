@@ -76,8 +76,9 @@ public class HaxeExpressionUtil {
            getAssignOperationElementType((HaxeAssignExpression)parent) != HaxeTokenTypes.OASSIGN;
   }
 
+  /** The operator token type of an assignment ({@code OASSIGN} for a plain {@code =}, the compound types otherwise), or null in broken code. */
   @Nullable
-  private static IElementType getAssignOperationElementType(@NotNull HaxeAssignExpression element) {
+  public static IElementType getAssignOperationElementType(@NotNull HaxeAssignExpression element) {
     final ASTNode token = element.getAssignOperation().getNode().findChildByType(HaxeTokenTypeSets.ASSIGN_OPERATORS);
     if (token != null) return token.getElementType();
     return null;

@@ -162,6 +162,7 @@
       kCATCH="catch"
       tWILDCARD=".*"
       MACRO_ID="regexp:\$[:alpha:]+"
+      UNBOUND_ID="regexp:`[:alpha:]+"
       id="regexp:[:alpha:]+"
       space="regexp:\s+"
     ]
@@ -264,6 +265,13 @@ superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 //Haxe 4.3+
 abstractExpression ::= 'abstract'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+// A compiler-internal unbound identifier (a typed-AST TIdent bound to no
+// declaration), printed by -D dump=pretty with a backtick prefix no source
+// identifier can contain (e.g. `trace). Only appears in dump previews of
+// generated code - the compiler rejects it in real source.
+unboundIdentifierExpression ::= UNBOUND_ID
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 
@@ -391,7 +399,7 @@ externClassDeclaration ::= externClassModifierList 'class' componentName generic
 
 externClassDeclarationBody ::= '{' externClassDeclarationBodyPart* '}'
 private externClassDeclarationBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="extern_class_body_part_recover"}
-private extern_class_body_part_recover ::= !('public' | 'extern' | 'function' | 'var' | 'final' | 'inline' | 'static' | 'private' | '}' | 'override' | 'dynamic' | macroKeyword | metaKeyWord | ppToken)
+private extern_class_body_part_recover ::= !('public' | 'extern' | 'function' | 'var' | 'final' | 'inline' | 'static' | 'private' | '}' | 'override' | 'overload' | 'dynamic' | macroKeyword | metaKeyWord | ppToken)
 
 macroExternInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName? genericParam? inheritList? interfaceBody
 {
@@ -470,7 +478,7 @@ private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorD
 
 classBody ::= '{' classBodyPart* '}' {pin=1}
 private classBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
-private class_body_part_recover ::= !('public' | 'private' | 'function' | 'var' | '}' | 'final' | 'static' | 'dynamic' | 'inline' | 'override' | 'macro' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface' | metaKeyWord | ppToken)
+private class_body_part_recover ::= !('public' | 'private' | 'function' | 'var' | '}' | 'final' | 'static' | 'dynamic' | 'inline' | 'override' | 'overload' | 'macro' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface' | metaKeyWord | ppToken)
 
 macroInterfaceDeclaration ::= privateKeyWord? 'interface' componentName? genericParam? inheritList? interfaceBody
 {
@@ -489,7 +497,7 @@ interfaceDeclaration ::= privateKeyWord? 'interface' componentName genericParam?
 interfaceBody ::= '{' interfaceBodyList? '}'
 private interfaceBodyList ::= interfaceBodyPart+
 private interfaceBodyPart ::= fieldDeclaration | methodDeclaration {recoverWhile="interface_body_part_recover"}
-private interface_body_part_recover ::= !('function' | 'var' | '}' | 'public' | 'static' | 'private' | 'final' | 'dynamic' | 'inline' | 'override' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface'| macroKeyword | metaKeyWord| ppToken)
+private interface_body_part_recover ::= !('function' | 'var' | '}' | 'public' | 'static' | 'private' | 'final' | 'dynamic' | 'inline' | 'override' | 'overload' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface'| macroKeyword | metaKeyWord| ppToken)
 
 macroEnumDeclaration ::= externOrPrivate? 'enum' componentName? genericParam? enumBody
 {
@@ -940,9 +948,16 @@ switchCaseBlock ::=  statementList | (literalExpression <<semicolonUnlessPrecede
 {implements="com.intellij.plugins.haxe.lang.psi.HaxeCodeBlock"}
 switchCase ::= 'case'  switchCaseExpr ((','|'|') switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchExtractorExpression  | switchCaseCaptureVar | switchCaseCapture | switchEnumBitOperationExpression | enumExtractObjectLiteral | min2RefsQualifiedReferenceExpression | enumExtractedValue | statement ) {hooks=[popCollectionInitializersRule]}
-switchCaseExprArray ::= "["  (switchCaseExprElement ","?)* "]"
+switchCaseExprArray ::= "["  (switchCaseExprElement switchCaseExprTail? ","?)* "]"
+
+// The compiler parses a case pattern as a plain expression, so an operator may follow a pattern;
+// macro DSLs use it (hxparse: `case [pattern && condition]`). `|` is excluded because it separates
+// case alternatives.
+private switchCaseTailOperator ::= logicOrOperator | logicAndOperator | compareOperation | (!'|' bitOperation)  | shiftOperator | additiveOperator | multiplicativeOperator | moduloOperator | coalescingOperator
+switchCaseExprTail ::= switchCaseTailOperator <<pushCollectionInitializersAllow>> expression {pin=1 hooks=[popCollectionInitializersRule]}
+
 // Should NOT be named Expression, because it should not be an expression.
-switchCaseExpr ::= <<pushCollectionInitializersDeny>> (switchCaseExprArray  |  switchCaseExprElement) {hooks=[popCollectionInitializersRule]}
+switchCaseExpr ::= <<pushCollectionInitializersDeny>> (switchCaseExprArray  |  switchCaseExprElement switchCaseExprTail?) {hooks=[popCollectionInitializersRule]}
 
 extractorMatchAssignExpression ::= referenceExpression "=";
 left extractorMatchExpression ::=  '=>' ( switchCaseExpr)
@@ -982,7 +997,10 @@ enumExtractedValue::= enumExtractedValueReference | primitiveExtractedValue
 //extractVariable ::= identifier
 //{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
-private primitiveExtractedValue  ::= enumExtractObjectLiteral | enumExtractArrayLiteral {recoverWhile=expression_recover}
+// No recoverWhile here: this is an alternative of the capture initializer, and when it fails it
+// must backtrack so the expression alternative gets its turn. A recover predicate would consume
+// the tokens instead.
+private primitiveExtractedValue  ::= enumExtractObjectLiteral | enumExtractArrayLiteral
 private expressionOrEnumExtractorExpression ::=  switchExtractorExpression | enumExtractArrayLiteral | enumExtractObjectLiteral | enumExtractedValue | expression   {extends=expression}
 enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrEnumExtractorExpression)
 {
@@ -1076,6 +1094,14 @@ expression ::= assignExpression
              | prefixExpression
              | valueOrPostfixExpression
              { extraRoot=true recoverWhile=expression_recover }
+
+// entry points for lazily parsing INACTIVE conditional-compilation branches
+// (the PPBODY chameleon): a branch between class members parses as members,
+// one inside a method body as statements, one at module level as module
+// content - chosen by the branch's tree context
+inactiveMemberList ::= classBodyPart* { extraRoot=true }
+inactiveStatementList ::= statementList? { extraRoot=true }
+inactiveModuleList ::= moduleBodyPart* { extraRoot=true }
 
 // normally this  expression would be private as it does not make much sense when traversing the psi tree
 // however grammarkit is not able to generate the parser correctly when using the  extra root / the Pratt algorithm
@@ -1245,7 +1271,7 @@ left arrayAccessExpression ::= '[' expression ']'
 identifierOrReferenceAllowedKeyword ::= identifier | 'new'
 {extends= identifier}
 
-private thisSuperAbstractOrReferenceExpression ::= referenceExpression | thisExpression | superExpression | abstractExpression
+private thisSuperAbstractOrReferenceExpression ::= referenceExpression | thisExpression | superExpression | abstractExpression | unboundIdentifierExpression
 
 referenceExpression ::= identifier
 {

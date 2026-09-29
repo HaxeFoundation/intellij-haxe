@@ -27,13 +27,12 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil;
+import com.intellij.plugins.haxe.model.evaluator.HaxeUntypedParameterInference;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
@@ -154,6 +153,12 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
         ResultHolder fromUsage = HaxeExpressionUsageUtil.tryToFindTypeFromUsage(componentName, null, null, new HaxeExpressionEvaluatorContext(getParameterPsi()), resolver, null);
         if(fromUsage != null && !fromUsage.isUnknown()) {
           type = fromUsage.getType();
+        } else {
+          // body left the parameter open: the compiler's fallback is the first typed call site
+          ResultHolder fromCallSite = HaxeUntypedParameterInference.callSiteDerivedType(parameterPsi);
+          if (fromCallSite != null && !fromCallSite.isUnknown()) {
+            type = fromCallSite.getType();
+          }
         }
       }
       if(type instanceof SpecificHaxeClassReference classReference) {

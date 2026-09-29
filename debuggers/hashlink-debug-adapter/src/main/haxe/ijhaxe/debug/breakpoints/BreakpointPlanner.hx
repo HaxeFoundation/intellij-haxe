@@ -4,10 +4,10 @@ import ijhaxe.debug.module.JitInfo;
 import ijhaxe.debug.module.ModuleDebugInfo;
 
 /**
-	Resolves requested source breakpoints to installable machine locations plus
-	their DAP verification results. Pure planning over the module's debug tables
-	and the jit map — installation (and the running-debuggee freeze around it)
-	stays with the session.
+	Resolves requested source breakpoints to machine locations to install, and
+	to the verification results reported to the client. It only reads the
+	module's debug tables and the jit map; installing, and pausing a running
+	debuggee for it, is left to the session.
 **/
 class BreakpointPlanner {
 	public static function plan(module:ModuleDebugInfo, jit:JitInfo, sourcePath:String,

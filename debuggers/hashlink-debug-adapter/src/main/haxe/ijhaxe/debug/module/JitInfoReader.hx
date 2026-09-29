@@ -10,9 +10,8 @@ import haxe.io.Input;
 /**
 	Parses the "HLD1" handshake the debuggee VM sends over the --debug socket.
 
-	Layout empirically verified against HashLink 1.15 (little-endian, 64-bit),
-	cross-checked with hashlink `src/debugger.c` and vshaxe/hashlink-debugger
-	`hld/JitInfo.hx`:
+	The layout below matches HashLink 1.15 (little-endian), hashlink
+	`src/debugger.c` and vshaxe/hashlink-debugger `hld/JitInfo.hx`:
 
 	| field                       | size         | notes                                                  |
 	|-----------------------------|--------------|--------------------------------------------------------|
@@ -27,13 +26,12 @@ import haxe.io.Input;
 	| nfunctions                  | int32        |                                                        |
 	| per function                |              | nops(int32) start(int32) large(byte), then offsets[nops+1] x (large ? int32 : uint16) |
 
-	The input is read in exact-size chunks (input.read(n)): the debuggee sends the
-	whole handshake and then blocks, so a single over-read would hang forever.
-	Byte-at-a-time reads over a socket are also far too slow, so each field group
-	is pulled in one read.
+	Each group of fields is read in one exact-size `input.read(n)`. The debuggee
+	sends the whole handshake and then waits, so asking for even one byte more
+	than it sent would block forever.
 
-	Only protocol version 1 is supported (what HashLink 1.15 emits); a different
-	version char raises DebugError rather than risk a silent misparse.
+	Only protocol version 1, which HashLink 1.x sends, is supported. Any other
+	version raises a DebugError rather than risk a silently wrong parse.
 **/
 class JitInfoReader {
 	static inline var SUPPORTED_VERSION = 1;
@@ -46,9 +44,7 @@ class JitInfoReader {
 		}
 		var version = head.readByte() - "0".code;
 		if (version != SUPPORTED_VERSION) {
-			// Be precise about WHICH version this is: the handshake protocol digit
-			// (the "N" in the runtime's HLDN greeting) — not the HashLink runtime
-			// version and not the .hl bytecode format version.
+			// the handshake protocol digit (the "N" in "HLDN"), not the runtime or bytecode format version
 			throw new DebugError('Unsupported debug handshake protocol version HLD$version from the HashLink runtime; '
 				+ 'this adapter supports HLD$SUPPORTED_VERSION (emitted by HashLink 1.x). '
 				+ 'A newer HashLink has likely changed the debug wire format - the adapter needs updating.');
@@ -78,7 +74,7 @@ class JitInfoReader {
 		var typesPtr = readPointer(block, is64);
 
 		var sizes = chunk(input, 8 * 4);
-		var structSizes = [0]; // index 0 unused, to match the 1..8 wire indices
+		var structSizes = [0]; // index 0 is unused, so the wire's indices 1..8 apply directly
 		for (_ in 0...8) {
 			structSizes.push(sizes.readInt32());
 		}

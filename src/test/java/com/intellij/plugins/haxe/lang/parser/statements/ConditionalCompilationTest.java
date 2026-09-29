@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
+import com.intellij.plugins.haxe.util.HaxeTestDefines;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +31,7 @@ public class ConditionalCompilationTest extends StatementTestBase {
   }
 
   private void setDefines(String defines) {
-    getProject().putUserData(HaxeConditionalExpression.DEFINES_KEY, defines);
+    HaxeTestDefines.set(getProject(), defines);
   }
 
   @Test
@@ -58,6 +58,22 @@ public class ConditionalCompilationTest extends StatementTestBase {
   @DisplayName("constant defined")
   public void testConstantDefined() throws Throwable {
     setDefines("cpp");
+    doTest(true);
+  }
+
+  @Test
+  @DisplayName("flag define compares as its compiler value 1")
+  public void testFlagDefineVersionComparison() throws Throwable {
+    // a bare flag carries "1" (never a boolean): 1 < 9.0.0 - first branch active
+    setDefines("myVersion");
+    doTest(true);
+  }
+
+  @Test
+  @DisplayName("valued define compares against a version string")
+  public void testValuedDefineVersionComparison() throws Throwable {
+    // "9.2.0" < "9.0.0" is false - else branch active
+    setDefines("myVersion=9.2.0");
     doTest(true);
   }
 

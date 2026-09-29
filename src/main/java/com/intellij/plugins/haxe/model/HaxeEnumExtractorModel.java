@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.HaxeSwitchSubjectTypeCache;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -120,10 +121,15 @@ public class HaxeEnumExtractorModel implements HaxeModel {
 
     HaxeEnumValueModel enumValueModel = getEnumValueModel();
     if (enumValueModel instanceof HaxeEnumValueConstructorModel) {
-      HaxeExpression switchStatement = findSwitchExpressionType(extractedValue);
-      if (switchStatement == null) return createUnknown(extractedValue);
-      ResultHolder switchType = evaluate(switchStatement).result;
-      return getTypeForExtractedValue(extractedValue, switchStatement, switchType);
+
+      HaxeExpression subject = findSwitchExpressionType(extractedValue);
+      if (subject == null) return createUnknown(extractedValue);
+
+      HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
+      ResultHolder switchType = HaxeSwitchSubjectTypeCache.subjectType(switchStatement);
+      if (switchType == null) return createUnknown(extractedValue);
+
+      return getTypeForExtractedValue(extractedValue, subject, switchType);
     }
     // unable to determine type
     return createUnknown(extractedValue);

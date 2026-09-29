@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.model.evaluator;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.model.HaxeFilenameCandidateCache;
 import com.intellij.psi.util.PsiModificationTracker;
 
 /**
@@ -19,6 +20,9 @@ public class HaxeExpressionEvaluatorCacheChangeListener implements PsiModificati
   public void modificationCountChanged() {
     myProject.getService(HaxeExpressionEvaluatorCacheService.class).clearCaches();
     myProject.getService(HaxeCallExpressionEvaluatorCacheService.class).clearCaches();
+
+    HaxeFilenameCandidateCache.getInstance(myProject).clearCaches();
+    HaxeUntypedParameterBindingCache.getInstance(myProject).clearCaches();
   }
 }
 

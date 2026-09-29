@@ -1,0 +1,17 @@
+<html>
+<body>
+Reports assignments where the value's type does not match the type of the
+variable being assigned to, including rebinding of non-<code>dynamic</code>
+methods and writes to <code>final</code> variables.
+<p><b>Example:</b></p>
+<pre><code>
+var count:Int = 0;
+count = "many";        // String is not assignable to Int
+
+final limit = 10;
+limit = 20;            // cannot assign to a final variable
+</code></pre>
+Conversion quick fixes wrap the value where a standard conversion exists,
+e.g. <code>Std.parseInt("42")</code> or <code>Std.string(value)</code>.
+</body>
+</html>

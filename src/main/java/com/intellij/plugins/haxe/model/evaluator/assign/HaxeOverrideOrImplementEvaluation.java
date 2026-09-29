@@ -1,11 +1,10 @@
 package com.intellij.plugins.haxe.model.evaluator.assign;
 
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.lang.annotation.AnnotationBuilder;
-import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.annotator.HaxeProblemReporter;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -271,8 +270,8 @@ public class HaxeOverrideOrImplementEvaluation {
         };
     }
 
-    public void annotate(AnnotationHolder annotationHolder) {
-        annotations.forEach(annotation -> annotation.create(annotationHolder));
+    public void annotate(HaxeProblemReporter reporter) {
+        annotations.forEach(annotation -> annotation.create(reporter));
     }
 
     private HaxeOverrideOrImplementEvaluation finish(boolean valid) {
@@ -341,12 +340,11 @@ public class HaxeOverrideOrImplementEvaluation {
 record Annotation(@NotNull HighlightSeverity severity, @NotNull String message, @NotNull TextRange textRange,
                   @Nullable IntentionAction fix) {
 
-    void create(AnnotationHolder annotationHolder) {
-        AnnotationBuilder builder = annotationHolder.newAnnotation(severity, message).range(textRange);
+    void create(HaxeProblemReporter reporter) {
+        HaxeProblemReporter.Problem problem = reporter.problem(severity, message).range(textRange);
         if (fix != null) {
-            builder.withFix(fix).create();
-        } else {
-            builder.create();
+            problem.withFix(fix);
         }
+        problem.create();
     }
 }

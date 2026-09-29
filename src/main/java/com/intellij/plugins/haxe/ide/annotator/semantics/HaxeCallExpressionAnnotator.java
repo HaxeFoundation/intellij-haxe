@@ -24,7 +24,7 @@ import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallE
 public class HaxeCallExpressionAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if(!element.isValid()) return;
+    if (AnnotatorUtil.shouldSkip(element)) return;
     if (element instanceof HaxeCallExpression callExpression) {
       if (callExpression.getExpression() instanceof HaxeReference reference) {
         PsiElement resolved = reference.resolve();

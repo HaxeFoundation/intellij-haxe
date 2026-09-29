@@ -3,12 +3,10 @@ package ijhaxe.debug.layout;
 import format.hl.Data.HLType;
 
 /**
-	Computes the byte offset of each global within the runtime's global data block,
-	replicating `hl_module_init`'s `globals_indexes`: globals are laid out in index
-	order, each aligned to its own size. A class's statics singleton lives at
-	`globalsPtr + offset(proto.globalValue)` (the slot holds a pointer to it).
-
-	Pure; unit-tested.
+	Computes the byte offset of each global within the runtime's global data
+	block, the way `hl_module_init` fills `globals_indexes`: in index order,
+	each global aligned to its own size. The slot of a class's statics global
+	holds a pointer to the class's statics singleton.
 **/
 class GlobalTable {
 	final align:Align;

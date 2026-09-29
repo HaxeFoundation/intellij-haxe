@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation.canAssignTypeParameters;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 @CustomLog
 public class HaxeClassAssignUtil  {
@@ -67,7 +68,7 @@ public class HaxeClassAssignUtil  {
     if(toClassReference.isEnumType() || fromClassReference.isEnumType()) return false;
     if(toClassReference.isEnumValue() || fromClassReference.isEnumValue()) return false;
 
-    Boolean canAssign = hierarchyRecursionGuard.computePreventingRecursion(fromClassReference.getElementContext(), true,
+    Boolean canAssign = HaxeEvaluationTaint.computeOrTaint(hierarchyRecursionGuard, fromClassReference.getElementContext(), true,
                                                                            () -> _testClassHierarchyAssign(context, toClassReference,
                                                                                                            fromClassReference));
     if (canAssign == null) {

@@ -9,6 +9,7 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -16,7 +17,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
+import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
+import com.intellij.plugins.haxe.profiler.HaxeProfilerProcessUi;
+import com.intellij.plugins.haxe.profiler.HaxeProfilingNotifier;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapCommandLineRunningState;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import java.nio.file.Files;
@@ -25,17 +31,18 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * A HashLink run/debug configuration (experimental): a module (for the Haxe
- * SDK and source lookup) plus the compiled {@code .hl} to execute. When the
- * .hl path is left empty it is auto-detected from the module's build
- * ({@code -hl <out>.hl} in the hxml or compiler arguments).
- */
-public class HashLinkRunConfiguration extends DapRunConfigurationBase {
+/// A HashLink run/debug configuration (experimental): a module (for the Haxe
+/// SDK and source lookup) plus the compiled `.hl` to execute. When the
+/// .hl path is left empty it is auto-detected from the module's build
+/// (`-hl <out>.hl` in the hxml or compiler arguments).
+public class HashLinkRunConfiguration extends DapRunConfigurationBase implements HaxeProfilableRunConfiguration {
   private static final String HL_FILE = "hlFile";
   private static final String WORKING_DIRECTORY = "workingDirectory";
   private static final String USE_CUSTOM_HL_BINARY = "useCustomHlBinary";
   private static final String CUSTOM_HL_BINARY = "customHlBinary";
+
+  /** The dump file name hashlink's profiler writes into the process working directory. */
+  public static final String PROFILER_DUMP_FILE_NAME = "hlprofile.dump";
 
   private String hlFilePath = "";
   private String workingDirectory = "";
@@ -80,6 +87,23 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase {
 
   public void setCustomHlBinaryPath(@Nullable String path) {
     customHlBinaryPath = path == null ? "" : path;
+  }
+
+  /**
+   * This configuration always launches HL output, so profiling is ready
+   * whenever the configuration could run at all — the gate only mirrors
+   * Run/Debug's graying while the project is indexing. Which configuration
+   * the buttons act on is the run widget's SELECTION; the tool window's
+   * target dropdown is not consulted.
+   */
+  @Override
+  public @NotNull Lane profilingLane() {
+    return Lane.HASHLINK;
+  }
+
+  @Override
+  public boolean isProfilingReady() {
+    return !DumbService.isDumb(getProject());
   }
 
   // --- ModuleBasedConfiguration ---
@@ -127,20 +151,53 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase {
 
   // Plain Run: hl <program.hl>, output in the console. Default working
   // directory is the program's directory so relative resource loading behaves
-  // like a manual launch.
+  // like a manual launch. Resolution stays inside the supplier: getState runs
+  // before before-launch tasks, so the .hl a compile step produces may not
+  // exist yet.
   @Override
-  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) {
+    // non-null exactly when the IU "Run with Profiler" executor launched us
+    // with the HashLink profiler configuration selected
+    Integer profilerSamples = HaxeProfilerExecutorSupport.hashlinkSamplesFor(executor);
+    return new DapCommandLineRunningState(env, getProject(), () -> createRunCommandLine(profilerSamples)) {
+      @Override
+      protected @NotNull ProcessHandler startProcess() throws ExecutionException {
+        ProcessHandler handler = super.startProcess();
+        if (profilerSamples != null) {
+          // the sampler is in-process and live from launch
+          Path dumpPath = expectedDumpPath();
+          HaxeProfilerProcessUi.Session session = HaxeProfilerProcessUi.notifyAttached(getProject(), getName(), dumpPath);
+          HaxeProfilingNotifier.watch(getProject(), handler, dumpPath, "haxe.profiler.dump.missing", session);
+        }
+        return handler;
+      }
+    };
+  }
+
+  private GeneralCommandLine createRunCommandLine(@Nullable Integer profilerSamples) throws ExecutionException {
     Module module = requireModule();
     Path hlExecutable = resolveHlExecutable(module);
     Path hlProgram = resolveProgram(module);
     Path workingDir = resolveWorkingDirectory(module);
     Path workDir = workingDir != null ? workingDir : hlProgram.getParent();
 
-    GeneralCommandLine commandLine = new GeneralCommandLine()
-      .withExePath(hlExecutable.toString())
+    GeneralCommandLine commandLine = new GeneralCommandLine().withExePath(hlExecutable.toString());
+    if (profilerSamples != null) {
+      // hidden VM flag; must come BEFORE the program path. The dump is only
+      // written on clean exit - see HaxeProfilingNotifier.
+      commandLine.withParameters("--profile", String.valueOf(profilerSamples));
+    }
+    return commandLine
       .withParameters(hlProgram.toString())
       .withWorkDirectory(workDir != null ? workDir.toString() : null);
-    return new DapCommandLineRunningState(env, getProject(), commandLine);
+  }
+
+  /** Where this run's dump will appear: hashlink writes it into the process working directory. */
+  private Path expectedDumpPath() throws ExecutionException {
+    Module module = requireModule();
+    Path workingDir = resolveWorkingDirectory(module);
+    Path base = workingDir != null ? workingDir : resolveProgram(module).getParent();
+    return base.resolve(PROFILER_DUMP_FILE_NAME);
   }
 
   /**

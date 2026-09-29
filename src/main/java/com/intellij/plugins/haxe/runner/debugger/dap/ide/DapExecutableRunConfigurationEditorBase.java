@@ -6,7 +6,7 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.runner.debugger.HaxeRunConfigurationEditorUtil;
+import com.intellij.plugins.haxe.util.ui.HaxePathFieldChoosers;
 import com.intellij.ui.components.JBTextField;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,10 +44,10 @@ public abstract class DapExecutableRunConfigurationEditorBase<C extends DapExecu
    * subclass constructor, where the form-built components exist.
    */
   protected void wireCommonChoosers() {
-    HaxeRunConfigurationEditorUtil.browseInto(project, executableField(),
+    HaxePathFieldChoosers.browseInto(project, executableField(),
                                               FileChooserDescriptorFactory.singleFile());
-    HaxeRunConfigurationEditorUtil.browseInto(project, workingDirectoryField(),
-                                              FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    HaxePathFieldChoosers.browseInto(project, workingDirectoryField(),
+                                              FileChooserDescriptorFactory.singleDir());
   }
 
   protected void resetCommon(@NotNull C configuration) {

@@ -8,14 +8,17 @@ import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
+import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import lombok.Getter;
 import org.jdom.Element;
@@ -41,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * vscode-js-debug; other families cannot be debugged. Executable paths are
  * configured in the registry, not here.
  */
-public class BrowserRunConfiguration extends DapRunConfigurationBase {
+public class BrowserRunConfiguration extends DapRunConfigurationBase implements HaxeProfilableRunConfiguration {
   /** Which adapter family drives the session; derived from the selected browser. */
   public enum BrowserFamily {FIREFOX, CHROMIUM}
 
@@ -80,6 +83,16 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
 
   public void setNodePath(@Nullable String value) {
     nodePath = value == null ? "" : value;
+  }
+
+  /** The node the adapter runs on: this configuration's override, else the Haxe SDK's runtimes entry; empty leaves the PATH lookup to the locator. */
+  @NotNull
+  public String effectiveNodePath() {
+    if (!nodePath.isBlank()) {
+      return nodePath;
+    }
+    String fromSdk = HaxeToolPathResolver.resolveNodeExecutable(getProject(), null);
+    return fromSdk != null ? fromSdk : "";
   }
 
   /** The pinned DAP adapter driving the given family. */
@@ -154,27 +167,35 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
 
   /** The content directory: the setting, project-relative when not absolute. */
   public @Nullable Path resolveContentRootOrNull() {
-    if (contentRoot.isBlank()) {
-      return null;
-    }
-    try {
-      Path path = Path.of(contentRoot);
-      if (path.isAbsolute()) {
-        return path;
-      }
-      String basePath = getProject().getBasePath();
-      return basePath != null ? Path.of(basePath).resolve(path) : path;
-    } catch (InvalidPathException e) {
-      return null;
-    }
+    return contentRoot.isBlank() ? null : resolveAgainstProject(contentRoot);
+  }
+
+  @Override
+  public @NotNull Lane profilingLane() {
+    return Lane.JS;
+  }
+
+  /** Profiling drives V8 over CDP — a Chromium-family browser only; Firefox speaks no CDP. */
+  @Override
+  public boolean isProfilingReady() {
+    if (DumbService.isDumb(getProject())) return false;
+    if (DebugBrowser.familyOf(DebugBrowser.resolve(browserId)) != BrowserFamily.CHROMIUM) return false;
+    return serveContent ? !contentRoot.isBlank() : !url.isBlank();
   }
 
   // The platform builds this state BEFORE any runner acts — for BOTH
   // executors. Run executes it (serve + open browser, no debugger); the debug
-  // runner ignores it and builds the DAP session itself.
+  // runner ignores it and builds the DAP session itself; the profiler
+  // executor gets the CDP-driven state.
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
+    // non-null exactly when the IU "Run with Profiler" executor launched us
+    // with the JavaScript Profiler entry selected
+    Integer samplingIntervalUs = HaxeProfilerExecutorSupport.jsSamplingIntervalUs(executor);
+    if (samplingIntervalUs != null) {
+      return new BrowserProfilingState(this, samplingIntervalUs);
+    }
     return new BrowserRunningState(this);
   }
 

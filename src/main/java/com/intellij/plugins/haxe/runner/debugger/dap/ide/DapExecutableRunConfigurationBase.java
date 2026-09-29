@@ -78,10 +78,12 @@ public abstract class DapExecutableRunConfigurationBase extends DapRunConfigurat
     }
   }
 
+  // Resolution stays inside the supplier: getState runs before before-launch
+  // tasks, so an executable a build step produces may not exist yet.
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
-    return new DapCommandLineRunningState(env, getProject(), createCommandLine());
+    return new DapCommandLineRunningState(env, getProject(), this::createCommandLine);
   }
 
   // --- resolution ---
@@ -96,19 +98,7 @@ public abstract class DapExecutableRunConfigurationBase extends DapRunConfigurat
   }
 
   private @Nullable Path resolveExecutableOrNull() {
-    if (executablePath.isBlank()) {
-      return null;
-    }
-    try {
-      Path path = Path.of(executablePath);
-      if (path.isAbsolute()) {
-        return path;
-      }
-      String basePath = getProject().getBasePath();
-      return basePath != null ? Path.of(basePath).resolve(path) : path;
-    } catch (InvalidPathException e) {
-      return null;
-    }
+    return executablePath.isBlank() ? null : resolveAgainstProject(executablePath);
   }
 
   /** The working directory: the explicit setting, else the executable's directory. */

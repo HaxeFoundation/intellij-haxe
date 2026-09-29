@@ -21,18 +21,25 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.config.HaxeProjectSettings;
-import com.intellij.plugins.haxe.util.HaxeUtil;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.v2.buildtools.settings.DefineEffect;
+import com.intellij.plugins.haxe.v2.buildtools.settings.EnvironmentDefine;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author: Fedor.Korotkov
+ * Toggles a conditional-compilation flag by editing the active container's
+ * define OVERRIDES, so the change shows up in the Environment dialog and
+ * composes with the build file: a flag the build file defines is masked with
+ * a REMOVE entry, one it doesn't gets a SET entry, and toggling back simply
+ * drops the override. The store mutation publishes the build-settings topic,
+ * which drives the reparse and the tool window refresh.
  */
 public class HaxeDefineIntention implements IntentionAction {
   private final String myWord;
@@ -57,25 +64,29 @@ public class HaxeDefineIntention implements IntentionAction {
 
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    return true;
+    // invoke() edits the active container's define overrides. without an active container it would silently do nothing
+    return HaxeDefineContextService.getInstance(project).activeContainerId() != null;
   }
 
   @Override
   public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    final HaxeProjectSettings projectSettings = HaxeProjectSettings.getInstance(file.getProject());
-    final Set<String> definitions = projectSettings.getUserCompilerDefinitionsAsSet();
-    projectSettings.setUserCompilerDefinitions(changeDefinitions(definitions));
-    HaxeUtil.reparseProjectFiles(project);
-  }
+    HaxeDefineContextService contextService = HaxeDefineContextService.getInstance(project);
+    String containerId = contextService.activeContainerId();
+    if (containerId == null) return;
 
-  private String[] changeDefinitions(Set<String> definitions) {
-    if (isDefined) {
-      definitions.remove(myWord);
+    HaxeEnvironmentStore store = HaxeEnvironmentStore.getInstance(project);
+    List<EnvironmentDefine> defines = new ArrayList<>(store.getDefines(containerId));
+    defines.removeIf(define -> define.name().equals(myWord));
+    // an override entry is only needed when the build context disagrees with
+    // the wanted state; otherwise dropping the previous override suffices
+    boolean definedByBuildContext = contextService.isDefinedWithoutOverrides(myWord);
+    if (isDefined && definedByBuildContext) {
+      defines.add(new EnvironmentDefine(myWord, "", DefineEffect.REMOVE));
     }
-    else {
-      definitions.add(myWord);
+    else if (!isDefined && !definedByBuildContext) {
+      defines.add(new EnvironmentDefine(myWord, "", DefineEffect.SET));
     }
-    return ArrayUtil.toStringArray(definitions);
+    store.setDefines(containerId, defines);
   }
 
   @Override

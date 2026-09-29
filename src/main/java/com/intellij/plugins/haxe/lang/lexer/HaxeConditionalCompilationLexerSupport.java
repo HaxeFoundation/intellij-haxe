@@ -125,11 +125,20 @@ public class HaxeConditionalCompilationLexerSupport {
   private class Section {
     private ArrayList<Block> myBlocks;
     private Section myParent;
+    // opened while an enclosing branch was inactive: the parser lexer hands
+    // out its directives as PPBODY, so the enclosing branch's blob spans
+    // the whole nested region and parses it like live code does
+    private final boolean mySwallowed;
 
-    public Section(Section parent, IElementType el) {
+    public Section(Section parent, IElementType el, boolean swallowed) {
       myBlocks = new ArrayList<Block>();
       myParent = parent;
+      mySwallowed = swallowed;
       startBlock(el);
+    }
+
+    public boolean isSwallowed() {
+      return mySwallowed;
     }
 
     public Block startBlock(IElementType el) {
@@ -217,7 +226,7 @@ public class HaxeConditionalCompilationLexerSupport {
   public class RootSection extends Section {
     private Block rootBlock;
     public RootSection() {
-      super(null, null);
+      super(null, null, false);
       rootBlock = this.currentBlock();
       rootBlock.setActive(Block.ActiveState.ACTIVE);
     }
@@ -281,10 +290,24 @@ public class HaxeConditionalCompilationLexerSupport {
    * @param chars Characters that comprise the token.
    * @param type Detected token type.
    */
+  /**
+   * Whether the directive about to be processed belongs to a swallowed
+   * section: a {@code #if} opening inside an inactive branch, or any other
+   * directive of a section opened that way. Asked BEFORE
+   * {@link #processConditional}, which moves the stack.
+   */
+  public boolean directiveIsSwallowed(IElementType type) {
+    return PPIF.equals(type) ? !currentContextIsActive() : currentContext.isSwallowed();
+  }
+
+  public boolean currentSectionIsSwallowed() {
+    return currentContext.isSwallowed();
+  }
+
   public void processConditional(CharSequence chars, IElementType type) {
     if (PPIF.equals(type)) {
       // Start a new section...
-      Section newSection = new Section(currentContext, type);
+      Section newSection = new Section(currentContext, type, !currentContextIsActive());
       currentContext = newSection;
     } else if (PPELSE.equals(type)) {
       currentContext.startBlock(type);

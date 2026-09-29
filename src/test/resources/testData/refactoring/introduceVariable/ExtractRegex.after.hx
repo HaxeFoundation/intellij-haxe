@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var REGEX = ~/Hello/i;
-        var myregex = REGEX;
+        var regex = ~/Hello/i;
+        var myregex = regex;
     }
 }

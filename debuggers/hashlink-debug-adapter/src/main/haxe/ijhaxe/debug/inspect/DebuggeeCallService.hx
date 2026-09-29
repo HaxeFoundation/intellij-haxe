@@ -22,44 +22,45 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	Runs code INSIDE the stopped debuggee: calls functions/methods,
-	constructs objects, materializes strings, and boxes primitives — everything
-	that needs the debuggee's own machinery rather than adapter-side reads.
+	Runs code INSIDE the stopped debuggee: calls functions and methods,
+	constructs objects, creates strings and boxes primitives. All of these need
+	the debuggee's own code, not just reads of its memory.
 
-	The actual injection is done by `functionCaller` (a trampoline the session
-	installs); this class resolves what to call (via SymbolResolver), lowers the
-	arguments to the calling convention, and returns the RAW result. Turning that
-	raw result into a displayed value is the caller's job (decodeReturn).
+	The session installs `functionCaller`, which injects the call trampoline.
+	This class resolves what to call (through PathResolver), lowers the
+	arguments and returns the RAW result; ExpressionEvaluator.decodeReturn
+	turns that into a displayed value. Lowering converts an EvalValue into the
+	raw bits of one argument (`CallArg`) for the parameter's declared type,
+	boxing a primitive or creating a string in the debuggee where needed.
 
-	DANGEROUS by nature — it executes arbitrary debuggee code on the session
-	thread — but that is the accepted trade for steering execution. The
-	constructor/native/box resolvers it uses disassemble raw JIT output (see
-	ConstructorResolver / NativeResolver / BoxResolver), which select the JIT
-	pattern by CPU architecture (x86-64 and x86).
+	DANGEROUS by nature: it runs arbitrary debuggee code on the session
+	thread, which is the accepted price for steering execution. The
+	constructor, native and box resolvers it uses read raw JIT output and pick
+	the pattern for the CPU architecture (x86-64 or x86).
 **/
 class DebuggeeCallService {
-	final resolver:SymbolResolver;
+	final resolver:PathResolver;
 	final memory:MemoryReader;
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final align:Align;
 
-	// Installed by DebugSession: injects a trampoline that calls `addr(args)` in
-	// the debuggee and returns its result. `floatBits` is the return's float
-	// width — 0 for an int/pointer return (delivered in RAX/EAX), 32 or 64 for a
-	// float return (the width matters on x86, where the decoder reads the low
-	// bits for F32 but all 64 for F64). Null until eval-call is enabled.
+	// Installed by DebugSession: injects a trampoline that calls `addr(args)`
+	// in the debuggee and returns its result. The Int is the return's float
+	// width: 0 for an int or pointer return (in RAX/EAX), 32 or 64 for a float.
+	// The width matters on x86, where an F32 result fills only the low 32 bits
+	// of the returned value. Null until eval-calls are enabled.
 	public var functionCaller:Null<(Pointer, Array<CallArg>, Int)->Pointer> = null;
-	// Installed alongside writes: lets makeString/boxPrimitive write into the
-	// buffers/boxes they allocate in the debuggee.
+	// Installed together with value writes: makeString and boxPrimitive write
+	// into the buffers and boxes they allocate in the debuggee.
 	public var memWriter:Null<MemoryWriter> = null;
 
-	// Recover recipes by disassembling JIT sites (hacks); created lazily.
+	// Resolvers that mine recipes from JIT output (hacks); created on first use.
 	var constructors:Null<ConstructorResolver> = null;
 	var natives:Null<NativeResolver> = null;
 	var boxer:Null<BoxResolver> = null;
 
-	public function new(resolver:SymbolResolver, memory:MemoryReader, module:ModuleDebugInfo, jit:JitInfo, align:Align) {
+	public function new(resolver:PathResolver, memory:MemoryReader, module:ModuleDebugInfo, jit:JitInfo, align:Align) {
 		this.resolver = resolver;
 		this.memory = memory;
 		this.module = module;
@@ -68,12 +69,11 @@ class DebuggeeCallService {
 	}
 
 	/**
-		Runs `callee(args)` in the debuggee and returns the raw result (RAX, or
-		XMM0-as-RAX for a float return) plus the return type. `callee` resolves to
-		a function value (an unbound or bound closure); args are ALREADY
-		evaluated and lowered to the callee's declared parameter types. Tries an
-		instance-method call first (`recv.method(args)`), falling back to the
-		closure-field call.
+		Runs `path(args)` in the debuggee and returns the raw result (RAX, or
+		XMM0 copied to RAX for a float return) with the return type. `args` are
+		ALREADY evaluated; they are lowered here to the callee's declared
+		parameter types. A method call (`recv.method(args)`) is tried first,
+		then a call of the closure (unbound or bound) that `path` holds.
 	**/
 	public function callRaw(frameId:Int, path:ValuePath, args:Array<EvalValue>):CallResult {
 		if (functionCaller == null) {
@@ -83,9 +83,6 @@ class DebuggeeCallService {
 		if (Trace.isEnabled()) {
 			Trace.log('[eval-call] callRaw "$callee" frame=$frameId args=${args.length}');
 		}
-		// `recv.method(args)` — the last segment is an instance method on the
-		// receiver (proto method), not a closure-valued field. Try that first;
-		// fall through to the closure-field call when it isn't a method.
 		var method = tryMethodCall(frameId, path, args);
 		if (method != null) {
 			return method;
@@ -96,11 +93,11 @@ class DebuggeeCallService {
 			default: throw new DebugError('"' + callee + '" is not a function');
 		};
 		// The slot holds a vclosure {t @0, fun @+ptr, hasValue @+ptr*2, value @+ptr*3}.
-		// When hasValue != 0 the closure is BOUND (an instance-method closure whose
-		// value is the receiver, or a lambda whose value is its capture env): the
-		// jit's OCallClosure emits `fun(value, args...)` — thread the captured value
-		// through as the leading argument. The closure's visible HFun type
-		// already excludes that implicit parameter, so declared args map 1:1.
+		// A nonzero hasValue marks a BOUND closure: an instance-method closure whose
+		// value is the receiver, or a lambda whose value is its captured environment.
+		// The JIT's OCallClosure calls `fun(value, args...)`, so the value becomes
+		// the leading argument. The closure's HFun type already omits that implicit
+		// parameter, so its declared parameters match `args` one to one.
 		var closurePtr = memory.readPointer(target.address);
 		if (Int64.eq(closurePtr, Int64.ofInt(0))) {
 			throw new DebugError('"' + callee + '" is null');
@@ -121,11 +118,11 @@ class DebuggeeCallService {
 	}
 
 	/**
-		If `path` is `receiver.method` and `method` is an instance method on the
-		receiver's runtime class, calls it with the receiver threaded as `this`
-		Returns null when it isn't a method call (the caller then treats
-		the path as a closure-valued field). Enables `map.set(k,v)`, `arr.push(x)`,
-		getters, and any other mutation/query the program's own methods provide.
+		If `path` is `receiver.method` and `method` is an instance method of the
+		receiver's runtime class, calls it with the receiver as `this`. Returns
+		null when the path is not a method call; the caller then treats it as a
+		closure-valued field. This enables `map.set(k, v)`, `arr.push(x)`,
+		getters, and any other query or mutation the program's own methods offer.
 	**/
 	function tryMethodCall(frameId:Int, path:ValuePath, args:Array<EvalValue>):Null<CallResult> {
 		if (path.accessors.length == 0) {
@@ -136,7 +133,7 @@ class DebuggeeCallService {
 			case Field(name): name;
 			default: return null; // `recv[i](...)` is not a method call
 		};
-		// resolve the receiver = the path without its last segment
+		// the receiver is the path without its last segment
 		var receiver = resolver.targetOfPath(frameId, new ValuePath(path.root, path.accessors.slice(0, path.accessors.length - 1)));
 
 		var base:Pointer;
@@ -182,9 +179,9 @@ class DebuggeeCallService {
 		return {raw: functionCaller(jit.functionEntry(arrayIndex), callArgs, returnFloatBits(fn.ret)), type: fn.ret};
 	}
 
-	// The (raw) findex of instance method `name` on an HObj/HStruct type, walking
-	// the superclass chain; -1 if not found. Static-dispatch by name on the
-	// runtime class, so an override on a subclass is used.
+	// The raw findex of instance method `name` on an HObj/HStruct type, searching
+	// up the superclass chain; -1 if not found. The search starts at the given
+	// (runtime) class, so a subclass override wins.
 	function methodFindex(t:HLType, name:String):Int {
 		var proto = switch (t) {
 			case HObj(p), HStruct(p): p;
@@ -210,12 +207,12 @@ class DebuggeeCallService {
 
 	/**
 		Constructs `new className(args)` in the debuggee and returns the new
-		instance pointer. Allocates via the recovered `hl_alloc_obj` + class type
-		pointer (see ConstructorResolver — a disassembly hack), then runs the
-		constructor `(this, args...)`. Construction is EXPERIMENTAL: if the
-		allocator/ONew pattern can't be mined (non-x86-64, an unrecognised JIT, or
-		the class is never constructed in the program so its `new` was stripped by
-		DCE) it fails with a clear message rather than guessing.
+		instance pointer. It allocates through the mined `hl_alloc_obj` and class
+		type pointer (see ConstructorResolver, a disassembly hack), then runs the
+		constructor with `(this, args...)`. Construction is EXPERIMENTAL. When
+		the ONew pattern cannot be mined (an unrecognised JIT, or a class the
+		program never constructs, so DCE stripped its `new`), it fails with a
+		clear message rather than guessing.
 	**/
 	public function construct(frameId:Int, className:String, args:Array<EvalValue>):Pointer {
 		if (functionCaller == null) {
@@ -234,7 +231,7 @@ class DebuggeeCallService {
 				+ ' works for classes the program itself instantiates.');
 		}
 		// the constructor's declared type: arg0 is `this`, the rest are the params
-		var ctorFun = switch (module.functionType(site.ctorFindex)) {
+		var ctorFun = switch (module.functionType(site.constructorIndex)) {
 			case HFun(f): f;
 			default: throw new DebugError('The constructor of "' + className + '" is not a function');
 		};
@@ -252,7 +249,7 @@ class DebuggeeCallService {
 		for (i in 0...args.length) {
 			ctorArgs.push(lowerValue(args[i], paramTypes[i]));
 		}
-		functionCaller(jit.functionEntry(site.ctorFindex), ctorArgs, 0);
+		functionCaller(jit.functionEntry(site.constructorIndex), ctorArgs, 0);
 		return instance;
 	}
 
@@ -270,20 +267,20 @@ class DebuggeeCallService {
 		if (Trace.isEnabled()) {
 			Trace.log('[eval-call] helper "$name" fidx=$fidx');
 		}
-		// call the true entry (prologue), not addressOf(fidx,0) which is past it
+		// call the true entry (the prologue start); addressOf(fidx, 0) points past the prologue
 		return functionCaller(jit.functionEntry(fidx), args, floatBits);
 	}
 
 	/**
-		Materializes a String literal as a live heap String in the debuggee and
-		returns its pointer. Allocates a byte buffer on the HEAP via the
-		program's own `alloc_bytes` native, writes the UTF-8 bytes into it, then
-		calls `String.fromUTF8` — both through the eval-call machinery. Heap
-		(not stack) because on Windows there is no red zone: a buffer below Esp
-		plus the callee's own stack use faults on the guard page. GC-safe: no
-		allocation happens between reading the buffer pointer and the fromUTF8
-		call that consumes it, and the buffer is fromUTF8's argument (kept live by
-		the conservative stack scan) during its internal allocation.
+		Creates a String holding `text` in the debuggee and returns its pointer.
+		It allocates a byte buffer on the HEAP with the program's own
+		`alloc_bytes` native, writes the UTF-8 bytes into it, then calls
+		`String.fromUTF8`; both calls run through the eval-call machinery. The
+		buffer lives on the heap because Windows has no red zone: a buffer below
+		Esp, plus the callee's own stack use, faults on the guard page. This is
+		GC-safe. Nothing allocates between obtaining the buffer and the fromUTF8
+		call that consumes it, and during fromUTF8's own allocation the buffer is
+		its argument, which the conservative stack scan keeps alive.
 	**/
 	public function makeString(text:String):Pointer {
 		if (memWriter == null || functionCaller == null) {
@@ -292,10 +289,10 @@ class DebuggeeCallService {
 		if (natives == null) {
 			natives = new NativeResolver(module, jit, memory);
 		}
-		// Allocate the char buffer with the LOW-LEVEL `alloc_bytes` native (present
-		// in any program that touches strings), reached by disassembling one of
-		// its call sites — unlike `Bytes.alloc`, which the compiler
-		// dead-code-eliminates when the program never uses `Bytes`.
+		// The buffer comes from the low-level `alloc_bytes` native, which any
+		// program that uses strings contains; it is found by disassembling one of
+		// its call sites. `Bytes.alloc` would not do: DCE removes it from
+		// programs that never use `Bytes`.
 		var allocBytes = natives.resolve("alloc_bytes");
 		if (allocBytes == null) {
 			throw new DebugError("Unable to create a string: the debuggee's byte allocator (alloc_bytes)"
@@ -318,10 +315,10 @@ class DebuggeeCallService {
 		return str;
 	}
 
-	// Boxes a primitive literal into a fresh vdynamic so it can be passed to a
-	// `Dynamic` parameter. `alloc_dynamic(typePtr)` gives a GC-tracked
-	// vdynamic tagged with the primitive's runtime type; `writePayload` writes
-	// the value into its payload slot (HDYN_VALUE = one pointer past the type).
+	// Boxes a primitive into a new vdynamic so it can be passed to a `Dynamic`
+	// parameter. `alloc_dynamic(typePtr)` returns a GC-tracked vdynamic tagged
+	// with the primitive's runtime type, and `writePayload` stores the value in
+	// its payload slot.
 	function boxPrimitive(kind:Int, writePayload:Pointer->Void):CallArg {
 		if (memWriter == null || functionCaller == null) {
 			throw new DebugError("Unable to box a value: value modification is not available in this session");
@@ -338,17 +335,16 @@ class DebuggeeCallService {
 		if (Int64.eq(box, Int64.ofInt(0))) {
 			throw new DebugError("Unable to box a value: alloc_dynamic returned null");
 		}
-		writePayload(box.offset(align.dynPayload)); // vdynamic payload union (@ +8 on BOTH bitnesses)
+		writePayload(box.offset(align.dynPayload)); // the payload union sits at +8 on BOTH bitnesses
 		return {isFloat: false, bits: box};
 	}
 
-	// Lowers an ALREADY-EVALUATED expression value to the raw 64-bit value its
-	// register needs, coercing to the callee's declared parameter type.
+	// Lowers an ALREADY evaluated value to the raw bits of one argument,
+	// converted to the callee's declared parameter type.
 	function lowerValue(v:EvalValue, paramType:HLType):CallArg {
-		// A primitive going into a `Dynamic` parameter must be BOXED into a
-		// vdynamic: passing the raw bits would be read as a pointer and stored
-		// as garbage. Pointers (strings, objects) are dynamic-compatible and
-		// pass as-is; primitives are boxed here.
+		// A primitive passed to a `Dynamic` parameter must be BOXED into a
+		// vdynamic; its raw bits would be read as a pointer. Strings and objects
+		// are already dynamic-compatible and pass unchanged.
 		if (paramType.match(HDyn)) {
 			switch (v) {
 				case VInt(i):
@@ -394,9 +390,9 @@ class DebuggeeCallService {
 		return t.match(HF32) || t.match(HF64);
 	}
 
-	// The float width of a return type for functionCaller: 0 = int/pointer
-	// (returned in RAX/EAX), 32 = HF32, 64 = HF64 (returned in XMM0 on x86-64,
-	// ST0 on x86 — the trampoline captures it accordingly).
+	// The float width of a return type, as functionCaller expects it: 0 for an
+	// int or pointer (returned in RAX/EAX), 32 for HF32, 64 for HF64. A float
+	// returns in XMM0 on x86-64 and in ST0 on x86; the trampoline captures either.
 	static function returnFloatBits(t:HLType):Int {
 		return switch (t) {
 			case HF32: 32;
@@ -407,6 +403,6 @@ class DebuggeeCallService {
 }
 
 /**
-	The result of running debuggee code: the raw return value (RAX, or XMM0-as-RAX for a float) and its HL type.
+	The result of running debuggee code: the raw return bits (RAX, or XMM0 copied to RAX for a float) and their HL type.
 **/
 typedef CallResult = {raw:Pointer, type:HLType}

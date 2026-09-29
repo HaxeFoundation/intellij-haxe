@@ -1,0 +1,12 @@
+{
+  "name": "${NAME}",
+  "url": "${URL}",
+  "license": "${LICENSE}",
+  "tags": [${TAGS}],
+  "description": "${DESCRIPTION}",
+  "version": "${VERSION}",
+  "classPath": "${SOURCE_DIR}/",
+  "releasenote": "${RELEASENOTE}",
+  "contributors": [${CONTRIBUTORS}],
+  "dependencies": {}
+}

@@ -1,0 +1,13 @@
+<html>
+<body>
+Reports properties declared <code>final</code> - accessor-based properties
+cannot be final. The quick fix switches the declaration back to
+<code>var</code>.
+<p><b>Example:</b></p>
+<pre><code>
+class Counter {
+    public final value(get, never):Int;   // properties cannot be final
+}
+</code></pre>
+</body>
+</html>

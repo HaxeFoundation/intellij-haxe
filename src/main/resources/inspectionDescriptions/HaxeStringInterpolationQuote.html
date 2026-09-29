@@ -1,0 +1,13 @@
+<html>
+<body>
+Reports interpolation (<code>$name</code> or <code>${expression}</code>)
+inside double-quoted strings, where it is NOT evaluated - only single-quoted
+strings interpolate. The quick fix switches the quotes.
+<p><b>Example:</b></p>
+<pre><code>
+var name = "traveler";
+trace("hello $name");   // prints the literal text `hello $name`
+trace('hello $name');   // prints `hello traveler`
+</code></pre>
+</body>
+</html>

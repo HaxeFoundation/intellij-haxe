@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.CLASS_TEMPLATE;
 import static com.intellij.plugins.haxe.ide.quickfix.HaxeIntroduceTypeUtil.countGenerics;
 import static com.intellij.plugins.haxe.ide.quickfix.HaxeIntroduceTypeUtil.requireImport;
 import static com.intellij.psi.SmartPointerManager.createPointer;
@@ -67,7 +68,7 @@ public class HaxeIntroduceTypeNewFileQuickFix implements LocalQuickFix {
 
             builder.setDefaultText(createDefaultNewFileQname());
             builder.setGenericsCount(countGenerics(myPsiTargetPointer.getElement()));
-            builder.show("Unable to create haxe type", "HaxeClass", this::updateElement);
+            builder.show("Unable to create haxe type", CLASS_TEMPLATE, this::updateElement);
         });
     }
 

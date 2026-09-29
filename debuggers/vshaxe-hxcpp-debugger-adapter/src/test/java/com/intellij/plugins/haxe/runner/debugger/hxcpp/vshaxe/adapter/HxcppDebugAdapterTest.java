@@ -25,6 +25,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
+
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * Drives {@link HxcppDebugAdapter} end to end: a real {@link DapClient} on
@@ -555,15 +560,13 @@ public class HxcppDebugAdapterTest {
     assertFailedWith(response, "TOP stack frame");
   }
 
+  /** The routing decision itself (== is not an assignment) is topLevelAssignment's pin; the wire pin here is only that setVariable never fired. */
   @Test
   @DisplayName("comparisons are not assignments")
   public void comparisonsAreNotAssignments() throws Exception {
-    server.handle("evaluate", params -> {
-      assertEquals("n == 100", params.path("expr").asString());
-      return """
-          {"name": "n == 100", "type": "Bool", "value": "false", "variablesReference": 0}
-          """;
-    });
+    server.handle("evaluate", params -> """
+        {"name": "n == 100", "type": "Bool", "value": "false", "variablesReference": 0}
+        """);
     EvaluateArguments arguments = new EvaluateArguments();
     arguments.setExpression("n == 100");
     arguments.setFrameId(1);
@@ -573,18 +576,23 @@ public class HxcppDebugAdapterTest {
     assertEquals(0, server.requests("setVariable").size());
   }
 
-  @Test
+  /** (expression, index of the top-level `=` — -1 when the expression is not an assignment). */
+  static final List<Arguments> TOP_LEVEL_ASSIGNMENTS = List.of(
+    arguments("n = 100", 2),
+    arguments("arr[i+1] = x", 9),
+    arguments("n == 100", -1),
+    arguments("n != 100", -1),
+    arguments("n <= 100", -1),
+    arguments("n >= 100", -1),
+    arguments("f(a = 1)", -1),
+    arguments("\"a = b\"", -1),
+    arguments("s = \"x == y\"", 2));
+
+  @ParameterizedTest(name = "{0} -> {1}")
+  @FieldSource("TOP_LEVEL_ASSIGNMENTS")
   @DisplayName("top level assignment detection")
-  public void topLevelAssignmentDetection() {
-    assertEquals(2, HxcppDebugAdapter.topLevelAssignment("n = 100"));
-    assertEquals(9, HxcppDebugAdapter.topLevelAssignment("arr[i+1] = x"));
-    assertEquals(-1, HxcppDebugAdapter.topLevelAssignment("n == 100"));
-    assertEquals(-1, HxcppDebugAdapter.topLevelAssignment("n != 100"));
-    assertEquals(-1, HxcppDebugAdapter.topLevelAssignment("n <= 100"));
-    assertEquals(-1, HxcppDebugAdapter.topLevelAssignment("n >= 100"));
-    assertEquals(-1, HxcppDebugAdapter.topLevelAssignment("f(a = 1)"));
-    assertEquals(-1, HxcppDebugAdapter.topLevelAssignment("\"a = b\""));
-    assertEquals(2, HxcppDebugAdapter.topLevelAssignment("s = \"x == y\""));
+  public void topLevelAssignmentDetection(String expression, int index) {
+    assertEquals(index, HxcppDebugAdapter.topLevelAssignment(expression));
   }
 
   @Test

@@ -43,6 +43,7 @@ import java.util.*;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 import static com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil.findCastPath;
 import static com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil.findClassHierarchy;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 @CustomLog
 @EqualsAndHashCode(callSuper = true)
@@ -175,6 +176,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public String toPresentationString(boolean showOnlyConstraintForTypeParam){
     if(this.isUnknown()) return "unknown";
 
+    // plain guard: presentation strings only reach messages/hints/logs, never
+    // a caching decision - tainting here would block failure caching for
+    // windows that merely rendered an error message
     String  presentation = processedElementsToStringRecursionGuard.doPreventingRecursion(context, true, ()-> _toPresentationString(showOnlyConstraintForTypeParam));
 
     if (presentation == null) {
@@ -243,6 +247,38 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
 
+
+  @Override
+  public void appendCacheKey(@NotNull StringBuilder out, @NotNull Set<SpecificTypeReference> walkPath) {
+    if (isUnknown()) {
+      out.append(UNKNOWN);
+      return;
+    }
+    if (!walkPath.add(this)) {
+      out.append(CACHE_KEY_CYCLE);
+      return;
+    }
+    try {
+      out.append(getHaxeClassReference().getCacheKey());
+      ResultHolder[] specifics = getSpecifics();
+      if (specifics.length > 0) {
+        out.append('<');
+        for (ResultHolder specific : specifics) {
+          if (specific == null) {
+            out.append(UNKNOWN);
+          }
+          else {
+            specific.appendCacheKey(out, walkPath);
+          }
+          out.append(',');
+        }
+        out.append('>');
+      }
+    }
+    finally {
+      walkPath.remove(this);
+    }
+  }
 
   public String toPresentationStringNoResolve() {
     StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
@@ -920,7 +956,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference(boolean unwrapExprOf) {
     ResolveRecursionGuardKey guardKey = new ResolveRecursionGuardKey(this.context, unwrapExprOf);
-    SpecificTypeReference result = fullyresolveAndUnwrapRecursionGuard.computePreventingRecursion(guardKey, true, () ->
+    SpecificTypeReference result = HaxeEvaluationTaint.computeOrTaint(fullyresolveAndUnwrapRecursionGuard, guardKey, true, () ->
     {
       if (isTypeParameter()) return this;
       if (isNullType()) {
@@ -1023,7 +1059,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public SpecificTypeReference fullyResolveUnderlyingTypeUnwrapNullTypeReference() {
     ResolveRecursionGuardKey guardKey = new ResolveRecursionGuardKey(this.context, false);
-    SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(guardKey, true, () -> {
+    SpecificTypeReference result = HaxeEvaluationTaint.computeOrTaint(fullyresolveRecursionGuard, guardKey, true, () -> {
       SpecificTypeReference reference = this;
       SpecificTypeReference oldRef = null;
       while (reference != null && reference != oldRef) {

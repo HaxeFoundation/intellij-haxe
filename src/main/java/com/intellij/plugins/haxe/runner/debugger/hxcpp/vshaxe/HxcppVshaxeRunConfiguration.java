@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
  * the protocol defaults and only need changing when the build overrides them.
  */
 public class HxcppVshaxeRunConfiguration extends DapExecutableRunConfigurationBase {
+  /** The haxelib id of vshaxe's in-debuggee debug server the executable must be compiled with. */
+  public static final String VSHAXE_DEBUG_SERVER_LIB = "hxcpp-debug-server";
   public static final String DEFAULT_DEBUG_HOST = "127.0.0.1";
   public static final int DEFAULT_DEBUG_PORT = 6972;
 

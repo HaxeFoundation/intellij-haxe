@@ -1,0 +1,4 @@
+-p src
+-lib utest
+--main UtestMain
+--interp

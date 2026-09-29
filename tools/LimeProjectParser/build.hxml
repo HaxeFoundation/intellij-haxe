@@ -1,0 +1,4 @@
+-cp src/main/haxe
+-resource src/main/resources/HxpRunner.hx@HxpRunner.hx
+-main limeparser.Main
+--jvm build/libs/LimeProjectParser.jar

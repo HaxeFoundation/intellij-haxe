@@ -4,18 +4,17 @@ import format.hl.Data.HLType;
 import format.hl.Data.ObjPrototype;
 
 /**
-	Computes the byte offset of each field within a HashLink object instance,
-	replicating the runtime layout (a port of hld `getObjectProto`, matching the
-	VM's `hl_runtime_obj`): an object begins with a `hl_type*` header (one
-	pointer) — a struct does NOT — superclass fields come first (reclaiming the
-	parent's trailing padding), and each field is aligned to its own size.
+	Computes the byte offset of each field within a HashLink object, the way
+	the VM lays it out (a port of hld `getObjectProto`, matching the VM's
+	`hl_runtime_obj`). An object starts with an `hl_type*` header; a struct has
+	none. Superclass fields come first, and the subclass's first field may use
+	the superclass's trailing padding. Each field is aligned by the C struct
+	rules (Align.padStruct).
 
-	A `@:packed` field (HPacked wrapping an HStruct) is inlined: it is aligned
-	on the sub-struct's largest field and occupies the sub-struct's full padded
-	size. The total size is padded to a multiple of the largest field, which is
-	what makes nested packed layouts compose.
-
-	Pure; unit-tested with synthetic prototypes.
+	A `@:packed` field (an HPacked wrapping an HStruct) stores the sub-struct
+	inline: aligned on the sub-struct's largest field and occupying its full
+	padded size. Every layout's total size is padded to a multiple of its
+	largest field, so packed structs nest correctly.
 **/
 class ObjectLayout {
 	final align:Align;
@@ -26,9 +25,9 @@ class ObjectLayout {
 	}
 
 	/**
-		All fields of `proto` (superclass fields first) with their instance
-		offsets. `isStruct` skips the hl_type* header (HStruct values and the
-		inline layout of packed fields).
+		All fields of `proto`, superclass fields first, with their offsets.
+		`isStruct` omits the hl_type* header, for HStruct values and for the
+		inline contents of packed fields.
 	**/
 	public function fields(proto:ObjPrototype, isStruct:Bool = false):Array<FieldLayout> {
 		return layout(proto, isStruct).fields;
@@ -45,14 +44,14 @@ class ObjectLayout {
 			default: null;
 		};
 		var fields = parent == null ? [] : parent.fields.copy();
-		// the parent's trailing padding is reclaimed before this type's fields
+		// this type's fields may start inside the parent's trailing padding
 		var size = parent == null ? (isStruct ? 0 : align.ptr) : parent.size - parent.padSize;
 		var largestField = parent == null ? size : parent.largestField;
 
 		for (field in proto.fields) {
 			switch (field.t) {
 				case HPacked({v: HStruct(sub)}):
-					// an inlined @:packed sub-struct: aligned on and sized by the sub-struct
+					// a @:packed sub-struct, stored inline
 					var packed = layout(sub, true);
 					size = alignUp(size, packed.largestField);
 					if (packed.largestField > largestField) {
@@ -70,7 +69,7 @@ class ObjectLayout {
 					size += fieldSize;
 			}
 		}
-		// pad the total to a multiple of the largest field so nested layouts compose
+		// a multiple of the largest field, so this layout can be nested as a packed field
 		var padSize = alignUp(size, largestField) - size;
 		size += padSize;
 		var result = {fields: fields, size: size, padSize: padSize, largestField: largestField};

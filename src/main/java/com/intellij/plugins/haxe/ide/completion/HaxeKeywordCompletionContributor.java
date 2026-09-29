@@ -33,7 +33,6 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
@@ -55,7 +54,6 @@ import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.key
 import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordWithSpace;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments;
 import static java.util.function.Predicate.not;
 
@@ -93,8 +91,7 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
 
   private static void suggestKeywords(PsiElement position, @NotNull CompletionResultSet result, ProcessingContext context) {
-    List<String> keywordsFromParser = new ArrayList<>();
-    final HaxeFile cloneFile = createCopyWithFakeIdentifierAsComment(position, keywordsFromParser);
+    final HaxeFile cloneFile = createCopyWithFakeIdentifierAsComment(position);
     PsiElement completionElementAsComment = cloneFile.findElementAt(position.getTextOffset());
 
     List<LookupElement> lookupElements = new ArrayList<>();
@@ -266,33 +263,42 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
   }
 
 
-  private static HaxeFile createCopyWithFakeIdentifierAsComment(PsiElement position, List<String> keywordsFromParser) {
+  private static HaxeFile createCopyWithFakeIdentifierAsComment(PsiElement position) {
 
     final HaxeFile posFile = (HaxeFile)position.getContainingFile();
     final TextRange posRange = position.getTextRange();
 
-    // clone original content
-    HaxeFile clonedFile = (HaxeFile)posFile.copy();
-    int offset = posRange.getStartOffset();
-
-    // replace dummy identifier with comment so it does not affect the parsing and psi structure
-    PsiElement dummyIdentifier = clonedFile.findElementAt(offset);
-    PsiElement comment = HaxeElementGenerator.createDummyComment(posFile.getProject(), dummyIdentifier.getTextLength());
+    // replace dummy identifier with comment so it does not affect the parsing and psi structure.
+    // Pure text surgery: the file may be an injected doc-fence fragment, whose PSI
+    // must not be modified (InjectedFileViewProvider asserts on tree changes).
+    PsiElement dummyIdentifier = posFile.findElementAt(posRange.getStartOffset());
+    if (dummyIdentifier == null) dummyIdentifier = position;
     PsiElement elementToReplace = dummyIdentifier;
 
     //make sure we replace the "root" element of the identifier
     // we dont want to replace identifier inside a reference and keep the reference etc.
     while (elementToReplace.getPrevSibling() == null && elementToReplace.getParent() != null) {
       PsiElement parent = elementToReplace.getParent();
-      if (parent == clonedFile) break;
+      if (parent == posFile) break;
       elementToReplace = parent;
     }
-    elementToReplace.replace(comment);
+
+    String fileText = posFile.getText();
+    TextRange replaceRange = elementToReplace.getTextRange();
+    String patched = fileText.substring(0, replaceRange.getStartOffset())
+                     + dummyCommentText(dummyIdentifier.getTextLength())
+                     + fileText.substring(replaceRange.getEndOffset());
 
     // reparse content
-    HaxeFile file = (HaxeFile)PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.hx", HaxeLanguage.INSTANCE, clonedFile.getText(), true, false);
+    HaxeFile file = (HaxeFile)PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.hx", HaxeLanguage.INSTANCE, patched, true, false);
     TreeUtil.ensureParsed(file.getNode());
     return file;
+  }
+
+  // star filler would lex as /**...*/ = a DOC_COMMENT, which parses lazily into
+  // sub-tokens and attaches to members; a plain block comment stays one leaf
+  private static String dummyCommentText(int length) {
+    return "/*" + "x".repeat(Math.max(0, length - 4)) + "*/";
   }
 
 

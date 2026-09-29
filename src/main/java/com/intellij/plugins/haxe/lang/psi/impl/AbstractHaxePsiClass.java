@@ -25,7 +25,6 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -35,6 +34,7 @@ import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 
+import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.*;
@@ -131,13 +131,12 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     if(name == null) return "";
 
     PsiFile file = getContainingFile();
-    if (file == null) return name == null ? "" : name;
 
-    final String fileName = FileUtil.getNameWithoutExtension(file.getName());
+    String moduleName = HaxeModuleVariants.moduleNameOf(file);
     String packageName = HaxeResolveUtil.getPackageName(file);
 
-    if ( alwaysIncludeModuleName || (name != null && isAncillaryClass(packageName, name, fileName))) {
-      packageName = HaxeResolveUtil.joinQName(packageName, fileName);
+    if (alwaysIncludeModuleName || isAncillaryClass(packageName, name, moduleName)) {
+      packageName = HaxeResolveUtil.joinQName(packageName, moduleName);
     }
 
     return HaxeResolveUtil.joinQName(packageName, name);

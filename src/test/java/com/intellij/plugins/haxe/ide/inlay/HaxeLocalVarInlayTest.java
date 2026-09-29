@@ -75,4 +75,9 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
     doTest(hintsProvider);
   }
 
+  @Test
+  @DisplayName("local var from untyped parameters")
+  public void testLocalVarFromUntypedParameters() throws Exception {
+    doTest(hintsProvider);
+  }
 }

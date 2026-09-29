@@ -5,10 +5,10 @@ import ijhaxe.debug.inspect.VariableInspector;
 import ijhaxe.debug.module.ModuleDebugInfo;
 
 /**
-	Builds the user-facing texts for exception stops (the
-	stopped(reason:"exception") descriptions): low-level runtime faults,
-	VM-raised exceptions and bytecode throws. Pure text assembly over the
-	inspector's frame cache and the module's debug tables — no run control.
+	Builds the user-facing descriptions of exception stops
+	(stopped(reason:"exception")): low-level runtime faults, VM-raised
+	exceptions and bytecode throws. It only assembles text from the inspector's
+	frame cache and the module's debug tables, and never controls execution.
 **/
 class StopDescriptions {
 	final module:ModuleDebugInfo;
@@ -20,14 +20,14 @@ class StopDescriptions {
 	}
 
 	/**
-		Describes a LOW-LEVEL runtime fault (Error/StackOverflow wait outcome):
-		unlike a Haxe throw there is no exception value to read, and HL's debug
-		API exposes no OS exception record, so the precise cause (null access,
-		bad arithmetic, wild pointer, ...) is not knowable here. Give the user
-		what we do know — the kind, the faulting function and source line — and
-		warn that the fault is not steppable: resuming re-executes the faulting
-		instruction (hl_debug_resume has no pass-to-program mode), so
-		step/continue can never get past it.
+		Describes a low-level runtime fault (an Error or StackOverflow wait
+		outcome). Unlike a Haxe throw, it has no exception value to read, and
+		HL's debug API exposes no OS exception record, so the exact cause (null
+		access, bad arithmetic, wild pointer) is unknown. The text names the
+		kind, the faulting function and the source line. It also warns that
+		execution cannot get past the fault: hl_debug_resume cannot pass the
+		exception to the program, so resuming re-executes the faulting
+		instruction.
 	**/
 	public function runtimeError(threadId:Int, stackOverflow:Bool):String {
 		var what = stackOverflow
@@ -39,11 +39,12 @@ class StopDescriptions {
 	}
 
 	/**
-		The description for a VM-raised error. `thrown` is the vdynamic parked in
-		the thread's exc_value — available when the stop is hl_throw's own break;
-		for hl_error_msg-raised errors it decodes to the exact runtime message
-		("Null access .length", "Out of bounds 5/3", ...). Null (registry
-		unreadable, or decode failure) degrades to a generic text.
+		Describes a VM-raised error. `thrown` is the vdynamic in the thread's
+		exc_value, available when the stop is hl_throw's own break. For errors
+		raised through hl_error_msg it decodes to the exact runtime message
+		("Null access .length", "Out of bounds 5/3"). Without it (the thread
+		registry is unreadable, or the value does not decode) the text is
+		generic.
 	**/
 	public function vmThrow(threadId:Int, thrown:Null<Pointer>):String {
 		var message = thrown != null ? inspector.previewDynamicPointer(thrown) : null;
@@ -57,8 +58,8 @@ class StopDescriptions {
 	}
 
 	/**
-		Describes the value being thrown (the exception in register `reg` of the
-		top frame); a generic message if it can't be read.
+		Describes the value being thrown, which is in register `reg` of the top
+		frame; a generic message when it cannot be read.
 	**/
 	public function thrown(threadId:Int, reg:Int):String {
 		var frames = inspector.framesFor(threadId);
@@ -79,7 +80,7 @@ class StopDescriptions {
 			return null;
 		}
 		var location = frames[0].location;
-		var source = module.lookup(location.fidx, location.op);
+		var source = module.sourceLineAt(location.fidx, location.op);
 		return module.functionName(location.fidx)
 			+ (source != null ? " (" + source.file + ":" + source.line + ")" : "");
 	}

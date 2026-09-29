@@ -1,0 +1,6 @@
+# Development build for IDE support (completion, diagnostics).
+# --interp compiles in the eval interpreter: no output files, full std support.
+# List library modules below as compile roots as the library grows.
+-cp ${SOURCE_DIR}
+--interp
+${ROOT_CLASS}

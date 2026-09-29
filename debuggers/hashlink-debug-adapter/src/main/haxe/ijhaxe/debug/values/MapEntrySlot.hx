@@ -3,8 +3,8 @@ package ijhaxe.debug.values;
 import ijhaxe.debug.Pointer;
 
 /**
-	One live entry of a native HashLink map: a display string for the key and
-	the address of the value slot (a dynamic pointer, read as HDyn).
+	One map entry: the key as display text and the address of the value,
+	which is read as Dynamic.
 **/
 typedef MapEntrySlot = {
 	var key:String;

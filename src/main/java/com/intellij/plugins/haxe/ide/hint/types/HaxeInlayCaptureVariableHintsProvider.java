@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.ide.hint.types;
 import com.intellij.codeInsight.hints.declarative.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
-import com.intellij.plugins.haxe.lang.psi.HaxeResolver;
 import com.intellij.plugins.haxe.lang.psi.HaxeSwitchCaseCaptureVar;
 import com.intellij.plugins.haxe.lang.psi.HaxeSwitchCaseExpr;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -13,6 +12,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.lang.psi.HaxeResolveChecks;
 
 
 public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider {
@@ -55,7 +55,7 @@ public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider
     private static void handleCaptureVarDeclarationHints(@NotNull PsiElement element,
                                                          @NotNull InlayTreeSink sink,
                                                          HaxeSwitchCaseExpr switchCaseExpr) {
-      if(switchCaseExpr.getFirstChild() instanceof HaxeReference reference && HaxeResolver.isCaptureVariable(switchCaseExpr)) {
+      if(switchCaseExpr.getFirstChild() instanceof HaxeReference reference && HaxeResolveChecks.isCaptureVariable(switchCaseExpr)) {
           ResultHolder result = HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(element), null).result;
 
           if (!result.isUnknown() && !result.getType().isInvalid()) {

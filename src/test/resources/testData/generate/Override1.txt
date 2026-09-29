@@ -1,5 +1,4 @@
 class Override1 extends Foo<Bar> {
-
     override public function getFoo():Bar {
         return super.getFoo();
     }

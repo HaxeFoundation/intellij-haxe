@@ -5,10 +5,11 @@ import ijhaxe.debug.eval.ExprAst.Expr;
 import ijhaxe.debug.eval.ExprParser;
 
 /**
-	Parser structure tests: each expression is parsed and dumped to a canonical
-	fully-parenthesized string, which pins precedence and associativity (Haxe
-	rules: bitwise in one tier binding tighter than comparisons, shifts between
-	additive and bitwise, `/` just a normal multiplicative operator).
+	Parser structure tests. Each expression is parsed and printed as a fully
+	parenthesized string, which pins precedence and associativity. The Haxe
+	rules apply: the bitwise operators share one tier that binds tighter than
+	comparisons, shifts sit between additive and bitwise operators, and `/` is
+	an ordinary multiplicative operator.
 **/
 class ExprParserTest {
 	public static function run(assert:Assert):Void {

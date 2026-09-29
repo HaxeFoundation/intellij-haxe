@@ -19,9 +19,11 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStepHandler;
 import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The browser backend: resolves the family's pinned vscode debug adapter
@@ -33,13 +35,13 @@ import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
  * spawns no debuggee.
  *
  * FIREFOX (vscode-firefox-debug, single session — wire behaviour pinned by
- * FirefoxAdapterLiveProbe): initialize needs pathFormat=path, the initialized
+ * FirefoxAdapterLiveTest): initialize needs pathFormat=path, the initialized
  * event arrives only after launch, no configurationDone, lazy breakpoint
  * verification, literal native-path matching, and the serve-mode first-page
  * refresh that makes load-time breakpoints reachable.
  *
  * CHROMIUM (vscode-js-debug's dapDebugServer, parent+child sessions — wire
- * behaviour pinned by JsDebugAdapterLiveProbe): {@link #connect()} runs the
+ * behaviour pinned by JsDebugAdapterLiveTest): {@link #connect()} runs the
  * PARENT session itself (initialize, fire-and-forget launch, configurationDone
  * on initialized, then the {@code startDebugging} reverse request hands over
  * the child configuration) and returns the CHILD connection — so the generic
@@ -130,13 +132,16 @@ public class BrowserDebugBackend implements DapBackend {
    * adapter is already a validation error — this guard only covers a session
    * forced past the configuration warning.
    */
-  private Path installedAdapterEntry(AdapterStore store, AdapterPin pin) throws IOException {
+  static Path installedAdapterEntry(AdapterStore store, AdapterPin pin, String displayName) throws IOException {
     if (!store.isInstalled(pin)) {
       throw new IOException(HaxeDebuggerBundle.message(
-        "browser.runner.adapter.missing",
-        BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version()));
+        "browser.runner.adapter.missing", displayName + " " + pin.version()));
     }
     return store.resolveEntry(pin, null); // already installed: no network
+  }
+
+  private Path installedAdapterEntry(AdapterStore store, AdapterPin pin) throws IOException {
+    return installedAdapterEntry(store, pin, BrowserRunConfiguration.adapterDisplayName(family));
   }
 
   private DapClient connectFirefox(Path node, AdapterStore store, String targetUrl) throws IOException {
@@ -187,7 +192,7 @@ public class BrowserDebugBackend implements DapBackend {
     parentClient = parent;
     Map<String, Object> childConfig;
     try {
-      childConfig = runParentHandshake(parent, targetUrl);
+      childConfig = runParentHandshake(parent, "chrome", parentLaunchConfig(targetUrl));
     } catch (IOException e) {
       throw new IOException("The js-debug parent session failed: " + e.getMessage(), e);
     } catch (InterruptedException e) {
@@ -204,19 +209,20 @@ public class BrowserDebugBackend implements DapBackend {
   }
 
   /**
-   * Drives the parent session to the child hand-over: initialize,
+   * Drives a js-debug parent session to the child hand-over: initialize,
    * fire-and-forget launch (the response is deferred past configurationDone),
    * configurationDone on the initialized event, then the startDebugging
    * reverse request carries the child configuration (__pendingTargetId).
+   * Shared with the node test backend, whose parent config is an attach.
    */
-  private Map<String, Object> runParentHandshake(DapClient parent, String targetUrl)
+  static Map<String, Object> runParentHandshake(DapClient parent, String adapterId, Map<String, Object> parentConfig)
     throws IOException, InterruptedException {
-    InitializeRequest initialize = InitializeRequest.standard("chrome", true);
+    InitializeRequest initialize = InitializeRequest.standard(adapterId, true);
     initialize.getArguments().setClientName("IntelliJ Haxe");
     if (!parent.sendRequest(initialize, CONNECT_TIMEOUT_MILLIS).isSuccess()) {
       throw new IOException("initialize was rejected");
     }
-    parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentLaunchConfig(targetUrl)));
+    parent.sendRequestNoWait(ConfiguredLaunchRequest.of(parentConfig));
 
     long deadline = System.currentTimeMillis() + PARENT_HANDSHAKE_TIMEOUT_MILLIS;
     while (System.currentTimeMillis() < deadline) {
@@ -260,7 +266,7 @@ public class BrowserDebugBackend implements DapBackend {
 
   // The adapters announce their port slightly BEFORE the listener accepts;
   // retry inside a short window instead of failing the session.
-  private static DapClient connectWithRetry(int port) throws IOException {
+  static DapClient connectWithRetry(int port) throws IOException {
     return DapClient.connectWithRetry("127.0.0.1", port, CONNECT_TIMEOUT_MILLIS, CONNECT_RETRY_WINDOW_MILLIS);
   }
 
@@ -273,14 +279,30 @@ public class BrowserDebugBackend implements DapBackend {
 
   @Override
   public void onConnected(DapDebugProcess process) {
+    startBackgroundOutput(line -> process.printSystem(line + "\n"));
+  }
+
+  /**
+   * Drains the adapter's buffered stdout (the launch reader must be consumed
+   * or the adapter can block on a full pipe) and routes the mux's attach/exit
+   * notes into [sink] — tagged {@code [adapter]}/{@code [js-debug]} lines.
+   * Called once after {@link #connect()}, by the debug process or the test
+   * run host.
+   */
+  public void startBackgroundOutput(Consumer<String> sink) {
     BufferedReader reader = adapterStdout;
     adapterStdout = null;
-    if (reader != null) {
+    startBackgroundOutput(reader, sessionMux, sink);
+  }
+
+  /** The reusable half: backends owning their own adapter process (the node test backend) hand in their reader and mux. */
+  static void startBackgroundOutput(@Nullable BufferedReader adapterStdout, @Nullable JsDebugSessionMux mux, Consumer<String> sink) {
+    if (adapterStdout != null) {
       Thread gobbler = new Thread(() -> {
-        try (BufferedReader stdout = reader) {
+        try (BufferedReader stdout = adapterStdout) {
           String line;
           while ((line = stdout.readLine()) != null) {
-            process.printSystem("[adapter] " + line + "\n");
+            sink.accept("[adapter] " + line);
           }
         } catch (IOException ignored) {
           // adapter ended
@@ -289,16 +311,21 @@ public class BrowserDebugBackend implements DapBackend {
       gobbler.setDaemon(true);
       gobbler.start();
     }
-    JsDebugSessionMux mux = sessionMux;
     if (mux != null) {
-      // the mux owns the parent pumping and worker attachment; its
-      // attach/exit notes land in the console as grey system output
-      mux.setLogSink(line -> process.printSystem("[js-debug] " + line + "\n"));
+      // the mux owns the parent pumping and worker attachment
+      mux.setLogSink(line -> sink.accept("[js-debug] " + line));
     }
   }
 
   @Override
   public boolean requiresLaunchRequest() {
+    return true;
+  }
+
+  // a page's console has no process stdout: program output arrives as DAP
+  // output events and is replayed through the session's process handler
+  @Override
+  public boolean programOutputViaAdapter() {
     return true;
   }
 
@@ -411,26 +438,35 @@ public class BrowserDebugBackend implements DapBackend {
     }
     JsDebugSessionMux mux = sessionMux;
     sessionMux = null;
-    if (mux != null) {
-      try {
-        mux.close(); // closes page, workers AND the parent connection
-      } catch (IOException ignored) {
-      }
-    }
     DapClient parent = parentClient;
     parentClient = null;
-    if (mux == null && parent != null) {
+    Process adapter = adapterProcess;
+    adapterProcess = null;
+    closeSession(mux, parent, adapter);
+  }
+
+  /**
+   * Tears a js-debug session down: the mux (page or process, workers AND the
+   * parent connection), else the parent alone (startup failed before the mux
+   * existed), then the adapter's WHOLE process tree - killing node does not
+   * kill the browser it spawned, and when the graceful DAP disconnect did not
+   * happen (forced teardown) every session would otherwise leak a headless
+   * browser.
+   */
+  static void closeSession(@Nullable JsDebugSessionMux mux, @Nullable DapClient parent, @Nullable Process adapter) {
+    if (mux != null) {
       try {
-        parent.close(); // startup failed before the mux existed
+        mux.close();
       } catch (IOException ignored) {
       }
     }
-    Process adapter = adapterProcess;
-    adapterProcess = null;
+    else if (parent != null) {
+      try {
+        parent.close();
+      } catch (IOException ignored) {
+      }
+    }
     if (adapter != null) {
-      // reap the WHOLE tree: killing node does not kill the browser it
-      // spawned, and when the graceful DAP disconnect did not happen (forced
-      // teardown) every session would otherwise leak a headless browser.
       adapter.descendants().forEach(ProcessHandle::destroyForcibly);
       adapter.destroy();
       try {

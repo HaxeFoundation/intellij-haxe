@@ -18,11 +18,6 @@ public class BrowserRunConfigurationPersistenceTest extends HaxeCodeInsightFixtu
     return "";
   }
 
-  private BrowserRunConfiguration newConfiguration() {
-    HaxeRunConfigurationType type = HaxeRunConfigurationType.getInstance();
-    return new BrowserRunConfiguration("browser", getProject(), new BrowserConfigurationFactory(type));
-  }
-
   @Test
   @DisplayName("settings survive a round trip")
   public void testSettingsSurviveARoundTrip() throws Exception {
@@ -46,4 +41,8 @@ public class BrowserRunConfigurationPersistenceTest extends HaxeCodeInsightFixtu
     assertEquals("/usr/bin/node", loaded.getNodePath());
   }
 
+  private BrowserRunConfiguration newConfiguration() {
+    HaxeRunConfigurationType type = HaxeRunConfigurationType.getInstance();
+    return new BrowserRunConfiguration("browser", getProject(), new BrowserConfigurationFactory(type));
+  }
 }

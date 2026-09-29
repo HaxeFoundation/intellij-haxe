@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.fqn;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.psi.PsiElement;
@@ -22,20 +23,22 @@ import java.util.concurrent.atomic.AtomicReference;
 public class HaxeFqnIndexUtil {
 
 
-    static HaxeModuleModel resolveModule(ID<String, HaxeComponentIndexData> index, @NotNull String qName, @NotNull Project project, @Nullable GlobalSearchScope scope, FullyQualifiedInfo fqn) {
+    static HaxeModuleModel resolveModule(ID<String, HaxeComponentIndexData> index, @NotNull String qName, @NotNull Project project, @Nullable GlobalSearchScope scope) {
         AtomicReference<HaxeModuleModel> reference = new AtomicReference<>();
         FileBasedIndex.getInstance().getFilesWithKey(index, Set.of(qName),
                 new Processor<VirtualFile>() {
                     @Override
                     public boolean process(VirtualFile virtualFile) {
+                        // the index can list files deleted before this read action;
+                        // findFile would throw on them rather than return null
+                        if (!virtualFile.isValid()) return true;
                         PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
-                        HaxeComponentIndexData data = FileBasedIndex.getInstance().getFileData(index, virtualFile, project).get(qName);
-                        String className = data.getFqn().getClassName();
-                        if (file instanceof HaxeFile haxeFile) {
-                            if(haxeFile.getModule().getModel() instanceof HaxeModuleModel moduleModel) {
-                                reference.set(moduleModel);
-                                return false;
-                            }
+
+                        if (file instanceof HaxeFile haxeFile
+                            && haxeFile.getModule() instanceof HaxeModule module
+                            && module.getModel() instanceof HaxeModuleModel moduleModel) {
+                            reference.set(moduleModel);
+                            return false;
                         }
                         return true;
                     }

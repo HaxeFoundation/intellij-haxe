@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.ide.annotator.color;
 
+import com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -29,7 +30,6 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeNamedComponent;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,9 +41,7 @@ import static com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUt
 public class HaxeSlowColorAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if(!element.isValid()) return;
-
-    if (element instanceof PsiWhiteSpace) return;
+    if (AnnotatorUtil.shouldSkipColorAnnotation(element)) return;
 
 
     if(isReification(element) || element instanceof HaxePsiToken token && token.getTokenType() == HaxeTokenTypes.MACRO_ID) {

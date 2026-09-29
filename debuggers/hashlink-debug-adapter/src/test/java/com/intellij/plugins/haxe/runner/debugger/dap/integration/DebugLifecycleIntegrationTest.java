@@ -93,19 +93,8 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
     assertTrue(launch().isSuccess());
     assertTrue(request(new ConfigurationDoneRequest()).isSuccess());
 
-    boolean terminated = false;
-    boolean sawOutput = false;
-    while (!terminated) {
-      Event event = client.pollEvent(TIMEOUT);
-      assertNotNull(event, "expected an event before termination");
-      if (event instanceof OutputEvent out && out.getBody().getOutput().contains("fixture-start")) {
-        sawOutput = true;
-      }
-      else if (event instanceof TerminatedEvent) {
-        terminated = true;
-      }
-    }
-    assertTrue(sawOutput, "debuggee produced output");
+    awaitOutputContaining("fixture-start");
+    awaitEvent(TerminatedEvent.class);
   }
 
   @Test

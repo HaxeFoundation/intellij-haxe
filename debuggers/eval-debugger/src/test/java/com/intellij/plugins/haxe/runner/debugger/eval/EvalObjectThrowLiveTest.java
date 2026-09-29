@@ -69,18 +69,6 @@ public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
     return "EvalThrowObj";
   }
 
-  private void startSession(List<String> filters) throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(filters);
-    assertTrue(request(exceptions).isSuccess(), "setExceptionBreakpoints");
-    configurationDone();
-  }
-
   private StoppedEvent awaitExceptionStop() throws Exception {
     long deadline = System.currentTimeMillis() + TIMEOUT;
     while (System.currentTimeMillis() < deadline) {

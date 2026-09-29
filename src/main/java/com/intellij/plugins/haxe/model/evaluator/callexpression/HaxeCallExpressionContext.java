@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.*;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 public class HaxeCallExpressionContext {
 
@@ -61,6 +62,16 @@ public class HaxeCallExpressionContext {
     public boolean isStaticExtension = false;
     public boolean isMacroMemberMethod() {
         return isMacroMethod && !isStaticMethod;
+    }
+
+    /**
+     * True when any argument's recorded type may be improvable — its evaluation
+     * was clipped by a recursion guard or came out Unknown (see
+     * {@link CallExpressionArgumentModel#isIncomplete()}). The evaluator cache
+     * stores such evaluations DIRTY so readers never treat them as final.
+     */
+    public boolean hasIncompleteArguments() {
+        return arguments.stream().anyMatch(CallExpressionArgumentModel::isIncomplete);
     }
     /**
      *
@@ -205,8 +216,12 @@ public class HaxeCallExpressionContext {
         SpecificTypeReference argumentType = null;
         SpecificTypeReference parameterType = null;
 
-        // loop through all arguments and match them to parameters
-        // Note: argument and parameter index  can deviate a lot (optional parameters, rest values, extension method etc)
+        // align + bind phase:
+        // match arguments to parameters and bind type parameters.
+        // Note: argument and parameter index can deviate a lot
+        // (optional parameters, rest values, extension method etc).
+        boolean aborted = false;
+
         while (true) {
             if (argumentsList.size() > argumentCounter) {
                 argumentModel = argumentsList.get(argumentCounter++);
@@ -239,13 +254,17 @@ public class HaxeCallExpressionContext {
                     // out of parameters and last is not var arg, must mean that ve have skipped optionals and still had arguments left
                     if (parameterModel != null && argumentModel != null) {
                         if (trackErrors) {
+                            // the reported types/assign are the LAST CHECKED argument's -
+                            // the error explains why the leftover argument could not
+                            // take the previous parameter slot
+                            AssignExplanation explanations = assignEvaluation != null ? assignEvaluation.explanations : null;
                             addTypeMismatchError(evaluation,
-                                    argumentType,
-                                    parameterType,
-                                    assignEvaluation.explanations,
-                                    argumentModel.psiElement, hasOptionalParams);
+                                                 argumentType, parameterType,
+                                                 explanations, argumentModel.psiElement,
+                                                 hasOptionalParams);
                         }
-                        return evaluation.validationFailed();
+                        evaluation.validationFailed();
+                        aborted = true;
                     }
                     break;
                 }
@@ -255,23 +274,41 @@ public class HaxeCallExpressionContext {
             parameterType = tryResolve(combinedResolver, originalParameterType, null);
             argumentType = tryResolve(argumentResolver, argumentModel.getType(), isConstructor? null : parameterType);
 
+            // a hole is the querying argument of an evaluate-with-hole call:
+            // it takes this parameter slot and reports the parameter's
+            // resolved type, but is never type-checked and never binds type
+            // parameters (its own type is the unknown being asked for)
+            if (argumentModel.isHole()) {
+                evaluation.addArgumentToParameterMapping(argumentCounter - 1,
+                                                         parameterCounter - 1,
+                                                         argumentType, parameterType,
+                                                         parameterModel.getName());
+                continue;
+            }
+
             //making final instances so we can use them in  recursion-guard lambda.
             final SpecificTypeReference finalParameterType = parameterType;
             final SpecificTypeReference finalArgumentType = argumentType;
 
             RecursionKey recursionKey = new RecursionKey(argumentType.getElementContext(), parameterType.getElementContext());
-            assignEvaluation = callExpressionAssignRecursionGuard.doPreventingRecursion(recursionKey, true,
+            assignEvaluation = HaxeEvaluationTaint.computeOrTaint(callExpressionAssignRecursionGuard, recursionKey, true,
                     isConstructor
                             ? () -> evaluateAssignToFromForNewAndCallExpression(finalParameterType.createHolder(), finalArgumentType.createHolder())
                             : () -> evaluateAssignToFrom(finalParameterType.createHolder(), finalArgumentType.createHolder()));
 
-
-
-
             if (assignEvaluation == null) {
-                // Recursion guard
-                return evaluation.validationFailed(true);
-//        break;
+                // Recursion guard aborted the assign check. An optional
+                // parameter gets the same skip fallback as a mismatch: retry
+                // this argument against the next parameter - if the argument
+                // really belonged here, the shifted alignment fails the
+                // evaluation just like the outright failure would have.
+                if (parameterModel.isOptional() && !isBindCall) {
+                    argumentCounter--; //prevent loop from picking next argument
+                    continue;
+                }
+                evaluation.validationFailed();
+                aborted = true;
+                break;
             } else if (assignEvaluation.result) {
                 //assign OK, add to evaluation result
                 evaluation.addArgumentToParameterMapping(
@@ -286,7 +323,10 @@ public class HaxeCallExpressionContext {
                 // if we use the resolved value we would be trying to update values for a different class.
                 TypeConstraintMismatch constraintMismatch = updateResolverIfNecessary(argumentType, argumentResolver, originalParameterType, parameterResolver);
                 if(constraintMismatch != null) {
-                    addConstraintMismatchError(evaluation, argumentType, constraintMismatch, argumentModel.psiElement);
+                    // the argument assigns, but violates the type parameter's constraint
+                    if (trackErrors) {
+                        addConstraintMismatchError(evaluation, argumentType, constraintMismatch, argumentModel.psiElement);
+                    }
                     evaluation.validationFailed();
                 }
                 combinedResolver.addAll(parameterResolver);// update commbined resolver
@@ -295,26 +335,35 @@ public class HaxeCallExpressionContext {
                 argumentCounter--;  //prevent loop from picking next argument
             } else {
                 // argument did not match parameter
-                if(trackErrors) {
+                if (trackErrors) {
                     if (assignEvaluation.explanations.hasMissingModel()) {
                         addMissingModelWarning(assignEvaluation, evaluation, argumentModel);
-                    } else {
-                        // do not add type errors for "ignored"  arguments (named "_") in  bindCall callExpressions
-                        // while its not common to have references that resolves to types,  they do occur in some switch expresisons
-                        if (!isBindIgnoreArgument(argumentModel)) {
-                            addTypeMismatchError(evaluation,
-                                    argumentType,
-                                    parameterType,
-                                    assignEvaluation.explanations,
-                                    argumentModel.psiElement, false);
-                        }
+                    } else if (!isBindIgnoreArgument(argumentModel)) {
+                        // ignored bind arguments ("_") get no type error - they can
+                        // resolve to types in some switch expressions
+                        addTypeMismatchError(evaluation,
+                                             argumentType, parameterType,
+                                             assignEvaluation.explanations,
+                                             argumentModel.psiElement,
+                                             false);
                     }
                 }
                 evaluation.validationFailed();
-//        break;
             }
 
         }
+
+        if (aborted) return evaluation;
+
+        // holes and early arguments recorded their parameter type before later
+        // arguments bound the call's type parameters — re-resolve with the final
+        // bindings. Unknowns are dropped first: a scope-derived argument entry
+        // whose value never settled (e.g. Unknown captured from a clipped
+        // argument evaluation) outranks the resolver entry the loop just bound
+        // and would mask it.
+        HaxeGenericResolver finalBindings = combinedResolver.withoutUnknowns();
+        evaluation.reResolveParameterTypes(type -> tryResolve(finalBindings, type, null));
+
         // update callExpressionResolver with any new resolve values from argument-parameter types
         evaluation.callExpressionResolver.addAll(combinedResolver);
         evaluation.setCompleted(true);
@@ -544,6 +593,7 @@ public class HaxeCallExpressionContext {
                 .filter(p -> !p.isOptional() && !p.hasIntiValue() && !p.isRest())
                 .count();
     }
+
     private void addConstraintMismatchError(HaxeCallExpressionEvaluation evaluation, SpecificTypeReference argumentType, TypeConstraintMismatch constraintMismatch, PsiElement argumentPsi) {
         if (argumentPsi != null) {
             String message = "Constraint violation want" +constraintMismatch.expected().toPresentationString() + " got " + constraintMismatch.got().toPresentationString();

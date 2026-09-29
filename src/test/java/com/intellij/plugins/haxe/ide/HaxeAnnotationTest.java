@@ -18,8 +18,9 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
+import com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedTypeInspection;
 import com.intellij.util.ArrayUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,16 +29,10 @@ import org.junit.jupiter.api.Test;
  * @author: Fedor.Korotkov
  */
 @DisplayName("Annotation: haxe annotation")
-public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeAnnotationTest extends HaxeToolkitLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/annotation/";
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
   }
 
   private void doTest(String... additionalPaths) throws Exception {
@@ -45,6 +40,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
     myFixture.configureByFile(getTestName(false) + ".hx");
     myFixture.enableInspections(getAnnotatorBasedInspection());
+    myFixture.enableInspections(HaxeUnresolvedTypeInspection.class);
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
 
@@ -118,7 +114,6 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
-
 
   @Test
   @DisplayName("value type unresolved on dynamic map")

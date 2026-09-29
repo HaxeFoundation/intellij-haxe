@@ -17,7 +17,17 @@
   -->
 <html>
 <body>
-Highlights referenced fields, methods, class names, and other symbols that have been marked
-with &quot;@deprecated,&quot; therefore should no longer be used.
+Reports references to fields, methods, classes and other symbols marked
+with <code>@:deprecated</code>, which should no longer be used.
+<p><b>Example:</b></p>
+<pre><code>
+class Engine {
+    @:deprecated("use start() instead")
+    public function ignite():Void {}
+    public function start():Void {}
+}
+
+new Engine().ignite();   // deprecated: use start() instead
+</code></pre>
 </body>
 </html>

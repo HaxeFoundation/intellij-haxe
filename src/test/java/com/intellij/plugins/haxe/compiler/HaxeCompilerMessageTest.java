@@ -15,12 +15,16 @@
  */
 package com.intellij.plugins.haxe.compiler;
 
+import com.intellij.execution.Platform;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Created by ebishton on 10/29/16.
@@ -30,6 +34,17 @@ public class HaxeCompilerMessageTest {
 
   private void doTest(String output, Category cat, String msg, String path, int line, int col) throws Throwable {
     HaxeCompilerMessage e = HaxeCompilerMessage.create("", output);
+    assertEquals(cat, e.getCategory());
+    assertEquals(msg, e.getMessage());
+    assertEquals(path, e.getPath());
+    assertEquals(line, e.getLine());
+    assertEquals(col, e.getColumn());
+  }
+
+  /** The rooted form the build window uses: relative source paths join the project root. */
+  private void doRootedTest(String rootPath, String output, Category cat, String msg, String path, int line, int col) {
+    HaxeCompilerMessage e = HaxeCompilerMessage.create(rootPath, output, false);
+    assertNotNull(e);
     assertEquals(cat, e.getCategory());
     assertEquals(msg, e.getMessage());
     assertEquals(path, e.getPath());
@@ -126,5 +141,76 @@ public class HaxeCompilerMessageTest {
     String compilerOutput = "Test.hx:4: characters 6-7 : Unexpected %";
     String expected = "Unexpected %";
     doTest(compilerOutput, Category.ERROR, expected, "Missing file: /Test.hx", 4, 6);
+  }
+
+  // --- rooted messages: relative paths join the project root ---
+
+  @Test
+  @DisplayName("rooted error with windows root")
+  public void testRootedErrorWithWindowsRoot() {
+    doRootedTest("C:/Users/username/workspace/project",
+                 "src/Main.hx:5: characters 0-21 : Class not found : StringTools212",
+                 Category.ERROR, "Class not found : StringTools212",
+                 "C:/Users/username/workspace/project/src/Main.hx", 5, 0);
+  }
+
+  @Test
+  @DisplayName("rooted error with dot relative path")
+  public void testRootedErrorWithDotRelativePath() {
+    doRootedTest("/trees/test",
+                 "./HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener",
+                 Category.ERROR, "Unknown identifier : addEvetListener",
+                 "/trees/test/./HelloWorld.hx", 12, 1);
+  }
+
+  @Test
+  @DisplayName("rooted error without a column")
+  public void testRootedErrorWithoutAColumn() {
+    doRootedTest("/trees/test",
+                 "hello/HelloWorld.hx:18: lines 18-24 : Interfaces cannot implement another interface (use extends instead)",
+                 Category.ERROR, "Interfaces cannot implement another interface (use extends instead)",
+                 "/trees/test/hello/HelloWorld.hx", 18, -1);
+  }
+
+  @Test
+  @DisplayName("rooted warning")
+  public void testRootedWarning() {
+    doRootedTest("/trees/test",
+                 "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!",
+                 Category.WARNING, "Danger, Will Robinson!",
+                 "/trees/test/hello/HelloWorld.hx", 18, -1);
+  }
+
+  @Test
+  @DisplayName("absolute path ignores the root")
+  public void testAbsolutePathIgnoresTheRoot() {
+    String error = "/an/absolute/path/HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener";
+    HaxeCompilerMessage message = HaxeCompilerMessage.create("/trees/test", error, false);
+
+    assertNotNull(message);
+    assertEquals(Category.ERROR, message.getCategory());
+    // a unix absolute path is only recognizable as absolute on a unix host
+    if (Platform.current() == Platform.UNIX) {
+      assertEquals("/an/absolute/path/HelloWorld.hx", message.getPath());
+    }
+    assertEquals("Unknown identifier : addEvetListener", message.getMessage());
+    assertEquals(12, message.getLine());
+    assertEquals(1, message.getColumn());
+  }
+
+  /**
+   * Haxe emits global warnings without a file location (e.g. the deprecated
+   * flash target notice) in two spellings across versions; both must be
+   * reported as warnings, not errors.
+   */
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {
+    "((unknown)) Warning : (WDeprecatedDefine) The flash target will be removed for Haxe 5",
+    "(unknown) : Warning : (WDeprecatedDefine) The flash target will be removed for Haxe 5"})
+  @DisplayName("file less warning stays a warning")
+  public void testFileLessWarningStaysAWarning(String output) {
+    HaxeCompilerMessage message = HaxeCompilerMessage.create("/trees/test", output, false);
+    assertNotNull(message);
+    assertEquals(Category.WARNING, message.getCategory());
   }
 }

@@ -4,11 +4,12 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.NlsSafe;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.ide.lookup.HaxeLookupElement;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeSyntheticDeclarations;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -25,8 +26,7 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isInMetadataOfType;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isInReferenceChain;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceSuggestionUtil.addAbstractUnderlyingClassSuggestions;
-import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.FORWARD;
-import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NULL_SAFETY;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.*;
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.findClassByQName;
 
 public class HaxeMetadataCompletionContributor extends CompletionContributor {
@@ -58,9 +58,14 @@ public class HaxeMetadataCompletionContributor extends CompletionContributor {
                          addNullSafetyCompletion(result, file, parameters);
                      }
 
+                     boolean analyzerMetadata = isInMetadataOfType(parameters.getPosition(), ANALYZER);
+                     if (analyzerMetadata) {
+                         addAnalyzerCompletion(result, file);
+                     }
+
                      boolean forwardMetadata = isInMetadataOfType(parameters.getPosition(), FORWARD);
                      if (forwardMetadata) {
-                         addForwardMemberCompletion(result, file,  parameters);
+                         addForwardMemberCompletion(result,  parameters);
                      }
                  }
 
@@ -85,12 +90,26 @@ public class HaxeMetadataCompletionContributor extends CompletionContributor {
             resultSet.stopHere();
         }
     }
-    private static void addForwardMemberCompletion(final CompletionResultSet resultSet,
-                                                final PsiFile targetFile,
-                                                   CompletionParameters parameters) {
+    private static void addAnalyzerCompletion(final CompletionResultSet resultSet,
+                                                final PsiFile targetFile) {
+
         final Project project = targetFile.getProject();
-        final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-        final PrefixMatcher matcher = resultSet.getPrefixMatcher();
+        HaxeClassModel analyzerOptions = HaxeSyntheticDeclarations.getAnalyzerOptions(project);
+        if (analyzerOptions != null) {
+            List<HaxeBaseMemberModel> members =analyzerOptions.getMembersSelf();
+            for (HaxeBaseMemberModel member : members) {
+                LookupElementBuilder lookup = HaxeLookupElementFactory.create(member)
+                  .withTailText(null)
+                  .withTypeText(null);
+
+                resultSet.addElement(lookup);
+            }
+            resultSet.stopHere();
+        }
+    }
+
+    private static void addForwardMemberCompletion(final CompletionResultSet resultSet,
+                                                   CompletionParameters parameters) {
 
         PsiElement position = parameters.getPosition();
         if (HaxeAbstractForwardUtil.isElementInForwardMeta(position)) {

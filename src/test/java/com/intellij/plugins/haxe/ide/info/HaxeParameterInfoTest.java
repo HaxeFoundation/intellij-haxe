@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.openapi.diagnostic.LogLevel;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeResolveResult;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.util.HaxeDebugLogUtil;
@@ -37,18 +37,11 @@ import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoCon
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-
 /**
  * @author: Fedor.Korotkov
  */
 @DisplayName("Editor: parameter info")
-public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
-
-
-  public void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
-  }
+public class HaxeParameterInfoTest extends HaxeToolkitLightFixtureTestCase {
 
   @Override
   public void tearDown() throws Exception {
@@ -60,7 +53,6 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
   protected String getBasePath() {
     return "/paramInfo/";
   }
-
 
   private void doTest(String infoText, int highlightedParameterIndex) throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
@@ -91,7 +83,6 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
     HaxeDebugLogUtil.getLogger(HaxeReferenceImpl.class).setLevel(LogLevel.DEBUG);
     HaxeDebugLogUtil.getLogger(HaxeResolveResult.class).setLevel(LogLevel.DEBUG);
   }
-
 
   @Test
   @DisplayName("param info 1 - inherited generic method at empty args")
@@ -180,7 +171,6 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
   public void testParamInfoMacroMethod() throws Throwable {
     doTest("valueB:Int = 1, ValueC:Float = 1.0", 1);
   }
-
 
   // Disabled - Tests issue #615.
   //@Test public void testLocalShadowingChainedGenerics() throws Throwable {

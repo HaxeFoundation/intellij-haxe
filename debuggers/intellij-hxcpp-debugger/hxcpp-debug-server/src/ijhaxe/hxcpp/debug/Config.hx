@@ -3,19 +3,20 @@ package ijhaxe.hxcpp.debug;
 typedef ServerConfig = {
 	var host:String;
 	var port:Int;
-	// true when ANY env var or define contributed a value (even an invalid
-	// one): someone asked for debugging, so the server may retry the connect
-	// patiently; unconfigured builds get one quick attempt and run on
+	// True when ANY environment variable or define supplied a value, even an
+	// invalid one. Someone asked for debugging, so the server retries the
+	// connection patiently; an unconfigured build makes one quick attempt and
+	// then runs on.
 	var configured:Bool;
 }
 
 /**
-	Connection-settings resolution: environment variables first (the IDE sets
-	`HXCPP_DEBUG_HOST`/`HXCPP_DEBUG_PORT` on the spawned process, with an
-	ephemeral port per session — no rebuilds, no port collisions), then the
-	compile-time defines (compatible with the vshaxe server's), then the
-	defaults. Pure: the env reader is injected so unit tests run under the
-	interpreter.
+	Resolves the connection settings. Environment variables come first: the
+	IDE sets `HXCPP_DEBUG_HOST`/`HXCPP_DEBUG_PORT` on the spawned process with
+	a fresh port per session, so ports never collide and need no rebuild.
+	Next come the compile-time defines, which use the same names as the
+	vshaxe debug server's; last the defaults. The environment reader is a
+	parameter, so the unit tests run under the interpreter.
 **/
 class Config {
 	public static inline var DEFAULT_HOST = "127.0.0.1";
@@ -48,8 +49,8 @@ class Config {
 		return trimmed == "" ? null : trimmed;
 	}
 
-	// null unless a valid TCP port (1..65535): a typo falls through the chain
-	// instead of aiming the server at port 0 or garbage
+	// Null unless a valid TCP port (1..65535), so a typo falls through to the
+	// next source instead of aiming the server at port 0 or garbage.
 	static function parsePort(value:Null<String>):Null<Int> {
 		if (value == null) {
 			return null;

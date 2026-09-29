@@ -22,7 +22,7 @@ import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
  * @author: Fedor.Korotkov
  */
 @DisplayName("Editor: live templates")
-public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeLiveTemplatesTest extends HaxeLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/liveTemplates/";

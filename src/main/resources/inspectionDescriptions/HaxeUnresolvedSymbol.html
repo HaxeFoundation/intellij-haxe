@@ -17,7 +17,20 @@
   -->
 <html>
 <body>
-Highlights variable, class, field, method, and other symbol names that cannot be located
-using the import statements or packaging rules in effect.
+Reports variable, field, method and other symbol names that cannot be
+resolved with the imports and packaging rules in effect.
+<p><b>Example:</b></p>
+<pre><code>
+class Greeter {
+    public function greet():String {
+        return salutation;   // no such field or variable
+    }
+}
+</code></pre>
+<!-- tooltip end -->
+<p>
+Quick fixes can create the missing local variable, field, method, parameter
+or enum value. When compiler diagnostics are enabled, names the compiler
+accepts (for example macro-generated fields) are not reported.
 </body>
 </html>

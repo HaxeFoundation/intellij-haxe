@@ -184,7 +184,7 @@ public class HaxeCreateTypeDialogBuilder {
 
         if (packageByQName == null) {
             MessageDialogBuilder.YesNo createPackageDialog = MessageDialogBuilder.yesNo("Create missing package(s)", "create '" + packageName + "' package");
-            boolean ask = ReadAction.compute(() -> createPackageDialog.ask(myProject));
+            boolean ask = ReadAction.computeBlocking(() -> createPackageDialog.ask(myProject));
             if (ask) {
                 createHaxePackage(myProject, mySourceRoot, packageName);
                 return true;

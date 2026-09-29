@@ -97,12 +97,9 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
       final String name = namesQueue.pollFirst();
       if (!namesSet.add(name)) continue;
 
-      // The stub index keys are the unresolved reference text from source (simple names in most cases).
-      // Look up by both the simple name (covers "extends Foo") and the full name if it contains dots
-      // (covers "extends com.example.Foo" written literally in source).
-      // MLO comment: AFAIK the extends expressions must be either fully qualified or simple names
-      // stuff like "Module.ClassName" will not compile so we dont need to handle these
-      boolean isFQN = name.contains(".");
+      // Inheritance index keys are SIMPLE names even when source writes a
+      // qualified extends reference, so one lookup is complete; false
+      // positives (same simple name, different package) are filtered below.
       final String simpleName = getSimpleName(name);
       final Set<HaxeClass> candidates = new LinkedHashSet<>();
 
@@ -118,19 +115,6 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
         if (!consumer.process(subClass)) return;
         final String subQName = subClass.getQualifiedName();
         if (subQName != null) namesQueue.add(subQName);
-      }
-
-      if (isFQN) {
-        // Also look up by fully-qualified name for source that uses qualified extends references
-        // should not be any need to resolve / verify with directlyInheritsFrom as these are Fully qualified
-        final Set<HaxeClass> fqnSupers = new LinkedHashSet<>();
-        fqnSupers.addAll(HaxeClassInheritanceUnifiedIndex.getBySuper(name, project, scope));
-        fqnSupers.addAll(HaxeTypedefInheritanceUnifiedIndex.getBySuper(name, project, scope));
-        for (HaxeClass subClass : fqnSupers) {
-          if (!consumer.process(subClass)) return;
-          final String subQName = subClass.getQualifiedName();
-          if (subQName != null) namesQueue.add(subQName);
-        }
       }
     }
   }

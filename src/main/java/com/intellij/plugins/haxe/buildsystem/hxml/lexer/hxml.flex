@@ -74,6 +74,7 @@ SLASH = "/"
 <WAITING_VALUE> {
 {WHITE_SPACE}+                              { return TokenType.WHITE_SPACE; }
 
+{HXML_FILE_PATTERN}                         { yybegin(PATH_VALUE);  yypushback(yylength()); }
 {FILE_PATTERN}                              { yybegin(PATH_VALUE);  yypushback(yylength()); }
 {QNAME_PATTERN}                             { yybegin(QNAME_VALUE);  yypushback(yylength()); }
 {CLASS_NAME} / [^/\.]                       { yybegin(YYINITIAL); return HXMLTypes.CLASS_NAME; }

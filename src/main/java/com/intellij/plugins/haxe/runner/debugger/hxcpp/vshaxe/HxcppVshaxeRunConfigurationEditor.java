@@ -4,8 +4,11 @@ import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapExecutableRunConfigurationEditorBase;
+import com.intellij.plugins.haxe.runner.debugger.hxcpp.HaxelibStatusRow;
+import com.intellij.plugins.haxe.util.ui.HaxeDialogHints;
+import com.intellij.ui.components.ActionLink;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ui.UIUtil;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
@@ -31,15 +34,19 @@ public class HxcppVshaxeRunConfigurationEditor
   private JBTextField debugHostField;
   private JBTextField debugPortField;
   private JTextPane debugHintArea;
+  private JBLabel serverLibStatusLabel;
+  private ActionLink installServerLibLink;
+
+  private final HaxelibStatusRow serverLibRow;
 
   public HxcppVshaxeRunConfigurationEditor(Project project) {
     super(project);
     wireCommonChoosers();
     debugHostField.setText(HxcppVshaxeRunConfiguration.DEFAULT_DEBUG_HOST);
     debugPortField.setText(Integer.toString(HxcppVshaxeRunConfiguration.DEFAULT_DEBUG_PORT));
-    debugHintArea.setForeground(UIUtil.getContextHelpForeground());
-    debugHintArea.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
-    debugHintArea.setBorder(null);
+    HaxeDialogHints.style(debugHintArea);
+    serverLibRow = new HaxelibStatusRow(project, HxcppVshaxeRunConfiguration.VSHAXE_DEBUG_SERVER_LIB,
+                                        serverLibStatusLabel, installServerLibLink);
   }
 
   @Override
@@ -67,6 +74,7 @@ public class HxcppVshaxeRunConfigurationEditor
     resetCommon(configuration);
     debugHostField.setText(configuration.getDebugHost());
     debugPortField.setText(configuration.getDebugPort());
+    serverLibRow.refresh();
   }
 
   @Override

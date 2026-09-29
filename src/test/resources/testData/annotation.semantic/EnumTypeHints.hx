@@ -10,6 +10,16 @@ enum EnumForExtractorHints<T, Q> {
     ExtractableEnum2(x:T, y:Q);
 }
 
+enum MapKeyEnum {
+    SharedName;
+    KeyOnly;
+}
+
+enum MapValueEnum {
+    SharedName;
+    ValueOnly;
+}
+
 class TestAssignHints {
     public function new() {
         // normal assign hinting
@@ -22,6 +32,14 @@ class TestAssignHints {
         var notFound:EnumForHints = <warning descr="Unresolved symbol">NotFound</warning>;
         // wrong type
         var wrong:EnumForHints = <error descr="Incompatible type: Class<TestAssignHints> should be EnumForHints">TestAssignHints</error>;
+
+        // verify resolve from usage:
+        var mapKeys:Map<MapKeyEnum, Int> = [SharedName => 1, KeyOnly => 2];
+        var mapValues:Map<Int, MapValueEnum> = [1 => SharedName, 2 => ValueOnly];
+        var mapBoth:Map<MapKeyEnum, MapValueEnum> = [SharedName => SharedName, KeyOnly => ValueOnly];
+        var intMapValues:haxe.ds.IntMap<MapValueEnum> = [1 => SharedName, 2 => ValueOnly];
+
+        var mapKeyNotFound:Map<MapKeyEnum, Int> = [<warning descr="Unresolved symbol">NotFound</warning> => 1];
 
         // enum switch extractor hinting
 

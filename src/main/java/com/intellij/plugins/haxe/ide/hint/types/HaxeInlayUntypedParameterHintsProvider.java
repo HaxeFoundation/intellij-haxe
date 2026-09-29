@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.ide.hint.types;
 
 import com.intellij.codeInsight.hints.declarative.*;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -25,10 +24,13 @@ public class HaxeInlayUntypedParameterHintsProvider implements InlayHintsProvide
 
     @Override
     public void collectFromElement(@NotNull PsiElement element, @NotNull InlayTreeSink sink) {
-        if (element instanceof HaxeParameter parameter && parameter.getParent().getParent() instanceof HaxeFunctionLiteral) {
-          if (parameter.getTypeTag() == null && parameter.getVarInit() == null) {
-            handleUntypedParameterHints(parameter, sink);
-          }
+      //Handles both function-literal and method parameters.
+      // methods infer untyped parameters from their usage in the body first, then from
+      // call sites (see HaxeUntypedParameterInference)
+      if (element instanceof HaxeParameter parameter) {
+        if (parameter.getTypeTag() == null && parameter.getVarInit() == null) {
+          handleUntypedParameterHints(parameter, sink);
+        }
       }
     }
 

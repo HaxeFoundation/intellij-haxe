@@ -238,6 +238,18 @@ public interface DapBackend extends Closeable {
   }
 
   /**
+   * Whether a breakpoint's file can belong to this debuggee. Bytecode debug
+   * tables carry relative (sometimes bare) file names, so the debuggee side
+   * matches breakpoints by name/suffix — a same-named file from a SIBLING
+   * project then binds into this debuggee and stops it on lines the user
+   * never marked. A backend that knows the build's source directories
+   * accepts only files under them; the default accepts everything.
+   */
+  default boolean acceptsBreakpointFile(String vfsPath) {
+    return true;
+  }
+
+  /**
    * Whether the server understands the custom
    * {@code custom/setToStringRendering} request (object labels via the
    * object's own toString, toggleable live). The vshaxe server does not —
@@ -252,6 +264,17 @@ public interface DapBackend extends Closeable {
    * expression span for the editor highlight).
    */
   default boolean supportsExpressionStepping() {
+    return false;
+  }
+
+  /**
+   * Whether the debuggee's PROGRAM output rides the debug connection as DAP
+   * output events instead of a process's stdout (the browser targets: the
+   * page's console has no process). The debug process then replays those
+   * events through the session's process handler — an attached SM test
+   * console parses them — rather than printing them past the parser.
+   */
+  default boolean programOutputViaAdapter() {
     return false;
   }
 

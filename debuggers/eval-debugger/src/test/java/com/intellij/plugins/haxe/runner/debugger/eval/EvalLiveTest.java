@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.DapPaths;
 import com.intellij.plugins.haxe.runner.debugger.eval.EvalProtocol.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,10 +24,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Drives the REAL eval VM: launches `haxe --interp` with -D eval-debugger
- * pointed at our listener and exercises the protocol end to end — the VM
- * connects, waits before main, hits a line breakpoint, reports the stack,
- * and runs to a clean exit. Skips when haxe is not on PATH.
+ * Drives the REAL eval VM over the RAW protocol (no adapter): launches
+ * `haxe --interp` with -D eval-debugger pointed at our listener and pins the
+ * wire facts the adapter builds on — the VM answers while suspended before
+ * main, assigns breakpoint ids, and may close the connection before acking a
+ * resume the program runs off (the resume race). The full stop inspection
+ * (stack, scopes, variables) is the DAP layer's pin in
+ * EvalDebugAdapterLiveTest. Skips when haxe is not on PATH.
  *
  * The line constant mirrors the marked line in test-fixtures/EvalMain.hx.
  */
@@ -46,8 +48,8 @@ public class EvalLiveTest {
 
   @BeforeEach
   public void launch() throws IOException {
-    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping live eval test");
-    Path fixtures = fixtureDir();
+    Assumptions.assumeTrue(EvalLiveTestBase.haxeOnPath(), "haxe not on PATH - skipping live eval test");
+    Path fixtures = EvalLiveTestBase.fixtureDir();
     Assumptions.assumeTrue(Files.isRegularFile(fixtures.resolve("EvalMain.hx")), "eval fixture missing - skipping");
 
     listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
@@ -96,13 +98,11 @@ public class EvalLiveTest {
   }
 
   @Test
-  @DisplayName("breakpoint stop stack trace and clean exit")
-  public void breakpointStopStackTraceAndCleanExit() throws Exception {
+  @DisplayName("answers while suspended assigns breakpoint ids and tolerates the resume race")
+  public void answersWhileSuspendedAssignsBreakpointIdsAndToleratesTheResumeRace() throws Exception {
     CountDownLatch stopped = new CountDownLatch(1);
-    int[] stoppedThread = {-1};
     connection.setEventListener((method, params) -> {
       if (EvalProtocol.EVENT_BREAKPOINT_STOP.equals(method)) {
-        stoppedThread[0] = params.path("threadId").asInt(-1);
         stopped.countDown();
       }
     });
@@ -113,34 +113,13 @@ public class EvalLiveTest {
     List<EvalThread> threads = protocol.getThreads();
     assertFalse(threads.isEmpty(), "VM reports at least one thread");
 
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
+    String fixture = EvalLiveTestBase.fixtureDir().resolve("EvalMain.hx").toString();
     List<EvalBreakpoint> ids = protocol.setBreakpoints(fixture, BREAK_LINE);
     assertEquals(1, ids.size(), "one breakpoint registered");
     assertTrue(ids.get(0).id() >= 0, "VM assigned a breakpoint id");
 
     protocol.resume();
     assertTrue(stopped.await(TIMEOUT_MS, TimeUnit.MILLISECONDS), "hit the breakpoint within " + TIMEOUT_MS + "ms");
-
-    List<EvalStackFrame> frames = protocol.stackTrace(stoppedThread[0]);
-    assertFalse(frames.isEmpty(), "stack has frames at the stop");
-    EvalStackFrame top = frames.get(0);
-    assertEquals(BREAK_LINE, top.line(), "stopped on the breakpoint line");
-    assertTrue(top.source() != null && DapPaths.toForwardSlashes(top.source()).endsWith("EvalMain.hx"), "top frame is in the fixture (was " + top.source() + ")");
-
-    // scopes/variables at the stop: the local declared BEFORE the break line
-    // must be visible with its value
-    List<EvalScope> scopes = protocol.getScopes(top.id());
-    assertFalse(scopes.isEmpty(), "stop exposes scopes");
-    boolean sawGreeting = false;
-    for (EvalScope scope : scopes) {
-      for (EvalVar var : protocol.getVariables(scope.id())) {
-        if ("greeting".equals(var.name())) {
-          sawGreeting = true;
-          assertTrue(var.value().contains("hello"), "greeting holds its value (was " + var.value() + ")");
-        }
-      }
-    }
-    assertTrue(sawGreeting, "local 'greeting' visible in some scope");
 
     try {
       protocol.resume();
@@ -157,19 +136,5 @@ public class EvalLiveTest {
       output = haxeOutput.toString();
     }
     assertTrue(output.contains("eval-fixture:hello:7"), "fixture output arrived (was: " + output + ")");
-  }
-
-  private static boolean haxeOnPath() {
-    try {
-      Process probe = new ProcessBuilder("haxe", "--version").redirectErrorStream(true).start();
-      return probe.waitFor(10, TimeUnit.SECONDS) && probe.exitValue() == 0;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  private static Path fixtureDir() {
-    String fromGradle = System.getProperty("eval.fixture.src.dir");
-    return fromGradle != null ? Path.of(fromGradle) : Path.of("test-fixtures").toAbsolutePath();
   }
 }

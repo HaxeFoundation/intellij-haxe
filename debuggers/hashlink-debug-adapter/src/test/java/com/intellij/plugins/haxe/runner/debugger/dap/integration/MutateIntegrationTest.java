@@ -5,14 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,6 +63,14 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     // reading back reflects the writes (idx is 1)
     int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
     assertEquals("1", findVariable(variables(locals), "n").getValue(), "n now holds idx's value");
+
+    // expression RHS on an array element with a COMPUTED index (idx=1, n=1)
+    assertTrue(evaluateRaw(frameId, "arr[idx] = n + 89").isSuccess(), "arr[idx] = n + 89");
+    assertEquals("90", evaluated(frameId, "arr[1]"), "arr[1] holds the computed result");
+
+    // boolean expression into a Bool local (flag starts false)
+    assertTrue(evaluateRaw(frameId, "flag = n < 10").isSuccess(), "flag = n < 10");
+    assertEquals("true", evaluated(frameId, "flag"), "flag took the comparison's result");
 
     request(new DisconnectRequest());
   }
@@ -151,23 +156,4 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     return ((SetVariableResponse)response).getBody().getValue();
   }
 
-  private String continueToExit(int threadId) throws Exception {
-    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue after writes");
-
-    List<String> output = new ArrayList<>();
-
-    while (true) {
-      Event event = client.pollEvent(TIMEOUT);
-      assertNotNull(event, "expected more events before exit");
-      if (event instanceof OutputEvent out) {
-        output.add(out.getBody().getOutput());
-      } else if (event instanceof StoppedEvent stopped) {
-        // any further breakpoint (none expected): keep going
-        request(continueRequest(stopped.getBody().getThreadId()));
-      } else if (event instanceof ExitedEvent) {
-        break;
-      }
-    }
-    return String.join("", output);
-  }
 }

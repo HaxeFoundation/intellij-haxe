@@ -23,7 +23,7 @@ import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 public class HaxeHighlightingLexer extends LayeredLexer {
 
   public HaxeHighlightingLexer(Project project) {
-    super(new HaxeLexer(project));
+    super(HaxeLexer.forHighlighting(project));
     registerLayer(new HaxeMetaHighlighterLexer(project), HaxeTokenTypes.EMBEDDED_META);
   }
 
@@ -33,7 +33,7 @@ public class HaxeHighlightingLexer extends LayeredLexer {
 
     public HaxeMetaHighlighterLexer(Project project) {
       super(new HaxeMetadataLexer());
-      registerLayer(new HaxeLexer(project), HaxeMetadataTokenTypes.CT_META_ARGS, HaxeMetadataTokenTypes.RT_META_ARGS);
+      registerLayer(HaxeLexer.forHighlighting(project), HaxeMetadataTokenTypes.CT_META_ARGS, HaxeMetadataTokenTypes.RT_META_ARGS);
     }
   }
 }

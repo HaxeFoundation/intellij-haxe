@@ -17,19 +17,19 @@ import haxe.Int64;
 
 /**
 	The value-modification path: DAP `setVariable` and `path = expr` in
-	evaluate. Resolves the target slot (via SymbolResolver), evaluates the RHS
-	(via ExpressionEvaluator), and writes it (via ValueWriter) while the debuggee
-	is stopped — to steer execution.
+	evaluate. It resolves the target slot (PathResolver), evaluates the
+	right-hand side (ExpressionEvaluator) and writes it (ValueWriter) while the
+	debuggee is stopped, so the user can steer execution.
 
-	Non-null `writer` gates every write (value modification is opt-in per
-	session). String/object RHS values are materialized/passed through by the
-	call service; primitives go straight to the writer. After a write to a
-	register-passed argument, the arrival-register fixup (`fixupAfterWrite`)
-	patches XMM0 for the first float arg (the only arrival register the debug
-	API exposes) and warns for the rest.
+	Writes happen only once `writer` is set, because value modification is
+	enabled per session. A new string is created through the call service;
+	existing strings and objects are written as pointers, and primitives go
+	straight to the writer. After a write to a register-passed argument,
+	`fixupAfterWrite` patches XMM0 for the first float argument and warns for
+	the others.
 **/
 class VariableMutator {
-	final resolver:SymbolResolver;
+	final resolver:PathResolver;
 	final evaluator:ExpressionEvaluator;
 	final calls:DebuggeeCallService;
 	final valueReader:ValueReader;
@@ -43,10 +43,10 @@ class VariableMutator {
 	public var writer:Null<ValueWriter> = null;
 	// Set by DebugSession: writes the low half of XMM0 (arrival-register fixup).
 	public var xmm0Writer:Null<Float->Void> = null;
-	// Set by DebugSession: surfaces a non-fatal warning (as a console output event).
+	// Set by DebugSession: reports a non-fatal warning as a console output event.
 	public var warnSink:Null<String->Void> = null;
 
-	public function new(resolver:SymbolResolver, evaluator:ExpressionEvaluator, calls:DebuggeeCallService,
+	public function new(resolver:PathResolver, evaluator:ExpressionEvaluator, calls:DebuggeeCallService,
 			valueReader:ValueReader, memory:MemoryReader, module:ModuleDebugInfo, jit:JitInfo,
 			frameLayout:FrameLayout, stops:StopState) {
 		this.resolver = resolver;
@@ -62,12 +62,12 @@ class VariableMutator {
 
 	/**
 		Sets a named child of a variablesReference (DAP `setVariable`) to any
-		evaluate expression (literal, another variable, arithmetic, a call), and
+		evaluate expression (a literal, another variable, arithmetic, a call) and
 		returns the child's new decoded value. Throws DebugError on any failure.
 	**/
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
 		var target = resolver.targetInReference(reference, name);
-		var v = evaluator.evalExpr(resolver.writeFrame, ExprParser.parse(StringTools.trim(valueExpr)));
+		var v = evaluator.valueOf(resolver.writeFrame, ExprParser.parse(StringTools.trim(valueExpr)));
 
 		writeValue(target, v);
 		fixupAfterWrite(target);
@@ -77,8 +77,8 @@ class VariableMutator {
 	}
 
 	/**
-		`target = expr` from evaluate: the target is a variable path, an array
-		element (any Int key expression), or a map bracket (sugar for set).
+		`target = expr` from evaluate. The target is a variable path, an array
+		element (any Int index expression), or a map bracket (sugar for set).
 	**/
 	public function assignExpr(frameId:Int, lhs:Expr, rhs:Expr):VariableInfo {
 		switch (lhs) {
@@ -91,15 +91,15 @@ class VariableMutator {
 				var display = recvPath.display() + "[...]";
 				if (evaluator.mapTypeOfTarget(target) != null) {
 					// map bracket: sugar for set(key, value), read back via get
-					var keyVal = evaluator.evalExpr(frameId, key);
-					var rhsVal = evaluator.evalExpr(frameId, rhs);
+					var keyVal = evaluator.valueOf(frameId, key);
+					var rhsVal = evaluator.valueOf(frameId, rhs);
 					calls.callRaw(frameId, recvPath.plus("set"), [keyVal, rhsVal]); // set returns Void
 					var read = calls.callRaw(frameId, recvPath.plus("get"), [keyVal]);
 					return evaluator.decodeReturn(display, read.raw, read.type);
 				}
 				// array element (constant or computed index): a writable slot
-				var element = resolver.childTarget(target, Std.string(evaluator.intKey(frameId, key)));
-				writeValue(element, evaluator.evalExpr(frameId, rhs));
+				var element = resolver.childTarget(target, Std.string(evaluator.arrayIndex(frameId, key)));
+				writeValue(element, evaluator.valueOf(frameId, rhs));
 				var decoded = valueReader.read(element.address, element.type);
 				return {name: element.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 			default:
@@ -109,14 +109,14 @@ class VariableMutator {
 			throw new DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
 		}
 		var target = resolver.targetOfPath(frameId, path);
-		writeValue(target, evaluator.evalExpr(frameId, rhs));
+		writeValue(target, evaluator.valueOf(frameId, rhs));
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}
 
-	// Writes an ALREADY-EVALUATED expression value into a target slot, mapping
-	// each value kind onto the appropriate ValueWriter primitive.
+	// Writes an ALREADY evaluated value into a target slot through the
+	// ValueWriter call that matches the value's kind.
 	function writeValue(target:WriteTarget, v:EvalValue):Void {
 		if (writer == null) {
 			throw new DebugError("Value modification is not available in this session");
@@ -145,14 +145,16 @@ class VariableMutator {
 		return t == null ? HDyn : t;
 	}
 
-	// An argument's early uses may be compiled against the CPU register it
-	// ARRIVED in rather than the (also updated) stack slot — verified live:
-	// writing only the slot left a traced Float parameter unchanged. The first
-	// float argument arrives in XMM0 on both conventions (win64 XMM indexes
-	// are positional, so there it must also be argument 0) and XMM0 is the one
-	// arrival register hl_debug_write_register exposes: patch it. Every other
-	// register-passed argument cannot be fixed up — surface a console warning
-	// so a "didn't take" write on the current line is explainable.
+	// A register-passed argument ARRIVES in a CPU register, its arrival
+	// register, and the prologue copies it to its stack slot. The code for the
+	// argument's early uses may still read the arrival register instead of the
+	// updated slot; writing only the slot leaves a traced Float parameter
+	// unchanged. The first float argument arrives in XMM0 on both conventions
+	// (win64 assigns XMM registers by position, so there it must also be
+	// argument 0), and XMM0 is the one arrival register hl_debug_write_register
+	// exposes, so it is patched too. No other register-passed argument can be
+	// fixed up; a console warning explains a write that does not take effect on
+	// the current line.
 	function fixupAfterWrite(target:WriteTarget):Void {
 		// the arrival-register fixup only applies to the stopped thread's top frame
 		var stoppedFrames = stops.framesFor(stops.stoppedThreadId);
@@ -184,7 +186,7 @@ class VariableMutator {
 			xmm0Writer(memory.readF64(target.address));
 			return;
 		}
-		if (registerPassed(argIndex, offsets, argCount) && warnSink != null) {
+		if (isRegisterPassed(argIndex, offsets, argCount) && warnSink != null) {
 			warnSink('[debugger] note: "${target.name}" is a register-passed argument; code on the '
 				+ 'current line may still use the value it arrived with. The new value applies to later uses; '
 				+ 'to steer this line, set the value in the caller before the call.' + String.fromCharCode(10));
@@ -195,9 +197,10 @@ class VariableMutator {
 		return t.match(HF32) || t.match(HF64);
 	}
 
-	// Whether argument `argIndex` arrives in a CPU register: win64 passes the
-	// first 4 positionally; SysV the first 6 integer-class / 8 float-class.
-	function registerPassed(argIndex:Int, offsets:Array<RegisterSlot>, argCount:Int):Bool {
+	// Whether argument `argIndex` arrives in a CPU register. win64 passes the
+	// first 4 arguments by position; SysV passes the first 6 integer and the
+	// first 8 float arguments.
+	function isRegisterPassed(argIndex:Int, offsets:Array<RegisterSlot>, argCount:Int):Bool {
 		if (jit.winCall) {
 			return argIndex < 4;
 		}

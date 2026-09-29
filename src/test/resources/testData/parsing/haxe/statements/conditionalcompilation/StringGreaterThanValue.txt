@@ -21,15 +21,19 @@ Haxe File
         PsiComment(PPEXPRESSION)(' ')
         PsiComment(PPEXPRESSION)('1')
         PsiComment(PPEXPRESSION)(')')
-        PsiComment(PPBODY)('\n ')
-        PsiComment(PPBODY)('function')
-        PsiComment(PPBODY)(' ')
-        PsiComment(PPBODY)('bar')
-        PsiComment(PPBODY)('(')
-        PsiComment(PPBODY)(')')
-        PsiComment(PPBODY)(' ')
-        PsiComment(PPBODY)('{')
-        PsiComment(PPBODY)('}')
-        PsiComment(PPBODY)('\n ')
+        PsiComment(PPBODY)
+          INACTIVE_MEMBER_LIST
+            METHOD_DECLARATION
+              HaxePsiToken:function('function')
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('bar')
+              HaxePsiToken:(('(')
+              PARAMETER_LIST
+                <empty list>
+              HaxePsiToken:)(')')
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                HaxePsiToken:}('}')
         PsiComment(#end)('#end')
         HaxePsiToken:}('}')

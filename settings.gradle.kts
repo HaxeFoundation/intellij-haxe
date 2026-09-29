@@ -7,14 +7,28 @@ plugins {
 include(":jps-plugin")
 include(":common")
 
-// the debugger family lives under debuggers/ (the :debuggers node is an
-// empty grouping project with no build logic of its own)
+//dap protocol use in most debugger integrations
 include(":debuggers:dap-protocol")
-include(":debuggers:hashlink-debug-adapter")
-include(":debuggers:vshaxe-hxcpp-debugger-adapter")
-include(":debuggers:intellij-hxcpp-debugger")
-include(":debuggers:hxcpp-debugger-protocol-legacy")
+
+// debuggers
 include(":debuggers:eval-debugger")
 include(":debuggers:browser-debugger")
+include(":debuggers:hashlink-debug-adapter")
+include(":debuggers:intellij-hxcpp-debugger")
+include(":debuggers:vshaxe-hxcpp-debugger-adapter")
+include(":debuggers:hxcpp-debugger-protocol-legacy")
+
+// Test matrix only used to verify that all debuggers work as expected across different haxe version and runtimes.
 include(":debuggers:compat-matrix")
+
+// profilers: neutral snapshot model + per-format translators (no IDE dependencies)
+include(":profilers:core")
+
+// haxe JSON-RPC display protocol (allow the IDE to communicate with Haxe Compiler)
+include(":display-protocol")
+
+// Custom tool for evaluating Lime/openFL projects including HXP
+include(":tools:LimeProjectParser")
+
+
 

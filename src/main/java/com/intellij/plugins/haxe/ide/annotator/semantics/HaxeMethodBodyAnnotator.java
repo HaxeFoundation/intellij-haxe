@@ -25,7 +25,7 @@ public class HaxeMethodBodyAnnotator implements Annotator {
    */
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if(!element.isValid()) return;
+    if (AnnotatorUtil.shouldSkip(element)) return;
 
     if (element instanceof HaxeMethod haxeMethod) {
       if (HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK) {

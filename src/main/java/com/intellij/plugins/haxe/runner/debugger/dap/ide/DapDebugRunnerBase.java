@@ -66,9 +66,7 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
     ColoredProcessHandler debuggeeHandler;
     try {
       GeneralCommandLine commandLine = createCommandLine(configuration, backend);
-      debuggeeHandler = commandLine != null
-                        ? new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString())
-                        : null;
+      debuggeeHandler = commandLine != null ? new MostlySilentColoredProcessHandler(commandLine) : null;
     } catch (ExecutionException | RuntimeException e) {
       closeQuietly(backend);
       throw e;
