@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide.inspections;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  * Created by Usievaład Kimajeŭ on 7.06.2016.
  */
 @DisplayName("Inspection: deprecated")
-public class HaxeDeprecatedInspectionTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeDeprecatedInspectionTest extends HaxeLightFixtureTestCase {
   @Test
   @DisplayName("method")
   public void testMethod() {

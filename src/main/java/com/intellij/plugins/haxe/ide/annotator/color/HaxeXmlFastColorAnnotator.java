@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.annotator.color;
 
+import com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -10,7 +11,6 @@ import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -21,7 +21,7 @@ public class HaxeXmlFastColorAnnotator implements Annotator, DumbAware {
 
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-        if (element instanceof PsiWhiteSpace) return;
+        if (AnnotatorUtil.shouldSkipColorAnnotation(element)) return;
 
         if (isEndOfTag(element)) {
             colorize(holder, element, HaxeSyntaxHighlighterColors.INLINE_XML);

@@ -45,6 +45,12 @@ public class ClassDeclarationTest extends DeclarationTestBase {
   }
 
   @Test
+  @DisplayName("overload modifier order")
+  public void testOverloadModifierOrder() throws Throwable {
+    doTest(true);
+  }
+
+  @Test
   @DisplayName("implements")
   public void testImplements() throws Throwable {
     doTest(true);

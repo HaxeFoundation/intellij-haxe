@@ -33,24 +33,44 @@ final class HashLinkSourceResolver {
   private HashLinkSourceResolver() {
   }
 
-  /** Resolves to a position, or null when the file cannot be found. 1-based line. */
-  static @Nullable XSourcePosition resolve(Project project, @Nullable String path, StackFrame frame) {
+  /**
+   * Resolves to a position, or null when the file cannot be found. 1-based
+   * line. {@code sourceDirectories} — the build's classpath roots — break
+   * name ties in their favor: the debug tables' relative names are ambiguous
+   * whenever a sibling project in the same IDE project has a same-named file.
+   */
+  static @Nullable XSourcePosition resolve(Project project,
+                                           @Nullable String path,
+                                           StackFrame frame,
+                                           List<String> sourceDirectories) {
     if (path == null || path.isBlank()) {
       return null;
     }
     int line = frame.getLine();
     String normalized = FileUtil.toSystemIndependentName(path);
     return ReadAction.nonBlocking(() -> {
-      VirtualFile file = findFile(project, normalized, frame);
+      VirtualFile file = findFile(project, normalized, frame, sourceDirectories);
       return file != null ? XDebuggerUtil.getInstance().createPosition(file, Math.max(0, line - 1)) : null;
     }).executeSynchronously();
   }
 
-  private static @Nullable VirtualFile findFile(Project project, String normalized, StackFrame frame) {
+  private static @Nullable VirtualFile findFile(Project project,
+                                                String normalized,
+                                                StackFrame frame,
+                                                List<String> sourceDirectories) {
     if (isAbsolute(normalized)) {
       VirtualFile absolute = LocalFileSystem.getInstance().findFileByPath(normalized);
       if (absolute != null) {
         return absolute;
+      }
+    }
+
+    // the fastest and most precise answer: the relative name resolved
+    // directly against the build's own classpath roots
+    for (String directory : sourceDirectories) {
+      VirtualFile underRoot = LocalFileSystem.getInstance().findFileByPath(directory + "/" + normalized);
+      if (underRoot != null) {
+        return underRoot;
       }
     }
 

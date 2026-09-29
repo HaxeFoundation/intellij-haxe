@@ -23,7 +23,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 
 import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiFile;
@@ -40,7 +39,7 @@ import java.util.Map;
  */
 @CustomLog
 public class HaxeIndexUtil {
-  public static int BASE_INDEX_VERSION = 135;
+  public static int BASE_INDEX_VERSION = 140;
 
   static {
       log.setLevel(LogLevel.WARNING);

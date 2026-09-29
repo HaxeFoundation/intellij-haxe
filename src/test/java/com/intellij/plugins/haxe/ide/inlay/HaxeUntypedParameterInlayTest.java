@@ -44,5 +44,66 @@ public class HaxeUntypedParameterInlayTest extends HaxeInlayTestBase {
     doTest(hintsProvider);
   }
 
+  // The following fixtures encode the compiler's monomorph-binding order:
+  // body usage first, call-site argument types only for what the body leaves open.
 
+  @Test
+  @DisplayName("call site binds unused parameter")
+  public void testCallSiteBindsUnusedParameter() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("body binds before call site")
+  public void testBodyBindsBeforeCallSite() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("self recursive only stays unknown")
+  public void testSelfRecursiveOnlyStaysUnknown() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("generic argument not informative")
+  public void testGenericArgumentNotInformative() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("chained call site binding")
+  public void testChainedCallSiteBinding() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("lambda argument typed by bound type parameter")
+  public void testLambdaArgumentTypedByBoundTypeParameter() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("deep chain exhausts in flight budget")
+  public void testDeepChainExhaustsInFlightBudget() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("call site answer translated to own type parameter")
+  public void testCallSiteAnswerTranslatedToOwnTypeParameter() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("hole evaluation recursion same argument twice")
+  public void testHoleEvaluationRecursionSameArgumentTwice() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  @DisplayName("generic parameter binds hole from other argument")
+  public void testGenericParameterBindsHoleFromOtherArgument() throws Exception {
+    doTest(hintsProvider);
+  }
 }

@@ -21,7 +21,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 
 import java.io.File;
@@ -29,10 +28,7 @@ import java.io.File;
 public class HaxeHelpUtil {
 
   public static String getHaxePath(Module myModule) {
-    String executable = "haxe";
-    if(SystemInfo.isWindows) {
-      executable += ".exe";
-    }
+    String executable = HaxeSdkUtilBase.getExecutableName("haxe");
 
     if (myModule != null) {
       Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();

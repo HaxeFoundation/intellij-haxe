@@ -45,9 +45,11 @@ public class HaxeElementGenerator {
 
   public static PsiElement createExpressionFromText(Project myProject, String text) {
     PsiElement fromText = createStatementFromText(myProject, "var test = " + text + ";");
-    if (fromText instanceof HaxeFieldDeclaration) {
-      HaxeFieldDeclaration declarationPart = ((HaxeFieldDeclaration)fromText);
-      HaxeVarInit varInit = declarationPart.getVarInit();
+    if (fromText instanceof HaxeLocalVarDeclarationList declarationList) {
+      fromText = declarationList.getLocalVarDeclarationList().getFirst();
+    }
+    if (fromText instanceof HaxePsiField field) {
+      HaxeVarInit varInit = field.getVarInit();
       return varInit != null ? varInit.getExpression() : null;
     }
     return null;
@@ -190,14 +192,6 @@ public class HaxeElementGenerator {
     final HaxeFile psiFile = (HaxeFile)((PsiFileFactoryImpl)factory).trySetupPsiForFile(virtualFile, HaxeLanguage.INSTANCE, false, true);
     assert psiFile != null;
     return psiFile;
-  }
-
-  public static PsiElement createDummyComment(Project myProject, int length) {
-    StringBuilder  builder = new StringBuilder();
-    builder.append("/*");
-    builder.append("*".repeat(Math.max(0, length - 4)));
-    builder.append("*/");
-    return HaxeElementGenerator.createDummyFile(myProject, builder.toString()).getChildren()[0];
   }
 
   public static PsiFile createExpressionCodeFragment(Project myProject, String text, PsiElement context, boolean isPhysical) {

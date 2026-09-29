@@ -1,5 +1,4 @@
 class Implement2 implements IFoo<Bar> {
-
     public function getFoo():Bar {
     }
 

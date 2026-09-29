@@ -10,7 +10,7 @@ import java.nio.file.Path;
 /**
  * Spawns a vscode debug adapter bundle on the user's node in DAP-over-TCP
  * server mode and hands back the process + port. Wire behaviour pinned by
- * FirefoxAdapterLiveProbe:
+ * FirefoxAdapterLiveTest:
  *
  * <ul>
  *   <li>{@code --server=<port>} needs a 4-5 digit port (the adapter's own

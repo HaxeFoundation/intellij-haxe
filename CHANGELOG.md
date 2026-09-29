@@ -1,4 +1,49 @@
-# Changelog
+## 2.0.0
+**IMPORTANT**
+
+This version changes how projects are configured and will not work with 1.x configurations.
+However, it allows for a one-way migration (make sure to make a backup of your project before migrating).
+
+### Project setup
+* Changed: Project and module configuration now lives in a Haxe tool window instead of Project Structure.
+* Added: New-project templates.
+* Added: Language level per module.
+* Added: Support for HXP build files (Beta) and better NME support.
+* Added: Custom targets and target-specific module variants (`Module.<target>.hx`).
+* Added: Tools and custom actions, including detected formatter and checkstyle tools.
+* Added: Trusted-project support: project code (macros, scripts, compilation server) never runs in safe mode.
+### Haxelib
+* Added: Haxelib Explorer for browsing and installing libraries.
+* Added: Support for git version pins (`-lib name:git:url#ref`).
+### Compilation server (Beta)
+* Added: Compiler diagnostics and quick fixes in the editor.
+* Added: Completion, Find Usages and Go to Declaration from the compilation server, including macro-generated members.
+* Added: Preview of macro-generated sources.
+### Testing (Beta)
+* Added: Test runner for utest, munit, buddy and tink_unittest, with run and debug support.
+### Debugging
+* Added: New Flash and AIR debugging.
+* Fixed: Misc HashLink and hxcpp debugger issues.
+### Profiler (experimental)
+* Added: Profiler for HashLink, hxcpp, Flash/AIR and JS.
+### Editor
+* Changed: Formatter reworked toward haxe-formatter output parity, with hxformat.json support.
+* Added: Improved doc comment support.
+* Added: Inactive conditional-compilation branches are parsed, highlighted and support completion.
+* Changed: Semantic checks are now regular inspections with configurable severity.
+* Added: Quick fixes to migrate between pre-4.0 and 4.0 syntax.
+* Added: Class names and file paths in strings are navigable and completable.
+* Added: Lambda completion where a function type is expected.
+* Added: In-place rename, including properties together with their accessors.
+* Added: Improved name suggestions.
+### Fixes and performance
+* Fixed: Misc resolve issues (map literals, type parameters, index lookups).
+* Fixed: Keyword completion no longer appears inside comments.
+* Changed: Performance improvements in resolve and indexing.
+### Misc
+* Changed: IntelliJ 2026.1 support dropped (2026.2+ only).
+
+
 ## 1.9.0
 * Added: New (experimental) debugger support for javascript, Eval, hashlink and hxcpp. 
 

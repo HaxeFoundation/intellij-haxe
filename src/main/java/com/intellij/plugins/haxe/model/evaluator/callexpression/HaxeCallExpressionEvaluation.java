@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.UnaryOperator;
 
 public class HaxeCallExpressionEvaluation {
 
@@ -29,8 +30,15 @@ public class HaxeCallExpressionEvaluation {
     @Getter
     @Setter
     private boolean valid = true;
+    /**
+     * A recursion guard fired somewhere beneath this evaluation's computation.
+     * The cache still stores such evaluations (their hits terminate deep
+     * resolve recursion), but consumers get taint-marked so they never judge
+     * their own results "complete" from this truncated data.
+     */
     @Getter
-    private boolean failedBecauseOfRecursionGuard = false;
+    @Setter
+    private boolean computedWithGuardFired = false;
 
 
     @Getter
@@ -78,6 +86,17 @@ public class HaxeCallExpressionEvaluation {
     }
 
 
+
+    /**
+     * Re-resolves every recorded parameter type through the caller-supplied
+     * resolve step. Mappings are recorded while the align+bind loop is still
+     * running, so an entry written BEFORE a later argument bound the call's
+     * type parameters (a hole, or any early argument) still carries the
+     * unresolved type parameter — the final bindings improve it.
+     */
+    public void reResolveParameterTypes(@NotNull UnaryOperator<SpecificTypeReference> resolve) {
+        parameterIndexToType.replaceAll((index, holder) -> resolve.apply(holder.getType()).createHolder());
+    }
 
     public @Nullable ResultHolder getParameterType(int index) {
         return parameterIndexToType.getOrDefault(index, null);
@@ -149,10 +168,6 @@ public class HaxeCallExpressionEvaluation {
     }
 
     public HaxeCallExpressionEvaluation validationFailed() {
-        return validationFailed(false);
-    }
-    public HaxeCallExpressionEvaluation validationFailed( boolean recursion) {
-        failedBecauseOfRecursionGuard = recursion;
         valid = false;
         return this;
     }

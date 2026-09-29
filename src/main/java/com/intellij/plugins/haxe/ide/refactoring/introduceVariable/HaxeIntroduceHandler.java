@@ -41,7 +41,9 @@ import com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeNameKind;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
+import com.intellij.plugins.haxe.util.HaxeSuggestedNames;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -307,7 +309,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       operation.setInitializer(element);
 
       operation.setOccurrences(getOccurrences(element, element));
-      operation.setSuggestedNames(getSuggestedNames(element));
+      operation.setSuggestion(suggestNames(element));
       if (operation.getOccurrences().isEmpty()) {
         operation.setReplaceAll(false);
       }
@@ -379,8 +381,8 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     return !isFunctionMethodClass;
   }
 
-  protected Collection<String> getSuggestedNames(final PsiElement expression) {
-    return HaxeNameSuggesterUtil.getSuggestedNames(expression, false);
+  protected HaxeSuggestedNames suggestNames(final PsiElement expression) {
+    return HaxeNameSuggesterUtil.suggest(expression, null, HaxeNameKind.VARIABLE, expression, Set.of());
   }
 
   protected void performIntroduceWithDialog(HaxeIntroduceOperation operation) {
@@ -399,11 +401,11 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (declaration == null) {
       return;
     }
+    operation.recordChosenName(operation.getName());
 
-      final Editor editor = operation.getEditor();
-      editor.getCaretModel().moveToOffset(declaration.getTextRange().getEndOffset());
-      editor.getSelectionModel().removeSelection();
-
+    final Editor editor = operation.getEditor();
+    editor.getCaretModel().moveToOffset(declaration.getTextRange().getEndOffset());
+    editor.getSelectionModel().removeSelection();
   }
 
   protected void performInplaceIntroduce(HaxeIntroduceOperation operation) {
@@ -618,6 +620,8 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   public static class HaxeInplaceVariableIntroducer extends InplaceVariableIntroducer<PsiElement> {
     private final HaxeComponentName myTarget;
     private  Map<HaxeComponentName, String> additional;
+    /** Records the chosen name; null when the introducer runs without an operation. */
+    private final @Nullable HaxeIntroduceOperation myOperation;
 
     public HaxeInplaceVariableIntroducer(HaxeComponentName target,
                                          HaxeIntroduceOperation operation,
@@ -625,6 +629,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       super(target, operation.getEditor(), operation.getProject(), title,
             occurrences.toArray(new PsiElement[0]), null);
       myTarget = target;
+      myOperation = operation;
     }
     public HaxeInplaceVariableIntroducer(HaxeComponentName target,
                                          Editor editor,
@@ -632,6 +637,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       super(target, editor, editor.getProject(), title,
             occurrences.toArray(new PsiElement[0]), null);
       myTarget = target;
+      myOperation = null;
     }
     public HaxeInplaceVariableIntroducer(HaxeComponentName target,
                                          Editor editor,
@@ -640,6 +646,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
             occurrences.toArray(new PsiElement[0]), null);
       this.additional = additional;
       myTarget = target;
+      myOperation = null;
     }
 
     @Override
@@ -654,6 +661,12 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     @Override
     protected PsiElement checkLocalScope() {
       return myTarget.getContainingFile();
+    }
+
+    @Override
+    protected void moveOffsetAfter(boolean success) {
+      super.moveOffsetAfter(success);
+      if (success && myOperation != null && myTarget.isValid()) myOperation.recordChosenName(myTarget.getName());
     }
   }
 

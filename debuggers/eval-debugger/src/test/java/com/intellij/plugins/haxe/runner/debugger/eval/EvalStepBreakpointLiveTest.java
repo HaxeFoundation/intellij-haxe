@@ -3,14 +3,8 @@ package com.intellij.plugins.haxe.runner.debugger.eval;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -88,37 +82,6 @@ public class EvalStepBreakpointLiveTest extends EvalLiveTestBase {
 
   /** Sets the given breakpoints, runs to the first stop, returns the thread id. */
   private int runToFirstBreakpoint(int... lines) throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixtureDir().resolve("EvalStepBp.hx").toString());
-    bpArgs.setSource(source);
-    List<SourceBreakpoint> breakpoints = new ArrayList<>();
-    for (int line : lines) {
-      SourceBreakpoint breakpoint = new SourceBreakpoint();
-      breakpoint.setLine(line);
-      breakpoints.add(breakpoint);
-    }
-    bpArgs.setBreakpoints(breakpoints);
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent stopped = awaitStopped();
-    assertEquals("breakpoint", stopped.getBody().getReason(), "first stop is the breakpoint");
-    return stopped.getBody().getThreadId();
-  }
-
-  private StackFrame topFrame(int threadId) throws Exception {
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackTraceResponse response = (StackTraceResponse)request(stackTrace);
-    assertTrue(response.isSuccess(), "stackTrace");
-    return response.getBody().getStackFrames().get(0);
+    return runToBreakpoint("EvalStepBp.hx", lines).getBody().getThreadId();
   }
 }

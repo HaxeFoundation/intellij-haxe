@@ -6,24 +6,24 @@ import haxe.Int64;
 import haxe.io.Bytes;
 
 /**
-	A machine-code trampoline that calls a function in the debuggee and traps
-	(INT3) on return. Selected by CPU architecture — `X64CallEmitter` emits
-	x86-64, `X86CallEmitter` emits 32-bit cdecl — so the rest of the
-	adapter drives eval-calls without knowing the bitness.
+	Builds the machine code for an eval-call, which runs a debuggee function
+	on behalf of an evaluate expression. The code is a trampoline: it calls the
+	function and then traps with an INT3. `X64CallEmitter` emits x86-64 code
+	and `X86CallEmitter` 32-bit cdecl code, so the rest of the adapter runs
+	eval-calls without knowing the bitness.
 
-	The trampoline is written OVER the code at the stopped thread's instruction
-	pointer (guaranteed executable); the caller saves/restores the original
-	bytes and the Eip/Esp/Rax registers.
+	The trampoline is written OVER the code at the stopped thread's
+	instruction pointer, which is guaranteed to be executable. The caller
+	saves and restores the original bytes and the Eip/Esp/Rax registers.
 **/
 interface CallTrampoline {
-	function maxArgs():Int;
-
 	/**
-		Trampoline bytes calling `funcAddr` with `args` (already lowered to raw
-		register/stack values). `floatBits` is the return's float width: 0 for an
-		int/pointer return (delivered in RAX/EAX), 32 or 64 for a float return.
-		A 64-bit float return's bits are delivered through RAX (x86-64) or a
-		caller-known scratch slot (x86 — see X86CallEmitter).
+		The trampoline bytes that call `funcAddr` with `args`. `floatBits` is the
+		width of a float return: 0 for an int or pointer return (delivered in
+		RAX/EAX), 32 or 64 for a float. On x86-64 a float result is copied into
+		RAX; on x86 it is stored in a scratch slot the caller knows (see
+		X86CallEmitter). Throws when the arguments exceed what the calling
+		convention's register or stack path carries.
 	**/
 	function build(funcAddr:Int64, args:Array<CallArg>, floatBits:Int):Bytes;
 }

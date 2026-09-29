@@ -17,6 +17,7 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.patterns.*;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 
@@ -81,6 +82,11 @@ public class HaxeCommonCompletionPattern {
     elementPattern("inReificationOrMacro")
       .and(psiElement().withElementType(HaxeTokenTypes.MACRO_ID))
       .andNot(StandardPatterns.instanceOf(HaxeStringLiteralExpression.class));
+
+  public static final PsiElementPattern.Capture<PsiElement> inComment =
+    elementPattern("inComment")
+      .andOr(psiElement().withElementType(HaxeTokenTypeSets.ONLY_COMMENTS),
+             psiElement().inside(psiElement().withElementType(HaxeTokenTypeSets.DOC_COMMENT)));
 
   /**
    * Create a new capture rule that requires the matched token to be a

@@ -84,7 +84,8 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     // no stop and no downgrade within a generous window: the program runs
     // freely (main keeps spinning) with the step pending
     Event event = client.pollEvent(3000);
-    assertTrue(event == null || !(event instanceof StoppedEvent) && !(event instanceof ContinuedEvent), "no stop/continued should arrive while the step is pending (got "
+    boolean runStateChanged = event instanceof StoppedEvent || event instanceof ContinuedEvent;
+    assertTrue(!runStateChanged, "no stop/continued should arrive while the step is pending (got "
                + (event == null ? "nothing" : event.getEvent()) + ")");
 
     // the adapter must still be fully responsive (not wedged on a pending event)

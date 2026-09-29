@@ -27,13 +27,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.*;
 import static com.intellij.plugins.haxe.ide.quickfix.HaxeIntroduceTypeUtil.countGenerics;
 import static com.intellij.plugins.haxe.ide.quickfix.HaxeIntroduceTypeUtil.requireImport;
 import static com.intellij.psi.SmartPointerManager.createPointer;
 
 public class HaxeIntroduceTypeInModuleQuickFix implements LocalQuickFix {
-
-    private final static List<String> TYPE_TEMPLATE_NAMES = List.of("HaxeClass", "HaxeInterface", "HaxeEnum", "HaxeAbstract");
 
     protected final @NotNull SmartPsiElementPointer<HaxeIdentifier> myPsiTargetPointer;
 
@@ -57,8 +56,11 @@ public class HaxeIntroduceTypeInModuleQuickFix implements LocalQuickFix {
             HaxeCreateTypeDialogBuilder builder = HaxeCreateTypeDialogBuilder.createDialog(module, sourceRoot);
 
             builder.setTitle(HaxeBundle.message("action.create.new.type"));
-            List<FileTemplate> templates = HaxeFileTemplateUtil.getApplicableTemplates(project);
-            List<FileTemplate> typeTemplates = templates.stream().filter(fileTemplate -> TYPE_TEMPLATE_NAMES.contains(fileTemplate.getName())).toList();
+
+            List<FileTemplate> typeTemplates = HaxeFileTemplateUtil.getApplicableTemplates(project).stream()
+              .filter(fileTemplate -> TYPE_TEMPLATE_NAMES.contains(fileTemplate.getName()))
+              .toList();
+
             for (FileTemplate fileTemplate : typeTemplates) {
                 final String templateName = fileTemplate.getName();
                 final String shortName = HaxeFileTemplateUtil.getTemplateShortName(templateName);
@@ -68,7 +70,7 @@ public class HaxeIntroduceTypeInModuleQuickFix implements LocalQuickFix {
 
             builder.setDefaultText(createDefaultModuleQname());
             builder.setGenericsCount(countGenerics(myPsiTargetPointer.getElement()));
-            builder.show("Unable to create haxe type", "HaxeClass", this::updateElement);
+            builder.show("Unable to create haxe type", CLASS_TEMPLATE, this::updateElement);
         });
     }
 

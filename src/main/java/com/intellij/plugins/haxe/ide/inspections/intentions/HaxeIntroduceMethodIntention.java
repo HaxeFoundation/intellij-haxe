@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeNameKind;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -140,7 +141,7 @@ public class HaxeIntroduceMethodIntention
         String paramName = "p" + i;
         String typeTag = "";
         if (!type.isUnknown()) {
-            List<String> names = HaxeNameSuggesterUtil.getSuggestedNames(expression, false, false, used);
+            List<String> names = HaxeNameSuggesterUtil.suggest(expression, null, HaxeNameKind.VARIABLE, null, used).names();
             if (!names.isEmpty()) {
               String name = names.get(0);
               used.add(name);

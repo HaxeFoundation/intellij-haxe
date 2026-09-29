@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.*;
 import static com.intellij.plugins.haxe.util.HaxeElementGenerator.*;
 
 @CustomLog
@@ -158,7 +159,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
     HaxeClass haxeInterface = null;
     try {
       HaxeFile newFile =
-        (HaxeFile)HaxeFileTemplateUtil.createType(interfaceName, "", packageName, targetDir, "HaxeInterface", ExtractInterfaceHandler.class.getClassLoader());
+        (HaxeFile)HaxeFileTemplateUtil.createType(interfaceName, "", packageName, targetDir, INTERFACE_TEMPLATE, ExtractInterfaceHandler.class.getClassLoader());
       HaxeClassModel model = newFile.getModel().getClassModel(interfaceName);
       haxeInterface = model.getPsi();
 

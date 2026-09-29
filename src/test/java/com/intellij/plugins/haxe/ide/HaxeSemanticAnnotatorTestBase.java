@@ -19,28 +19,19 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.InspectionToolProvider;
+import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.codeInspection.ex.InspectionProfileImpl;
-import com.intellij.codeInspection.ex.InspectionToolWrapper;
-import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
-import com.intellij.profile.codeInspection.InspectionProfileManager;
+import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 
-public abstract class HaxeSemanticAnnotatorTestBase extends HaxeCodeInsightFixtureTestCase {
+public abstract class HaxeSemanticAnnotatorTestBase extends HaxeToolkitLightFixtureTestCase {
 
 
   @Override
@@ -50,38 +41,35 @@ public abstract class HaxeSemanticAnnotatorTestBase extends HaxeCodeInsightFixtu
                       @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
                       String... additionalFiles)
     throws Exception {
+    doTest(checkWarnings, checkInfos, checkWeakWarnings, unsetInspections, new InspectionProfileEntry[0], additionalFiles);
+  }
+
+  /**
+   * {@code extraTools} are pre-configured inspection INSTANCES (e.g. with an
+   * option flipped); list their classes in {@code unsetInspections} so the
+   * default instance does not register alongside.
+   */
+  private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
+                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
+                      InspectionProfileEntry[] extraTools,
+                      String... additionalFiles)
+    throws Exception {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     myFixture.enableInspections(getAnnotatorBasedInspection());
-    registerInspectionsForTesting( new HaxeSemanticAnnotatorInspections.Registrar(), myFixture.getProject(), unsetInspections);
+    myFixture.enableInspections(HaxeInspectionTestTools.semanticInspections(unsetInspections));
+    if (extraTools.length > 0) {
+      myFixture.enableInspections(extraTools);
+    }
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
 
-  public void registerInspectionsForTesting(InspectionToolProvider provider, Project project,
-                                            @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections) {
-    InspectionProfileManager mgr = InspectionProfileManager.getInstance(project);
-    InspectionProfileImpl profile = mgr.getCurrentProfile();
-
-    try {
-      Class<? extends LocalInspectionTool>[] classes = provider.getInspectionClasses();
-      for (Class<? extends LocalInspectionTool> c : classes) {
-        if (null != unsetInspections && unsetInspections.contains(c)) continue;
-
-        Constructor<? extends LocalInspectionTool> constructor = c.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        InspectionToolWrapper<?, ?> wrapper = new LocalInspectionToolWrapper(constructor.newInstance());
-
-        Map<String, List<String>> dependencies = new HashMap<>();
-        profile.addTool(project, wrapper, dependencies);
-        profile.enableTool(wrapper.getShortName(), project);
-      }
-    }
-    catch (Exception ex) {
-      assertNotNull(ex.toString());
-    }
+  protected void doTestSkippingInspections(Set<Class<? extends LocalInspectionTool>> unsetInspections) throws Exception {
+    doTest(true, false, false, unsetInspections);
   }
 
-  protected void doTestSkippingAnnotators(Set<Class<? extends LocalInspectionTool>> unsetInspections) throws Exception {
-    doTest(true, false, false, unsetInspections);
+  protected void doTestReplacingInspection(InspectionProfileEntry configuredTool) throws Exception {
+    Set<Class<? extends LocalInspectionTool>> replacedClass = Set.of(configuredTool.getClass().asSubclass(LocalInspectionTool.class));
+    doTest(true, false, false, replacedClass, new InspectionProfileEntry[]{configuredTool});
   }
 
   protected void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {

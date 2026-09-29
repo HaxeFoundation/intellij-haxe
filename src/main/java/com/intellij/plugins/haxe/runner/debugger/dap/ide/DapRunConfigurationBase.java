@@ -8,6 +8,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import org.jdom.Element;
@@ -52,5 +54,21 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
 
   protected static String orEmpty(@Nullable String value) {
     return value == null ? "" : value;
+  }
+
+  /** The given path, resolved against the project base dir when relative; null when unparseable. */
+  protected @Nullable Path resolveAgainstProject(String value) {
+    try {
+      Path path = Path.of(value);
+      if (path.isAbsolute()) {
+        return path;
+      }
+
+      String basePath = getProject().getBasePath();
+      return basePath != null ? Path.of(basePath).resolve(path) : path;
+
+    } catch (InvalidPathException e) {
+      return null;
+    }
   }
 }

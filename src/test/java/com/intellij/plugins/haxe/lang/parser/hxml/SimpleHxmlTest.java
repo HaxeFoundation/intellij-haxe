@@ -38,4 +38,13 @@ public class SimpleHxmlTest extends HxmlParsingTestBase {
   public void testParserTest() throws Throwable {
     doTest(true);
   }
+
+  @Test
+  @DisplayName("next chain")
+  public void testNextChain() throws Throwable {
+    // `--next x.hxml` takes the next section's first argument on the
+    // separator's line: an hxml reference (a navigable HXML_FILE element,
+    // same as a bare reference line) or a dot path - never a plain value
+    doTest(true);
+  }
 }

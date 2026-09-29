@@ -91,13 +91,14 @@ public class RunControlIT {
   }
 
   /**
-   * The multi-threaded shape (lime ThreadPool): workers never opt into
-   * debugging, so a pause stops ONLY main — worker heartbeats keep flowing
-   * while main is paused, and resume brings main back.
+   * The multi-threaded shape (lime ThreadPool): every thread opts into
+   * debugging as it attaches, so a pause freezes the WHOLE program — worker
+   * heartbeats stop together with main's — and one resume brings everything
+   * back.
    */
   @Test
-  @DisplayName("workers keep running while main is paused")
-  public void workersKeepRunningWhileMainIsPaused() throws Exception {
+  @DisplayName("pause freezes workers together with main")
+  public void pauseFreezesWorkersTogetherWithMain() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("threads")) {
       session.initialize("uncaught", "critical");
       session.configurationDone();
@@ -108,14 +109,39 @@ public class RunControlIT {
       StoppedEvent stopped = session.awaitStopped();
       int threadId = session.stoppedThread(stopped);
 
-      Thread.sleep(200); // let in-flight main output settle
+      Thread.sleep(200); // let in-flight output settle
       int beatsWhilePaused = session.outputCount("beat");
-      int workersAtPause = session.outputCount("worker");
-      session.awaitOutputAbove("worker", workersAtPause); // workers still alive
+      int workersWhilePaused = session.outputCount("worker");
+      Thread.sleep(400);
       assertEquals(beatsWhilePaused, session.outputCount("beat"), "main is really paused");
+      assertEquals(workersWhilePaused, session.outputCount("worker"),
+                   "workers freeze with main - they opted into debugging on attach");
 
       session.resume(threadId);
       session.awaitOutputAbove("beat", beatsWhilePaused); // main runs again
+      session.awaitOutputAbove("worker", workersWhilePaused); // workers run again
+    }
+  }
+
+  /**
+   * A thread spawned AFTER startup self-enables debugging when it attaches
+   * (THREAD_CREATED runs on the new thread), so a breakpoint inside worker
+   * code actually hits. nme runs its whole application loop on a spawned
+   * thread, so this is the path its breakpoints take.
+   */
+  @Test
+  @DisplayName("breakpoint in worker code hits")
+  public void breakpointInWorkerCodeHits() throws Exception {
+    try (FixtureSession session = FixtureSession.launchScenario("threads")) {
+      session.initialize("uncaught", "critical");
+      session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.EX_WORKER_PRINT_LINE}, null);
+      session.configurationDone();
+
+      StoppedEvent hit = session.awaitStopped();
+      assertEquals("breakpoint", hit.getBody().getReason());
+      int threadId = session.stoppedThread(hit);
+      assertEquals(FixtureSession.EX_WORKER_PRINT_LINE, session.topFrame(threadId).getLine(),
+                   "stopped on the worker's print line");
     }
   }
 

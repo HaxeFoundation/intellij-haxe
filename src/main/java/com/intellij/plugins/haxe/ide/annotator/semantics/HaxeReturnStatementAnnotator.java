@@ -11,7 +11,6 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
@@ -28,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.CONDITIONAL_ERROR;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.MSL_COMMENT;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NOT_NULL;
 import static com.intellij.plugins.haxe.model.HaxeCompilerMetadata.OVERLOAD;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
@@ -36,7 +34,7 @@ import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMeth
 public class HaxeReturnStatementAnnotator implements Annotator {
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-        if(!element.isValid()) return;
+      if (AnnotatorUtil.shouldSkip(element)) return;
 
         if (element instanceof HaxeReturnStatement returnStatement) {
             checkReturnStatement(returnStatement, holder);
@@ -111,7 +109,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                                 .create();
                     }
                     if(messages.hasWrongTypeMembers()) {
-                        HaxeStandardAnnotation.addtypeMismatchWrongTypeMembersAnnotations(holder, returnStatement, messages);
+                        HaxeStandardAnnotation.addTypeMismatchWrongTypeMembersAnnotations(holder, returnStatement, messages);
                     }
                 }
                 else {

@@ -49,7 +49,6 @@ import com.intellij.refactoring.listeners.JavaRefactoringListenerManager;
 import com.intellij.refactoring.listeners.RefactoringEventData;
 import com.intellij.refactoring.listeners.impl.JavaRefactoringListenerManagerImpl;
 import com.intellij.refactoring.memberPushDown.JavaPushDownHandler;
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil;
 import com.intellij.refactoring.util.DocCommentPolicy;
 import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.refactoring.util.classMembers.MemberInfo;
@@ -133,33 +132,14 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
   @Override
   protected UsageInfo @NotNull [] findUsages() {
     GlobalSearchScope scope = GlobalSearchScope.projectScope(myClass.getProject());
-    List<UsageInfo> usageInfos = Arrays.asList(MoveClassesOrPackagesUtil.findUsages(myClass, scope,false, false, null));
-    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
-    PsiReference reference;
-    PsiClass psiClass;
-
-    for (int i = 0; i < usageInfos.size(); i++) {
-      reference = usageInfos.get(i).getReference();
-      if (reference != null) {
-        psiClass = PsiTreeUtil.getParentOfType((PsiElement)reference, PsiClass.class);
-        if (psiClass != null) {
-          usages.add(new UsageInfo(psiClass));
-        }
+    final List<UsageInfo> usages = new ArrayList<>();
+    for (PsiReference reference : ReferencesSearch.search(myClass, scope, false).findAll()) {
+      PsiClass psiClass = PsiTreeUtil.getParentOfType(reference.getElement(), PsiClass.class);
+      if (psiClass != null) {
+        usages.add(new UsageInfo(psiClass));
       }
     }
-
-   /* final PsiMethod interfaceMethod = LambdaUtil.getFunctionalInterfaceMethod(myClass);
-    if (interfaceMethod != null && isMoved(interfaceMethod)) {
-      FunctionalExpressionSearch.search(myClass).forEach(new Processor<PsiFunctionalExpression>() {
-        @Override
-        public boolean process(PsiFunctionalExpression expression) {
-          usages.add(new UsageInfo(expression));
-          return true;
-        }
-      });
-    }*/
-
-    return usages.toArray(new UsageInfo[0]);
+    return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   private boolean isMoved(PsiMember member) {

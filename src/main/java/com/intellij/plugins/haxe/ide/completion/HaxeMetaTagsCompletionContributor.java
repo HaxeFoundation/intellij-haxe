@@ -19,7 +19,6 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -28,14 +27,18 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 import com.intellij.plugins.haxe.ide.documentation.providers.HaxeMetadataDocumentations;
 import com.intellij.plugins.haxe.ide.lookup.HaxeMetadataLookupElement;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.display.protocol.MetadataEntry;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.util.HaxeCompletionCache;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerMetadataService;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by as3boyan on 15.11.14.
@@ -59,8 +62,10 @@ public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
 
         final List<HXMLCompletionItem> metaTags = HaxeCompletionCache.getInstance(module).getMetaTags();
 
+        Set<String> offered = new HashSet<>();
         if(!metaTags.isEmpty()) {
           for (HXMLCompletionItem completionItem : metaTags) {
+            offered.add(completionItem.name);
             //check if we got complementary docs and use those if available, otherwise use compiler results.
             HaxeMetadataDocumentations.MetadataInfo docs = HaxeMetadataDocumentations.getDocsFor(completionItem.name);
             if (docs != null) {
@@ -73,7 +78,18 @@ public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
           }
         } else {
           for (HaxeMetadataDocumentations.MetadataInfo docs : HaxeMetadataDocumentations.getDocs()) {
+            offered.add(StringUtil.trimStart(docs.getMetadata(), ":"));
             result.addElement(new HaxeMetadataLookupElement(docs));
+          }
+        }
+
+        // the compilation server's registry adds what the static sources miss:
+        // version-specific built-ins and library-registered custom metadata
+        List<MetadataEntry> registry = HaxeCompilerMetadataService.getInstance(project).entries(file);
+        if (registry != null) {
+          for (MetadataEntry entry : registry) {
+            if (entry.internal() || !offered.add(entry.bareName())) continue;
+            result.addElement(new HaxeMetadataLookupElement(":" + entry.bareName(), entry.doc(), ""));
           }
         }
       }

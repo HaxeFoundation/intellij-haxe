@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
@@ -9,8 +10,10 @@ import com.intellij.plugins.haxe.model.HaxeEnumExtractedValueElementModel;
 import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class HaxeEnumExtractedValueMixin extends HaxeReferenceImpl implements HaxeNamedComponent, HaxeModelTarget {
@@ -82,5 +85,13 @@ public abstract class HaxeEnumExtractedValueMixin extends HaxeReferenceImpl impl
   @Override
   public HaxeComponentType getComponentType() {
     return HaxeComponentType.VARIABLE;
+  }
+
+  /** The name element's scope, which owns the rule, as for every other component. */
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    final HaxeComponentName componentName = getComponentName();
+    return componentName != null ? componentName.getUseScope() : super.getUseScope();
   }
 }

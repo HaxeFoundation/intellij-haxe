@@ -15,12 +15,12 @@ import format.hl.Data.ObjPrototype;
 import haxe.Int64;
 
 /**
-	Turns a stopped frame (or a variablesReference) into the DAP variable lists
-	the client renders: the frame's scopes (Locals / Statics / Registers), the
-	decoded locals, the HL bytecode registers, and a class's static fields.
+	Turns a stopped frame, or a variablesReference, into the DAP variable lists
+	the client renders: the frame's scopes (Locals, Statics, Registers), the
+	decoded locals, the HL bytecode registers and a class's static fields.
 
-	Read-only over the frozen debuggee — every value it produces is decoded via
-	ValueReader/ValueChildren and is valid only for the current stop.
+	It only reads the frozen debuggee. Every value is decoded through
+	ValueReader or ValueChildren and is valid only for the current stop.
 **/
 class VariablesView {
 	final stops:StopState;
@@ -55,7 +55,7 @@ class VariablesView {
 	}
 
 	/**
-		The scopes of a cached frame: Locals, plus Statics when the owning class has static data.
+		The scopes of a cached frame: Locals, Statics when the owning class has static data, and Registers.
 	**/
 	public function scopesFor(frameId:Int):Array<ScopeInfo> {
 		var frame = stops.frameAt(frameId);
@@ -109,9 +109,9 @@ class VariablesView {
 			var slot = offsets[local.register];
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
 			var decoded = valueReader.read(address, slot.t);
-			// The first `argCount` registers are the function's parameters; `this`
-			// (register 0 of a method) stays Unspecified so it keeps the plain value
-			// icon rather than looking like a parameter.
+			// The first `argCount` registers are the function's parameters. `this`
+			// (register 0 of a method) stays Unspecified, so it keeps the plain value
+			// icon instead of looking like a parameter.
 			var kind = local.name == "this" ? VariableKind.Unspecified : (local.register < argCount ? VariableKind.Argument : VariableKind.Local);
 			variables.push({name: local.name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: kind});
 		}
@@ -119,10 +119,11 @@ class VariablesView {
 	}
 
 	/**
-		The frame's HL bytecode registers r0..rN (every typed `ebp+offset` slot,
-		including args and unnamed temporaries), each annotated with the local
-		name currently bound to it. The stopped thread's CPU registers lead the
-		list on the top frame (they are thread state, not frame state).
+		The frame's HL bytecode registers r0..rN, meaning every typed
+		`ebp+offset` slot including arguments and unnamed temporaries. Each is
+		annotated with the local name currently bound to it. On a thread's top
+		frame the thread's CPU registers lead the list; they are thread state,
+		not frame state.
 	**/
 	function readRegisters(frameId:Int):Array<VariableInfo> {
 		var handle = stops.frameAt(frameId);
@@ -131,7 +132,6 @@ class VariablesView {
 		}
 		var frame = handle.location;
 		var variables:Array<VariableInfo> = [];
-		// CPU registers are thread state: shown on each thread's TOP frame.
 		if (handle.index == 0 && cpuRegistersFor != null) {
 			for (register in cpuRegistersFor(handle.threadId)) {
 				variables.push(register);
@@ -148,12 +148,12 @@ class VariablesView {
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
 			var bound = boundNames.get(i);
 			var name = bound == null ? 'r$i' : 'r$i ($bound)';
-			// Only slots bound to an in-scope local hold live values. Unbound
-			// slots are leftovers from earlier calls: decoding one as a
-			// pointer type would chase arbitrary garbage (a bogus String
-			// length alone can demand a fatal multi-GB read), so they render
-			// as their raw bits. Primitives are a fixed-size read of the
-			// frame's own stack and always safe.
+			// Only slots bound to an in-scope local hold live values. An unbound
+			// slot holds leftovers from earlier calls, and decoding it as a
+			// pointer type would chase garbage (a bogus String length alone can
+			// demand a fatal multi-GB read), so it renders as raw bits. A
+			// primitive is a fixed-size read from the frame's own stack and
+			// always safe.
 			var decoded = (bound != null || !chasesPointers(slot.t))
 				? (try valueReader.read(address, slot.t) catch (e:Dynamic) rawSlot(address, slot.t))
 				: rawSlot(address, slot.t);
@@ -163,9 +163,9 @@ class VariablesView {
 	}
 
 	/**
-		The decoded value held in HL register `reg` of `frameId` — used to describe
-		the value being thrown at a throw site, where it is a live bound value.
-		Null when the frame is gone or the register is out of range.
+		The decoded value in HL register `reg` of `frameId`. It describes the
+		value being thrown at a throw site, where the register holds a live
+		value. Null when the frame is gone or the register is out of range.
 	**/
 	public function readRegisterValue(frameId:Int, reg:Int):Null<VariableInfo> {
 		var handle = stops.frameAt(frameId);
@@ -184,23 +184,23 @@ class VariablesView {
 	}
 
 	/**
-		Display text for the vdynamic at `ptr` (a pointer already in hand — e.g.
-		hl_throw's parked exc_value), resolved through its runtime type header.
-		Null when it cannot be decoded.
+		Display text for the vdynamic at `ptr`, a pointer already in hand such
+		as hl_throw's parked exc_value. It is decoded through its runtime type
+		header; null when it cannot be decoded.
 	**/
 	public function previewDynamicPointer(ptr:Pointer):Null<String> {
 		return try valueReader.previewThrownDynamic(ptr) catch (e:Dynamic) null;
 	}
 
 	/**
-		The value in register `reg` rendered for an EXCEPTION-STOP description.
-		Same decoding as `readRegisterValue`, except a thrown haxe.Exception is
-		unwrapped to the text it carries: haxe 5 wraps EVERY non-Exception throw
-		in a haxe.ValueException at the throw site, so the raw preview
-		degenerates to the wrapper's class name ("haxe.ValueException:
-		haxe.ValueException") and the actual thrown value ends up one field
-		deep. ValueException unwraps through `value`, any other haxe.Exception
-		through `__exceptionMessage`; everything else renders as-is.
+		The value in register `reg`, rendered for an EXCEPTION-STOP description.
+		It decodes like `readRegisterValue`, except that a thrown haxe.Exception
+		is unwrapped to the text it carries. haxe 5 wraps EVERY thrown
+		non-Exception value in a haxe.ValueException at the throw site, so the
+		raw preview shows only the wrapper's class name ("haxe.ValueException:
+		haxe.ValueException") and the thrown value sits one field deeper. A
+		ValueException is unwrapped through `value`, any other haxe.Exception
+		through `__exceptionMessage`; everything else renders unchanged.
 	**/
 	public function thrownRegisterPreview(frameId:Int, reg:Int):Null<VariableInfo> {
 		var base = readRegisterValue(frameId, reg);
@@ -223,8 +223,8 @@ class VariablesView {
 		return base;
 	}
 
-	// The text a thrown haxe.Exception-family object carries; null for any
-	// other class (or when the field cannot be read — degrade to the raw preview).
+	// The text a thrown haxe.Exception (or subclass) carries. Null for any other
+	// class, or when the field cannot be read, so the raw preview is shown.
 	function exceptionMessageOf(objPtr:Pointer, runtime:HLType):Null<String> {
 		var fieldName = ClassChain.matches(runtime, "haxe.ValueException") ? "value"
 			: ClassChain.matches(runtime, "haxe.Exception") ? "__exceptionMessage"
@@ -242,9 +242,9 @@ class VariablesView {
 
 	/**
 		True when the value in register `reg` of `frameId` is an object whose
-		runtime class (or a superclass) matches one of `wanted` (FQN or simple
-		name) — the type filter for exception breakpoints. False for a non-object
-		slot or when `wanted` is empty.
+		runtime class, or one of its superclasses, matches one of `wanted` (a
+		fully qualified or simple name). This is the type filter of exception
+		breakpoints. False for a non-object slot or when `wanted` is empty.
 	**/
 	public function registerValueMatchesType(frameId:Int, reg:Int, wanted:Array<String>):Bool {
 		if (wanted == null || wanted.length == 0) {
@@ -273,10 +273,10 @@ class VariablesView {
 		return false;
 	}
 
-	// The runtime class of the value at `address` given its slot type — for an
-	// object the hl_type* sits at obj+0; for a Dynamic the boxed value's type sits
-	// at the vdynamic's +0. Both read one pointer then its type header. Non-object
-	// slots (primitives, structs without a header) have no class here.
+	// The runtime class of the value at `address`, given its slot type. An object
+	// has its hl_type* at +0, and a Dynamic has its value's type at the
+	// vdynamic's +0, so both read one pointer and then its type header.
+	// Non-object slots (primitives, structs without a header) have no class here.
 	function runtimeClassOf(address:Pointer, t:HLType):Null<HLType> {
 		var pointer = switch (t) {
 			case HObj(_), HDyn: memory.readPointer(address);
@@ -303,8 +303,9 @@ class VariablesView {
 		}
 	}
 
-	// A "Statics" scope for the class owning `fidx`, or null when that class has no
-	// statics container, no allocated global, or its singleton isn't live yet.
+	// A "Statics" scope for the class owning `fidx`. Null when that class has no
+	// statics container or static data, no allocated global, or no live
+	// singleton yet.
 	public function staticsScope(fidx:Int):Null<ScopeInfo> {
 		var proto = module.staticsProtoForFunction(fidx);
 		if (proto == null || !hasStaticData(proto)) {
@@ -325,9 +326,8 @@ class VariablesView {
 		return {name: 'Statics ($className)', reference: stops.allocReference(RefStatics(address, proto))};
 	}
 
-	// A statics container also holds its static methods (function-typed fields)
-	// and compiler bookkeeping like __name__/__constructs__/__meta__; only count
-	// the actual static variables.
+	// A statics container also holds the static methods and compiler bookkeeping
+	// such as __name__, __constructs__ and __meta__; only real static variables count.
 	function hasStaticData(proto:ObjPrototype):Bool {
 		var methodFields = staticMethodFieldNames(proto);
 		for (field in proto.fields) {
@@ -338,8 +338,8 @@ class VariablesView {
 		return false;
 	}
 
-	// Like object expansion but for a statics singleton: static methods and the
-	// compiler's __xx__ bookkeeping fields are hidden.
+	// Expands a statics singleton like an object, but hides the static methods
+	// and the compiler's __xx__ bookkeeping fields.
 	function readStaticFields(pointer:Pointer, proto:ObjPrototype):Array<VariableInfo> {
 		var methodFields = staticMethodFieldNames(proto);
 		var variables:Array<VariableInfo> = [];
@@ -354,14 +354,14 @@ class VariablesView {
 		return variables;
 	}
 
-	// The names of static fields that are METHOD bindings, not data. A class's
-	// static methods sit in its statics container as fields bound to a function
-	// via `bindings` (binding.mid = the bound function's findex; the same handle
-	// buildStaticsIndex keys on). Its "Class.method" name's last segment is the
-	// field name to hide. A function-TYPED static var (e.g. `static var
-	// cb:Dynamic->Void`, HFun at runtime) is NOT bound and must stay visible —
-	// hiding it by type alone, as an earlier "drop every HFun" rule did, made it
-	// unreadable in both the Statics view and `Class.member` evaluate.
+	// The names of static fields that are METHOD bindings rather than data. A
+	// class's static methods sit in its statics container as fields bound to a
+	// function through `bindings`; binding.mid is the bound function's findex,
+	// the same key buildStaticsIndex uses. The last segment of the function's
+	// "Class.method" name is the field name to hide. A function-TYPED static var
+	// (`static var cb:Dynamic->Void`, HFun at runtime) has no binding and stays
+	// visible. Hiding fields by type alone would make it unreadable in both the
+	// Statics view and `Class.member` evaluate.
 	function staticMethodFieldNames(proto:ObjPrototype):Map<String, Bool> {
 		var names = new Map<String, Bool>();
 		if (proto.bindings != null) {

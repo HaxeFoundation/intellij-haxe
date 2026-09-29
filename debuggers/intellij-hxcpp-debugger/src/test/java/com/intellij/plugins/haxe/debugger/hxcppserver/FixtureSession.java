@@ -65,6 +65,8 @@ final class FixtureSession implements AutoCloseable {
   static final int CLOSURE_ARRAY_CALL_LINE = 306;
   static final int CLOSURE_BODY_LINE = 310;
 
+  static final int EX_WORKER_PRINT_LINE = 165; // Workers.run(): the worker thread's println
+
   private final ServerSocket listener;
   private final Process debuggee;
   private final DapClient client;

@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var y = {x:1, y:1};
-        var k = y;
+        var anon = {x: 1, y: 1};
+        var k = anon;
     }
 }

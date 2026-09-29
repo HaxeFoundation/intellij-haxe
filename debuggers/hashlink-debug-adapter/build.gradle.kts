@@ -38,8 +38,14 @@ val uncaughtFixtureHl = layout.buildDirectory.file("hl/uncaught-fixture.hl")
 val vmFixtureHl = layout.buildDirectory.file("hl/vm-fixture.hl")
 val stacktraceFixtureHl = layout.buildDirectory.file("hl/stacktrace-fixture.hl")
 val typedThrowFixtureHl = layout.buildDirectory.file("hl/typedthrow-fixture.hl")
-// haxelib used to read the .hl bytecode debug tables; pinned for reproducible builds
-val formatHaxelibVersion = "3.7.0"
+// haxelib used to read the .hl bytecode debug tables. The version pin lives
+// in build.hxml's `-lib format:<version>` line (test.hxml mirrors it); the
+// installer below provisions exactly that version.
+val formatHaxelibVersion: String by lazy {
+    // the versioned lib reference: `-lib format:3.7.0`
+    Regex("-lib format:(\\S+)").find(File(projectDir, "build.hxml").readText())?.groupValues?.get(1)
+        ?: error("build.hxml must pin the format haxelib as `-lib format:<version>`")
+}
 
 // probed lazily at execution time so a haxe-less machine can still configure and build the rest of the plugin
 val haxeAvailable: Boolean by lazy {
@@ -53,10 +59,26 @@ val haxeAvailable: Boolean by lazy {
     }
 }
 
+// `haxelib path lib:version` is version-exact and never touches the machine's
+// selected ("current") version - the probe that lets an installed lib be left alone
+val formatHaxelibInstalled: Boolean by lazy {
+    try {
+        ProcessBuilder("haxelib", "path", "format:$formatHaxelibVersion")
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start().waitFor() == 0
+    } catch (e: Exception) {
+        false
+    }
+}
+
 tasks.register<Exec>("installFormatHaxelib") {
     group = "hashlink"
-    description = "Installs the pinned 'format' haxelib used to read .hl debug info"
-    onlyIf { buildHashlinkAdapter && haxeAvailable }
+    description = "Provisions the pinned 'format' haxelib when missing; an installed one is left untouched"
+    // `haxelib install` switches the current-version selection as a side effect,
+    // so it must only ever run when the pinned version is absent - the hxml pins
+    // make the compiles themselves selection-independent
+    onlyIf { buildHashlinkAdapter && haxeAvailable && !formatHaxelibInstalled }
     commandLine = listOf("haxelib", "install", "format", formatHaxelibVersion, "--quiet", "--always")
 }
 

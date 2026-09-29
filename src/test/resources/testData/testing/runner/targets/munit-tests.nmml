@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="NmeTests" package="nme.tests" version="1.0.0" company="tests" />
+	<app main="TestMain" file="NmeTests" path="bin" />
+	<classpath name="src" />
+	<haxelib name="nme" />
+	<haxelib name="munit" />
+</project>

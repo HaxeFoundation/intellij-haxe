@@ -9,15 +9,15 @@ import format.hl.Data.ObjPrototype;
 import haxe.Int64;
 
 /**
-	Lists the entries of a haxe.ds.BalancedTree (and its subclass
-	EnumValueMap) — a PURE-HAXE red/black tree, so unlike the native maps there
-	is no C layout to port: the wrapper's `root` field and each `TreeNode`'s
-	`left`/`right`/`key`/`value` fields are ordinary typed object fields read
-	through ObjectLayout. Produces an in-order (sorted) key → value listing.
+	Lists the entries of a haxe.ds.BalancedTree or its subclass EnumValueMap,
+	sorted by key. Unlike the native maps, these are balanced trees written in
+	Haxe, so they have no C layout: the map's `root` and each TreeNode's
+	`left`, `right`, `key` and `value` are ordinary object fields, located
+	through ObjectLayout.
 **/
 class TreeMapReader {
 	static inline var MAX_ENTRIES = 512;
-	static inline var MAX_DEPTH = 128; // guards against a cyclic/garbage tree
+	static inline var MAX_DEPTH = 128; // guards against a cyclic or corrupt tree
 
 	final mem:MemoryReader;
 	final align:Align;
@@ -39,7 +39,7 @@ class TreeMapReader {
 	}
 
 	/**
-		Live entry count (capped), or -1 when the tree can't be walked.
+		The number of entries, at most MAX_ENTRIES, or -1 when the tree cannot be walked.
 	**/
 	public function entryCount(mapPtr:Pointer, mapProto:ObjPrototype):Int {
 		var root = rootNode(mapPtr, mapProto);
@@ -52,9 +52,9 @@ class TreeMapReader {
 	}
 
 	/**
-		In-order entries. `keyValuePreview` renders a key or value at an address
-		(both are HDyn-typed generic slots). valueAddress is read as HDyn by the
-		caller. Capped at 512.
+		The entries sorted by key, at most MAX_ENTRIES of them. Keys and values
+		are generic slots typed Dynamic: `keyPreview` renders the key at an
+		address, and the caller reads each value address as Dynamic.
 	**/
 	public function entries(mapPtr:Pointer, mapProto:ObjPrototype, keyPreview:Pointer->String):Array<MapEntrySlot> {
 		var root = rootNode(mapPtr, mapProto);
@@ -92,7 +92,7 @@ class TreeMapReader {
 
 	// --- field offsets ---
 
-	// the map's `root` field (inherited from BalancedTree) + the TreeNode proto
+	// the node in the map's `root` field (declared by BalancedTree), with its runtime class
 	function rootNode(mapPtr:Pointer, mapProto:ObjPrototype):Null<{address:Pointer, proto:ObjPrototype}> {
 		var root = rootPointer(mapPtr, mapProto);
 		if (root.isNull()) {

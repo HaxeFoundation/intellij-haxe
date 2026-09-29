@@ -6,7 +6,7 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.runner.debugger.HaxeRunConfigurationEditorUtil;
+import com.intellij.plugins.haxe.util.ui.HaxePathFieldChoosers;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
@@ -35,8 +35,7 @@ public class InterpRunConfigurationEditor extends SettingsEditor<InterpRunConfig
 
   public InterpRunConfigurationEditor(Project project) {
     this.project = project;
-    HaxeRunConfigurationEditorUtil.browseInto(project, workingDirectoryField,
-                                              FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    HaxePathFieldChoosers.browseInto(project, workingDirectoryField, FileChooserDescriptorFactory.singleDir());
     hintLabel.setComponentStyle(UIUtil.ComponentStyle.SMALL);
     hintLabel.setForeground(UIUtil.getContextHelpForeground());
   }

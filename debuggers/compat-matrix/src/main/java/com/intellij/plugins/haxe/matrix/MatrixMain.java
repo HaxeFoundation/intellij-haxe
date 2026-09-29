@@ -488,11 +488,11 @@ public final class MatrixMain {
   }
 
   private void firefoxLane() throws IOException {
-    webLane("firefox", "FirefoxAdapterLiveProbe");
+    webLane("firefox", "FirefoxAdapterLiveTest");
   }
 
   private void chromiumLane() throws IOException {
-    webLane("chromium", "JsDebugAdapterLiveProbe");
+    webLane("chromium", "JsDebugAdapterLiveTest");
   }
 
   // both web lanes on one thread in parallel mode — see runLanesInParallel

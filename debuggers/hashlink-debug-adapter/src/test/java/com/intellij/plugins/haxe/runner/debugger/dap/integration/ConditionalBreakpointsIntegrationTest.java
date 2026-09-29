@@ -115,20 +115,4 @@ public class ConditionalBreakpointsIntegrationTest extends DapIntegrationTestBas
     request(new DisconnectRequest());
   }
 
-  private String continueToExit(int threadId) throws Exception {
-    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue");
-    List<String> output = new ArrayList<>();
-    while (true) {
-      Event event = client.pollEvent(TIMEOUT);
-      assertNotNull(event, "expected an event before exit");
-      if (event instanceof OutputEvent out) {
-        output.add(out.getBody().getOutput());
-      } else if (event instanceof StoppedEvent stopped) {
-        request(continueRequest(stopped.getBody().getThreadId()));
-      } else if (event instanceof ExitedEvent) {
-        break;
-      }
-    }
-    return String.join("", output);
-  }
 }

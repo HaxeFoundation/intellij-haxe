@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.HaxeParameterUtil.mapArgumentsToParameters;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 public class HaxeGenericResolverUtil {
 
@@ -96,7 +96,7 @@ public class HaxeGenericResolverUtil {
     if (null == element) return resolver;
 
     if (element instanceof HaxeReference) {
-        ResultHolder result1 =  statementRecursionGuard.doPreventingRecursion(element, true,
+        ResultHolder result1 =  HaxeEvaluationTaint.computeOrTaint(statementRecursionGuard, element, true,
                 () -> HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(element), resolver.copy()).result);
       if (result1 != null && !result1.isUnknown() && result1.getClassType() != null) {
         SpecificHaxeClassReference result = result1.getClassType();

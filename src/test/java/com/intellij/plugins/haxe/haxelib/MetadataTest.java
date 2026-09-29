@@ -19,10 +19,9 @@ import com.google.gson.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 
 import static com.intellij.plugins.haxe.haxelib.HaxelibMetadata.*;
 
@@ -91,14 +90,6 @@ public class MetadataTest {
     return md;
   }
 
-  private <T> void assertContains(List<T> list, T... elements) {
-    assertEquals(list.size(), elements.length);
-    for (T t : elements) {
-      assertTrue(list.contains(t));
-    }
-  }
-
-
   @Test
   @DisplayName("parsing")
   public void testParsing() throws Exception {
@@ -110,17 +101,18 @@ public class MetadataTest {
   @DisplayName("accessors")
   public void testAccessors() throws Exception {
     HaxelibMetadata md = getTestMetadata();
+
     assertEquals(NAME_DATA, md.getName());
     assertEquals(URL_DATA, md.getUrl());
     assertEquals(LICENSE_DATA, md.getLicense());
-    assertContains(md.getTags(), TAGS_DATA1, TAGS_DATA2);
+    assertSameElements(md.getTags(), TAGS_DATA1, TAGS_DATA2);
     assertEquals(DESCRIPTION_DATA, md.getDescription());
     assertEquals(VERSION_DATA, md.getVersion());
     assertEquals(CLASSPATH_DATA, md.getClasspath());
     assertEquals(RELEASENOTE_DATA, md.getReleasenote());
-    assertContains(md.getContributors(), CONTRIBUTOR1, CONTRIBUTOR2, CONTRIBUTOR3);
-    assertContains(md.getDependencies(),
-                   new HaxelibMetadata.Dependency(LIB_NAME1, LIB_VERSION1),
-                   new HaxelibMetadata.Dependency(LIB_NAME2, LIB_VERSION2));
+    assertSameElements(md.getContributors(), CONTRIBUTOR1, CONTRIBUTOR2, CONTRIBUTOR3);
+    assertSameElements(md.getDependencies(),
+                       new HaxelibMetadata.Dependency(LIB_NAME1, LIB_VERSION1),
+                       new HaxelibMetadata.Dependency(LIB_NAME2, LIB_VERSION2));
   }
 }

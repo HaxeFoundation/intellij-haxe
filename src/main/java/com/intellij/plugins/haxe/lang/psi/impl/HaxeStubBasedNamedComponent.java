@@ -24,6 +24,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -95,6 +96,18 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
       componentName.setName(name);
     }
     return this;
+  }
+
+  /**
+   * The name element's scope, which owns the rule. A reference resolves to
+   * the component while rename works on the name element, and in-place
+   * rename needs both to report the same scope.
+   */
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    final HaxeComponentName componentName = getComponentName();
+    return componentName != null ? componentName.getUseScope() : super.getUseScope();
   }
 
   @Override
@@ -221,6 +234,14 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     // Try stub data first — avoids PSI tree traversal for modifier keywords
     T stub = getGreenStub();
     if (stub instanceof HaxeMethodStub methodStub) {
+      // if only the `override` keyword is provided, then it inherits the overridden method's visibility.
+      // the stub only holds values for keywords that are part of the current declaration (public/private)
+      if (methodStub.isVisibilityInherited()) {
+        HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(this);
+        if(model instanceof HaxeMemberModel member) {
+          return member.isPublic(); // will also check isOverriddenPublicMethod
+        }
+      }
       return methodStub.isPublic();
     }
     if (stub instanceof HaxeFieldStub fieldStub) {
@@ -236,6 +257,11 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     );
     if (parentClass != null) {
       return true;
+    }
+
+    HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(this);
+    if (model instanceof HaxeMethodModel methodModel && methodModel.isVisibilityInheritedFromParent()) {
+      return methodModel.isPublic();
     }
 
     final PsiElement parent = getParent();

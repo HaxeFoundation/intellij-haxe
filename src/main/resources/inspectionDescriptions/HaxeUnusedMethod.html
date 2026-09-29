@@ -1,0 +1,18 @@
+<html>
+<body>
+Reports methods with no callers. Methods carrying compile-time metadata are
+exempt - metadata exists to be consumed by macros, so such methods may be
+called from generated code.
+<p><b>Example:</b></p>
+<pre><code>
+class Toolbox {
+    function polishInternals():Void {}   // never called
+}
+</code></pre>
+<!-- tooltip end -->
+<p>
+When compiler diagnostics report usages (for example from macro-generated
+code), those count as uses. Use <code>@:keep</code> to exempt a method
+deliberately.
+</body>
+</html>

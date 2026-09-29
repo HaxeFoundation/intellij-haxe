@@ -4,6 +4,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +44,8 @@ public class HxcppIntellijDebugRunner extends DapDebugRunnerBase<HxcppIntellijRu
   @Override
   protected HxcppIntellijBackend createBackend(HxcppIntellijRunConfiguration configuration) throws ExecutionException {
     try {
-      return new HxcppIntellijBackend(DEBUGGEE_CONNECT_TIMEOUT_MILLIS);
+      return new HxcppIntellijBackend(DEBUGGEE_CONNECT_TIMEOUT_MILLIS,
+                                      HaxeActionBeforeRunTaskProvider.buildStepSourceDirectories(configuration));
     } catch (IOException e) {
       throw new ExecutionException(HaxeDebuggerBundle.message("hxcpp.intellij.runner.listen.failed", e.getMessage()));
     }

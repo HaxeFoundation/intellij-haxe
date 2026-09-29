@@ -17,8 +17,6 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class SpecificEnumValueReference extends SpecificTypeReference {
 
@@ -103,6 +102,21 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     out.append(".");
     out.append(toShortPresentationString());
     return out.toString();
+  }
+
+  @Override
+  public void appendCacheKey(@NotNull StringBuilder out, @NotNull Set<SpecificTypeReference> walkPath) {
+    if (!walkPath.add(this)) {
+      out.append(CACHE_KEY_CYCLE);
+      return;
+    }
+    try {
+      enumClass.appendCacheKey(out, walkPath);
+      out.append('.').append(declaration.getName());
+    }
+    finally {
+      walkPath.remove(this);
+    }
   }
 
   public String toShortPresentationString() {

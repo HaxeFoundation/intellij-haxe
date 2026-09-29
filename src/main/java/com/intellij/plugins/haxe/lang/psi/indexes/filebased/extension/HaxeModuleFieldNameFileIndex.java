@@ -8,7 +8,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxePsiField;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.indexer.HaxeClassFieldNameIndexer;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeModuleModel;
 import com.intellij.psi.PsiFile;
@@ -60,8 +59,6 @@ public class HaxeModuleFieldNameFileIndex extends HaxeComponentBaseIndex {
                     @Override
                     public boolean process(VirtualFile virtualFile) {
                         PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
-                        HaxeComponentIndexData data = FileBasedIndex.getInstance().getFileData(INDEX, virtualFile, project).get(name);
-                        String className = data.getFqn().getClassName();
                         if (file instanceof HaxeFile haxeFile) {
                             HaxeModule module = haxeFile.getModule();
                             if (module != null && module.getModel() instanceof HaxeModuleModel model) {
@@ -72,7 +69,7 @@ public class HaxeModuleFieldNameFileIndex extends HaxeComponentBaseIndex {
                             }
 
                         }
-                        return false;
+                        return true; // keep iterating; false stops at the FIRST file and drops every other candidate
                     }
                 }, scope);
 

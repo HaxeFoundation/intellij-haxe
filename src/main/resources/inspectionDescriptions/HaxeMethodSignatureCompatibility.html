@@ -1,0 +1,16 @@
+<html>
+<body>
+Reports <code>override</code> methods whose signature is incompatible with
+the overridden method: wrong parameter types or counts, mismatched
+optionality, or an incompatible return type.
+<p><b>Example:</b></p>
+<pre><code>
+class Writer {
+    public function write(text:String):Void {}
+}
+class FileWriter extends Writer {
+    override public function write(text:Int):Void {}   // parameter type differs
+}
+</code></pre>
+</body>
+</html>

@@ -20,24 +20,26 @@ import ijhaxe.debug.target.MemoryWriter;
 import ijhaxe.debug.target.StackFrameLocation;
 
 /**
-	The "what can I see and change while stopped" FACADE. It constructs and wires
-	the value-inspection collaborators and exposes the small surface DebugSession
-	drives — stop lifecycle, scopes/variables, evaluate/condition, setVariable —
-	delegating each to the owning class:
+	The FACADE for everything that can be seen and changed while stopped. It
+	builds and wires the value-inspection collaborators and exposes the small
+	surface DebugSession drives: the stop lifecycle, scopes and variables,
+	evaluate and breakpoint conditions, and setVariable. Each call is
+	delegated to the class that owns it:
 
-	| collaborator          | role                                                    |
-	|-----------------------|---------------------------------------------------------|
-	| `StopState`           | per-stop frame caches + variablesReference registry     |
-	| `SymbolResolver`      | variable path → writable {address, type}                |
-	| `VariablesView`       | frames/references → DAP scopes & variable lists         |
-	| `DebuggeeCallService` | running code in the debuggee (calls / new / string / box) |
-	| `ExpressionEvaluator` | the evaluate-expression interpreter                     |
-	| `VariableMutator`     | the write path (setVariable / assignment)               |
+	| collaborator          | role                                                        |
+	|-----------------------|-------------------------------------------------------------|
+	| `StopState`           | per-stop frame caches and the variablesReference registry   |
+	| `PathResolver`        | variable path → writable {address, type}                    |
+	| `VariablesView`       | frames and references → DAP scopes and variable lists       |
+	| `DebuggeeCallService` | running code in the debuggee (calls, `new`, strings, boxes) |
+	| `ExpressionEvaluator` | the evaluate-expression interpreter                         |
+	| `VariableMutator`     | the write path (setVariable and assignment)                 |
 
-	Wired once at launch from the module/jit metadata; DebugSession sets the
-	per-session callbacks (frameWalker, cpuRegistersFor, functionCaller, ...),
-	feeds a new stop via startStop, and invalidates on every resume — a reference
-	must never outlive its stop, since the GC can move objects.
+	It is wired once at launch from the module and JIT metadata. DebugSession
+	sets the per-session callbacks (frameWalker, cpuRegistersFor,
+	functionCaller, ...), announces each stop through startStop, and calls
+	invalidate on every resume: the GC can move objects, so a reference must
+	never outlive its stop.
 **/
 class VariableInspector {
 	final module:ModuleDebugInfo;
@@ -54,31 +56,24 @@ class VariableInspector {
 	final runtimeTypes:RuntimeTypes;
 	final dynObjects:DynObjReader;
 
-	// Resolves variable paths → writable {address, type}; shared by reads and writes.
-	final resolver:SymbolResolver;
-
-	// Runs code in the debuggee (calls / new / string+box materialization).
+	// the collaborators in the class doc's table
+	final resolver:PathResolver;
 	final calls:DebuggeeCallService;
-
-	// Turns frames + references into the DAP scopes/variables lists.
 	final view:VariablesView;
-
-	// The evaluate-expression interpreter (operators, is/ternary, calls).
 	final evaluator:ExpressionEvaluator;
-
-	// The value-modification path (setVariable / assignment).
 	final mutator:VariableMutator;
 
 	/**
-		Enables value modification (setVariable / assignment) via `out`.
+		Enables value modification (setVariable and assignment) through `out`.
 	**/
 	public function enableWrites(out:MemoryWriter):Void {
 		mutator.writer = new ValueWriter(memory, out, align, runtimeTypes);
 		calls.memWriter = out;
 	}
 
-	// The per-stop frame caches and variablesReference registry (cleared on every
-	// resume). Owns `stoppedThreadId` — the thread writes/eval-call run in.
+	// The per-stop frame caches and variablesReference registry, cleared on every
+	// resume. It also records `stoppedThreadId`, the thread that writes and
+	// eval-calls run in.
 	final stops = new StopState();
 
 	// Set by DebugSession: walks a thread's stack (StackWalker) on demand.
@@ -97,8 +92,9 @@ class VariableInspector {
 		return provider;
 	}
 
-	// Set by DebugSession: writes the low half of XMM0 for the arrival-register
-	// fixup; and surfaces a non-fatal write warning. Both forwarded to the mutator.
+	// Set by DebugSession and forwarded to the mutator: `xmm0Writer` writes the
+	// low half of XMM0 for the arrival-register fixup (see VariableMutator), and
+	// `warnSink` reports a non-fatal write warning.
 	public var xmm0Writer(never, set):Null<Float->Void>;
 	public var warnSink(never, set):Null<String->Void>;
 
@@ -138,7 +134,7 @@ class VariableInspector {
 			var location = jit.resolveAddress(codePtr);
 			if (location == null) return null;
 			var name = module.functionName(location.fidx);
-			var source = module.lookup(location.fidx, location.op);
+			var source = module.sourceLineAt(location.fidx, location.op);
 			if (source == null || source.file == null) return name;
 			return '$name (${Path.withoutDirectory(source.file)}:${source.line})';
 		};
@@ -158,7 +154,7 @@ class VariableInspector {
 		valueChildren.maps = maps;
 		valueChildren.treeMaps = treeMaps;
 
-		resolver = new SymbolResolver(stops, memory, module, jit, frameLayout, localsResolver, globalTable,
+		resolver = new PathResolver(stops, memory, module, jit, frameLayout, localsResolver, globalTable,
 			valueChildren, runtimeTypes);
 		calls = new DebuggeeCallService(resolver, memory, module, jit, align);
 		view = new VariablesView(stops, memory, module, jit, frameLayout, localsResolver, globalTable,
@@ -184,13 +180,6 @@ class VariableInspector {
 	}
 
 	/**
-		True once a stop has produced at least one frame (any thread walked).
-	**/
-	public inline function hasFrames():Bool {
-		return stops.hasFrames();
-	}
-
-	/**
 		The frames of `threadId` (walked+cached on first request; all threads are
 		frozen at a stop). Each carries the globally-unique frame id the client
 		uses for scopes/variables/evaluate.
@@ -207,22 +196,15 @@ class VariableInspector {
 	}
 
 	/**
-		The scopes of a cached frame: Locals, plus Statics when the owning class has static data.
+		The scopes of a cached frame: Locals, Statics when the owning class has static data, and Registers.
 	**/
 	public inline function scopesFor(frameId:Int):Array<ScopeInfo> {
 		return view.scopesFor(frameId);
 	}
 
 	/**
-		The decoded value in HL register `reg` of a frame (for describing a thrown exception).
-	**/
-	public inline function readRegisterValue(frameId:Int, reg:Int):Null<VariableInfo> {
-		return view.readRegisterValue(frameId, reg);
-	}
-
-	/**
-		Register value rendered for an exception-stop description: a thrown
-		haxe.Exception is unwrapped to its carried text (see VariablesView).
+		The value in register `reg`, rendered for an exception-stop description. A
+		thrown haxe.Exception is unwrapped to the text it carries (see VariablesView).
 	**/
 	public inline function thrownRegisterPreview(frameId:Int, reg:Int):Null<VariableInfo> {
 		return view.thrownRegisterPreview(frameId, reg);
@@ -243,16 +225,17 @@ class VariableInspector {
 	}
 
 	/**
-		Evaluates a VARIABLE PATH (`name`, `obj.field`, `arr[3]`, ...) in a
-		cached frame. Root resolution order: the frame's locals, then fields of
-		`this`, then the owning class's statics, then a class named by a leading
-		path prefix (`MyClass.member`, `pkg.MyClass.member` — resolves to that
-		class's statics container). Throws DebugError with a user-facing
-		message when the path cannot be resolved.
+		Evaluates an expression in a cached frame and returns the displayed
+		result. A top-level assignment writes (see VariableMutator); anything
+		else goes to the interpreter. Names resolve in this order: the frame's
+		locals, fields of `this`, the owning class's statics, then a class named
+		by a leading path prefix (`MyClass.member`, `pkg.MyClass.member`), which
+		resolves to that class's statics container. Throws DebugError with a
+		user-facing message when the expression cannot be evaluated.
 	**/
 	public function evaluate(frameId:Int, expression:String):VariableInfo {
-		// a single-line expression may carry a trailing ';' (e.g. copied from
-		// source); it is not part of the expression grammar, so drop it
+		// a trailing ';', as in a line copied from source, is not part of the
+		// grammar and is dropped
 		expression = StringTools.trim(expression);
 		while (StringTools.endsWith(expression, ";")) {
 			expression = StringTools.rtrim(expression.substr(0, expression.length - 1));
@@ -261,7 +244,7 @@ class VariableInspector {
 		// a top-level assignment is a WRITE; everything else the interpreter renders
 		return switch (e) {
 			case EAssign(lhs, rhs): mutator.assignExpr(frameId, lhs, rhs);
-			default: evaluator.evaluateExpr(frameId, e, expression);
+			default: evaluator.evaluateForDisplay(frameId, e, expression);
 		}
 	}
 
@@ -279,15 +262,15 @@ class VariableInspector {
 		return mutator.setVariable(reference, name, valueExpr);
 	}
 
-	// custom/setToStringRendering: the user's opt-in for toString object
-	// labels. STORED but not rendered through yet — labels only switch once
-	// the injected call is fault-PROOF via hl_dyn_call_safe (an SO inside a
-	// plain injected call is unrecoverable: the HL debug API cannot continue
-	// past a fault). See the project memory/docs for the worked design.
+	// The client's opt-in (custom/setToStringRendering) to label objects with
+	// their toString. It is stored but not used yet: a fault such as a stack
+	// overflow inside a plain injected call is unrecoverable, because the HL
+	// debug API cannot continue past it.
+	// TODO: render toString labels once the injected call is fault-proof (hl_dyn_call_safe).
 	public var renderWithToString:Bool = false;
 
 	// Set by DebugSession: runs a function inside the debuggee. Forwarded to the
-	// call service; null until the eval-call machinery is enabled.
+	// call service; null until eval-calls are enabled.
 	public var functionCaller(never, set):Null<(Pointer, Array<CallArg>, Int)->Pointer>;
 
 	inline function set_functionCaller(caller:Null<(Pointer, Array<CallArg>, Int)->Pointer>):Null<(Pointer,

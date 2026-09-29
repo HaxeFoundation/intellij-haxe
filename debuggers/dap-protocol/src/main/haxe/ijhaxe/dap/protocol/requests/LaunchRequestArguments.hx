@@ -1,18 +1,18 @@
 package ijhaxe.dap.protocol.requests;
 
 /**
-	Arguments for the "launch" request (adapter-specific per the DAP spec).
-	`program` is the path to a .hl file compiled with -debug.
-	`hlPath` overrides the HashLink executable used to run it; when absent
-	the adapter uses the VM it is itself running on.
-	`stopOnEntry` is accepted but not yet honored (deferred to the stepping milestone).
+	Arguments for the HashLink adapter's "launch" request; the DAP spec leaves
+	their shape to each adapter. `program` is the path to the .hl file.
+	`hlPath` overrides the HashLink executable that runs it; by default the
+	adapter uses the VM it runs on itself. `stopOnEntry` is accepted but
+	ignored.
 
-	Attach mode: when `attachPid` is present the client has already spawned
-	`hl --debug <debugPort> --debug-wait <program>` itself and the adapter only
-	attaches to that pid (and reads the handshake from `debugPort`). The client
-	then owns the debuggee's stdio and lifetime. This exists because spawning
-	the debuggee from the adapter (an HL process) forces SW_HIDE onto the
-	debuggee's first window on Windows — see docs/README.md.
+	Attach mode: with `attachPid`, the client has already spawned
+	`hl --debug <debugPort> --debug-wait <program>`, and the adapter only
+	attaches to that pid and reads the handshake from `debugPort`. The client
+	then owns the debuggee's stdio and lifetime. Attach mode exists because a
+	debuggee spawned by the adapter, itself an HL process, gets its first
+	window hidden on Windows (see the adapter's docs/README.md).
 **/
 typedef LaunchRequestArguments = {
 	var program:String;

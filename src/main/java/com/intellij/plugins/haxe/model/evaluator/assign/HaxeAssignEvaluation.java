@@ -6,8 +6,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterScope;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
-import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -24,6 +22,7 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeClassAssignUt
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeAnonymousAssignUtil.*;
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromEvaluation;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 
 @CustomLog
@@ -667,7 +666,7 @@ public class HaxeAssignEvaluation {
    *  toReference(assign target) is abstract, find @:from and see if any of them accepts the fromreference Type
    */
   private @Nullable Boolean canAssignUsingImplicitCastFrom(SpecificHaxeClassReference toClassReference, SpecificTypeReference fromClassReference) {
-    return implicitCastRecursionGuard.computePreventingRecursion(toClassReference.context, true, () -> {
+    return HaxeEvaluationTaint.computeOrTaint(implicitCastRecursionGuard, toClassReference.context, true, () -> {
       List<SpecificTypeReference> implicitCasts = toClassReference.getImplicitCastFromTypes(fromClassReference);
       for (SpecificTypeReference implicitCast : implicitCasts) {
         boolean transitive = isTransitive(fromClassReference);
@@ -684,7 +683,7 @@ public class HaxeAssignEvaluation {
    * toReference (assign target) is abstract, check from-types from the abstract declaration and see if any of them accepts the fromReference type
    */
   private @Nullable Boolean canAssignUsingDirectCastFrom(SpecificHaxeClassReference toClassReference, SpecificTypeReference fromClassReference) {
-    return directCastRecursionGuard.computePreventingRecursion(toClassReference.context, true, () -> {
+    return HaxeEvaluationTaint.computeOrTaint(directCastRecursionGuard, toClassReference.context, true, () -> {
 
       List<SpecificTypeReference> directCasts = toClassReference.getDirectCastFromTypes();
       for (SpecificTypeReference directCastType : directCasts) {

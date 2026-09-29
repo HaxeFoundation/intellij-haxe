@@ -20,28 +20,57 @@ import java.util.*;
 
 public class HaxeCopyPasteReferenceProcessor extends HaxeBaseCopyPasteReferenceProcessor<HaxeReferenceExpression> {
 
-    protected void addReferenceData(PsiFile file, int startOffset, PsiElement element, ArrayList<HaxeReferenceData> to) {
-        if (element instanceof HaxeReferenceExpression referenceExpression) {
-            PsiElement resolve = referenceExpression.resolve();
-            if (resolve instanceof HaxeClass haxeClass) {
-                String qualifiedName = haxeClass.getQualifiedName();
-                if (qualifiedName != null) {
-                    addHaxeReferenceData(element, to, startOffset, qualifiedName, false, false);
-                }
-            } else if (resolve instanceof HaxeMethod method && method.isStatic()) {
-                FullyQualifiedInfo qualifiedInfo = method.getModel().getQualifiedInfo();
-
-                boolean isExtensionMethod = false;
-                if (element.getParent() instanceof HaxeCallExpression callExpression) {
-                    isExtensionMethod = callExpression.resolveIsStaticExtension();
-                }
-
-                if (qualifiedInfo != null) {
-                    String qualifiedName = qualifiedInfo.toString();
-                    addHaxeReferenceData(element, to, startOffset, qualifiedName, true, isExtensionMethod);
-                }
+    @Override
+    protected void addReferenceData(PsiFile file, int startOffset, List<PsiElement> elements,
+                                    ArrayList<HaxeReferenceData> to) {
+        HaxeImportCandidates candidates = HaxeImportCandidates.of((HaxeFile)file);
+        for (PsiElement element : elements) {
+            if (element instanceof HaxeReferenceExpression reference && candidates.mayNeedImport(reference)) {
+                addResolvedReference(startOffset, reference, to);
             }
         }
+    }
+
+    /** A class or static method the reference resolves to becomes a restorable import; anything else needs none. */
+    private void addResolvedReference(int startOffset, HaxeReferenceExpression reference,
+                                      ArrayList<HaxeReferenceData> to) {
+        switch (reference.resolve()) {
+            case HaxeClass haxeClass -> addClassReference(startOffset, reference, haxeClass, to);
+            case HaxeMethod method when method.isStatic() -> addStaticMethodReference(startOffset, reference, method, to);
+            case null, default -> {
+            }
+        }
+    }
+
+    private void addClassReference(int startOffset, HaxeReferenceExpression reference, HaxeClass haxeClass,
+                                   ArrayList<HaxeReferenceData> to) {
+        String qualifiedName = haxeClass.getQualifiedName();
+        if (qualifiedName == null) return;
+        addHaxeReferenceData(reference, to, startOffset, qualifiedName, false, false);
+    }
+
+    private void addStaticMethodReference(int startOffset, HaxeReferenceExpression reference, HaxeMethod method,
+                                          ArrayList<HaxeReferenceData> to) {
+        FullyQualifiedInfo qualifiedInfo = method.getModel().getQualifiedInfo();
+        if (qualifiedInfo == null) return;
+        boolean isExtensionMethod = reference.getParent() instanceof HaxeCallExpression callExpression
+                                    && callExpression.resolveIsStaticExtension();
+        addHaxeReferenceData(reference, to, startOffset, importPathOf(qualifiedInfo), true, isExtensionMethod);
+    }
+
+    /**
+     * The path an import names for a static member: package, module, the
+     * class only when it is not the module's main class, then the member.
+     * FullyQualifiedInfo.toString() prints module AND class even when they
+     * are the same name, which no import accepts.
+     */
+    private static String importPathOf(FullyQualifiedInfo info) {
+        List<String> parts = new ArrayList<>();
+        if (info.packageName != null && !info.packageName.isEmpty()) parts.add(info.packageName);
+        if (info.moduleName != null) parts.add(info.moduleName);
+        if (info.className != null && !info.className.equals(info.moduleName)) parts.add(info.className);
+        if (info.memberName != null) parts.add(info.memberName);
+        return String.join(".", parts);
     }
 
     private void addHaxeReferenceData(PsiElement element,
@@ -113,12 +142,13 @@ public class HaxeCopyPasteReferenceProcessor extends HaxeBaseCopyPasteReferenceP
         return referenceExpressions;
     }
 
-    // 2025.2 signature
-    protected void restoreReferences(HaxeReferenceData @NotNull [] referenceData, List<HaxeReferenceExpression> referenceExpressions, @NotNull Set<? super String> imported) {
+    @Override
+    protected void restoreReferences(HaxeReferenceData @NotNull [] referenceData,
+                                     HaxeReferenceExpression @NotNull [] referenceExpressions,
+                                     @NotNull Set<? super String> imported) {
         Set<QNameAndFile> importData = new HashSet<>();
-        for (int i = 0; i < referenceExpressions.size(); i++) {
-
-            HaxeReferenceExpression referenceExpression = referenceExpressions.get(i);
+        for (int i = 0; i < referenceExpressions.length; i++) {
+            HaxeReferenceExpression referenceExpression = referenceExpressions[i];
             ReferenceData referenceDatum = referenceData[i];
             if(referenceDatum instanceof  HaxeReferenceData haxeReferenceData) {
                 if (referenceExpression != null && referenceExpression.resolve() == null) {
@@ -150,13 +180,6 @@ public class HaxeCopyPasteReferenceProcessor extends HaxeBaseCopyPasteReferenceP
             }
         }
     }
-
-
-    // 2025.1 signature
-    protected void restoreReferences(HaxeReferenceData @NotNull [] referenceData, HaxeReferenceExpression @NotNull [] referenceExpressions, @NotNull Set<? super String> imported) {
-        restoreReferences(referenceData, Arrays.stream(referenceExpressions).toList(), imported);
-    }
-
 
     record QNameAndFile(String qname, PsiFile containingFile, boolean extensionMethod) {
     }

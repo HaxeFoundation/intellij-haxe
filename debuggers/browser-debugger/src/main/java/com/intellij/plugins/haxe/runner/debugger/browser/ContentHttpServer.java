@@ -141,7 +141,7 @@ public final class ContentHttpServer implements Closeable {
    *
    * <p>Costs one zombie: a worker paused at a breakpoint when the reload fires
    * is never terminated and lingers as an inert thread. Chromium is the
-   * recommended family for worker debugging - see the module README.
+   * recommended family for worker debugging.
    */
   public void refreshFirstPage(int seconds) {
     refreshOnceSeconds.set(seconds);

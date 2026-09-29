@@ -1,0 +1,15 @@
+<html>
+<body>
+Reports local variables that are never read. The quick fix removes the
+declaration.
+<p><b>Example:</b></p>
+<pre><code>
+function total(prices:Array&lt;Int&gt;):Int {
+    var discount = 10;   // never used
+    var sum = 0;
+    for (price in prices) sum += price;
+    return sum;
+}
+</code></pre>
+</body>
+</html>

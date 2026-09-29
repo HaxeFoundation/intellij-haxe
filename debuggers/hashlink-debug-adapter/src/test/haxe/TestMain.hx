@@ -1,10 +1,10 @@
 /**
 	Entry point of the Haxe-side adapter tests, run with `haxe test.hxml` (interpreter mode).
-	Exits non-zero when any assertion failed so the Gradle Exec task fails the build.
+	Exits non-zero when any assertion failed, so the Gradle Exec task fails the build.
 
-	To register a new suite, add ONE line to `suites` below (fully qualified,
-	no import needed). The context name shown on failures is derived from the
-	class name.
+	To register a new suite, add one line to `suites` below, with the class
+	fully qualified (no import needed). `name`, the class name by convention,
+	labels the suite's failures.
 **/
 class TestMain {
 	static function main():Void {
@@ -34,7 +34,6 @@ class TestMain {
 
 			// value decoding
 			{name: "RuntimeTypesTest", run: tests.debug.values.RuntimeTypesTest.run},
-			{name: "ValuePathTest", run: tests.debug.values.ValuePathTest.run},
 			{name: "ValueReaderTest", run: tests.debug.values.ValueReaderTest.run},
 			{name: "ValueChildrenTest", run: tests.debug.values.ValueChildrenTest.run},
 			{name: "MapReaderTest", run: tests.debug.values.MapReaderTest.run},
@@ -44,6 +43,7 @@ class TestMain {
 			{name: "OperatorsTest", run: tests.debug.eval.OperatorsTest.run},
 			{name: "X64CallEmitterTest", run: tests.debug.eval.call.X64CallEmitterTest.run},
 			{name: "X86CallEmitterTest", run: tests.debug.eval.call.X86CallEmitterTest.run},
+			{name: "EvalCallInjectorTest", run: tests.debug.session.EvalCallInjectorTest.run},
 		];
 
 		var assert = new Assert();

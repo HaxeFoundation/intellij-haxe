@@ -34,19 +34,21 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="glsl-support.xml">OpenGL-Plugin</depends>
   <depends optional="true" config-file="haxe-grazie.xml">tanvd.grazi</depends>
+  <!-- IU-only: the Profiler tool window integration (snapshot parsers, jump-to-source) -->
+  <depends optional="true" config-file="haxe-profiler-support.xml">com.intellij.modules.profiler</depends>
 
   <!-- Leave the '999' at the start of unreleased version numbers so that it's always newer than any released version. -->
   <version>DEV @plugin.dev.version@ for @plugin.compatibility.description@</version>
 
 
   <extensionPoints>
-    <extensionPoint dynamic="true" name="module.config"  interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
     <extensionPoint dynamic="true" name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="JavaScript">
     <JsonSchema.ProviderFactory implementation="com.intellij.plugins.haxe.buildsystem.haxelib.HaxelibJsonSchemaProviderFactory" />
-  </extensions>>
+    <JsonSchema.ProviderFactory implementation="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatJsonSchemaProviderFactory" />
+  </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
 
@@ -57,20 +59,17 @@
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
-    <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationHandler"/>
+    <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationProxy"/>
+    <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewGotoHandler"/>
+    <psi.referenceContributor language="Haxe" implementation="com.intellij.plugins.haxe.ide.references.HaxeStringLiteralReferenceContributor"/>
+    <defaultHighlightingSettingProvider implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewHighlightingSetting"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxePreCompilerTask"/>
+    <!-- HAXE_MODULE stays registered so legacy projects still open; the v1
+         module builder and settings tab are gone - v2 (plain modules + tool
+         window) is the only configuration surface -->
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
-    <moduleBuilder builderClass="com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder"/>
-    <moduleConfigurationEditorProvider implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
-    <projectStructureDetector implementation="com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
-    <projectOpenProcessor id="openOpenFlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenOpenFlProjectProcessor"/>
-    <projectOpenProcessor id="openLimeProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenLimeProjectProcessor"/>
-    <projectOpenProcessor id="openNMEProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenNMEProjectProcessor"/>
-    <projectOpenProcessor id="openHxmlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenHxmlProjectProcessor"/>
-    <projectImportBuilder implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeProjectImportBuilder"/>
     <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
@@ -98,6 +97,16 @@
         fieldName="INSTANCE"
         language="HXML"
         extensions="hxml"/>
+
+    <!-- hxp project scripts are Haxe source; SECONDARY type of the Haxe
+         language (the class supplies the language - the language attribute
+         must stay off here, it may only appear on the language's PRIMARY
+         file type, and the platform asserts on violations) -->
+    <fileType
+        name="HXP"
+        implementationClass="com.intellij.plugins.haxe.buildsystem.hxp.HxpFileType"
+        fieldName="INSTANCE"
+        extensions="hxp"/>
 
 
     <fileType
@@ -143,10 +152,16 @@
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.neko.NekoRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>
-    <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
-    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.FlashRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.FlashDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.AirRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.AirDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppRunner"/>
+    <programRunner  implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionRunner"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
     <!-- ONE exception breakpoint category shared by the HashLink and HXCPP
          debuggers (Java-style: a default "Any exception" with Notifications
@@ -156,6 +171,13 @@
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
+    <postFormatProcessor implementation="com.intellij.plugins.haxe.ide.formatter.HaxeConditionalPostFormatProcessor"/>
+    <postFormatProcessor implementation="com.intellij.plugins.haxe.ide.formatter.HaxeMultilineCommentPostFormatProcessor"/>
+    <postFormatProcessor implementation="com.intellij.plugins.haxe.ide.formatter.HaxeLineCommentPostFormatProcessor"/>
+    <codeStyleSettingsModifier implementation="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatSettingsModifier"/>
+    <schemeImporter name="hxformat.json (haxe-formatter)"
+                    schemeClass="com.intellij.psi.codeStyle.CodeStyleScheme"
+                    implementationClass="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatSchemeImporter"/>
     <lang.rearranger language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
     <lang.ast.factory language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
 
@@ -172,7 +194,7 @@
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
     <typedHandler implementation="com.intellij.plugins.haxe.ide.editor.HaxeTypedHandler" id="haxe"/>
 
-    <findUsagesHandlerFactory implementation="com.intellij.plugins.haxe.ide.HaxeFindUsagesHandlerFactory"/>
+    <findUsagesHandlerFactory implementation="com.intellij.plugins.haxe.ide.HaxeFindUsagesFactoryProxy"/>
     <lang.findUsagesProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider"/>
     <lang.implementationTextSelectioner language="Haxe"
                                         implementationClass="com.intellij.plugins.haxe.ide.HaxeImplementationTextSelectioner"/>
@@ -188,6 +210,7 @@
     <lang.surroundDescriptor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.surroundWith.HaxeSurroundDescriptor"/>
     <lang.refactoringSupport language="Haxe"
                              implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringSupportProvider"/>
+    <lang.namesValidator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeNamesValidator"/>
     <lang.foldingBuilder language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.folding.HaxeFoldingBuilder"/>
     <lang.importOptimizer language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeImportOptimizer"/>
 
@@ -198,13 +221,16 @@
 
     <enterHandlerDelegate implementation="com.intellij.plugins.haxe.ide.editor.HaxeDocumentationEnterHandler" order="first"/>
 
-    <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
 
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 
     <!-- This is "first" to ensure that it is used instead of the Java and default renamers. This is generally discouraged, but the
          pre-existing renamers will take over if they are found first, and our extensions won't be used. -->
     <renamePsiElementProcessor order="first" implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeRenameProcessor"/>
+    <renameHandler implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeConstructorCallInplaceRenameHandler"/>
+    <renameHandler implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxePropertyInplaceRenameHandler"/>
+    <automaticRenamerFactory implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxePropertyAccessorRenamerFactory"/>
+    <nameSuggestionProvider implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeNameSuggestionProvider"/>
     <!-- =============================================================================================== -->
 
     <statementUpDownMover implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeMoveDeclarationHandler" id="HaxeMoveDeclaration"/>
@@ -291,7 +317,6 @@
     <additionalTextAttributes scheme="Default" file="colorSchemes/HaxeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDarcula.xml"/>
 
-    <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
     <langCodeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeLanguageCodeStyleSettingsProvider"/>
 
     <breadcrumbsInfoProvider implementation="com.intellij.plugins.haxe.ide.editor.HaxeBreadcrumbsInfoProvider" id="Haxe"/>
@@ -302,12 +327,33 @@
     <extendWordSelectionHandler implementation="com.intellij.plugins.haxe.editor.actions.wordSelection.HaxeStringSelectioner" />
     <extendWordSelectionHandler implementation="com.intellij.plugins.haxe.editor.actions.wordSelection.HaxeCommentSelectioner" />
     <!-- Overriding default to allow completion on "$"-->
-    <typedHandler implementation="com.intellij.plugins.haxe.ide.completion.HaxeCompletionAutoPopupHandler" id="TestingAutopopup"/>
+    <typedHandler implementation="com.intellij.plugins.haxe.ide.completion.HaxeCompletionAutoPopupHandler"/>
+    <!-- String completion for FQN and files (but only when it makes sense) -->
+    <typedHandler implementation="com.intellij.plugins.haxe.ide.references.HaxeStringPathTypedHandler"/>
+    <typedHandler implementation="com.intellij.plugins.haxe.ide.references.HaxeStringQnameTypedHandler"/>
 
-    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.runner.debugger.HaxeSetValueCompletionConfidence" order="first"/>
+    <!-- explicit chain, most specific first: the Set Value guard decides its
+         fragment (and answers UNSURE everywhere else), then the string-link
+         policy decides ordinary string literals -->
+    <completion.confidence language="Haxe" id="haxeSetValueConfidence" implementationClass="com.intellij.plugins.haxe.runner.debugger.HaxeSetValueCompletionConfidence" order="first"/>
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.references.HaxeStringLinkCompletionConfidence" order="after haxeSetValueConfidence"/>
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeCommentCompletionConfidence"/>
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeLambdaCompletionConfidence"/>
 
-    <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.references.HaxeStringQnameCompletionContributor"/>
+
+    <completion.contributor id="DocFenceBlocker" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.injection.HaxeDocFenceCompletionBlocker" order="FIRST"/>
+    <completion.contributor id="DocTagCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeDocTagCompletionContributor" order="FIRST, after DocFenceBlocker"/>
+    <!-- compiler-only mode: answers from the compilation server and stops the chain before the IDE's contributors -->
+    <completion.contributor id="CompilerCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerCompletionContributor" order="FIRST, after DocTagCompletion, before ControllingCompletion"/>
+    <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST, after DocTagCompletion"/>
+    <!-- early so the expected values are in the lookup's first shown frame; late arrivals sort below frozen items -->
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeExpectedEnumValueCompletionContributor"/>
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeLambdaCompletionContributor"/>
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeDeclarationNameCompletionContributor"/>
     <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRuntimeCompletionContributor"/>
+    <!-- opt-in via compiler diagnostics: macro-generated members of the enclosing class -->
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeBlueprintCompletionContributor"/>
     <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
 
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetadataCompletionContributor" order="after ControllingCompletion"/>
@@ -329,24 +375,26 @@
 
     <weigher key="completion" implementationClass="com.intellij.plugins.haxe.ide.completion.weigher.HaxeLookupCompletionWeigher" id="Haxe"  />
 
-    <!-- Keep the compiler contributor last because it is slow compared to the internal stuff.
-         Don't use order="LAST" because that puts it after the default contributor, which puts up the "No Suggestions"
-         box, and we want compiler error messages to be displayed instead. -->
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeCompilerCompletionContributor"/>
-
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
+    <configurationType implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurationType"/>
+    <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunner"/>
+    <!-- before the DAP test runner: flash-family test configurations debug through fdb, not DAP -->
+    <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestFlashDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestDebugRunner"/>
+    <runLineMarkerContributor language="Haxe"
+                              implementationClass="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunLineMarkerContributor"/>
+    <runConfigurationProducer implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurationProducer"/>
 
     <moduleService serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
-    <statusBarWidgetFactory id="HaxeTargetWidget"
-                            implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
+    <internalFileTemplate name="Haxe Class"/>
+    <internalFileTemplate name="Haxe Interface"/>
+    <internalFileTemplate name="Haxe Enum"/>
+    <internalFileTemplate name="Haxe Abstract"/>
+    <internalFileTemplate name="Haxe Module"/>
+    <internalFileTemplate name="NMML Project File"/>
 
-    <internalFileTemplate name="HaxeClass"/>
-    <internalFileTemplate name="HaxeInterface"/>
-    <internalFileTemplate name="HaxeEnum"/>
-    <internalFileTemplate name="HaxeAbstract"/>
-    <internalFileTemplate name="HaxeModule"/>
-    <internalFileTemplate name="NMMLProjectFile"/>
+    <fileTemplateGroup implementation="com.intellij.plugins.haxe.v2.wizard.HaxeProjectTemplatesFactory"/>
 
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeArrayVariableMacro"/>
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestIndexNameMacro"/>
@@ -412,6 +460,7 @@
     <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoMethodSymbolContributor"/>
 
     <definitionsScopedSearch implementation="com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsSearcher"/>
+    <definitionsScopedSearch implementation="com.intellij.plugins.haxe.ide.HaxeExternImplementationSearcher"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
@@ -423,14 +472,9 @@
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheService"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeUntypedParameterBindingCache"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSettings"/>
-
-    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
-                         parentId="build"
-                         id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
-                         key="haxe.settings.name" bundle="messages.HaxeBundle"
-                         nonDefaultProject="true" />
 
     <!-- parentId is the Debugger node's LEGACY configurable id (verified in
          the platform's DebuggerConfigurable), NOT "debugger" - an unknown
@@ -441,6 +485,64 @@
                          key="haxe.debugger.settings.display.name" bundle="messages.HaxeDebuggerBundle"
                          nonDefaultProject="true" />
 
+    <!-- V2 build system: compiler settings (Settings | Build, Execution, Deployment | Compiler | Haxe Compiler) -->
+    <projectService serviceInterface="com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings"
+                    serviceImplementation="com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerProjectSettings"/>
+
+    <projectConfigurable instance="com.intellij.plugins.haxe.v2.compiler.settings.ui.HaxeCompilerConfigurable"
+                         parentId="project.propCompiler"
+                         id="settings.haxe.compiler"
+                         key="haxe.compiler.configurable.name" bundle="messages.HaxeBundle"
+                         nonDefaultProject="true"/>
+
+
+    <!-- V2 build system: build tool settings (Settings | Build, Execution, Deployment | Build Tools | Haxe) -->
+    <projectService serviceInterface="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings"
+                    serviceImplementation="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolProjectSettings"/>
+    <!-- the v2 settings stores are @Service light services - no registration entries -->
+
+
+    <!-- V2 build system: "Haxe" entry in the New Project / New Module wizard, creating plain modules -->
+    <newProjectWizard.languageGenerator implementation="com.intellij.plugins.haxe.v2.wizard.HaxeNewProjectWizard"/>
+    <moduleBuilder builderClass="com.intellij.plugins.haxe.v2.wizard.HaxeProjectGeneratorBuilder"/>
+    <projectConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeBuildToolsConfigurable"
+                         parentId="build.tools"
+                         id="settings.haxe.build.tools"
+                         key="haxe.build.tools.configurable.name" bundle="messages.HaxeBundle"
+                         nonDefaultProject="true"/>
+
+    <!-- Settings | Languages & Frameworks | Haxe | Frameworks | Lime/OpenFL/NME:
+         the configurable target lists (application-level - targets describe
+         the machine's toolchains). The two group pages carry no UI. -->
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$HaxeRoot"
+                             parentId="language"
+                             id="settings.haxe"
+                             key="haxe.settings.root.name" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.ide.documentation.settings.HaxeDocSettingsConfigurable"
+                             parentId="settings.haxe"
+                             id="settings.haxe.docs"
+                             key="haxe.settings.docs.name" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.ide.conditional.settings.HaxeConditionalCompilationSettingsConfigurable"
+                             parentId="settings.haxe"
+                             id="settings.haxe.cc"
+                             key="haxe.settings.cc.name" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$Frameworks"
+                             parentId="settings.haxe"
+                             id="settings.haxe.frameworks"
+                             key="haxe.settings.frameworks.name" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$LimeTargets"
+                             parentId="settings.haxe.frameworks"
+                             id="settings.haxe.frameworks.lime"
+                             key="haxe.frameworks.targets.lime" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$OpenflTargets"
+                             parentId="settings.haxe.frameworks"
+                             id="settings.haxe.frameworks.openfl"
+                             key="haxe.frameworks.targets.openfl" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$NmeTargets"
+                             parentId="settings.haxe.frameworks"
+                             id="settings.haxe.frameworks.nme"
+                             key="haxe.frameworks.targets.nme" bundle="messages.HaxeBundle"/>
+
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
     <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
 
@@ -449,28 +551,35 @@
     <annotator language="Haxe" id="fastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeFastColorAnnotator" order="first"/>
     <annotator language="Haxe" id="xmlFastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeXmlFastColorAnnotator" order="after fastColor before slowColor"/>
     <annotator language="Haxe" id="slowColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeSlowColorAnnotator" order="after fastColor"/>
-    <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="after slowColor"/>
     <annotator language="Haxe" id="invalidEscape" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInvalidEscapeAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="docMarkup" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeDocMarkupAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="inactiveDim" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="conditionalDiagnostic" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeConditionalDiagnosticAnnotator"/>
+    <!-- metadata is its own PSI language; without this registration dead @:meta
+         stays uncolored (its lexer-layer yellow only exists in active code) -->
+    <annotator language="HaxeMetadata" id="inactiveDimMeta" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator"/>
+    <multiHostInjector implementation="com.intellij.plugins.haxe.ide.injection.HaxeDocFenceInjector"/>
+    <highlightErrorFilter implementation="com.intellij.plugins.haxe.ide.injection.HaxeExemptCodeErrorFilter"/>
+    <lang.inspectionSuppressor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.injection.HaxeStaticAnalysisSuppressor"/>
+
+    <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeDocCommentManipulator"/>
+    <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.impl.HaxeStringLiteralImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeStringLiteralManipulator"/>
+
+    <annotator language="Haxe" id="stringLink" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeStringLinkColorAnnotator" order="after slowColor"/>
 
     <annotator language="HXML" id="hxmlFastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeHxmlFastColorAnnotator" order="first"/>
 
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeLocalVarAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeFieldAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeTypeAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAbstractClassAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeClassAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeIsTypeExpressionAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAssignExpressionAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxePackageAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeTypeCheckExprAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeBinaryExpressionAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeUnaryExpressionAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeDefaultTypeParameterAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeNullCoalescingAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeLanguageFeatureAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAccessAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeReturnStatementAnnotator"/>
 
@@ -478,24 +587,143 @@
 
     <annotator language="Haxe" id="body" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodBodyAnnotator" order="last"/>
 
-    <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
+    <!-- opt-in (Haxe Compiler settings): problems from the compilation server's display/diagnostics.
+         Each annotator pairs with a batch inspection below so Inspect Code runs it and files its
+         findings under the Haxe group. -->
+    <externalAnnotator language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsAnnotator"/>
+    <externalAnnotator language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerUnusedImportAnnotator"/>
+    <externalAnnotator language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerRemovableCodeAnnotator"/>
+    <localInspection language="Haxe" shortName="HaxeCompilerDiagnostics" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.compiler.diagnostics.name"
+                     groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsBatchInspections$Errors"/>
+    <localInspection language="Haxe" shortName="HaxeCompilerUnusedImport" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.compiler.unused.import.name"
+                     groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsBatchInspections$UnusedImport"/>
+    <localInspection language="Haxe" shortName="HaxeCompilerRemovableCode" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.compiler.removable.code.name"
+                     groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsBatchInspections$RemovableCode"/>
 
-    <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
+    <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
+    <!-- opts haxe files into problem-file tracking (wavy file names in the Project view) -->
+    <problemFileHighlightFilter implementation="com.intellij.plugins.haxe.ide.HaxeProblemFileHighlightFilter"/>
+
+    <!-- Semantic inspections: per-check tools with profile toggles and severities -->
+    <localInspection language="Haxe" shortName="HaxeDuplicateClassModifier" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.duplicate.class.modifier.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.duplicates.HaxeDuplicateClassModifierInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeDuplicateField" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.duplicated.field.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.duplicates.HaxeDuplicateFieldInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeFieldRedefinition" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.field.redefinition.inspection.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeFieldRedefinitionInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeFinalFieldIsInitialized" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.final.field.is.initialized.inspection.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxeFinalFieldIsInitializedInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeInheritedInterfaceMethodSignature" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.inherited.interface.method.signature.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeInheritedInterfaceMethodSignatureInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeInterfaceMethodSignature" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.interface.methods.signature.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeInterfaceMethodSignatureInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeInvalidTypeName" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.type.name.casing.name"
+                     groupPath="Haxe" groupKey="inspections.group.naming.conventions" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.style.HaxeInvalidTypeNameInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeMethodOverride" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.method.override.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeMethodOverrideInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeMethodSignatureCompatibility" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.method.signature.compatibility.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeMethodSignatureCompatibilityInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeMissingInterfaceMethod" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.missing.interface.methods.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeMissingInterfaceMethodInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeMissingTypeTagOnExternAndInterface" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.missing.type.tag.on.extern.or.interface.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxeMissingTypeTagOnExternAndInterfaceInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeParameterInitializerType" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.parameter.initializer.type.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxeParameterInitializerTypeInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeParameterNameDuplicated" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.parameter.name.duplicated.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.duplicates.HaxeParameterNameDuplicatedInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxePropertyAccessorExistence" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.property.accessor.existence.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxePropertyAccessorExistenceInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxePropertyAccessorValid" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.property.accessor.valid.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxePropertyAccessorValidInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxePropertyCannotBeFinal" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.property.cannot.be.final.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxePropertyCannotBeFinalInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxePropertyIsNotARealVariable" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.property.is.not.a.real.variable.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.members.HaxePropertyIsNotARealVariableInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeSuperclassTypeCompatibility" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.superclass.type.compatibility.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeSuperclassTypeCompatibilityInspection"
+                     level="ERROR"/>
+
+    <localInspection language="Haxe" shortName="HaxeSuperInterfaceTypeCompatibility" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.superinterface.type.compatibility.name"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.hierarchy.HaxeSuperInterfaceTypeCompatibilityInspection"
+                     level="ERROR"/>
 
     <spellchecker.support language="Haxe" implementationClass="com.intellij.plugins.haxe.spellchecker.HaxeSpellcheckingStrategy"/>
 
-<!--
-    <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="messages.HaxeBundle"
-                     groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
-                     key="haxe.inspections.semantic.annotator.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension$SemanticAnnotator"/>
-
-    <localInspection language="Haxe" bundle="messages.HaxeBundle" enabledByDefault="true"
-                     groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
-                     key="haxe.inspections.incompatible.type.checks.name"
-                     shortName="IncompatibleTypeChecks"
-                     implementationClass="com.intellij.plugins.haxe.ide.annotator.TypeCheckExpressionChecker$IncompatibleTypeChecks"/>
--->
 
     <localInspection language="XML" shortName="NMEBuildDirectory" bundle="messages.HaxeBundle"
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
@@ -503,42 +731,91 @@
 
     <localInspection language="Haxe" shortName="HaxeUnusedImport" bundle="messages.HaxeBundle"
                      key="haxe.inspection.unused.import.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection"/>
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedImportInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeUnusedVariable" bundle="messages.HaxeBundle"
                      key="haxe.inspections.unused.var.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedLocalVarInspection"/>
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedLocalVarInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeUnusedField" bundle="messages.HaxeBundle"
                      key="haxe.inspections.unused.field.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedFieldInspection"/>
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedFieldInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeUnusedMethod" bundle="messages.HaxeBundle"
                      key="haxe.inspections.unused.method.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedMethodInspection"/>
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedMethodInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeUnusedFunction" bundle="messages.HaxeBundle"
                      key="haxe.inspections.unused.function.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedFunctionInspection"/>
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedFunctionInspection"/>
+
+    <!-- Semantic inspections: metadata lives here, the check logic in the
+         inspection classes under ide.inspections -->
+    <localInspection language="Haxe" shortName="HaxeAssignmentTypeCompatibility" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.assignment.type.compatibility.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.typing.HaxeAssignmentTypeCompatibilityInspection"/>
+    <localInspection language="Haxe" shortName="HaxeIncompatibleInitialization" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.incompatible.initialization.inspection.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.typing.HaxeIncompatibleInitializationInspection"/>
+    <localInspection language="Haxe" shortName="HaxeIncompatibleTypeChecks" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.incompatible.type.checks.inspection.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.typing.HaxeIncompatibleTypeChecksInspection"/>
+    <localInspection language="Haxe" shortName="HaxeIsTypeExpression" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.is.type.expression.inspection.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.operators.HaxeIsTypeExpressionInspection"/>
+    <localInspection language="Haxe" shortName="HaxeBinaryOperatorApplicability" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.binary.operator.applicability.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.operators.HaxeBinaryOperatorApplicabilityInspection"/>
+    <localInspection language="Haxe" shortName="HaxeUnaryOperatorApplicability" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unary.operator.applicability.name"
+                     groupPath="Haxe" groupKey="inspections.group.type.compatibility" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.operators.HaxeUnaryOperatorApplicabilityInspection"/>
+    <localInspection language="Haxe" shortName="HaxePackageName" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.package.name.name"
+                     groupPath="Haxe" groupKey="inspections.group.naming.conventions" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.style.HaxePackageNameInspection"/>
+    <localInspection language="Haxe" shortName="HaxeStringInterpolationQuote" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.string.interpolation.quote.name"
+                     groupPath="Haxe" groupKey="inspections.group.probable.bugs" enabledByDefault="true"
+                     level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.style.HaxeStringInterpolationQuoteInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeUnresolvedType" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unresolved.type.name"
+                     groupPath="Haxe" groupKey="inspections.group.probable.bugs" enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedTypeInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeUnresolvedSymbol" bundle="messages.HaxeBundle"
                      key="haxe.inspection.unresolved.symbol"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
+                     groupPath="Haxe" groupKey="inspections.group.probable.bugs" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedSymbolInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="messages.HaxeBundle"
                      key="haxe.inspection.deprecated.symbol"
-                     groupKey="inspections.group.name" enabledByDefault="true"
+                     groupPath="Haxe" groupKey="inspections.group.code.maturity" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeDeprecatedInspection"/>
 
     <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="messages.HaxeBundle"
                      key="haxe.inspection.preprocessor.symbol.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
+                     groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>
 
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
@@ -549,6 +826,7 @@
     <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
 
     <consoleFilterProvider implementation="com.intellij.plugins.haxe.execution.console.HaxeConsoleFilterProvider"/>
+    <exceptionFilter implementation="com.intellij.plugins.haxe.execution.console.HaxeExceptionFilterFactory"/>
 
     <intentionAction>
       <language>Haxe</language>
@@ -629,16 +907,42 @@
     <toolWindow id="Haxelib"
                 anchor="bottom"
                 canCloseContents="true"
+                icon="icons.HaxeIcons.HAXE_LOGO_GRAY_13"
                 factoryClass="com.intellij.plugins.haxe.ide.toolWindow.HaxelibConsoleWindowFactory"/>
+
+    <!-- V2 build system: Gradle/Maven-style Haxe tool window -->
+    <toolWindow id="Haxe"
+                anchor="right"
+                icon="icons.HaxeIcons.HAXE_LOGO_GRAY_13"
+                factoryClass="com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowFactory"/>
+
+    <!-- V2 build system: compilation server stdio console -->
+    <toolWindow id="Haxe Compilation Server"
+                anchor="bottom"
+                canCloseContents="true"
+                icon="icons.HaxeIcons.HAXE_LOGO_GRAY_13"
+                factoryClass="com.intellij.plugins.haxe.v2.toolwindow.HaxeServerConsoleWindowFactory"/>
+
+    <!-- V2 build system: Build Project / Build Module delegates to configured build commands -->
+    <projectTaskRunner implementation="com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTaskRunner"/>
+
+    <!-- V2 build system: "Run Haxe action" before-launch step (compiles before run/debug) -->
+    <stepsBeforeRunProvider implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider"/>
 
     <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"
                              id="haxe"
                              order="first, before kotlin, before java"/>
 
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibProjectStartActivity"/>
+    <postStartupActivity implementation="com.intellij.plugins.haxe.v2.HaxeV2ProjectActivity"/>
+    <postStartupActivity implementation="com.intellij.plugins.haxe.v2.migration.HaxeV1MigrationStartup"/>
 
     <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
-    <notificationGroup id="haxe.build.process" displayType="STICKY_BALLOON" bundle="messages.HaxeBundle" key="haxe.build.process.notification.group"/>
+    <notificationGroup id="haxe.command" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.command.notification.group"/>
+    <notificationGroup id="haxe.compiler" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.compiler.notification.group"/>
+    <notificationGroup id="haxe.debugger.legacy" displayType="BALLOON" bundle="messages.HaxeDebuggerBundle" key="legacy.hxcpp.notification.group"/>
+    <notificationGroup id="haxe.v1.migration" displayType="STICKY_BALLOON" bundle="messages.HaxeProjectBundle" key="haxe.v1.migration.group"/>
+    <notificationGroup id="haxe.profiler" displayType="BALLOON" bundle="messages.HaxeProfilerBundle" key="haxe.profiler.notification.group"/>
 
 
     <vfs.asyncListener implementation="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"/>
@@ -654,10 +958,12 @@
   <projectListeners>
     <listener class="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
-<!--    <listener class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"-->
-<!--              topic="com.intellij.openapi.vfs.VirtualFileListener"/>-->
-<!--    <listener class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"-->
-<!--              topic="com.intellij.psi.PsiTreeChangeListener"/>-->
+    <listener class="com.intellij.plugins.haxe.v2.display.HaxeDisplayCacheInvalidator"
+              topic="com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
+              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
+              topic="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener"/>
 
   </projectListeners>
 
@@ -672,6 +978,28 @@
             text="NMML file" description="Create new NMML file">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
     </action>
+    <action id="Haxe.RegisterBuildFile" class="com.intellij.plugins.haxe.v2.toolwindow.actions.HaxeRegisterBuildFileAction"
+            text="Add as Haxe Build File" description="Register this file as a Haxe build file of a module">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
+    <action id="Haxe.UseFormattingRules" class="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatUseAsRulesAction"
+            text="Use as Haxe Formatting Rules"
+            description="Use this hxformat.json for files that have no config of their own above them">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </action>
+    <group id="Haxe.ToolsEditorPopup" class="com.intellij.plugins.haxe.v2.tools.HaxeToolsEditorGroup"
+           text="Haxe Tools" popup="true">
+      <action id="Haxe.Tools.FormatFile" class="com.intellij.plugins.haxe.v2.tools.HaxeFormatFileAction"
+              text="Format File" description="Format this file with the formatter haxelib"/>
+      <action id="Haxe.Tools.CheckFileFormatting" class="com.intellij.plugins.haxe.v2.tools.HaxeCheckFileFormattingAction"
+              text="Check Formatting" description="Check this file's formatting without changing it"/>
+      <action id="Haxe.Tools.ShowFormattingDiff" class="com.intellij.plugins.haxe.v2.tools.HaxeShowFormattingDiffAction"
+              text="Show Formatting Diff" description="Diff this file against the formatter's output without changing it"/>
+      <action id="Haxe.Tools.RunCheckstyleFile" class="com.intellij.plugins.haxe.v2.tools.HaxeRunCheckstyleFileAction"
+              text="Run Checkstyle" description="Lint this file with the checkstyle haxelib"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </group>
     <action id="Generate.Constructor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateConstructorAction"
             text="Constructor">
       <add-to-group anchor="first" group-id="GenerateGroup"/>
@@ -690,43 +1018,8 @@
     </action>
 
 
-    <action id="Haxe.project.openfl.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsOpenFlProjectAction"
-            text="Load As Project"
-            icon="HaxeIcons.OPENFL_LOGO">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-    </action>
-
-    <action id="Haxe.project.nme.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsNmeProjectAction"
-            text="Load As Project"
-            icon="HaxeIcons.NMML_LOGO">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-    </action>
-
-    <action id="Haxe.project.hxml.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsHxmlProjectAction"
-            text="Load As Project"
-            icon="HaxeIcons.HAXE_LOGO">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-    </action>
-
-    <action id="Haxe.project.sync-libs" class="com.intellij.plugins.haxe.ide.actions.haxelib.SyncProjectLibraryListAction"
-            text="Reload Haxe Project"
-            description="Reloads project and imports all libraries"
-            icon="AllIcons.Actions.Refresh">
-    </action>
-
-    <action id="Haxe.haxlib.update-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.UpdateHaxeLibCacheAction"
-            text="Purge Haxelib Cache"
-            description="Removes all cached haxelib values"
-            icon="AllIcons.Actions.Refresh">
-    </action>
 
 
-    <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe" class="com.intellij.plugins.haxe.ide.actions.haxelib.HaxeActionGroup">
-      <reference ref="Haxe.project.sync-libs"/>
-      <reference ref="Haxe.haxlib.update-cache"/>
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-      <add-to-group group-id="EditorPopupMenu"/>
-    </group>
 
   </actions>
 </idea-plugin>

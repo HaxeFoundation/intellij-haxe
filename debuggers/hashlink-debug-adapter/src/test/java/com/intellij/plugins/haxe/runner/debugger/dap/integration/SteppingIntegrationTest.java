@@ -9,11 +9,25 @@ import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Drives step over / into / out against a real HashLink debug session, one step
  * kind per test. Every test starts stopped at the loop breakpoint in main, where
  * the next statement is the call to add().
+ *
+ * Closure step-in has two resolution paths, exercised as the two rows of the
+ * parameterized closure tests. STATIC: `var fn = grab; fn()`
+ * (FIXTURE_CLOSURE_CALL_LINE) — the callee exists only at runtime (OCallClosure
+ * has no static findex), so step-into resolves the closure register's vclosure
+ * `fun` pointer at the stop and plants the entry temp there; without that, the
+ * step degraded to a step-over (user-reported). DEFERRED: `callbacks[idx]()`
+ * (FIXTURE_CLOSURE_REAL_ARRAY_LINE) — a REAL array (runtime index, not
+ * analyzer-folded): the closure register is loaded BY the array access on the
+ * same line, so it is EMPTY at the stop and cannot be resolved up front; the
+ * step traps the call op itself, resolves the operand there, and runs on into
+ * the callee (user-reported after the plain closure fix).
  */
 @DisplayName("HashLink debugger: stepping (integration)")
 public class SteppingIntegrationTest extends DapIntegrationTestBase {
@@ -34,15 +48,13 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  @Test
-  @DisplayName("step into enters a closure callee")
-  public void stepIntoEntersAClosureCallee() throws Exception {
-    // `var fn = grab; fn()` — the callee exists only at RUNTIME (OCallClosure
-    // has no static findex). Step-into resolves the closure register's
-    // vclosure `fun` pointer at the stop and plants the entry temp there;
-    // without that, the step degraded to a step-over (user-reported).
-    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_CALL_LINE);
-    assertTrue(topFrameName(atCall.getBody().getThreadId()).endsWith("Holder.new"), "stopped in the constructor");
+  @ParameterizedTest(name = "call line {0}")
+  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
+  @DisplayName("step into enters the closure callee")
+  public void stepIntoEntersTheClosureCallee(int callLine) throws Exception {
+    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, callLine);
+    int atCallLine = stackTrace(atCall.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine();
+    assertEquals(callLine, atCallLine, "stopped on the closure call line");
 
     assertTrue(request(stepInRequest(atCall.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();
@@ -54,54 +66,14 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  @Test
-  @DisplayName("step into enters a closure from array access")
-  public void stepIntoEntersAClosureFromArrayAccess() throws Exception {
-    // `callbacks[idx]()` — a REAL array (runtime index, not analyzer-folded):
-    // the closure register is loaded BY the array access on the same line, so
-    // it is EMPTY at the stop and cannot be resolved up front. The step traps
-    // the call op itself, resolves the operand there, and runs on into the
-    // callee (user-reported after the plain closure fix).
-    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
-    int atCallLine = stackTrace(atCall.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine();
-    assertEquals(FIXTURE_CLOSURE_REAL_ARRAY_LINE, atCallLine, "stopped on the array-access call line");
-
-    assertTrue(request(stepInRequest(atCall.getBody().getThreadId())).isSuccess(), "stepIn accepted");
-    StoppedEvent inGrab = awaitStopped();
-
-    assertEquals("step", inGrab.getBody().getReason());
-    String frame = topFrameName(inGrab.getBody().getThreadId());
-    assertTrue(frame.endsWith("grab"), "stepped into the array element's target grab (was " + frame + ")");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("stepping inside a closure entered callee stays inside")
-  public void steppingInsideAClosureEnteredCalleeStaysInside() throws Exception {
+  @ParameterizedTest(name = "call line {0}")
+  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
+  @DisplayName("stepping inside the closure entered callee stays inside")
+  public void steppingInsideTheClosureEnteredCalleeStaysInside(int callLine) throws Exception {
     // user-reported: after ENTERING a closure-called function, the very next
     // step jumped back out to the caller (and the caller position skipped a
     // line) instead of advancing to the callee's second line
-    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_CALL_LINE);
-    int threadId = atCall.getBody().getThreadId();
-    assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn accepted");
-    StoppedEvent inGrab = awaitStopped();
-    assertEquals(FIXTURE_CLOSURE_BODY_LINE, stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine(), "landed on grab's first line");
-
-    assertTrue(request(nextRequest(inGrab.getBody().getThreadId())).isSuccess(), "next accepted");
-    StoppedEvent second = awaitStopped();
-    var frame = stackTrace(second.getBody().getThreadId()).getBody().getStackFrames().get(0);
-    assertTrue(frame.getName().endsWith("grab"), "still inside grab (was " + frame.getName() + " line " + frame.getLine() + ")");
-    assertEquals(FIXTURE_CLOSURE_BODY_LINE2, frame.getLine(), "advanced to grab's second line");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("stepping inside an array closure entered callee stays inside")
-  public void steppingInsideAnArrayClosureEnteredCalleeStaysInside() throws Exception {
-    // same, entered through the DEFERRED path (callbacks[idx]())
-    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
+    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, callLine);
     int threadId = atCall.getBody().getThreadId();
     assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();

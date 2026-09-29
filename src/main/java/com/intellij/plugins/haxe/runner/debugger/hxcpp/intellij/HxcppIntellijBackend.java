@@ -3,11 +3,19 @@ package com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapBackend;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapSourceResolver;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapSourceScopes;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions;
+import com.intellij.openapi.project.Project;
+import com.intellij.xdebugger.XSourcePosition;
+import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.List;
 
 /**
  * Backend for the debuggee's embedded {@code intellij-hxcpp-debug-server}: the
@@ -25,10 +33,30 @@ public class HxcppIntellijBackend implements DapBackend {
 
   private final ServerSocket listener;
   private final int acceptTimeoutMillis;
+  private final List<String> sourceDirectories;
 
-  public HxcppIntellijBackend(int acceptTimeoutMillis) throws IOException {
+  /**
+   * With the build's source directories (absolute, VFS separators): the
+   * server matches breakpoint files by their compile-time relative names, so
+   * without a scope every same-named file in the IDE project is offered too —
+   * and since setBreakpoints REPLACES a file's whole set, the sibling
+   * project's same-named file then clobbers the real file's breakpoints. An
+   * empty list disables the scoping.
+   */
+  public HxcppIntellijBackend(int acceptTimeoutMillis, List<String> sourceDirectories) throws IOException {
     this.listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     this.acceptTimeoutMillis = acceptTimeoutMillis;
+    this.sourceDirectories = List.copyOf(sourceDirectories);
+  }
+
+  @Override
+  public boolean acceptsBreakpointFile(String vfsPath) {
+    return DapSourceScopes.acceptsWhenScoped(vfsPath, sourceDirectories);
+  }
+
+  @Override
+  public @Nullable XSourcePosition resolveSource(Project project, @Nullable String path, StackFrame frame) {
+    return DapSourceResolver.resolve(project, path, frame.getLine(), sourceDirectories);
   }
 
   /** The host the spawned debuggee should connect to (loopback). */
@@ -50,7 +78,7 @@ public class HxcppIntellijBackend implements DapBackend {
     } catch (SocketTimeoutException e) {
       throw new IOException("the program did not connect to the debugger within "
                             + (acceptTimeoutMillis / 1000) + "s — was it compiled with -debug and "
-                            + "-lib intellij-hxcpp-debug-server?");
+                            + "-lib " + HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB + "?");
     }
   }
 
@@ -76,7 +104,7 @@ public class HxcppIntellijBackend implements DapBackend {
 
   @Override
   public String startupHint() {
-    return "Check that it was compiled with -debug and -lib intellij-hxcpp-debug-server.";
+    return "Check that it was compiled with -debug and -lib " + HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB + ".";
   }
 
   @Override

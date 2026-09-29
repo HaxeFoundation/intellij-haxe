@@ -1,0 +1,4 @@
+-js game.js
+--next compile-neko.hxml
+--next sub/other.hxml
+--next com.company.Main

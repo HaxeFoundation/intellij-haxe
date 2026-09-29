@@ -1,14 +1,8 @@
 package com.intellij.plugins.haxe.ide.actions.editor.copypaste;
 
+import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.codeInsight.editorActions.CopyPastePostProcessor;
 import com.intellij.codeInsight.editorActions.ReferenceCopyPasteProcessor;
-import com.intellij.plugins.haxe.editor.HaxeRestoreReferencesDialog;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.psi.PsiElement;
-import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
-
-import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
@@ -28,10 +22,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.Ref;
+import com.intellij.plugins.haxe.editor.HaxeRestoreReferencesDialog;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.ui.LightweightHint;
 import com.intellij.util.ArrayUtil;
+import lombok.CustomLog;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
@@ -42,7 +40,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  *  Mostly a Copy of jetbrains com.intellij.codeInsight.editorActions.CopyPasteReferenceProcessor but with Haxe specific types
@@ -66,9 +63,8 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
         int refOffset = 0; // this is an offset delta for conversion from absolute offset to an offset inside clipboard contents
         for (int j = 0; j < startOffsets.length; j++) {
             refOffset += startOffsets[j];
-            for (PsiElement element : CollectHighlightsUtil.getElementsInRange(file, startOffsets[j], endOffsets[j])) {
-                addReferenceData(file, refOffset, element, array);
-            }
+            List<PsiElement> elements = CollectHighlightsUtil.getElementsInRange(file, startOffsets[j], endOffsets[j]);
+            addReferenceData(file, refOffset, elements, array);
             refOffset -= endOffsets[j] + 1; // 1 accounts for line break inserted between contents corresponding to different carets
         }
 
@@ -79,7 +75,9 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
         return Collections.singletonList(new HaxeReferenceTransferableData(array.toArray(new HaxeReferenceData[0])));
     }
 
-    protected abstract void addReferenceData(PsiFile file, int startOffset, PsiElement element, ArrayList<HaxeReferenceData> to);
+    /** Records the import-relevant references among one copied range's elements; called once per caret range. */
+    protected abstract void addReferenceData(PsiFile file, int startOffset, List<PsiElement> elements,
+                                             ArrayList<HaxeReferenceData> to);
 
     @Override
     public @NotNull List<HaxeReferenceTransferableData> extractTransferableData(@NotNull Transferable content) {
@@ -149,12 +147,11 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
     private void reviewImports(@NotNull Project project, @NotNull PsiFile file, @NotNull Set<String> importedClasses) {
         HaxeRestoreReferencesDialog dialog = new HaxeRestoreReferencesDialog(project, importedClasses.toArray(String[]::new));
         dialog.setTitle(JavaBundle.message("dialog.import.on.paste.title3"));
-//        dialog.setExplanation(JavaBundle.message("dialog.paste.on.import.text3"));
         if (dialog.showAndGet()) {
-            Object[] selectedElements = dialog.getSelectedElements();
-            if (selectedElements.length > 0) {
+            List<String> selectedElements = dialog.getSelectedElements();
+            if (!selectedElements.isEmpty()) {
                 WriteCommandAction.runWriteCommandAction(project, "", null, () ->
-                        removeImports(file, Arrays.stream(selectedElements).map(o -> (String)o).collect(Collectors.toSet())));
+                        removeImports(file, new HashSet<>(selectedElements)));
             }
         }
     }
@@ -203,7 +200,7 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
         String[] strings = Arrays.stream(selectedObjects).map(Object::toString).toArray(String[]::new);
         HaxeRestoreReferencesDialog dialog = new HaxeRestoreReferencesDialog(project, strings);
         dialog.show();
-        selectedObjects = dialog.getSelectedElements();
+        selectedObjects = dialog.getSelectedElements().toArray();
 
         for (int i = 0; i < referenceData.length; i++) {
             PsiElement ref = refs[i];

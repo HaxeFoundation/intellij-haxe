@@ -1,0 +1,16 @@
+<html>
+<body>
+Reports fields that redefine a field of a superclass, which the compiler
+rejects. Static shadowing and classes built by macros (where the parent field
+may be generated) are reported as weak warnings instead.
+<p><b>Example:</b></p>
+<pre><code>
+class Base {
+    var name:String = "";
+}
+class Child extends Base {
+    var name:String = "";   // redefines Base.name
+}
+</code></pre>
+</body>
+</html>

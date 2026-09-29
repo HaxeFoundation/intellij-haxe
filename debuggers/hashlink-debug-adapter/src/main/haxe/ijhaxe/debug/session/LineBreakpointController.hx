@@ -7,13 +7,12 @@ import ijhaxe.debug.breakpoints.PatchedBreakpoint;
 import ijhaxe.debug.breakpoints.RequestedBreakpoint;
 
 /**
-	Source line breakpoints: resolving and installing setBreakpoints requests,
-	keeping the currently-stopped-on breakpoint reconciled across re-installs,
-	handling user-breakpoint trap hits and evaluating breakpoint conditions.
+	Source line breakpoints: resolves and installs setBreakpoints requests, keeps
+	the breakpoint a stop is on consistent across re-installs, and handles hits
+	on user breakpoints, including their conditions.
 
-	A friend of DebugSession (@:access): it drives the session's trap machinery
-	(pause-for-memory-write, enterStopped, resumePastSuppressedTrap); the
-	session routes setBreakpoints commands and user-breakpoint trap hits here.
+	A friend of DebugSession (see there): it uses the session's trap machinery
+	(pauseForMemoryWrite, enterStopped, resumePastSuppressedTrap).
 **/
 @:access(ijhaxe.debug.session.DebugSession)
 class LineBreakpointController {
@@ -25,7 +24,7 @@ class LineBreakpointController {
 
 	public function handleSetBreakpoints(requestSeq:Int, sourceKey:String, sourcePath:String, requested:Array<RequestedBreakpoint>, isReverify:Bool):Void {
 		if (session.module == null) {
-			// not launched yet; cannot resolve. Should not happen (dispatcher buffers), but stay safe.
+			// not launched, so nothing can be resolved; the dispatcher holds requests until launch
 			var pending = [for (r in requested) BreakpointPlanner.unresolved(r, sourcePath)];
 			emitBreakpointResults(requestSeq, pending, isReverify);
 			return;
@@ -35,27 +34,24 @@ class LineBreakpointController {
 
 		// a running debuggee has to be stopped before its memory can be written
 		var wasRunning = switch (session.state) { case Running: true; default: false; };
-		if (wasRunning) {
-			session.pauseForMemoryWrite();
-		}
+		var pausedForWrite = wasRunning && session.pauseForMemoryWrite();
 		session.breakpoints.setForSource(sourceKey, planned.locations);
-		// setForSource re-armed this source's breakpoints; a stop parked on one of
-		// them just re-planted its INT3 at the current instruction pointer. Lift that
-		// INT3 again (keep it suspended) and re-point currentStoppedBreakpoint to the
-		// re-installed instance, so the next continue single-steps the real instruction
-		// instead of stepping straight into the fresh INT3 and re-hitting the same line
-		// (run-to-cursor, or toggling a breakpoint in this file while stopped).
+		// setForSource re-armed this source's breakpoints. If the stop is on one of
+		// them, its INT3 is back at the current instruction pointer. Lift it again
+		// and point currentStoppedBreakpoint at the re-installed instance. Otherwise
+		// the next continue runs into the fresh INT3 and hits the same line again
+		// (run to cursor, or toggling a breakpoint in this file while stopped).
 		reconcileStoppedBreakpoint();
-		if (wasRunning) {
+		if (pausedForWrite) {
 			session.resumeAfterMemoryWrite();
 		}
 
 		emitBreakpointResults(requestSeq, planned.results, isReverify);
 	}
 
-	// Keeps the breakpoint the session is stopped on suspended (INT3 lifted) across a
-	// setForSource re-install. No-op when running, or when the stopped breakpoint is not
-	// an address-keyed line breakpoint (e.g. an exception breakpoint).
+	// Keeps the breakpoint the session is stopped on suspended (INT3 lifted)
+	// across a setForSource re-install. Does nothing while running, or when the
+	// stop is not on a line breakpoint (an exception breakpoint, for example).
 	function reconcileStoppedBreakpoint():Void {
 		if (session.currentStoppedBreakpoint == null) {
 			return;
@@ -65,11 +61,11 @@ class LineBreakpointController {
 			session.breakpoints.suspend(reinstalled);
 			session.currentStoppedBreakpoint = reinstalled;
 		} else {
-			// The stopped-on breakpoint was REMOVED: drop the stale reference, or
-			// the next continue's step-past re-arms the deleted breakpoint's INT3.
-			// That orphan trap has no table entry, so its hit is "resumed past
-			// silently" with Eip already beyond the 0xCC - executing the original
-			// instruction minus its first byte, which faults the VM.
+			// The breakpoint of the stop was removed. Drop the stale reference, or
+			// the next continue re-arms the deleted breakpoint's INT3. That orphan
+			// trap has no table entry, so its hit is resumed silently with Eip
+			// already past the 0xCC. The VM then runs the original instruction
+			// without its first byte and faults.
 			session.currentStoppedBreakpoint = null;
 		}
 	}
@@ -85,10 +81,9 @@ class LineBreakpointController {
 	}
 
 	public function handleHit(threadId:Int, userBp:PatchedBreakpoint):Void {
-		// A conditional breakpoint only stops when its expression is true.
-		// Evaluate it against the hitting thread's top frame; a false result
-		// resumes without stopping (and WITHOUT ending an in-flight step — the
-		// step's temps are still planted, so it keeps progressing).
+		// A conditional breakpoint stops only when its condition is true. A false
+		// result resumes without stopping and without ending an in-flight step,
+		// whose temps stay planted.
 		if (userBp.condition != null && userBp.condition != "") {
 			session.inspector.startStop(threadId);
 			session.stoppedThreadId = threadId; // the condition's eval-calls target this thread
@@ -102,10 +97,10 @@ class LineBreakpointController {
 		session.emit(EvStoppedBreakpoint(threadId, [userBp.id]));
 	}
 
-	// Evaluates a conditional breakpoint against the hitting thread's top frame.
-	// FAIL SAFE: any error (bad expression, non-Bool result, no frame) stops the
-	// debuggee and reports the reason, so a broken condition is never silently
-	// skipped — the user always sees why.
+	// Evaluates a breakpoint condition against the hitting thread's top frame.
+	// It fails safe: any error (a bad expression, a non-Bool result, no frame)
+	// stops the debuggee and prints the reason, so a broken condition is never
+	// skipped silently.
 	function breakpointConditionHolds(threadId:Int, bp:PatchedBreakpoint):Bool {
 		var frames = session.inspector.framesFor(threadId);
 		if (frames.length == 0) {

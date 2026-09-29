@@ -19,28 +19,23 @@
 package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.LanguageASTFactory;
+import com.intellij.lang.LanguageBraceMatching;
 import com.intellij.lang.LanguageParserDefinitions;
-import com.intellij.lang.injection.MultiHostInjector;
-import com.intellij.lang.injection.MultiHostRegistrar;
-import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.plugins.haxe.ide.HaxeBraceMatcher;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
 import com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.ParsingTestCase;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.util.ThrowableRunnable;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Jupiter front for the platform's JUnit3-style {@link ParsingTestCase}: the
@@ -116,6 +111,11 @@ abstract public class HaxeParsingTestBase {
       HaxeAstFactory astFactory = new HaxeAstFactory();
       addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeLanguage.INSTANCE, astFactory);
       addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeMetadataLanguage.INSTANCE, astFactory);
+      // GeneratedParserUtilBase's error recovery groups stray tokens into
+      // DUMMY_BLOCKs only when a brace matcher is registered - without this
+      // the tree dumps differ between a solo parsing run and a full-suite
+      // JVM where earlier fixture tests loaded the real plugin descriptor
+      addExplicitExtension(LanguageBraceMatching.INSTANCE, HaxeLanguage.INSTANCE, new HaxeBraceMatcher());
       registerMetadataParser();
     }
 

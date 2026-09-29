@@ -2,7 +2,11 @@ name: "Debugger: hashlink-debug-adapter"
 
 on:
   push:
-    branches: ['master', 'develop', 'dev/*', 'feature/*']
+    branches:
+      - 'master'
+      - 'develop'
+      #      - 'dev/*'
+      - 'feature/*'
     paths:
       - 'debuggers/hashlink-debug-adapter/**'
       # shared dependency of every debugger module
@@ -11,7 +15,6 @@ on:
       - 'gradle/**'
       - 'gradle.properties'
       - 'settings.gradle.kts'
-      - 'gradlew*'
       # the CI definition itself
       - '.github/workflows/debugger-build.yaml'
       - '.github/workflows/debugger-hashlink.yaml'
@@ -23,7 +26,6 @@ on:
       - 'gradle/**'
       - 'gradle.properties'
       - 'settings.gradle.kts'
-      - 'gradlew*'
       - '.github/workflows/debugger-build.yaml'
       - '.github/workflows/debugger-hashlink.yaml'
 

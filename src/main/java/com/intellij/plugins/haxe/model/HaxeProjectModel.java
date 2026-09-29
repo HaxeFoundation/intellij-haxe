@@ -17,6 +17,8 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -32,30 +34,57 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX;
 
+/**
+ * The root/std model resolution works against. MODULE-SCOPED when obtained
+ * via {@link #fromElement}: each module resolves against its OWN SDK's std
+ * and its own dependency roots, so modules on different haxe versions never
+ * see each other's standard library. Elements outside any module (opened
+ * library files, scratches) and {@link #fromProject} callers get the
+ * project-wide union.
+ */
 public class HaxeProjectModel {
   private static final Key<HaxeProjectModel> HAXE_PROJECT_MODEL_KEY = new Key<>("HAXE_PROJECT_MODEL");
+  private static final Key<HaxeProjectModel> HAXE_MODULE_MODEL_KEY = new Key<>("HAXE_MODULE_PROJECT_MODEL");
+
   private final Project project;
+  @Nullable private final Module module;
 
-  private RootsCache rootsCache;
+  // caches live on the project-level instance only; module views delegate
+  private final Map<Module, RootsCache> moduleRootsCaches = new ConcurrentHashMap<>();
+  private volatile RootsCache projectRootsCache;
 
-  private HaxeProjectModel(Project project) {
+  private HaxeProjectModel(Project project, @Nullable Module module) {
     this.project = project;
-    addProjectListeners();
+    this.module = module;
+    if (module == null) {
+      addProjectListeners();
+    }
   }
 
   public static HaxeProjectModel fromElement(PsiElement element) {
-    return fromProject(element.getProject());
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      return fromProject(element.getProject());
+    }
+    HaxeProjectModel model = module.getUserData(HAXE_MODULE_MODEL_KEY);
+    if (model == null) {
+      model = new HaxeProjectModel(module.getProject(), module);
+      module.putUserData(HAXE_MODULE_MODEL_KEY, model);
+    }
+    return model;
   }
 
   public static HaxeProjectModel fromProject(Project project) {
     HaxeProjectModel model = project.getUserData(HAXE_PROJECT_MODEL_KEY);
     if (model == null) {
-      model = new HaxeProjectModel(project);
+      model = new HaxeProjectModel(project, null);
       project.putUserData(HAXE_PROJECT_MODEL_KEY, model);
     }
 
@@ -119,7 +148,11 @@ public class HaxeProjectModel {
       if (resolvedValue != null) result.add(resolvedValue);
     }
 
-      if (result.isEmpty()) {
+    // the std fallback answers from THIS model's sdk root; a scope that
+    // excludes that root (another module's scope in a multi-SDK project)
+    // must not receive results from it
+    boolean stdInScope = searchScope == null || sdkRoot.root == null || searchScope.contains(sdkRoot.root);
+    if (result.isEmpty() && stdInScope) {
       resolvedValue = getStdPackage().resolve(info);
       if (resolvedValue != null) result.add(resolvedValue);
     }
@@ -156,16 +189,23 @@ public class HaxeProjectModel {
     project.getMessageBus().connect().subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
-        rootsCache = null;
+        projectRootsCache = null;
+        moduleRootsCaches.clear();
       }
     });
   }
 
   private RootsCache getRootsCache() {
-    if (rootsCache == null) {
-      rootsCache = RootsCache.fromProjectModel(this);
+    HaxeProjectModel projectModel = fromProject(project);
+    if (module == null) {
+      RootsCache cache = projectModel.projectRootsCache;
+      if (cache == null) {
+        cache = RootsCache.forProject(this);
+        projectModel.projectRootsCache = cache;
+      }
+      return cache;
     }
-    return rootsCache;
+    return projectModel.moduleRootsCaches.computeIfAbsent(module, m -> RootsCache.forModule(this, m));
   }
 }
 
@@ -183,34 +223,49 @@ class RootsCache {
     this.logPackageModel = new HaxeLogPackageModel(sdkRoot);
   }
 
-  static RootsCache fromProjectModel(HaxeProjectModel model) {
-    return new RootsCache(getProjectRoots(model), getSdkRoot(model));
+  static RootsCache forProject(HaxeProjectModel model) {
+    OrderEnumerator withoutSdk = OrderEnumerator.orderEntries(model.getProject()).withoutSdk();
+    OrderEnumerator sdkOnly = OrderEnumerator.orderEntries(model.getProject()).sdkOnly();
+    OrderEnumerator everything = OrderEnumerator.orderEntries(model.getProject());
+    return new RootsCache(collectRoots(model, withoutSdk), findStdRoot(model, sdkOnly, everything));
   }
 
-  private static List<HaxeSourceRootModel> getProjectRoots(final HaxeProjectModel model) {
-    final OrderEnumerator enumerator = OrderEnumerator.orderEntries(model.getProject()).withoutSdk();
+  /**
+   * The module's OWN view: its dependency roots and ITS SDK's std — never
+   * another module's. This is what keeps a Haxe 4 module and a Haxe 5 module
+   * in one project resolving against their respective standard libraries.
+   */
+  static RootsCache forModule(HaxeProjectModel model, Module module) {
+    OrderEnumerator withoutSdk = OrderEnumerator.orderEntries(module).recursively().withoutSdk();
+    OrderEnumerator sdkOnly = OrderEnumerator.orderEntries(module).sdkOnly();
+    OrderEnumerator everything = OrderEnumerator.orderEntries(module).recursively();
+    return new RootsCache(collectRoots(model, withoutSdk), findStdRoot(model, sdkOnly, everything));
+  }
 
+  private static List<HaxeSourceRootModel> collectRoots(HaxeProjectModel model, OrderEnumerator withoutSdk) {
     return Stream.concat(
-        Arrays.stream(enumerator.getSourceRoots()),
-        Arrays.stream(enumerator.getClassesRoots())
+        Arrays.stream(withoutSdk.getSourceRoots()),
+        Arrays.stream(withoutSdk.getClassesRoots())
     )
       .distinct()
       .map(root -> new HaxeSourceRootModel(model, root))
       .collect(Collectors.toList());
   }
 
-  private static HaxeSourceRootModel getSdkRoot(final HaxeProjectModel model) {
+  private static HaxeSourceRootModel findStdRoot(HaxeProjectModel model,
+                                                OrderEnumerator sdkOnly,
+                                                OrderEnumerator everything) {
     VirtualFile[] roots;
     roots = ApplicationManager.getApplication().isUnitTestMode()
-            ? OrderEnumerator.orderEntries(model.getProject()).getAllSourceRoots()
-            : OrderEnumerator.orderEntries(model.getProject()).sdkOnly().getAllSourceRoots();
+            ? everything.getAllSourceRoots()
+            : sdkOnly.getAllSourceRoots();
     for (VirtualFile root : roots) {
       if (root.findChild(STD_TYPES_HX) != null) {
         return new HaxeSourceRootModel(model, root);
       }
     }
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      roots = OrderEnumerator.orderEntries(model.getProject()).getAllSourceRoots();
+      roots = everything.getAllSourceRoots();
       if (roots.length > 0) {
         VirtualFile stdRootForTests = roots[0].findChild("std");
         if (stdRootForTests != null) {

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1"
+      bind-to-class="com.intellij.plugins.haxe.profiler.bridge.chart.HaxeChartViewDialog">
+  <grid id="27dc6" binding="panel" layout-manager="GridLayoutManager" row-count="9" column-count="1"
+        same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="260" height="240"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="b1001" class="com.intellij.ui.components.JBCheckBox" binding="framesBox">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.frames"/>
+        </properties>
+      </component>
+      <component id="b1002" class="com.intellij.ui.components.JBCheckBox" binding="gcBox">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.gc"/>
+        </properties>
+      </component>
+      <component id="b1003" class="com.intellij.ui.components.JBCheckBox" binding="memoryBox">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.memory"/>
+        </properties>
+      </component>
+      <component id="b1004" class="com.intellij.ui.components.JBCheckBox" binding="gpuMemoryBox">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.gpu.memory"/>
+        </properties>
+      </component>
+      <component id="b1005" class="com.intellij.ui.components.JBCheckBox" binding="cpuBox">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.cpu"/>
+        </properties>
+      </component>
+      <component id="b1006" class="com.intellij.ui.components.JBCheckBox" binding="gpuLoadBox">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.gpu.load"/>
+        </properties>
+      </component>
+      <component id="b1007" class="com.intellij.ui.components.JBCheckBox" binding="eventsBox">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.events"/>
+        </properties>
+      </component>
+
+      <component id="b1009" class="com.intellij.ui.components.JBCheckBox" binding="callsBox">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeProfilerBundle" key="haxe.profiler.callchart.lane.calls"/>
+        </properties>
+      </component>
+
+      <vspacer id="b1008">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2"
+                indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+    </children>
+  </grid>
+</form>

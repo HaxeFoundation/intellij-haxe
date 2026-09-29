@@ -1,0 +1,12 @@
+<html>
+<body>
+Reports package declarations whose parts are not lower case, or whose name
+does not match the directory the file actually sits in. The quick fix
+rewrites the declaration to match the directory structure.
+<p><b>Example:</b></p>
+<pre><code>
+// file: src/tools/text/Formatter.hx
+package tools.Text;   // must be lower case and match the path: tools.text
+</code></pre>
+</body>
+</html>

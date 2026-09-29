@@ -21,7 +21,7 @@ package com.intellij.plugins.haxe.ide.refactoring.introduceVariable;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Consumer;
@@ -32,7 +32,8 @@ import java.util.Collection;
 /**
  * @author: Fedor.Korotkov
  */
-public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCase {
+public abstract class HaxeIntroduceTestBase extends HaxeLightFixtureTestCase {
+
   protected void doTestSuggestions(Class<? extends HaxeExpression> parentClass, String... expectedNames) {
     final Collection<String> names = buildSuggestions(parentClass);
     for (String expectedName : expectedNames) {
@@ -49,7 +50,7 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
       myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset()),
       parentClass
     );
-    return handler.getSuggestedNames(expr);
+    return handler.suggestNames(expr).names();
   }
 
   protected abstract HaxeIntroduceHandler createHandler();

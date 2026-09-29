@@ -29,7 +29,7 @@ class ConstParams {
 }
 
 enum TestNum {EnumVal; EnumConstructor(x:Int);}
-@:enum abstract  TestAbsEnum {
+enum abstract  TestAbsEnum {
   var enumValue = 1;
 
   static public var staticGetter(get, never):String;

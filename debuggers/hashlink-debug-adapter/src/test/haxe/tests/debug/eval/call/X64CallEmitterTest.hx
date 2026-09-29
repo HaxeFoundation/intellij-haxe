@@ -30,9 +30,10 @@ class X64CallEmitterTest {
 			0);
 		var h = hex(bytes);
 
-		// exact size (see the byte accounting in the emitter): 151 bytes
+		// 151 bytes: 64 to save six register pairs, 10 to load the argument,
+		// 12 for mov rax + call rax, 64 to restore, 1 for int3
 		assert.equals(151, bytes.length, "trampoline size for one int arg");
-		// starts by saving RCX: push rcx = 0x51
+		// saving RCX comes first: push rcx = 0x51
 		assert.equals("51", h.substr(0, 2), "prologue saves RCX first (push rcx)");
 		// the argument load: mov rcx, 5  = 48 b9 05 00 00 00 00 00 00 00
 		assert.isTrue(h.indexOf("48b90500000000000000") >= 0, "arg 0 loaded into RCX (mov rcx, 5)");
@@ -51,8 +52,8 @@ class X64CallEmitterTest {
 
 		var h = hex(bytes);
 
-		// XMM1 loaded via RAX + an 8-byte stack slot: push rax (50) ; movsd
-		// xmm1,[rsp] (f20f100c24) ; add rsp,8 (4883c408) — the balanced pop
+		// XMM1 is loaded through RAX and an 8-byte stack slot: push rax (50),
+		// movsd xmm1,[rsp] (f20f100c24), then the balancing add rsp,8 (4883c408)
 		assert.isTrue(h.indexOf("50f20f100c244883c408") >= 0, "float arg staged into XMM1 with a balanced 8-byte pop");
 		// the int arg still lands in RCX
 		assert.isTrue(h.indexOf("48b90300000000000000") >= 0, "int arg 0 in RCX (mov rcx, 3)");

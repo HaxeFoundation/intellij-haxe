@@ -1,37 +1,37 @@
 package ijhaxe.hxcpp.debug.values;
 
 /**
-	Renders and expands live debuggee values by ordinary reflection — the whole
-	point of an IN-PROCESS server: a value is a real Haxe object, so
-	`Type.typeof`/`Reflect` describe and walk it with no memory decoding. Pure
-	and target-neutral, so it runs under the interpreter against plain values in
-	the unit tests exactly as it does over real cpp values.
+	Renders and expands live debuggee values by ordinary reflection. The
+	server runs inside the debuggee, so a value is a real Haxe object that
+	`Type.typeof` and `Reflect` can describe and walk without decoding memory.
+	The code is target-neutral, so the unit tests run it under the
+	interpreter over plain values, exactly as it runs over real cpp values.
 
-	SAFETY RULE: never run user code implicitly. Rendering happens on the
-	server thread while the debuggee's threads are PAUSED — a property getter
-	or toString that takes a lock held by a paused thread wedges the whole
-	session (observed live). So fields are read RAW (`Reflect.field`, which
-	never invokes a getter) and objects are labeled by class name, never
-	stringified. Calling a getter is what `evaluate` is for — an explicit,
-	user-initiated risk.
+	SAFETY RULE: never run user code implicitly. Rendering runs on the server
+	thread while the debuggee's threads are PAUSED. A property getter or a
+	toString that takes a lock held by a paused thread hangs the whole
+	session. Fields are therefore read RAW (`Reflect.field` never invokes a
+	getter), and objects are labeled by class name, never stringified.
+	Running a getter is what `evaluate` is for: an explicit risk the user
+	chooses.
 **/
 class Values {
 	/**
-		Object labels via the object's own toString() — a DELIBERATE, opt-in
-		exception to the safety rule above, controlled by the user through the
-		custom `custom/setToStringRendering` request (a project-level IDE
-		setting, off by default, toggleable live from the Variables view).
-		Only a class whose chain DECLARES toString ever runs code (the
-		reflection probe itself calls nothing), and a THROWING toString
-		degrades to the class name. What cannot be defended in-process: a
-		STACK-OVERFLOWING toString (self-recursion, circular references) kills
-		the debuggee before any handler runs — on hxcpp the overflow is a
-		fatal 0xC00000FD, uncatchable by design (probe-verified). That risk is
-		exactly why the default is OFF and turning it on is the user's call.
+		Labels objects with their own toString(). This is a DELIBERATE opt-in
+		exception to the safety rule above. The user controls it through the
+		custom `custom/setToStringRendering` request, backed by a project-level
+		IDE setting that is off by default and can be toggled from the
+		Variables view. Code runs only for a class whose chain DECLARES
+		toString; checking for it calls nothing. A THROWING toString falls back
+		to the class name. One risk cannot be contained inside the process: a
+		toString that overflows the stack (self-recursion, circular
+		references) kills the debuggee before any handler runs. On hxcpp the
+		overflow is a fatal 0xC00000FD that cannot be caught. That risk is why
+		the default is OFF and turning it on is the user's decision.
 	**/
 	public static var renderWithToString:Bool = false;
 
-	/** Display string + type name + whether the value has expandable children. */
+	/** The display string, the type name, and whether the value has children to expand. */
 	public static function describe(value:Dynamic):{value:String, type:String, expandable:Bool} {
 		return switch (Type.typeof(value)) {
 			case TNull: {value: "null", type: "Unknown", expandable: false};
@@ -43,17 +43,18 @@ class Values {
 			case TClass(c) if (c == Array):
 				var arr:Array<Dynamic> = value;
 				{value: "Array (" + arr.length + ")", type: "Array", expandable: arr.length > 0};
-			// Maps BEFORE the generic object case: raw fields are the native
-			// hash handle ("h = Dynamic"), useless to a user — render the entry
-			// count and expand to the entries, like the HashLink adapter does.
-			// std map iteration is library code, not user code (the safety rule
-			// is about getters/toString), so listing entries is fair game.
+			// Maps come BEFORE the generic object case. Their raw field is the
+			// native hash handle ("h = Dynamic"), which is useless to a user,
+			// so a map shows its entry count and expands to its entries, as in
+			// the HashLink adapter. Iterating a std map runs library code, not
+			// user code, so the safety rule (getters, toString) allows it.
 			case TClass(c) if (c == haxe.ds.StringMap || c == haxe.ds.IntMap || c == haxe.ds.ObjectMap
 					|| Std.isOfType(value, haxe.ds.BalancedTree)):
-				// with the toString opt-in ON the summary is the map's own
-				// content preview ("[build => 92, name => 7]", the std maps all
-				// declare toString) — objectLabel applies the usual policy and
-				// falls back to the entry count when off or on failure
+				// With the toString opt-in ON, the summary is the map's own
+				// content preview ("[build => 92, name => 7]"); every std map
+				// declares toString. objectLabel applies the usual policy and
+				// falls back to the entry count when the opt-in is off or
+				// toString fails.
 				var count = mapEntries(value).length;
 				{value: objectLabel(value, c, "Map(" + count + ")"), type: Type.getClassName(c), expandable: count > 0};
 			case TClass(c):
@@ -89,12 +90,12 @@ class Values {
 		};
 	}
 
-	// The entries of any haxe.ds map (StringMap/IntMap/ObjectMap, and
-	// BalancedTree covering EnumValueMap), one child per entry. Entry names:
-	// string keys quoted (like string VALUES render), int keys bare, and
-	// object/enum keys named by the same describe() policy as values — so an
-	// object key follows the user's toString opt-in and an enum key shows its
-	// constructor. All maps share the keys()/get() iteration surface.
+	// The entries of any haxe.ds map (StringMap, IntMap, ObjectMap, and
+	// BalancedTree, which covers EnumValueMap), one child per entry. All of
+	// them offer keys() and get(). A string key is quoted like a string
+	// value, an int key is shown bare, and an object or enum key is named
+	// like a value by describe(). An object key thus follows the user's
+	// toString opt-in, and an enum key shows its constructor.
 	static function mapEntries(value:Dynamic):Array<{name:String, value:Dynamic}> {
 		var entries:Array<{name:String, value:Dynamic}> = [];
 		var keys:Iterator<Dynamic> = value.keys();
@@ -108,9 +109,9 @@ class Values {
 	}
 
 	// The object's display label: its own toString() result when the user
-	// opted in AND the class chain declares one; the class name otherwise.
-	// getInstanceFields includes inherited fields, so one probe covers the
-	// whole chain without running anything.
+	// opted in AND its class chain declares one, else the class name.
+	// getInstanceFields includes inherited fields, so one lookup covers the
+	// whole chain without running any code.
 	static function objectLabel(value:Dynamic, c:Class<Dynamic>, className:String):String {
 		if (!renderWithToString || Type.getInstanceFields(c).indexOf("toString") == -1) {
 			return className; // no opt-in, or no user toString: never run code
@@ -119,28 +120,28 @@ class Values {
 			var text:String = value.toString();
 			(text == null || text.length == 0) ? className : truncate(text);
 		} catch (e:Dynamic) {
-			className; // a throwing toString degrades to the class name
+			className; // a throwing toString falls back to the class name
 		}
 	}
 
-	// A value LABEL is a one-line summary; a runaway toString (a big map's
-	// content preview, a verbose user render) must not flood the wire or the
-	// tree row. 200 chars comfortably fills the Variables column.
-	static inline var MAX_LABEL = 200;
+	// A value LABEL is a one-line summary. A very long toString result (a big
+	// map's content preview, a verbose user rendering) must not flood the
+	// connection or the tree row; 200 characters fill the Variables column.
+	static inline var MAX_LABEL_LENGTH = 200;
 
 	static function truncate(text:String):String {
-		return text.length <= MAX_LABEL ? text : text.substr(0, MAX_LABEL - 1) + "…";
+		return text.length <= MAX_LABEL_LENGTH ? text : text.substr(0, MAX_LABEL_LENGTH - 1) + "…";
 	}
 
-	// Instance fields that hold data (not methods) — the ones a user inspects.
-	// Raw reads only: getProperty would run every getter of every object in
-	// scope just to LIST locals (see the class doc's safety rule).
+	// The instance fields that hold data rather than methods, the ones a user
+	// inspects. Only raw reads: getProperty would run every getter of every
+	// object in scope just to LIST the locals (see the safety rule).
 	static function dataFields(value:Dynamic, c:Class<Dynamic>):Array<String> {
 		return [for (f in Type.getInstanceFields(c)) if (!Reflect.isFunction(rawField(value, f))) f];
 	}
 
-	// Reflect.field never invokes a getter; a computed (non-physical) property
-	// simply doesn't appear, which is the safe rendering of it.
+	// Reflect.field never invokes a getter. A computed property without a
+	// backing field therefore does not appear, which is the safe way to show it.
 	static function rawField(value:Dynamic, name:String):Dynamic {
 		return try Reflect.field(value, name) catch (e:Dynamic) null;
 	}

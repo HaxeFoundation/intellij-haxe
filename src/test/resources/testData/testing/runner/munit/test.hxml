@@ -1,0 +1,4 @@
+-p src
+-lib munit
+--main MunitMain
+-neko bin/tests.n

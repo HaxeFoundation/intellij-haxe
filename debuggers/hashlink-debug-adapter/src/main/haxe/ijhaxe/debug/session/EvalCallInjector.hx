@@ -17,17 +17,18 @@ import haxe.Int64;
 import haxe.io.Bytes;
 
 /**
-	Hooks back into the session for the pieces an injected call cannot own:
-	which INT3 must stay lifted, where to park a foreign stop, and the state
-	transition when the debuggee dies mid-call.
+	Callbacks into the session for what an injected call cannot own: which INT3
+	must stay lifted, where a foreign stop goes, and the state change when the
+	debuggee dies mid-call.
 **/
 typedef EvalCallHooks = {
-	// The breakpoint the session is stopped on, whose byte the stop/continue
-	// machinery keeps restored until it steps past it — rearmAll must skip it.
+	// The address of the breakpoint the session is stopped on. The continue
+	// machinery keeps its original byte restored until it steps past it, so
+	// rearmAll must skip it.
 	var keepSuspended:() -> Null<Pointer>;
-	// A REAL pending event from another thread that owns the process freeze;
-	// the session processes it as a normal stop after the command settles
-	// (never mid-eval: the inspector's caches are in use).
+	// Receives a real pending event from another thread, which owns the process
+	// freeze. The session processes it as a normal stop after the command
+	// settles, never mid-eval while the inspector's caches are in use.
 	var onForeignStop:WaitOutcome -> Void;
 	// The debuggee exited mid-call: the session enters its Exited state and
 	// releases the dying process.
@@ -35,14 +36,16 @@ typedef EvalCallHooks = {
 }
 
 /**
-	Runs a function inside the STOPPED debuggee (the eval-call): injects a
-	CPU-architecture-specific trampoline over the code at the stopped thread's
-	instruction pointer, runs it to a trailing INT3 on a scratch stack, then
-	restores the original code and the Eip/Esp/Rax registers.
+	Runs a function inside the stopped debuggee (an eval-call). It writes a
+	trampoline over the code at the stopped thread's instruction pointer: a
+	short machine-code sequence for the CPU architecture that loads the
+	arguments, calls the function and ends in an INT3. The trampoline runs on a
+	scratch stack until that INT3; then the original code and the Eip, Esp and
+	Rax registers are restored.
 
-	DANGEROUS: this runs arbitrary debuggee code on the session thread. Only
-	valid while stopped; a call that throws, recurses into a breakpoint, or
-	runs longer than CALL_TIMEOUT_MS fails with the state restored.
+	DANGEROUS: this runs arbitrary debuggee code on the session thread, and is
+	valid only while stopped. A call that throws, reaches a breakpoint or runs
+	longer than CALL_TIMEOUT_MS fails with the state restored.
 **/
 class EvalCallInjector {
 	static inline var CALL_TIMEOUT_MS = 5000;
@@ -64,28 +67,29 @@ class EvalCallInjector {
 
 	/**
 		Calls `funcAddr` in the debuggee with `args` (already lowered to raw
-		register values) and returns the raw result (RAX, or XMM0-as-RAX for a
-		float return).
+		register values) and returns the raw result: RAX, or XMM0 copied into
+		RAX for a float return.
 	**/
 	public function call(threadId:Int, funcAddr:Pointer, args:Array<CallArg>, floatBits:Int):Pointer {
 		if (Trace.isEnabled()) {
 			Trace.log('[eval-call] call thread=$threadId func=${hex(funcAddr)} args=${args.length}'
 				+ ' floatBits=$floatBits ' + describeArgs(args));
 		}
-		// the trampoline is CPU-architecture-specific: x86-64 loads argument
-		// registers and returns through RAX/XMM0; x86 pushes cdecl stack args and
-		// returns through EAX/ST0. Selected once from the handshake bitness.
+		// x86-64 loads argument registers and returns through RAX/XMM0; x86
+		// pushes cdecl stack arguments and returns through EAX/ST0. The
+		// handshake's bitness picks the emitter.
 		var emitter:CallTrampoline = jit.is64 ? new X64CallEmitter(jit.winCall) : new X86CallEmitter();
 		var asm = emitter.build(funcAddr, args, floatBits);
 
-		// Lift every planted INT3 for the duration of the call: the called function
-		// may internally throw/catch (tripping the hl_throw trap when VM-exception
-		// breakpoints are on) or run through a user breakpoint — either would abort
-		// the call and leave a half-executed frame that corrupts later execution.
-		// The lift also keeps the trampoline's saved bytes clean of any 0xCC.
+		// Lift every planted INT3 for the duration of the call. The called
+		// function may throw and catch internally, which trips the hl_throw trap
+		// while VM-exception breakpoints are on, or pass a user breakpoint.
+		// Either aborts the call and leaves a half-run frame that corrupts later
+		// execution. The lift also keeps 0xCC bytes out of the original code the
+		// trampoline overwrites and saves.
 		breakpoints.suspendAll();
-		// no `finally` in Haxe: hold a failure so the breakpoints are ALWAYS
-		// re-planted, even when the injection itself throws
+		// Haxe has no `finally`: hold the failure, so the breakpoints are
+		// re-planted even when the injection throws
 		var error:Null<Dynamic> = null;
 		var result:Null<Pointer> = null;
 		try {
@@ -112,13 +116,12 @@ class EvalCallInjector {
 	}
 
 	/**
-		linux float-register-write workaround: loads Xmm0 on the stopped thread
-		by running a two-instruction injected stub — hl's linux debug natives
-		cannot WRITE float registers (their ptrace write path never handled the
-		FP pseudo-offsets the read path defines), but code injection is exactly
-		how eval-calls already run. Same breakpoint-lift discipline as call():
-		the stub cannot hit one (it is straight-line), but the saved original
-		bytes must be clean of our 0xCC patches.
+		Loads Xmm0 on the stopped thread by running a two-instruction injected
+		stub. This works around linux, where hl's debug natives cannot write float
+		registers: the ptrace write path lacks the FP offsets the read path
+		defines. The breakpoints are lifted as in call(). The straight-line stub
+		cannot hit one, but the saved original bytes must not contain the
+		adapter's 0xCC patches.
 	**/
 	public function writeXmm0(threadId:Int, bits:Pointer):Void {
 		breakpoints.suspendAll();
@@ -135,11 +138,11 @@ class EvalCallInjector {
 		}
 	}
 
-	// The inject/run/restore core of an eval-call: writes the trampoline over the
-	// stopped thread's Eip, runs it on a scratch stack to its trailing INT3, and
-	// restores the original code and the Eax/Eip/Esp registers. Exception-safe by
-	// ordering: the throws happen either before any state is modified or after
-	// everything is restored.
+	// The core of an eval-call: writes the trampoline over the stopped thread's
+	// Eip, runs it on a scratch stack to its trailing INT3, and restores the
+	// original code and the Eax, Eip and Esp registers. The order of steps makes
+	// it exception-safe: every throw happens either before any state changes or
+	// after everything is restored.
 	function runInjectedCall(threadId:Int, asm:Bytes, floatBits:Int):Pointer {
 		var asmSize = asm.length;
 
@@ -147,8 +150,8 @@ class EvalCallInjector {
 		var prevEip = api.readRegister(debuggeePid, threadId, Eip);
 		var prevEsp = api.readRegister(debuggeePid, threadId, Esp);
 
-		// readable context the injection does NOT restore - snapshot it so the
-		// after-call readback exposes any clobber the resume then runs with
+		// registers the injection does not restore; the snapshot lets the trace
+		// show any the call clobbered
 		var prevEbp = api.readRegister(debuggeePid, threadId, Ebp);
 		var prevFlags = api.readRegister(debuggeePid, threadId, EFlags);
 		var prevXmm0 = api.readRegister(debuggeePid, threadId, Xmm0);
@@ -178,9 +181,9 @@ class EvalCallInjector {
 		api.flush(debuggeePid, prevEip, asmSize);
 
 		// x86 returns a float on the x87 stack (ST0), which HL's debug register
-		// API does not expose; X86CallEmitter spilled it into the scratch slot at
-		// scratchStackTop, so read it from there. Everything else returns in
-		// RAX/EAX (a float return on x86-64 was copied into RAX by the trampoline).
+		// API does not expose; X86CallEmitter spills it into the scratch slot at
+		// scratchStackTop. Everything else returns in RAX/EAX; on x86-64 the
+		// trampoline copies a float return into RAX.
 		var result = (!jit.is64 && floatBits != 0)
 			? readFloatSpill(scratchStackTop(prevEsp), floatBits)
 			: api.readRegister(debuggeePid, threadId, Eax);
@@ -199,10 +202,10 @@ class EvalCallInjector {
 		return result;
 	}
 
-	// After-call readback of the context the injection does not restore: any
-	// CLOBBERED line here is state the resume will run the interrupted function
-	// with. Ebp/EFlags/Xmm0 are the only such registers the native API can even
-	// read - the volatile GP/XMM registers a call may trash are not observable.
+	// Traces the registers the injection does not restore. A CLOBBERED register
+	// is state the interrupted function resumes with. Ebp, EFlags and Xmm0 are
+	// the only such registers the native API can read; the other volatile
+	// registers a call may overwrite cannot be observed.
 	function logRestoredContext(threadId:Int, prevEbp:Pointer, prevFlags:Pointer, prevXmm0:Pointer,
 			completed:Bool, landedEip:Pointer, trapEnd:Pointer):Void {
 		var nowEbp = api.readRegister(debuggeePid, threadId, Ebp);
@@ -223,12 +226,12 @@ class EvalCallInjector {
 			+ (clobbered.length > 0 ? ' CLOBBERED: ' + clobbered.join(", ") : ' context clean'));
 	}
 
-	// Resume the thread and wait until it traps at exactly `trapEnd` (Eip past
-	// the injected INT3). Returns false on exit, a foreign stop, or timeout.
-	// A foreign Breakpoint/Error is a REAL pending event that owns the process
-	// freeze: it is handed to hooks.onForeignStop for the session to process as
-	// a normal stop once the eval teardown is done — resuming past it with the
-	// wrong thread id would leave the debuggee frozen forever.
+	// Resumes the thread and waits until it traps exactly at `trapEnd` (Eip past
+	// the injected INT3). Returns false on exit, on a foreign stop or on timeout.
+	// A foreign Breakpoint or Error is a real pending event that owns the
+	// process freeze. It goes to hooks.onForeignStop, and the session processes
+	// it as a normal stop after the eval-call has cleaned up. Resuming past it
+	// with the wrong thread id would leave the debuggee frozen.
 	function resumeUntilTrap(threadId:Int, trapEnd:Pointer):Bool {
 		api.resume(debuggeePid, threadId);
 		var budget = CALL_TIMEOUT_MS;
@@ -252,9 +255,9 @@ class EvalCallInjector {
 				case SingleStep:
 					api.resume(debuggeePid, outcome.threadId);
 				case Handled:
-					// auto-continued lifecycle event (another thread created/
-					// exited/named itself during the call): not the injected trap
-					// and not a failure — keep waiting
+					// an auto-continued lifecycle event (a thread was created,
+					// exited or renamed during the call): neither the injected trap
+					// nor a failure, so keep waiting
 				case Exit:
 					if (Trace.isEnabled()) {
 						Trace.log('[eval-call] debuggee EXITED during call (thread=${outcome.threadId})');
@@ -288,12 +291,14 @@ class EvalCallInjector {
 		return size == 8 ? Int64.make(buf.getInt32(4), buf.getInt32(0)) : Int64.make(0, buf.getInt32(0));
 	}
 
-	// The scratch stack top for an injected call: the 256-byte-aligned address at
-	// or just below the current Esp (matches hld). Running the call here keeps it
-	// from corrupting the interrupted frame below Esp.
-	static inline function scratchStackTop(esp:Pointer):Pointer {
-		var top = Int64.sub(esp, Int64.ofInt(0xFF));
-		var lowByte = top.low & 0xFF;
-		return Int64.add(top, Int64.ofInt((0x100 - lowByte) & 0xFF));
+	// The top of the scratch stack for an injected call: the 256-byte-aligned
+	// address 256 to 511 bytes below the current Esp. The gap keeps the
+	// interrupted frame intact. The x86 trampoline stores a float return at
+	// the top itself, so a top within 8 bytes of Esp would overwrite the
+	// frame's live top slot; the gap also clears the 128-byte red zone that
+	// SysV code may use below Esp.
+	public static function scratchStackTop(esp:Pointer):Pointer {
+		var below = Int64.sub(esp, Int64.ofInt(0x100));
+		return Int64.sub(below, Int64.ofInt(below.low & 0xFF));
 	}
 }

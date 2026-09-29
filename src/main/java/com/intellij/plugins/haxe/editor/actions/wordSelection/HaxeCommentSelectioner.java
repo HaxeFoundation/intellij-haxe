@@ -22,11 +22,11 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.HaxeCommenter;
+import com.intellij.plugins.haxe.lang.lexer.HaxeDocTokenTypes;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiDocComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +36,25 @@ import java.util.List;
  */
 public class HaxeCommentSelectioner extends ExtendWordSelectionHandlerBase {
 
+  /**
+   * A doc comment's inner tokens. They are HaxePsiTokens - PsiJavaTokens -
+   * so without this handler the java token selectioner claims each one
+   * WHOLE (a double-click selected the entire line) while the java basic
+   * word filter keeps the generic word selectioner away from them.
+   */
+  private static final TokenSet DOC_TOKENS = TokenSet.create(
+    HaxeDocTokenTypes.DOC_START, HaxeDocTokenTypes.DOC_LEADING_ASTERISK, HaxeDocTokenTypes.DOC_TAG_NAME,
+    HaxeDocTokenTypes.DOC_DATA, HaxeDocTokenTypes.DOC_END);
+
+  /** The doc tokens that are delimiters rather than text; selecting one takes the line, like a comment prefix. */
+  private static final TokenSet DOC_DELIMITERS = TokenSet.create(
+    HaxeDocTokenTypes.DOC_START, HaxeDocTokenTypes.DOC_LEADING_ASTERISK, HaxeDocTokenTypes.DOC_END);
+
   @Override
   public boolean canSelect(PsiElement e) {
-    return e.getLanguage().equals(HaxeLanguage.INSTANCE) && HaxeTokenTypeSets.ONLY_COMMENTS.contains(e.getNode().getElementType());
+    IElementType type = e.getNode().getElementType();
+    return e.getLanguage().equals(HaxeLanguage.INSTANCE)
+           && (HaxeTokenTypeSets.ONLY_COMMENTS.contains(type) || DOC_TOKENS.contains(type));
   }
 
   @Override
@@ -69,6 +85,9 @@ public class HaxeCommentSelectioner extends ExtendWordSelectionHandlerBase {
     assert(commenter instanceof HaxeCommenter);
     final IElementType tokenType = e.getNode().getElementType();
 
+    if (DOC_TOKENS.contains(tokenType)) {
+      return DOC_DELIMITERS.contains(tokenType);
+    }
     if (tokenType == HaxeTokenTypeSets.DOC_COMMENT) {
 
       // XXX: Should we be checking that the token is at the beginning or end of the element?

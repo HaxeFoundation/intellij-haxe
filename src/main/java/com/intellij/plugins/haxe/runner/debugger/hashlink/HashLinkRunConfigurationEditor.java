@@ -7,7 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
-import com.intellij.plugins.haxe.runner.debugger.HaxeRunConfigurationEditorUtil;
+import com.intellij.plugins.haxe.util.ui.HaxePathFieldChoosers;
 import com.intellij.ui.components.JBCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -37,13 +37,12 @@ public class HashLinkRunConfigurationEditor extends SettingsEditor<HashLinkRunCo
     this.project = project;
     // an extension filter (not withFileFilter) so the NATIVE file dialog gets a
     // real "*.hl;*.dat" dropdown entry — a Condition-based filter is invisible to it
-    HaxeRunConfigurationEditorUtil.browseInto(project, hlFileField,
+    HaxePathFieldChoosers.browseInto(project, hlFileField,
       FileChooserDescriptorFactory.singleFile()
         .withExtensionFilter(HaxeDebuggerBundle.message("hashlink.runner.editor.file.filter"), "hl", "dat"));
-    HaxeRunConfigurationEditorUtil.browseInto(project, workingDirectoryField,
-      FileChooserDescriptorFactory.createSingleFolderDescriptor());
-    HaxeRunConfigurationEditorUtil.browseInto(project, customHlBinaryField,
-      FileChooserDescriptorFactory.singleFile());
+
+    HaxePathFieldChoosers.browseInto(project, workingDirectoryField, FileChooserDescriptorFactory.singleDir());
+    HaxePathFieldChoosers.browseInto(project, customHlBinaryField, FileChooserDescriptorFactory.singleFile());
 
     customHlBinaryField.setEnabled(false);
     useCustomHlBinaryCheckbox.addItemListener(

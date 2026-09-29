@@ -4,32 +4,32 @@ import ijhaxe.dap.protocol.SourceBreakpoint;
 import ijhaxe.dap.protocol.Breakpoint;
 import ijhaxe.hxcpp.debug.DebuggerApi;
 
-/** One installed breakpoint: the assigned DAP id + the runtime's number. */
-private typedef Installed = {
+/** One installed breakpoint: its DAP id and the runtime's breakpoint number. */
+private typedef InstalledBreakpoint = {
 	var id:Int;
 	var runtimeNumber:Int;
 	var line:Int;
-	var condition:Null<String>; // evaluated at each hit when non-null (M5)
+	var condition:Null<String>; // the Dispatcher evaluates it at each hit when non-null
 }
 
 /**
-	Owns the source line breakpoints. DAP `setBreakpoints` REPLACES the whole
-	set for a source, so each call clears that source's installed breakpoints
-	and reinstalls from the request. File resolution goes through FileMatcher
-	(suffix match onto the runtime's file key); a source that matches no runtime
-	file yields unverified results rather than an error, so the IDE shows a
-	hollow marker instead of failing.
+	Owns the line breakpoints of every source. DAP `setBreakpoints` REPLACES
+	the whole set of a source, so each call deletes that source's installed
+	breakpoints and installs the requested ones. FileMatcher maps the source
+	path onto the runtime's file key by path suffix. A source that matches no
+	runtime file gets unverified results rather than an error, so the IDE shows
+	a hollow marker.
 
-	Lines are verified against the macro-baked LineTable: a line without
-	executable code is rejected (unverified, with a message) — the usual cause
-	is a stale binary. Without a table (older lib build) verification degrades
-	to file level. Conditions are carried but not evaluated until M5.
+	Requested lines are checked against the LineTable compiled into the
+	binary. A line without executable code is rejected (unverified, with a
+	message); the usual cause is a stale binary. Without a table (a binary
+	built with an older version of this library), only the file is checked.
 **/
 class Breakpoints {
 	final debugger:DebuggerApi;
 	final lineTable:Null<LineTable>;
 	// sourceKey (lower-cased path) -> its installed breakpoints
-	final bySource:Map<String, Array<Installed>> = new Map();
+	final bySource:Map<String, Array<InstalledBreakpoint>> = new Map();
 	var matcher:Null<FileMatcher> = null;
 
 	public function new(debugger:DebuggerApi, ?lineTable:LineTable) {
@@ -38,16 +38,16 @@ class Breakpoints {
 	}
 
 	/**
-		Replaces the breakpoints for `sourcePath` with `requested`, assigning
-		each the id from `ids` (same length/order). Returns one DAP Breakpoint
-		result per request, in order.
+		Replaces the breakpoints of `sourcePath` with `requested`. Each gets the
+		id at the same position in `ids`. Returns one DAP Breakpoint result per
+		requested breakpoint, in order.
 	**/
 	public function setForSource(sourcePath:String, requested:Array<SourceBreakpoint>, ids:Array<Int>):Array<Breakpoint> {
 		clearSource(sourcePath);
 		var fileKey = fileMatcher().resolve(sourcePath);
 		var knownLines = lineTable != null ? lineTable.linesFor(sourcePath) : null;
 
-		var installed:Array<Installed> = [];
+		var installed:Array<InstalledBreakpoint> = [];
 		var results:Array<Breakpoint> = [];
 
 		for (i in 0...requested.length) {
@@ -103,8 +103,8 @@ class Breakpoints {
 		}
 	}
 
-	// The runtime's file tables are stable once the program is loaded, so the
-	// matcher is built once on first use.
+	// The runtime's file tables do not change once the program is loaded, so
+	// the matcher is built once, on first use.
 	function fileMatcher():FileMatcher {
 		if (matcher == null) {
 			matcher = new FileMatcher(debugger.filesFullPath(), debugger.files());

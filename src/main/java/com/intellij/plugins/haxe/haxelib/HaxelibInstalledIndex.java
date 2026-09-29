@@ -51,7 +51,9 @@ public class HaxelibInstalledIndex {
     List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDir,  "list");
     if ((!listCmdOutput.isEmpty()) && (!listCmdOutput.getFirst().contains("Unknown command"))) {
       for (String line : listCmdOutput) {
+        // blank lines and warning/error text have no "name:" prefix and are not library entries
         int firstColon = line.indexOf(":");
+        if (firstColon <= 0) continue;
         String libName = line.substring(0, firstColon);
         String libVersions = line.substring(firstColon + 1);
         processVersions(libName, libVersions.trim(), index);

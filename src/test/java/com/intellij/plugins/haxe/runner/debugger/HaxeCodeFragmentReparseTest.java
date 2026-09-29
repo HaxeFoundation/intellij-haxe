@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -25,7 +25,7 @@ import com.intellij.psi.PsiFile;
 
  */
 @DisplayName("Debugger: code fragment reparse")
-public class HaxeCodeFragmentReparseTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeCodeFragmentReparseTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
@@ -37,39 +37,27 @@ public class HaxeCodeFragmentReparseTest extends HaxeCodeInsightFixtureTestCase 
   }
 
   @Test
-  @DisplayName("typing into a fragment reparses without error")
-  public void testTypingIntoAFragmentReparsesWithoutError() {
-    PsiFile fragment = fragment("counter");
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    Document document = documentManager.getDocument(fragment);
-    assertNotNull(document);
-
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-      document.insertString(document.getTextLength(), " + 1");
-      documentManager.commitDocument(document);
-    });
-
-    assertEquals("counter + 1", fragment.getText());
-    assertNotNull(fragment.getFirstChild(), "reparsed fragment still has a parsed tree");
-  }
-
-  @Test
-  @DisplayName("repeated edits keep the fragment alive")
-  public void testRepeatedEditsKeepTheFragmentAlive() {
+  @DisplayName("typing into a fragment reparses and keeps it alive")
+  public void testTypingIntoAFragmentReparsesAndKeepsItAlive() {
     PsiFile fragment = fragment("a");
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    Document document = documentManager.getDocument(fragment);
+    Document document = PsiDocumentManager.getInstance(getProject()).getDocument(fragment);
     assertNotNull(document);
 
     // simulate keystrokes: each edit commits like the debugger editors do
     for (String typed : new String[]{".", "b", " ", "+", " ", "c"}) {
-      WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-        document.insertString(document.getTextLength(), typed);
-        documentManager.commitDocument(document);
-      });
+      typeInto(document, typed);
     }
 
     assertEquals("a.b + c", fragment.getText());
+    assertNotNull(fragment.getFirstChild(), "reparsed fragment still has a parsed tree");
     assertTrue(fragment.isValid(), "fragment survives repeated reparses");
+  }
+
+  /** One committed keystroke, as the debugger editors deliver them. */
+  private void typeInto(Document document, String typed) {
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      document.insertString(document.getTextLength(), typed);
+      PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+    });
   }
 }

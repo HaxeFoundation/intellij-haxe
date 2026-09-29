@@ -6,7 +6,7 @@ import ijhaxe.debug.eval.Operators;
 import haxe.Int64;
 
 /**
-	Pure operator-fold tests: Haxe semantics over EvalValue.
+	Operator tests: Haxe semantics over EvalValue, computed without a debuggee.
 **/
 class OperatorsTest {
 	public static function run(assert:Assert):Void {

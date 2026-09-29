@@ -1,16 +1,12 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
 import com.intellij.execution.ExecutionException;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.util.HaxePluginPaths;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -20,7 +16,6 @@ import java.nio.file.Path;
  * remaining output is drained and Stop can kill it).
  */
 public final class HashLinkAdapterLauncher {
-  private static final String PLUGIN_ID = "com.intellij.plugins.haxe";
   private static final String ADAPTER_RELATIVE_PATH = "adapter/hl-debug-adapter.hl";
   private static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
 
@@ -38,7 +33,7 @@ public final class HashLinkAdapterLauncher {
   private HashLinkAdapterLauncher() {
   }
 
-  /** Starts {@code hl <adapter.hl> --port 0} and parses the announced port. */
+  /// Starts `hl <adapter.hl> --port 0` and parses the announced port.
   public static LaunchedAdapter launch(Path hlExecutable) throws ExecutionException {
     Path adapter = bundledAdapterPath();
     Process process;
@@ -62,19 +57,11 @@ public final class HashLinkAdapterLauncher {
 
   /** The adapter bytecode shipped inside the plugin directory. */
   public static Path bundledAdapterPath() throws ExecutionException {
-//    TODO  we must replace this API once there is an alternative made available
-//    ref: https://platform.jetbrains.com/t/pluginmanagercore-getplugin-is-now-internal/4272/32
-//    IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID));
-//    Path adapter = plugin != null ? plugin.getPluginPath().resolve(ADAPTER_RELATIVE_PATH) : null;
-
-    // temp (or maybe permanent?) workaround while we wait for pluginManager API
-    Path jar = PathManager.getJarForClass(HashLinkAdapterLauncher.class);
-    Path lib = jar != null ? jar.getParent() : null;
-    Path pluginHome = lib != null ? lib.getParent() : null;
-    Path adapter = pluginHome != null ? pluginHome.resolve(ADAPTER_RELATIVE_PATH) : null;
-
-    if (adapter == null || !Files.isRegularFile(adapter)) {
-      throw new ExecutionException(HaxeDebuggerBundle.message("haxe.hl.adapter.missing", String.valueOf(adapter)));
+    Path adapter = HaxePluginPaths.bundledFile(ADAPTER_RELATIVE_PATH);
+    if (adapter == null) {
+      Path home = HaxePluginPaths.pluginHome();
+      String expected = home != null ? home.resolve(ADAPTER_RELATIVE_PATH).toString() : ADAPTER_RELATIVE_PATH;
+      throw new ExecutionException(HaxeDebuggerBundle.message("haxe.hl.adapter.missing", expected));
     }
     return adapter;
   }

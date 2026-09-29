@@ -1,12 +1,14 @@
 package ijhaxe.debug.session;
 
 /**
-	Resolved arguments for launching a debuggee.
-	`hlPath` is the HashLink executable (defaults to the adapter's own VM).
-	`stopOnEntry` is accepted but not yet honored.
-	When `attachPid` is set the debuggee was spawned by the client with
-	`--debug <debugPort> --debug-wait`; the adapter attaches instead of spawning
-	(the client owns the process's stdio and lifetime).
+	The resolved arguments of a launch request.
+
+	`hlPath` is the HashLink executable; it defaults to the VM running the
+	adapter. When `attachPid` is set, the client spawned the debuggee with
+	`--debug <debugPort> --debug-wait` and owns its stdio and lifetime; the
+	adapter attaches instead of spawning.
+
+	TODO: honour `stopOnEntry`; it is accepted and ignored.
 **/
 typedef LaunchConfig = {
 	var program:String;

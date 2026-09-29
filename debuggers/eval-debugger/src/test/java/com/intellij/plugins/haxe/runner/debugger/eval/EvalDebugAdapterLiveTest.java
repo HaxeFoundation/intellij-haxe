@@ -7,29 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +28,8 @@ import org.junit.jupiter.api.Test;
 @DisplayName("Eval debugger: debug adapter (live)")
 public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
 
+  private static final String FIXTURE = "EvalMain.hx";
+
   private static final int BREAK_LINE = 10;
   private static final int NESTED_CALL_LINE = 11; // `var nested = outer(inner(3));`
   private static final int INNER_LINE = 16;       // first EXECUTABLE line inside inner() (the return)
@@ -54,66 +41,18 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   @Test
   @DisplayName("full session breakpoint inspect step and finish")
   public void fullSessionBreakpointInspectStepAndFinish() throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    InitializeRequestArguments initArgs = new InitializeRequestArguments();
-    initArgs.setAdapterID("intellij-haxe-eval");
-    initialize.setArguments(initArgs);
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    assertNotNull(dapClient.pollEvent(TIMEOUT), "initialized event");
-
-    launch();
-
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(BREAK_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-
-    assertTrue(request(new ConfigurationDoneRequest()).isSuccess(), "configurationDone releases the waiting VM");
-
-    StoppedEvent stopped = awaitStopped();
-    assertEquals("breakpoint", stopped.getBody().getReason(), "stopped by the breakpoint");
+    StoppedEvent stopped = runToBreakpoint(FIXTURE, BREAK_LINE);
     int threadId = stopped.getBody().getThreadId();
 
     assertTrue(request(new ThreadsRequest()).isSuccess(), "threads");
 
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackTraceResponse stResponse = (StackTraceResponse)request(stackTrace);
-    assertTrue(stResponse.isSuccess(), "stackTrace");
-    List<StackFrame> frames = stResponse.getBody().getStackFrames();
-    assertFalse(frames.isEmpty(), "frames at the stop");
-
-    StackFrame top = frames.get(0);
+    StackFrame top = topFrame(threadId);
     assertEquals(BREAK_LINE, top.getLine(), "stopped on the break line");
     assertNotNull(top.getSource(), "top frame has a source");
-    assertTrue(DapPaths.toForwardSlashes(top.getSource().getPath()).endsWith("EvalMain.hx"), "top frame is the fixture");
+    assertTrue(DapPaths.toForwardSlashes(top.getSource().getPath()).endsWith(FIXTURE), "top frame is the fixture");
 
-    ScopesRequest scopes = scopesRequest(top.getId());
-    ScopesResponse scResponse = (ScopesResponse)request(scopes);
-    assertTrue(scResponse.isSuccess(), "scopes");
-    assertFalse(scResponse.getBody().getScopes().isEmpty(), "scopes present");
-
-    boolean sawGreeting = false;
-
-    for (Scope scope : scResponse.getBody().getScopes()) {
-      VariablesRequest variables = variablesRequest(scope.getVariablesReference());
-      VariablesResponse vResponse = (VariablesResponse)request(variables);
-      assertTrue(vResponse.isSuccess(), "variables of scope " + scope.getName());
-
-      for (Variable variable : vResponse.getBody().getVariables()) {
-        if ("greeting".equals(variable.getName())) {
-          sawGreeting = true;
-          assertTrue(variable.getValue().contains("hello"), "greeting holds its value (was " + variable.getValue() + ")");
-        }
-      }
-    }
-    assertTrue(sawGreeting, "local 'greeting' visible through DAP");
+    Variable greeting = findLocal(top.getId(), "greeting").variable();
+    assertTrue(greeting.getValue().contains("hello"), "greeting holds its value (was " + greeting.getValue() + ")");
 
     EvaluateRequest evaluate = evaluateRequest(top.getId(), "greeting.length + 1");
     EvaluateResponse eResponse = (EvaluateResponse)request(evaluate);
@@ -121,11 +60,9 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     assertEquals("6", eResponse.getBody().getResult(), "greeting.length + 1 == 6");
 
     // step over the break line and land on the next one, still in main
-    NextRequest next = nextRequest(threadId);
-    assertTrue(request(next).isSuccess(), "next");
+    assertTrue(request(nextRequest(threadId)).isSuccess(), "next");
     StoppedEvent afterStep = awaitStopped();
-    StackTraceResponse stepStack = (StackTraceResponse)request(stackTrace);
-    assertEquals(BREAK_LINE + 1, stepStack.getBody().getStackFrames().get(0).getLine(), "landed on the line after the breakpoint");
+    assertEquals(BREAK_LINE + 1, topFrame(threadId).getLine(), "landed on the line after the breakpoint");
 
     ContinueRequest resume = continueRequest(afterStep.getBody().getThreadId());
     Response resumeResponse = request(resume);
@@ -143,40 +80,17 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // granular (it stops on each column of the line before entering a callee),
     // so a plain step-into would need several presses. The adapter coalesces
     // those same-line sub-steps: ONE DAP step-into must land inside inner().
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
+    int threadId = runToBreakpoint(FIXTURE, NESTED_CALL_LINE).getBody().getThreadId();
 
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(NESTED_CALL_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent atCall = awaitStopped();
-    int threadId = atCall.getBody().getThreadId();
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackFrame atBreak = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame atBreak = topFrame(threadId);
     assertEquals(NESTED_CALL_LINE, atBreak.getLine(), "stopped on the nested-call line");
     assertTrue(atBreak.getName().endsWith("main"), "stopped in main");
 
-    StepInRequest stepIn = stepInRequest(threadId);
-    assertTrue(request(stepIn).isSuccess(), "stepIn");
+    assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn");
 
     StoppedEvent afterStep = awaitStopped();
     assertEquals("step", afterStep.getBody().getReason(), "step stop");
-    StackFrame landed = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame landed = topFrame(threadId);
     assertTrue(landed.getName().endsWith("inner"), "ONE step-into entered inner() (was " + landed.getName() + " line " + landed.getLine() + ")");
     assertEquals(INNER_LINE, landed.getLine(), "landed inside inner()");
   }
@@ -188,42 +102,13 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // line's sub-expressions, step THROUGH inner() without reporting it, and
     // land inside outer() (the eval protocol has no smart-step; the adapter
     // emulates custom/stepIntoFunction with sub-expression steps).
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
+    int threadId = runToBreakpoint(FIXTURE, NESTED_CALL_LINE).getBody().getThreadId();
 
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(NESTED_CALL_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent atCall = awaitStopped();
-    int threadId = atCall.getBody().getThreadId();
-    StepIntoFunctionRequest smartStep = new StepIntoFunctionRequest();
-    StepIntoFunctionArguments ssArgs = new StepIntoFunctionArguments();
-    ssArgs.setThreadId(threadId);
-    ssArgs.setClassName("EvalMain");
-    ssArgs.setFunctionName("outer");
-    ssArgs.setOccurrence(1);
-    smartStep.setArguments(ssArgs);
-    assertTrue(request(smartStep).isSuccess(), "stepIntoFunction");
+    assertTrue(request(stepIntoFunctionRequest(threadId, "EvalMain", "outer")).isSuccess(), "stepIntoFunction");
 
     StoppedEvent afterStep = awaitStopped();
     assertEquals("step", afterStep.getBody().getReason(), "step stop");
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackFrame landed = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame landed = topFrame(threadId);
     assertTrue(landed.getName().endsWith("outer"), "smart-step landed in outer(), skipping inner() (was "
                + landed.getName() + " line " + landed.getLine() + ")");
     assertEquals(OUTER_LINE, landed.getLine(), "on outer's executable line");
@@ -235,44 +120,13 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // `cfg.test1(1).test2().test3().test1(2);` — the user-reported flow:
     // smart-step into test2, step OUT, and be back ON THE CHAIN LINE (not
     // dragged through test3/test1) to pick the next call or leave the line.
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(CHAIN_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent atChain = awaitStopped();
-    int threadId = atChain.getBody().getThreadId();
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
+    int threadId = runToBreakpoint(FIXTURE, CHAIN_LINE).getBody().getThreadId();
 
     // smart-step into test2 (skipping test1(1))
-    StepIntoFunctionRequest smartStep = new StepIntoFunctionRequest();
-    StepIntoFunctionArguments ssArgs = new StepIntoFunctionArguments();
-    ssArgs.setThreadId(threadId);
-    ssArgs.setClassName("Chain");
-    ssArgs.setFunctionName("test2");
-    ssArgs.setOccurrence(1);
-    smartStep.setArguments(ssArgs);
-
-    assertTrue(request(smartStep).isSuccess(), "stepIntoFunction test2");
+    assertTrue(request(stepIntoFunctionRequest(threadId, "Chain", "test2")).isSuccess(), "stepIntoFunction test2");
     awaitStopped();
 
-    StackFrame inTest2 = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame inTest2 = topFrame(threadId);
     assertTrue(inTest2.getName().endsWith("test2"), "in test2 (was " + inTest2.getName() + ")");
 
     // Eval has NO caller-position stop between chained calls, so a literal
@@ -281,17 +135,17 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     StepOutRequest stepOut = stepOutRequest(threadId);
     assertTrue(request(stepOut).isSuccess(), "stepOut");
     awaitStopped();
-    StackFrame hop1 = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame hop1 = topFrame(threadId);
     assertTrue(hop1.getName().endsWith("test3"), "one step-out hops to test3's entry (was " + hop1.getName() + " line " + hop1.getLine() + ")");
 
     assertTrue(request(stepOut).isSuccess(), "stepOut");
     awaitStopped();
-    StackFrame hop2 = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame hop2 = topFrame(threadId);
     assertTrue(hop2.getName().endsWith("test1"), "next step-out hops to test1(2)'s entry (was " + hop2.getName() + ")");
 
     assertTrue(request(stepOut).isSuccess(), "stepOut");
     awaitStopped();
-    StackFrame afterChain = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame afterChain = topFrame(threadId);
     assertTrue(afterChain.getName().endsWith("chain"), "final step-out returns to chain() (was " + afterChain.getName() + ")");
     assertEquals(CHAIN_AFTER_LINE, afterChain.getLine(), "on the line after the chain");
   }
@@ -302,40 +156,20 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // toggle ON: a single DAP stepIn performs ONE raw interpreter sub-step
     // (same line, position advanced) and the frame carries the exact span
     // (endColumn) of the expression about to run - the highlight's data.
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
+    initialize();
     launch();
-
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(NESTED_CALL_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
+    setBreakpoints(FIXTURE, NESTED_CALL_LINE);
     assertTrue(request(SetExpressionSteppingRequest.of(true)).isSuccess(), "expression stepping ON");
     configurationDone();
 
-    StoppedEvent atCall = awaitStopped();
-    int threadId = atCall.getBody().getThreadId();
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackFrame before = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    int threadId = awaitStopped().getBody().getThreadId();
+    StackFrame before = topFrame(threadId);
     assertNotNull(before.getEndColumn(), "expression span present at the stop");
 
-    StepInRequest stepIn = stepInRequest(threadId);
-
-    assertTrue(request(stepIn).isSuccess(), "raw stepIn");
+    assertTrue(request(stepInRequest(threadId)).isSuccess(), "raw stepIn");
     awaitStopped();
 
-    StackFrame after = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    StackFrame after = topFrame(threadId);
     assertTrue(after.getName().endsWith("main"), "still in main (one SUB-step, not a callee: was " + after.getName() + ")");
     assertEquals(NESTED_CALL_LINE, after.getLine(), "same line");
     assertTrue(after.getColumn() != before.getColumn(), "position advanced within the line (col " + before.getColumn() + " -> " + after.getColumn() + ")");
@@ -348,50 +182,9 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // the variables view's inline Set Value: DAP setVariable against the
     // scope's variablesReference, answered with the variable's NEW state,
     // and the change must actually stick in the debuggee
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(BREAK_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent stopped = awaitStopped();
-    int threadId = stopped.getBody().getThreadId();
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackFrame top = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
-    ScopesRequest scopes = scopesRequest(top.getId());
-    ScopesResponse scResponse = (ScopesResponse)request(scopes);
-    assertTrue(scResponse.isSuccess(), "scopes");
-
-    // find the scope that holds the local 'greeting'
-    Integer greetingScope = null;
-
-    for (Scope scope : scResponse.getBody().getScopes()) {
-      VariablesRequest variables = variablesRequest(scope.getVariablesReference());
-      VariablesResponse vResponse = (VariablesResponse)request(variables);
-      assertTrue(vResponse.isSuccess(), "variables of scope " + scope.getName());
-
-      for (Variable variable : vResponse.getBody().getVariables()) {
-        if ("greeting".equals(variable.getName())) {
-          greetingScope = scope.getVariablesReference();
-        }
-      }
-    }
-    assertNotNull(greetingScope, "found the scope holding 'greeting'");
+    int threadId = runToBreakpoint(FIXTURE, BREAK_LINE).getBody().getThreadId();
+    StackFrame top = topFrame(threadId);
+    int greetingScope = findLocal(top.getId(), "greeting").scopeReference();
 
     // the trailing ';' must be cleaned like evaluate's
     SetVariableRequest setVariable = setVariableRequest(greetingScope, "greeting", "\"edited\";");
@@ -412,48 +205,14 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // array children are named "[0]"/"[1]"/... by the VM and edited against
     // the ARRAY's variablesReference with that bracket name — exactly what
     // the variables view sends for an element row
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
+    int threadId = runToBreakpoint(FIXTURE, COLL_LINE).getBody().getThreadId();
+    StackFrame top = topFrame(threadId);
 
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(COLL_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent stopped = awaitStopped();
-    int threadId = stopped.getBody().getThreadId();
-    StackTraceRequest stackTrace = stackTraceRequest(threadId);
-    StackFrame top = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
-    ScopesRequest scopes = scopesRequest(top.getId());
-    ScopesResponse scResponse = (ScopesResponse)request(scopes);
-    assertTrue(scResponse.isSuccess(), "scopes");
-
-    Variable items = null;
-    for (Scope scope : scResponse.getBody().getScopes()) {
-      VariablesRequest variables = variablesRequest(scope.getVariablesReference());
-      for (Variable variable : ((VariablesResponse)request(variables)).getBody().getVariables()) {
-        if ("items".equals(variable.getName())) {
-          items = variable;
-        }
-      }
-    }
-    assertNotNull(items, "found the 'items' array local");
+    Variable items = findLocal(top.getId(), "items").variable();
     assertTrue(items.getVariablesReference() > 0, "items is expandable");
 
     // the element rows carry the VM's bracket names
-    VariablesRequest elements = variablesRequest(items.getVariablesReference());
-    List<Variable> children = ((VariablesResponse)request(elements)).getBody().getVariables();
+    List<Variable> children = requestChildren(items.getVariablesReference());
     assertEquals(3, children.size(), "three elements");
     assertEquals("[1]", children.get(1).getName(), "bracket-named element");
 
@@ -466,19 +225,17 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     EvaluateResponse eResponse = (EvaluateResponse)request(evaluate);
     assertTrue(eResponse.isSuccess(), "evaluate after the edit");
     assertEquals("99", eResponse.getBody().getResult(), "the element edit stuck");
+  }
 
+  @Test
+  @DisplayName("whole array replacement carries a fresh reference")
+  public void wholeArrayReplacementCarriesAFreshReference() throws Exception {
     // replacing the WHOLE array through its scope: the response must carry a
     // FRESH variablesReference whose children are the new elements — the
     // view adopts it, or an expanded row keeps showing the old array
-    Integer itemsScope = null;
-    for (Scope scope : ((ScopesResponse)request(scopesRequest(top.getId()))).getBody().getScopes()) {
-      for (Variable variable : requestChildren(scope.getVariablesReference())) {
-        if ("items".equals(variable.getName())) {
-          itemsScope = scope.getVariablesReference();
-        }
-      }
-    }
-    assertNotNull(itemsScope, "scope holding items");
+    int threadId = runToBreakpoint(FIXTURE, COLL_LINE).getBody().getThreadId();
+    int itemsScope = findLocal(topFrame(threadId).getId(), "items").scopeReference();
+
     SetVariableRequest replaceAll = setVariableRequest(itemsScope, "items", "[0, 10, 30]");
     SetVariableResponse raResponse = (SetVariableResponse)request(replaceAll);
     assertTrue(raResponse.isSuccess(), "whole-array replace succeeded: " + raResponse.getMessage());
@@ -496,28 +253,8 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     // VM ("Cannot run Haxe code in a non-Haxe thread" assert, then a 10s
     // timeout killed the session — user-reported). The adapter must refuse
     // fast, and the VM must stay healthy afterwards.
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    String fixture = fixtureDir().resolve("EvalMain.hx").toString();
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixture);
-    bpArgs.setSource(source);
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(BREAK_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent stopped = awaitStopped();
-    StackTraceRequest stackTrace = stackTraceRequest(stopped.getBody().getThreadId());
-    StackFrame top = ((StackTraceResponse)request(stackTrace)).getBody().getStackFrames().get(0);
+    int threadId = runToBreakpoint(FIXTURE, BREAK_LINE).getBody().getThreadId();
+    StackFrame top = topFrame(threadId);
 
     // the String local 'greeting' hands out an expandable reference
     EvaluateRequest evaluate = evaluateRequest(top.getId(), "greeting");
@@ -541,6 +278,17 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   @Override
   protected String fixtureMain() {
     return "EvalMain";
+  }
+
+  private static StepIntoFunctionRequest stepIntoFunctionRequest(int threadId, String className, String functionName) {
+    StepIntoFunctionRequest request = new StepIntoFunctionRequest();
+    StepIntoFunctionArguments arguments = new StepIntoFunctionArguments();
+    arguments.setThreadId(threadId);
+    arguments.setClassName(className);
+    arguments.setFunctionName(functionName);
+    arguments.setOccurrence(1);
+    request.setArguments(arguments);
+    return request;
   }
 
   private List<Variable> requestChildren(int variablesReference) throws Exception {

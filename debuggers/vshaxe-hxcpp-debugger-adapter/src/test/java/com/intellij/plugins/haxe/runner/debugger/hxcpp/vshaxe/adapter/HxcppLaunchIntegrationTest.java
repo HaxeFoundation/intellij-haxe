@@ -91,13 +91,13 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
     // a TOP-frame local is writable; the changed value is verified by
     // read-back here and by the program's own trace output at the end
     // (doubled = 55 in iteration 1 makes the final total 115, not 60)
-    require(assignmentRequest("doubled = 55", top.getId()));
+    require(evaluateRequest("doubled = 55", top.getId()));
     assertEquals("55", evaluate("doubled", top.getId()).getBody().getResult().trim(), "assignment did not stick");
 
     // a CALLER-frame variable is not writable (the server hardcodes the top
     // frame and would silently ignore it) — the adapter must say so
     assertTrue(frames.size() >= 2, "expected a caller frame");
-    Response callerAssign = dapClient.sendRequest(assignmentRequest("n = 100", frames.get(1).getId()), TIMEOUT);
+    Response callerAssign = dapClient.sendRequest(evaluateRequest("n = 100", frames.get(1).getId()), TIMEOUT);
     assertFalse(callerAssign.isSuccess(), "caller-frame write should be refused, not silently ignored");
     assertTrue(callerAssign.getMessage().contains("TOP stack frame"), callerAssign.getMessage());
 
@@ -158,15 +158,10 @@ public class HxcppLaunchIntegrationTest extends HxcppIntegrationTestBase {
   }
 
   private EvaluateResponse evaluate(String expression, int frameId) throws Exception {
-    EvaluateArguments arguments = new EvaluateArguments();
-    arguments.setExpression(expression);
-    arguments.setFrameId(frameId);
-    EvaluateRequest request = new EvaluateRequest();
-    request.setArguments(arguments);
-    return require(request);
+    return require(evaluateRequest(expression, frameId));
   }
 
-  private EvaluateRequest assignmentRequest(String expression, int frameId) {
+  private static EvaluateRequest evaluateRequest(String expression, int frameId) {
     EvaluateArguments arguments = new EvaluateArguments();
     arguments.setExpression(expression);
     arguments.setFrameId(frameId);

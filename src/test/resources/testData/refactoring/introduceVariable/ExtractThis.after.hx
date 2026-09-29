@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var this1 = this;
-        var myinstance = this1;
+        var test = this;
+        var myinstance = test;
     }
 }

@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
@@ -133,26 +131,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
   /** Runs to the breakpoint on the throw line and returns the stopped thread id. */
   private int stopOnThrowLine() throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments bpArgs = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixtureDir().resolve("EvalThrow.hx").toString());
-    bpArgs.setSource(source);
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(THROW_LINE);
-    bpArgs.setBreakpoints(List.of(breakpoint));
-    setBreakpoints.setArguments(bpArgs);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
-    configurationDone();
-
-    StoppedEvent stopped = awaitEvent(StoppedEvent.class);
-    return stopped.getBody().getThreadId();
+    return runToBreakpoint("EvalThrow.hx", THROW_LINE).getBody().getThreadId();
   }
 
   /**
@@ -221,17 +200,8 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
   /** Arms the uncaught filter, runs into the throw, returns the exception stop. */
   private StoppedEvent runIntoExceptionStop() throws Exception {
-    InitializeRequest initialize = new InitializeRequest();
-    initialize.setArguments(new InitializeRequestArguments());
-    assertTrue(request(initialize).isSuccess(), "initialize");
-    dapClient.pollEvent(TIMEOUT);
-    launch();
-
-    SetExceptionBreakpointsRequest exceptions = exceptionBreakpointsRequest(List.of("uncaught"));
-    assertTrue(request(exceptions).isSuccess(), "setExceptionBreakpoints");
-    configurationDone();
-
-    StoppedEvent stopped = awaitEvent(StoppedEvent.class);
+    startSession(List.of("uncaught"));
+    StoppedEvent stopped = awaitStopped();
     assertTrue("exception".equals(stopped.getBody().getReason()), "stopped for the exception, was: " + stopped.getBody().getReason());
     return stopped;
   }

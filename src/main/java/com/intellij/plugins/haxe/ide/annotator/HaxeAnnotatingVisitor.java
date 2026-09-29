@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeInactiveBody;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -110,6 +111,9 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   @Override
   public void visitElement(PsiElement element) {
     ProgressIndicatorProvider.checkCanceled();
+    // inactive conditional branches are analysis-exempt: descending would run
+    // resolve and usage searches over code that is not part of the build
+    if (element instanceof HaxeInactiveBody) return;
     element.acceptChildren(this);
   }
 

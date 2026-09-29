@@ -162,20 +162,26 @@ import com.intellij.openapi.diagnostic.LogLevel;
             yybegin(state.state);
         }
 
+        // The parser wants inactive branches as PPBODY (they merge into lazily
+        // parsed blobs); the editor highlighter wants real token types there,
+        // so token-stream mechanics (brace matching/auto-close, enter between
+        // braces) work in dead code too - its colors dim via annotator.
+        protected boolean remapInactiveToPpbody = true;
+
         /** Map output within conditional blocks to comments if the condition is false. */
         private IElementType emitToken(IElementType tokenType) {
-            if (ccsupport.currentContextIsActive()) {
-               if (tokenType != null && !WHITESPACES.contains(tokenType) && !COMMENTS.contains(tokenType)) {
-                   lastSignificantToken = tokenType;
-               }
-               return tokenType;
-            } else {
+            if (remapInactiveToPpbody && !ccsupport.currentContextIsActive()) {
                 return ccsupport.mapToken(tokenType);
             }
+            if (tokenType != null && !WHITESPACES.contains(tokenType) && !COMMENTS.contains(tokenType)) {
+                lastSignificantToken = tokenType;
+            }
+            return tokenType;
         }
 
         /** Deal with compiler conditional block constructs (e.g. #if...#end). */
         private IElementType processConditional(IElementType type) {
+            boolean swallowed = ccsupport.directiveIsSwallowed(type);
             ccsupport.processConditional(yytext(), type);
 
             if (PPIF.equals(type)) {
@@ -192,7 +198,8 @@ import com.intellij.openapi.diagnostic.LogLevel;
             if (PPIF.equals(type) || PPELSEIF.equals(type)) {
                 conditionStart();
             }
-            return type;
+            // a region nested in an inactive branch lexes into that branch's blob
+            return remapInactiveToPpbody && swallowed ? PPBODY : type;
         }
 
         // These deal with the state of lexing the *condition* for compiler conditionals
@@ -203,7 +210,7 @@ import com.intellij.openapi.diagnostic.LogLevel;
             if (ccsupport.conditionIsComplete()) {
                 conditionEnd();
             }
-            return PPEXPRESSION;
+            return remapInactiveToPpbody && ccsupport.currentSectionIsSwallowed() ? PPBODY : PPEXPRESSION;
         }
         private void conditionEnd() {
             ccsupport.conditionEnd();
@@ -319,6 +326,9 @@ IDENTIFIER_PART={IDENTIFIER_START}|{mDIGIT}
 
 IDENTIFIER_NO_DOLLAR={IDENTIFIER_START}{IDENTIFIER_PART}*
 IDENTIFIER_WITH__DOLLAR="$"{IDENTIFIER_START}{IDENTIFIER_PART}*
+// compiler-internal unbound identifier as printed by -D dump=pretty (`trace);
+// the backtick guarantees no collision with source identifiers
+UNBOUND_IDENTIFIER="`"{IDENTIFIER_NO_DOLLAR}
 
 /*
     Haxe inline XML/markup literal tag names.
@@ -460,6 +470,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 {META}                                    {  return emitToken( META_ID); }
 {IDENTIFIER_WITH__DOLLAR}                 {  return emitToken( MACRO_ID); }
 {IDENTIFIER_NO_DOLLAR}                    {  return emitToken( ID); }
+{UNBOUND_IDENTIFIER}                      {  return emitToken( UNBOUND_ID); }
 
 "?."                                      { return emitToken( OQUEST_DOT); }
 "."                                       { return emitToken( ODOT); }

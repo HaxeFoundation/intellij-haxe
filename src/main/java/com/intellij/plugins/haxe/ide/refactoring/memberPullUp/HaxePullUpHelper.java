@@ -24,13 +24,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodModifier;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.MethodSignatureUtil;
@@ -47,6 +50,7 @@ import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.VisibilityUtil;
 import lombok.CustomLog;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -263,7 +267,11 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         movedElement = (PsiMember)superClassMethod.replace(convertMethodToLanguage(methodCopy, language));
       }
       else {
-        methodCopy = HaxeElementGenerator.createMethodDeclaration(myProject, methodCopy.getText().trim() + ";");
+        String prototype = methodCopy instanceof HaxeMethodDeclaration declaration
+                           ? prototypeOf(declaration)
+                           : methodCopy.getText().trim() + ";";
+
+        methodCopy = HaxeElementGenerator.createMethodDeclaration(myProject, prototype);
 
         PsiElement superClassBody = myTargetSuperClass.getBody();
         movedElement =
@@ -273,14 +281,6 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         reformat(movedElement);
       }
 
-      if (!PsiUtil.isLanguageLevel6OrHigher(mySourceClass) && myIsTargetInterface) {
-        if (isOriginalMethodAbstract) {
-          for (PsiMethod oMethod : OverridingMethodsSearch.search(method).findAll()) {
-            deleteOverrideAnnotationIfFound(oMethod);
-          }
-        }
-        deleteOverrideAnnotationIfFound(method);
-      }
       myMembersAfterMove.add(movedElement);
       addMetadataAndDocs(relatedPsiElements, movedElement, true);
       //if (isOriginalMethodAbstract) {
@@ -344,6 +344,39 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     //}
     //PsiClass newClass = JVMElementFactories.getFactory(language, clazz.getProject()).createClass(clazz.getName());
     return clazz;
+  }
+
+  /**
+   * The interface prototype of a method: its signature ended with a
+   * semicolon, without the body and without the {@code override} modifier,
+   * which an interface method cannot carry.
+   */
+  @NotNull
+  private static String prototypeOf(@NotNull HaxeMethodDeclaration method) {
+    PsiElement signatureEnd = signatureEndOf(method);
+    StringBuilder prototype = new StringBuilder();
+    boolean afterOverride = false;
+    for (PsiElement child = method.getFirstChild(); child != null; child = child.getNextSibling()) {
+      boolean override = child instanceof HaxeMethodModifier && HaxePsiModifier.OVERRIDE.equals(child.getText());
+      boolean skipped = override || afterOverride && child instanceof PsiWhiteSpace;
+      afterOverride = override;
+      if (!skipped) prototype.append(child.getText());
+      if (child == signatureEnd) break;
+    }
+    return prototype.toString().trim() + ";";
+  }
+
+  /** The type tag, or the closing parenthesis of the parameter list when the method declares no return type. */
+  @NotNull
+  private static PsiElement signatureEndOf(@NotNull HaxeMethodDeclaration method) {
+    if (method.getTypeTag() != null) return method.getTypeTag();
+    PsiElement parameters = method.getParameterList();
+    if (parameters.getParent() != method) return parameters.getParent();
+    PsiElement closingParen = parameters.getNextSibling();
+    while (closingParen != null && closingParen.getNode().getElementType() != HaxeTokenTypes.PRPAREN) {
+      closingParen = closingParen.getNextSibling();
+    }
+    return closingParen != null ? closingParen : parameters;
   }
 
   private static void deleteOverrideAnnotationIfFound(PsiMethod oMethod) {

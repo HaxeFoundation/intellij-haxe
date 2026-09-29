@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="${TITLE}" package="${PACKAGE}" version="1.0.0" company="" />
+	<app main="Main" file="${FILE}" path="export" />
+
+	<window width="${WIDTH}" height="${HEIGHT}" fps="${FPS}" />
+	<window fullscreen="false" resizable="true" />
+
+	<source path="${SOURCE_DIR}" />
+
+	<haxelib name="${HAXELIB}" />
+
+</project>

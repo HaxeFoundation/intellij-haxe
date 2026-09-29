@@ -203,7 +203,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if( module.getModel() instanceof  HaxeModuleModel model) {
       String qname = model.getPackageName();
       StringBuilder stringBuilder = new StringBuilder();
-      DocumentationManagerUtil.createHyperlink(stringBuilder, qname, qname, false, true);
+      DocumentationManagerUtil.createHyperlink(stringBuilder, qname, qname, false);
       mainBuilder.append(HtmlChunk.icon("AllIcons.Nodes.Package", AllIcons.Nodes.Package)).nbsp(1);
       mainBuilder.appendRaw(stringBuilder.toString()).br();
 
@@ -281,7 +281,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     String packageString = HaxeResolveUtil.getPackageName(component.getContainingFile());
 
     StringBuilder stringBuilder = new StringBuilder();
-    DocumentationManagerUtil.createHyperlink(stringBuilder, packageString, packageString, false, true);
+    DocumentationManagerUtil.createHyperlink(stringBuilder, packageString, packageString, false);
     builder.append(HtmlChunk.icon("AllIcons.Nodes.Package", AllIcons.Nodes.Package)).nbsp(1);
     builder.appendRaw(stringBuilder.toString()).br();
 
@@ -407,7 +407,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if (containingClass != null) {
       StringBuilder stringBuilder = new StringBuilder();
       String qualifiedName = containingClass.getQualifiedName();
-      DocumentationManagerUtil.createHyperlink(stringBuilder, qualifiedName, qualifiedName, false, true);
+      DocumentationManagerUtil.createHyperlink(stringBuilder, qualifiedName, qualifiedName, false);
       // TODO haxe icons
       builder.append(HtmlChunk.icon("AllIcons.Nodes.Class", AllIcons.Nodes.Class)).nbsp(1);
       builder.appendRaw(stringBuilder.toString()).br().br();

@@ -57,6 +57,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage message = DapJson.decode(json);
     assertTrue(message instanceof InitializeResponse);
     InitializeResponse response = (InitializeResponse)message;
@@ -86,6 +87,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage message = DapJson.decode(json);
     assertTrue(message instanceof SetBreakpointsResponse);
     SetBreakpointsResponse response = (SetBreakpointsResponse)message;
@@ -113,6 +115,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage message = DapJson.decode(json);
     assertTrue(message instanceof ErrorResponse);
     ErrorResponse response = (ErrorResponse)message;
@@ -144,6 +147,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ErrorResponse response = (ErrorResponse)DapJson.decode(json);
     assertEquals(DebugErrorCode.UNRESOLVED_NAME.id(), response.getBody().getError().getId());
     assertEquals("Deep", response.getBody().getError().getVariables().get("name"));
@@ -292,6 +296,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage sm = DapJson.decode(scopes);
     assertTrue(sm instanceof ScopesResponse);
     assertEquals("Locals", ((ScopesResponse)sm).getBody().getScopes().get(0).getName());
@@ -316,6 +321,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage vm = DapJson.decode(vars);
     assertTrue(vm instanceof VariablesResponse);
     assertEquals("total", ((VariablesResponse)vm).getBody().getVariables().get(0).getName());
@@ -359,6 +365,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     VariablesResponse vm = (VariablesResponse)DapJson.decode(vars);
     assertEquals(VariableKind.ARGUMENT, vm.getBody().getVariables().get(0).getKind());
     assertEquals(VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(1).getKind(), "absent kind decodes to UNSPECIFIED");
@@ -392,6 +399,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage message = DapJson.decode(json);
     assertTrue(message instanceof StackTraceResponse);
     StackTraceResponse response = (StackTraceResponse)message;
@@ -418,6 +426,7 @@ public class DapJsonTest {
           }
         }
         """;
+
     ProtocolMessage message = DapJson.decode(json);
     assertTrue(message instanceof StoppedEvent);
     StoppedEvent event = (StoppedEvent)message;
@@ -429,13 +438,14 @@ public class DapJsonTest {
   @Test
   @DisplayName("decode discriminates lifecycle events")
   public void decodeDiscriminatesLifecycleEvents() {
-    assertTrue(DapJson.decode("""
+    ProtocolMessage terminated = DapJson.decode("""
         {
           "seq": 1,
           "type": "event",
           "event": "terminated"
         }
-        """) instanceof TerminatedEvent);
+        """);
+    assertTrue(terminated instanceof TerminatedEvent);
 
     ProtocolMessage exited = DapJson.decode("""
         {

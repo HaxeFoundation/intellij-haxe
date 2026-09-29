@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapBackend;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugProcess;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapSourceScopes;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequest;
@@ -20,6 +21,7 @@ import com.intellij.xdebugger.ui.XDebugTabLayouter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,19 +42,28 @@ public class HashLinkBackend implements DapBackend {
   private final Path hlExecutable;
   private final Path hlProgram;
   private final int debugPort;
+  private final List<String> sourceDirectories;
 
   private volatile long debuggeePid = -1;
   private volatile Process adapterProcess;
   private volatile BufferedReader adapterStdout;
   private volatile HashLinkRegistersPanel registersPanel;
 
-  public HashLinkBackend(Path hlExecutable, Path hlProgram, int debugPort) {
+  /**
+   * With the build's source directories (absolute, VFS separators): the HL
+   * debug tables carry classpath-relative file names, so without a scope any
+   * same-named file in the IDE project binds breakpoints into this debuggee
+   * and stack frames resolve to an arbitrary same-named editor file. An empty
+   * list disables the scoping.
+   */
+  public HashLinkBackend(Path hlExecutable, Path hlProgram, int debugPort, List<String> sourceDirectories) {
     this.hlExecutable = hlExecutable;
     this.hlProgram = hlProgram;
     this.debugPort = debugPort;
+    this.sourceDirectories = List.copyOf(sourceDirectories);
   }
 
-  int getDebugPort() {
+  public int getDebugPort() {
     return debugPort;
   }
 
@@ -199,7 +210,16 @@ public class HashLinkBackend implements DapBackend {
 
   @Override
   public @Nullable XSourcePosition resolveSource(Project project, @Nullable String path, StackFrame frame) {
-    return HashLinkSourceResolver.resolve(project, path, frame);
+    return HashLinkSourceResolver.resolve(project, path, frame, sourceDirectories);
+  }
+
+  // The debug tables carry classpath-relative (sometimes bare) file names, so
+  // the adapter can only match a breakpoint by name/suffix - a file outside
+  // the build's source directories must not be offered at all, or its
+  // same-named sibling inside the build binds and stops the debuggee.
+  @Override
+  public boolean acceptsBreakpointFile(String vfsPath) {
+    return DapSourceScopes.acceptsWhenScoped(vfsPath, sourceDirectories);
   }
 
   // NOTE: the adapter currently only STORES the flag — labels stay class names

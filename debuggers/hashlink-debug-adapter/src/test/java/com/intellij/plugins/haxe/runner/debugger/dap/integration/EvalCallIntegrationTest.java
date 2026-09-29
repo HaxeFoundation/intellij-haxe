@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -275,19 +272,4 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     assertTrue(output.contains("rich:10"), "program ran to completion intact after the pushes (" + output + ")");
   }
 
-  private String continueToExit(int threadId) throws Exception {
-    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue");
-    List<String> output = new ArrayList<>();
-    while (true) {
-      Event event = client.pollEvent(TIMEOUT);
-      if (event instanceof OutputEvent out) {
-        output.add(out.getBody().getOutput());
-      } else if (event instanceof StoppedEvent stopped) {
-        request(continueRequest(stopped.getBody().getThreadId()));
-      } else if (event instanceof ExitedEvent) {
-        break;
-      }
-    }
-    return String.join("", output);
-  }
 }

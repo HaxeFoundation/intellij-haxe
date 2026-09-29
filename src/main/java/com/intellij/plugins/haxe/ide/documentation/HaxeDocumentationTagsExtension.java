@@ -11,10 +11,11 @@ import org.commonmark.parser.Parser;
 import org.commonmark.parser.PostProcessor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.intellij.plugins.haxe.ide.documentation.HaxeDocTags.*;
 
 public class HaxeDocumentationTagsExtension implements Parser.ParserExtension {
 
@@ -44,23 +45,6 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
     public static Pattern docTagPattern = Pattern.compile("(@\\w+)(.*)");
     public static Pattern parameterContentPattern = Pattern.compile("(\\S+)(\\s+(.*))?");
 
-    public static final String TAG_SINCE = "@since";
-    public static final String TAG_SEE = "@see";
-    public static final String TAG_PARAM = "@param";
-    public static final String TAG_RETURN = "@return";
-    public static final String TAG_EVENT = "@event";
-    public static final String TAG_THROWS = "@throws";
-
-    //TODO @example ?
-
-    private static final List<String> TAGS = List.of(
-            TAG_SINCE,
-            TAG_SEE,
-            TAG_PARAM,
-            TAG_RETURN,
-            TAG_EVENT,
-            TAG_THROWS
-    );
 
 
 
@@ -297,7 +281,7 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
             Matcher matcher1 = docTagPattern.matcher(literal);
             if(matcher1.find()) {
                 String group = matcher1.group(1);
-                return TAGS.contains(group);
+                return ALL.contains(group);
             }
         }
         return false;

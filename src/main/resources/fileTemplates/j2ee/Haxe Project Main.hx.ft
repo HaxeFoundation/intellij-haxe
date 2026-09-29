@@ -1,0 +1,5 @@
+class ${MAIN_CLASS} {
+    static function main() {
+        trace("Hello, Haxe!");
+    }
+}

@@ -1,0 +1,3 @@
+-p src
+--main TestMain
+--jvm bin/tests.jar

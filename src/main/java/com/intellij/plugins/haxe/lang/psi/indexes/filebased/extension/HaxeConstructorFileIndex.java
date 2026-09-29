@@ -16,7 +16,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.*;
-import com.intellij.util.io.DataExternalizer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,7 +80,7 @@ public class HaxeConstructorFileIndex extends HaxeComponentBaseIndex {
                                     }
                                 }
                             }
-                            return false;
+                            return true; // keep iterating; false stops at the FIRST file and drops every other candidate
                         }
                     }, searchScope);
         }

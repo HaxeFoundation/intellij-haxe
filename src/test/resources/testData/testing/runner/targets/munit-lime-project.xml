@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="LimeTests" package="lime.tests" version="1.0.0" company="tests" />
+	<app main="TestMain" path="export" file="LimeTests" />
+	<source path="src" />
+	<haxelib name="lime" />
+	<haxelib name="munit" />
+</project>

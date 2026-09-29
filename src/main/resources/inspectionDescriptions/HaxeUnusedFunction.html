@@ -1,0 +1,12 @@
+<html>
+<body>
+Reports local functions that are never called.
+<p><b>Example:</b></p>
+<pre><code>
+function process():Void {
+    function helper():Void {}   // declared but never called
+    trace("done");
+}
+</code></pre>
+</body>
+</html>

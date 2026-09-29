@@ -27,7 +27,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
@@ -202,6 +201,11 @@ public class HaxeExpressionEvaluator {
       // must be before  HaxeLocalVarDeclaration as HaxeSwitchCaseCaptureVar extends HaxeLocalVarDeclaration
       if (element instanceof HaxeSwitchCaseCaptureVar captureVar) {
         return handleSwitchCaseCaptureVar(resolver, captureVar);
+      }
+
+      if (element instanceof HaxeSwitchCaseCapture capture) {
+        ResultHolder captureType = handleSwitchCaseCapture(context, resolver, capture);
+        return captureType != null ? captureType : createUnknown(capture);
       }
 
       if (element instanceof HaxeFieldDeclaration declaration) {
@@ -605,9 +609,11 @@ public class HaxeExpressionEvaluator {
       }
     }
     if (lastValue != null && !lastValue.isUnknown()) {
-      if(lastValue.isOrContainsTypeParameters()) {
-        ResultHolder holder = searchReferencesForTypeParameters(componentName, context, resolver, lastValue, continueFrom);
-        if (!holder.isUnknown()) return holder;
+      if (lastValue.isOrContainsTypeParameters()) {
+        if (!HaxeExpressionUsageUtil.containsOnlyEnclosingTypeParameters(lastValue, componentName)) {
+          ResultHolder holder = searchReferencesForTypeParameters(componentName, context, resolver, lastValue, continueFrom);
+          if (!holder.isUnknown()) return holder;
+        }
       }
 
       if(lastValue.isEnumValueType()) {
@@ -618,6 +624,15 @@ public class HaxeExpressionEvaluator {
 
     return createUnknown(componentName);
   }
+
+  /**
+   * Deliberately NOT memoized: the result GROWS as types settle
+   * (an occurrence only enters the list once its isReferenceTo resolve
+   * succeeds), and usage-based inference converges by re-running the search
+   * until it stabilizes. Freezing one snapshot - even one computed without
+   * taint - freezes that fixpoint at its sparsest state and the highlighting
+   * pass never converges.
+   */
   @NotNull
   public static List<PsiReference> referenceSearch(final HaxeComponentName componentName, @Nullable final PsiElement searchScope) {
     SearchScope scope = HaxeExpressionEvaluatorSearchUtil.getSmallestPossibleSearchScope(componentName, searchScope);
@@ -627,8 +642,18 @@ public class HaxeExpressionEvaluator {
   public static List<PsiReference> referenceSearch(final HaxeComponentName componentName, @NotNull final SearchScope searchScope) {
     ProgressManager.checkCanceled();
 
+    // For a method, usages inside its own body are recursive calls: their
+    // argument types derive from the very parameters being inferred, so they
+    // carry no type information and evaluating them only re-enters this
+    // inference. They also sort FIRST (closest to the declaration), so
+    // without the filter the cycle is entered before any informative
+    // external call site is reached.
+    PsiElement declaration = componentName.getParent();
+    PsiElement selfUsageScope = declaration instanceof HaxeMethod ? declaration : null;
+
     int offset = componentName.getIdentifier().getTextRange().getEndOffset();
     return new ArrayList<>(ReferencesSearch.search(componentName, searchScope).findAll()).stream()
+            .filter(ref -> selfUsageScope == null || !PsiTreeUtil.isAncestor(selfUsageScope, ref.getElement(), true))
             .sorted((r1, r2) -> {
               int i1 = getDistance(r1, offset);
               int i2 = getDistance(r2, offset);
@@ -679,7 +704,7 @@ public class HaxeExpressionEvaluator {
       if (expression.getParent() instanceof  HaxeObjectLiteralElement literalElement) {
         HaxeObjectLiteral objectLiteral = PsiTreeUtil.getParentOfType(literalElement, HaxeObjectLiteral.class);
         if(objectLiteral != null) {
-          ResultHolder result = checkSearchResultRecursionGuard.computePreventingRecursion(objectLiteral, false, () -> {
+          ResultHolder result = HaxeEvaluationTaint.computeOrTaint(checkSearchResultRecursionGuard, objectLiteral, false, () -> {
             ResultHolder objectLiteralType = findObjectLiteralType(context, resolver, objectLiteral);
             if (objectLiteralType != null && !objectLiteralType.isUnknown()) {
               SpecificHaxeClassReference classType = objectLiteralType.getClassType();

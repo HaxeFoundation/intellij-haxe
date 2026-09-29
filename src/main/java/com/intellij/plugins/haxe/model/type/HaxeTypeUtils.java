@@ -1,8 +1,18 @@
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
+
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.IMAP;
 
 public class HaxeTypeUtils {
 
@@ -128,6 +138,54 @@ public class HaxeTypeUtils {
             return !function.getTypeParameters().isEmpty();
         }
         return false;
+    }
+
+    public record MapKeyValueTypes(@NotNull ResultHolder key, @NotNull ResultHolder value) {}
+
+    /**
+     * The key and value types of a map type: the parameters of its array-access
+     * setter, else of set() when the class implements IMap. Null for other types.
+     */
+    @Nullable
+    public static MapKeyValueTypes tryFindMapKeyValueTypes(SpecificTypeReference reference) {
+        if (reference instanceof SpecificHaxeClassReference classReference) {
+            reference = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+        }
+
+        if (reference instanceof SpecificHaxeClassReference classReference) {
+
+            HaxeClass haxeClass = classReference.getHaxeClass();
+            if (haxeClass == null) return null;
+
+            HaxeGenericResolver resolver = classReference.getGenericResolver();
+            HaxeMethodModel methodModel = findMapsArrayAccessOrSetter(haxeClass, resolver);
+            if (methodModel == null) return null;
+            List<HaxeParameterModel> parameters = methodModel.getParameters();
+            if (parameters.size() != 2) return null;
+
+            ResultHolder key = parameters.get(0).getType(resolver);
+            ResultHolder value = parameters.get(1).getType(resolver);
+            return new MapKeyValueTypes(key, value);
+        }
+        return null;
+    }
+
+    @Nullable
+    private static HaxeMethodModel findMapsArrayAccessOrSetter(@NotNull HaxeClass haxeClass, @NotNull HaxeGenericResolver resolver) {
+        HaxeNamedComponent arrayAccessSetter = haxeClass.findArrayAccessSetter(resolver);
+        if (arrayAccessSetter instanceof HaxeMethodDeclaration declaration) return declaration.getModel();
+
+        if (!implementsIMap(haxeClass)) return null;
+        HaxeBaseMemberModel setMember = haxeClass.getModel().getMember("set", resolver);
+        return setMember instanceof HaxeMethodModel methodModel ? methodModel : null;
+    }
+
+    private static boolean implementsIMap(@NotNull HaxeClass haxeClass) {
+        if (IMAP.equals(haxeClass.getFullyQualifiedName())) return true;
+        return haxeClass.getHaxeImplementsList().stream()
+          .map(type -> type.getReferenceExpression().resolveHaxeClass().getHaxeClass())
+          .filter(Objects::nonNull)
+          .anyMatch(implemented -> IMAP.equals(implemented.getFullyQualifiedName()));
     }
 
 }

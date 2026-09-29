@@ -74,10 +74,10 @@ class CodeGraphTest {
 		assert.isFalse(t.returns, "no return reachable before the line change");
 	}
 
-	// After stepping out of a call, the debuggee parks at the return address —
-	// which maps MID-op back onto the call op that just finished. With
-	// startOpCallDone that call is not offered again; a fresh stop AT the op
-	// (call not yet executed) still offers it.
+	// After stepping out of a call, the debuggee stops at the return address,
+	// in the middle of the call op that just finished. With startOpCallDone
+	// that call is not offered again; a stop at the start of the op, before the
+	// call has run, still offers it.
 	static function stepTargetsSkipsTheStartCallWhenItAlreadyRan(assert:Assert):Void {
 		var g = new CodeGraph(fixtureOps());
 		var t = g.stepTargets(1, 10, lineOf, true);
@@ -104,7 +104,7 @@ class CodeGraphTest {
 		assert.isTrue(t.returns, "ORet on the same line marks a return");
 	}
 
-	// try { throw } catch { ... } — the shape of the reported bug:
+	// try { throw } catch { ... }:
 	//  0 OTrap(end=3) line 20   handler at 0+1+3 = 4
 	//  1 OString      line 21   (the throw line: build the value)
 	//  2 OThrow       line 21   guarded -> flows to the handler, NOT out
@@ -129,9 +129,9 @@ class CodeGraphTest {
 		assert.equals("4", g.successors(2).join(","), "guarded OThrow's successor is the catch handler");
 		assert.isFalse(g.isTerminal(2), "a guarded throw does not leave the function");
 
-		// stepping from the throw line must land on the catch handler's line,
-		// and must NOT claim the function returns (the reported bug: no temp at
-		// the catch, so the step ran through catch and out to the caller)
+		// a step from the throw line lands on the catch handler's line and does
+		// not treat the throw as leaving the function; without a temporary
+		// breakpoint at the catch, the step would run on out to the caller
 		var t = g.stepTargets(1, 21, op -> op >= 0 && op < tryCatchLines.length ? tryCatchLines[op] : 0);
 		assert.equals("4", t.lineChangeOps.join(","), "step from the throw line lands at the catch handler");
 		assert.isFalse(t.returns, "a caught throw is not a function exit");

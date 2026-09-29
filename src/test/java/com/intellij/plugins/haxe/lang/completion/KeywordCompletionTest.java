@@ -66,6 +66,18 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  @DisplayName("line comment")
+  public void testLineComment() throws Throwable {
+    doTest();
+  }
+
+  @Test
+  @DisplayName("doc comment")
+  public void testDocComment() throws Throwable {
+    doTest();
+  }
+
+  @Test
   @DisplayName("reference")
   public void testReference() throws Throwable {
     doTest();

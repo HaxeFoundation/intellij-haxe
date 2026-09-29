@@ -1,10 +1,8 @@
 package ijhaxe.dap.protocol.requests;
 
 /**
-	Arguments of the "setVariable" request: set a named child of a
-	`variablesReference` to `value`. `value` is a literal (number, true/false,
-	null) or another variable path — no allocation, so new strings/objects
-	cannot be created (see ValueWriter).
+	Arguments of the "setVariable" request: sets the child `name` of
+	`variablesReference` to `value`, an expression evaluated in the debuggee.
 **/
 typedef SetVariableArguments = {
 	var variablesReference:Int;

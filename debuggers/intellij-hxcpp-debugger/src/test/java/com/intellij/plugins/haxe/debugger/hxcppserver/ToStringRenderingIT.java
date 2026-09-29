@@ -28,10 +28,7 @@ public class ToStringRenderingIT {
   @DisplayName("labels follow the live toggle")
   public void labelsFollowTheLiveToggle() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
-      session.initialize();
-      session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.TOSTRING_LINE}, null);
-      session.configurationDone();
-      int threadId = session.stoppedThread(session.awaitStopped());
+      int threadId = stopAtToStringLine(session);
       int frameId = session.topFrame(threadId).getId();
 
       // default OFF: class names, even for classes that declare toString
@@ -74,10 +71,7 @@ public class ToStringRenderingIT {
     // which is what used to render — entries must list instead, like the
     // HashLink adapter's map handling (found live on an OpenFL StringMap).
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
-      session.initialize();
-      session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.TOSTRING_LINE}, null);
-      session.configurationDone();
-      int threadId = session.stoppedThread(session.awaitStopped());
+      int threadId = stopAtToStringLine(session);
       int frameId = session.topFrame(threadId).getId();
 
       List<Variable> locals = session.variables(session.localsReference(frameId));
@@ -92,5 +86,13 @@ public class ToStringRenderingIT {
       session.resume(threadId);
       assertEquals(0, session.awaitExit(), "clean exit");
     }
+  }
+
+  /** Runs the session to the breakpoint on the tostring fixture line and returns the stopped thread id. */
+  private static int stopAtToStringLine(FixtureSession session) throws Exception {
+    session.initialize();
+    session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.TOSTRING_LINE}, null);
+    session.configurationDone();
+    return session.stoppedThread(session.awaitStopped());
   }
 }

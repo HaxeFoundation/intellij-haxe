@@ -53,7 +53,7 @@ public class BrowserDebugRunner extends DapDebugRunnerBase<BrowserRunConfigurati
     }
     return new BrowserDebugBackend(
       family,
-      configuration.getNodePath(),
+      configuration.effectiveNodePath(),
       executable.toString(),
       configuration.isServeContent(),
       contentRoot,

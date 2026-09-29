@@ -17,16 +17,14 @@
  */
 package com.intellij.plugins.haxe.ide.formatter;
 
+import com.intellij.formatting.Block;
 import com.intellij.formatting.FormattingContext;
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelBuilder;
-import com.intellij.lang.ASTNode;
-import com.intellij.openapi.util.TextRange;
+import com.intellij.formatting.FormattingModelProvider;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author fedor.korotkov
@@ -37,14 +35,7 @@ public class HaxeFormattingModelBuilder implements FormattingModelBuilder {
   public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
     PsiElement element = formattingContext.getPsiElement();
     CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
-    return new HaxeFormattingModel(element.getContainingFile(), settings,
-      new HaxeBlock(element.getNode(), null, null, settings)
-    );
-  }
-
-  @Nullable
-  @Override
-  public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
-    return null;
+    Block rootBlock = new HaxeBlock(element.getNode(), null, null, settings);
+    return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), rootBlock, settings);
   }
 }

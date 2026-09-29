@@ -82,7 +82,7 @@ public class InterpRunConfiguration extends DapRunConfigurationBase {
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
-    return new DapCommandLineRunningState(env, getProject(), createCommandLine(List.of()));
+    return new DapCommandLineRunningState(env, getProject(), () -> createCommandLine(List.of()));
   }
 
   // --- resolution ---

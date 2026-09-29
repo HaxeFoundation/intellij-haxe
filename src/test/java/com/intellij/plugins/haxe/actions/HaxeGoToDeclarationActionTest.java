@@ -20,10 +20,11 @@ package com.intellij.plugins.haxe.actions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypedefDeclaration;
@@ -33,6 +34,11 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
+
+import java.util.List;
 
 import java.util.Collection;
 
@@ -40,15 +46,10 @@ import java.util.Collection;
  * @author: Fedor.Korotkov
  */
 @DisplayName("Navigation: go to declaration action")
-public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeGoToDeclarationActionTest extends HaxeToolkitLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/goto/";
-  }
-
-  protected void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
   }
 
   protected void doTest(PsiFile file, int expectedSize) {
@@ -465,83 +466,33 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("TypeCheckExpression1.hx"), 1);
   }
 
-  @Test
-  @DisplayName("object literal key resolves to typedef field")
-  public void testObjectLiteralKeyResolvesToTypedefField() {
-    myFixture.configureByFiles("ObjectLiteralKey.hx");
-    PsiElement target = singleGotoTarget();
-    assertEquals("name", resolvedName(target));
-    assertNull(PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false), "should navigate to the typedef field, not stay on the object literal key");
-    HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("Config", typedef.getComponentName().getText());
-  }
+  /**
+   * (fixture, resolved field, its declaring typedef): the object-literal-key
+   * shapes go-to-declaration must cross — a plain typedef, an extends parent,
+   * an intersection, and literals nested in constructor arguments (plain,
+   * array element, intersection, optional array).
+   */
+  static final List<Arguments> OBJECT_LITERAL_KEYS = List.of(
+    arguments("ObjectLiteralKey.hx", "name", "Config"),
+    arguments("ObjectLiteralKeyExtends.hx", "label", "Base"),
+    arguments("ObjectLiteralKeyIntersection.hx", "alpha", "Combo"),
+    arguments("ConstructorArgKey.hx", "items", "ContainerConfig"),
+    arguments("ConstructorArgNestedArrayKey.hx", "itemId", "ItemConfig"),
+    arguments("ConstructorArgIntersectionKey.hx", "flag", "ExtraConfig"),
+    arguments("ConstructorArgOptionalArrayKey.hx", "key", "EntryConfig"));
 
-  @Test
-  @DisplayName("object literal key resolves through extended typedef")
-  public void testObjectLiteralKeyResolvesThroughExtendedTypedef() {
-    myFixture.configureByFiles("ObjectLiteralKeyExtends.hx");
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("OBJECT_LITERAL_KEYS")
+  @DisplayName("object literal key resolves to its typedef field")
+  public void testObjectLiteralKeyResolvesToItsTypedefField(String fixture, String field, String typedefName) {
+    myFixture.configureByFiles(fixture);
     PsiElement target = singleGotoTarget();
-    assertEquals("label", resolvedName(target));
+    assertEquals(field, resolvedName(target));
+    assertNull(PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false),
+               "should navigate to the typedef field, not stay on the object literal key");
     HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
     assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("Base", typedef.getComponentName().getText(), "label is declared in the parent typedef Base");
-  }
-
-  @Test
-  @DisplayName("object literal key resolves through intersection typedef")
-  public void testObjectLiteralKeyResolvesThroughIntersectionTypedef() {
-    myFixture.configureByFiles("ObjectLiteralKeyIntersection.hx");
-    PsiElement target = singleGotoTarget();
-    assertEquals("alpha", resolvedName(target));
-    assertNull(PsiTreeUtil.getParentOfType(target, HaxeObjectLiteral.class, false), "should navigate to the typedef field, not stay on the object literal key");
-    HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("Combo", typedef.getComponentName().getText());
-  }
-
-  @Test
-  @DisplayName("object literal key in constructor argument")
-  public void testObjectLiteralKeyInConstructorArgument() {
-    myFixture.configureByFiles("ConstructorArgKey.hx");
-    PsiElement target = singleGotoTarget();
-    assertEquals("items", resolvedName(target));
-    HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("ContainerConfig", typedef.getComponentName().getText());
-  }
-
-  @Test
-  @DisplayName("object literal key nested in array argument")
-  public void testObjectLiteralKeyNestedInArrayArgument() {
-    myFixture.configureByFiles("ConstructorArgNestedArrayKey.hx");
-    PsiElement target = singleGotoTarget();
-    assertEquals("itemId", resolvedName(target));
-    HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("ItemConfig", typedef.getComponentName().getText());
-  }
-
-  @Test
-  @DisplayName("object literal key nested in array through intersection")
-  public void testObjectLiteralKeyNestedInArrayThroughIntersection() {
-    myFixture.configureByFiles("ConstructorArgIntersectionKey.hx");
-    PsiElement target = singleGotoTarget();
-    assertEquals("flag", resolvedName(target));
-    HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("ExtraConfig", typedef.getComponentName().getText());
-  }
-
-  @Test
-  @DisplayName("object literal key nested in optional array argument")
-  public void testObjectLiteralKeyNestedInOptionalArrayArgument() {
-    myFixture.configureByFiles("ConstructorArgOptionalArrayKey.hx");
-    PsiElement target = singleGotoTarget();
-    assertEquals("key", resolvedName(target));
-    HaxeTypedefDeclaration typedef = PsiTreeUtil.getParentOfType(target, HaxeTypedefDeclaration.class);
-    assertNotNull(typedef, "target should be declared inside a typedef");
-    assertEquals("EntryConfig", typedef.getComponentName().getText());
+    assertEquals(typedefName, typedef.getComponentName().getText());
   }
 
   /** Runs the real go-to-declaration pipeline (handlers + reference resolution) and expects a single target. */

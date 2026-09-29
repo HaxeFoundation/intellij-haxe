@@ -1,9 +1,5 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,11 +17,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Exercises the store against a LOCAL http server (the module's own
- * ContentHttpServer, dogfooded) — no network, no real pins. The archive shape
- * mirrors the firefox vsix: a zip with extension/dist/adapter.bundle.js.
- */
+import static org.junit.jupiter.api.Assertions.*;
+
+/// Tests logic for downloading and verifying DAP debuggers (Chrome and Firefox)
 @DisplayName("Browser debugger: adapter store")
 public class AdapterStoreTest {
   private static final String ENTRY = "extension/dist/adapter.bundle.js";
@@ -34,14 +28,13 @@ public class AdapterStoreTest {
   private Path www;
   private Path storeRoot;
   private ContentHttpServer server;
-  private byte[] archive;
   private String archiveSha;
 
   @BeforeEach
   public void setUp() throws Exception {
     www = Files.createTempDirectory("adapter-store-www");
     storeRoot = Files.createTempDirectory("adapter-store");
-    archive = zipWith(ENTRY, BUNDLE_CONTENT);
+    byte[] archive = zipWith(ENTRY, BUNDLE_CONTENT);
     Files.write(www.resolve("adapter.vsix"), archive);
     archiveSha = sha256(archive);
     server = new ContentHttpServer(www);
@@ -59,12 +52,14 @@ public class AdapterStoreTest {
   public void downloadsVerifiesUnpacksAndCaches() throws Exception {
     AdapterStore store = new AdapterStore(storeRoot);
     Path entry = store.resolveEntry(pin(archiveSha), null);
+
     assertTrue(Files.isRegularFile(entry));
     assertEquals(BUNDLE_CONTENT, Files.readString(entry));
     assertTrue(Files.isRegularFile(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")), "completion marker written");
 
     // second resolve is a pure cache hit: kill the server to prove no fetch
     server.close();
+
     Path again = new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), null);
     assertEquals(entry, again);
   }
@@ -80,8 +75,9 @@ public class AdapterStoreTest {
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("SHA-256 mismatch"), e.getMessage());
     }
-    assertTrue(!Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0").resolve(ENTRY)), "nothing unpacked");
-    assertTrue(!Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")), "no marker");
+
+    assertFalse(Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0").resolve(ENTRY)), "nothing unpacked");
+    assertFalse(Files.exists(storeRoot.resolve("test-adapter").resolve("1.0.0.ok")), "no marker");
   }
 
   @Test
@@ -94,7 +90,7 @@ public class AdapterStoreTest {
 
     Path entry = new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), null);
     assertEquals(BUNDLE_CONTENT, Files.readString(entry));
-    assertTrue(!Files.exists(versionDir.resolve("extension/leftover.txt")), "torn leftovers discarded");
+    assertFalse(Files.exists(versionDir.resolve("extension/leftover.txt")), "torn leftovers discarded");
   }
 
   @Test
@@ -133,7 +129,8 @@ public class AdapterStoreTest {
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("zip-slip"), e.getMessage());
     }
-    assertTrue(!Files.exists(storeRoot.resolve("test-adapter").resolve("escaped.txt")), "nothing escaped the store");
+
+    assertFalse(Files.exists(storeRoot.resolve("test-adapter").resolve("escaped.txt")), "nothing escaped the store");
   }
 
   @Test
@@ -152,15 +149,18 @@ public class AdapterStoreTest {
   public void tarSlipEntriesAreRejected() throws Exception {
     byte[] evil = tarGzWith("../escaped.txt", "evil");
     Files.write(www.resolve("adapter.tar.gz"), evil);
-    AdapterPin pin = new AdapterPin("test-tgz", "1.0.0", server.getBaseUrl() + "adapter.tar.gz",
+    AdapterPin pin = new AdapterPin("test-tgz", "1.0.0",
+                                    server.getBaseUrl() + "adapter.tar.gz",
                                     sha256(evil), "whatever.js");
+
     try {
       new AdapterStore(storeRoot).resolveEntry(pin, null);
       fail("expected the tar-slip entry to be rejected");
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("tar-slip"), e.getMessage());
     }
-    assertTrue(!Files.exists(storeRoot.resolve("test-tgz").resolve("escaped.txt")), "nothing escaped the store");
+
+    assertFalse(Files.exists(storeRoot.resolve("test-tgz").resolve("escaped.txt")), "nothing escaped the store");
   }
 
   private AdapterPin pin(String sha) {
@@ -170,6 +170,7 @@ public class AdapterStoreTest {
   private static byte[] tarGzWith(String entryName, String content) throws IOException {
     byte[] data = content.getBytes(StandardCharsets.UTF_8);
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
     try (TarArchiveOutputStream tar = new TarArchiveOutputStream(new GzipCompressorOutputStream(bytes))) {
       TarArchiveEntry entry = new TarArchiveEntry(entryName);
       entry.setSize(data.length);
@@ -177,16 +178,19 @@ public class AdapterStoreTest {
       tar.write(data);
       tar.closeArchiveEntry();
     }
+
     return bytes.toByteArray();
   }
 
   private static byte[] zipWith(String entryName, String content) throws IOException {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
     try (ZipOutputStream zip = new ZipOutputStream(bytes)) {
       zip.putNextEntry(new ZipEntry(entryName));
       zip.write(content.getBytes(StandardCharsets.UTF_8));
       zip.closeEntry();
     }
+
     return bytes.toByteArray();
   }
 

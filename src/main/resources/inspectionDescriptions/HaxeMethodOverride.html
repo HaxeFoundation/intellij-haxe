@@ -1,0 +1,19 @@
+<html>
+<body>
+Reports <code>override</code> problems: a modifier on a method that
+overrides nothing, a missing modifier where one is required, overriding
+<code>static</code>, <code>inline</code> or <code>final</code> methods, and
+overrides that reduce visibility. Classes built by macros downgrade the
+missing-override case to a weak warning, since the parent method may be
+generated.
+<p><b>Example:</b></p>
+<pre><code>
+class Animal {
+    public function speak():Void {}
+}
+class Dog extends Animal {
+    public function speak():Void {}   // must be declared `override`
+}
+</code></pre>
+</body>
+</html>

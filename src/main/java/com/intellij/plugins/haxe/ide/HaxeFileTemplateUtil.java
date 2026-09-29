@@ -41,6 +41,20 @@ import java.util.Properties;
 public class HaxeFileTemplateUtil {
   private final static String HAXE_TEMPLATE_PREFIX = "Haxe";
 
+  // Internal file-template names: must match the <internalFileTemplate> entries
+  // in plugin.xml and the fileTemplates/internal/*.ft file names.
+  public static final String CLASS_TEMPLATE = "Haxe Class";
+  public static final String INTERFACE_TEMPLATE = "Haxe Interface";
+  public static final String ENUM_TEMPLATE = "Haxe Enum";
+  public static final String ABSTRACT_TEMPLATE = "Haxe Abstract";
+
+  public static final List<String> TYPE_TEMPLATE_NAMES = List.of(
+    CLASS_TEMPLATE,
+    INTERFACE_TEMPLATE,
+    ENUM_TEMPLATE,
+    ABSTRACT_TEMPLATE
+  );
+
   public static List<FileTemplate> getApplicableTemplates(@NotNull Project project) {
     return getApplicableTemplates(project, fileTemplate -> HaxeFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension()));
   }
@@ -58,7 +72,8 @@ public class HaxeFileTemplateUtil {
 
   public static String getTemplateShortName(String templateName) {
     if (templateName.startsWith(HAXE_TEMPLATE_PREFIX)) {
-      return templateName.substring(HAXE_TEMPLATE_PREFIX.length());
+      // template names follow the platform's spaced convention ("Haxe Class")
+      return templateName.substring(HAXE_TEMPLATE_PREFIX.length()).trim();
     }
     return templateName;
   }

@@ -58,17 +58,15 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
     }
 
     debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
-    assertTrue(sawExceptionStop || output().contains("kaboom"), "the thrown text should surface somewhere (exception stop or Critical Error output); "
+
+    boolean thrownTextSurfaced = sawExceptionStop || output().contains("kaboom");
+    assertTrue(thrownTextSurfaced, "the thrown text should surface somewhere (exception stop or Critical Error output); "
                + "sawExceptionStop=" + sawExceptionStop + ", output:\n" + output());
   }
 
   private void continueQuietly(int threadId) {
-    ContinueArguments arguments = new ContinueArguments();
-    arguments.setThreadId(threadId);
-    ContinueRequest request = new ContinueRequest();
-    request.setArguments(arguments);
     try {
-      dapClient.sendRequest(request, TIMEOUT);
+      dapClient.sendRequest(continueRequest(threadId), TIMEOUT);
     } catch (Exception ignored) {
       // the dying debuggee may close the connection first
     }

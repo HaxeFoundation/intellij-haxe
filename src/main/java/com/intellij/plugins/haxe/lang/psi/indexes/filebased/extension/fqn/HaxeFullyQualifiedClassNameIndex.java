@@ -1,19 +1,13 @@
 package com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.fqn;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeComponentBaseIndex;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.indexer.HaxeFullyQualifiedNameIndexer;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.Processor;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
@@ -23,8 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.fqn.HaxeFqnIndexUtil.resolveModule;
 
@@ -52,9 +44,13 @@ public class HaxeFullyQualifiedClassNameIndex extends HaxeComponentBaseIndex {
 
     @Override
     public @NotNull DataIndexer<String, HaxeComponentIndexData, FileContent> getIndexer() {
-        return new HaxeFullyQualifiedNameIndexer();
+        return new HaxeFullyQualifiedNameIndexer(HaxeFullyQualifiedNameIndexer.CollectType.TYPES);
     }
 
+
+    public static Collection<String> getAllKeys(@NotNull Project project) {
+        return FileBasedIndex.getInstance().getAllKeys(INDEX, project);
+    }
 
     public static Collection<HaxeClass> getByFqn(@NotNull String name, @NotNull Project project, @Nullable GlobalSearchScope scope) {
 
@@ -63,7 +59,7 @@ public class HaxeFullyQualifiedClassNameIndex extends HaxeComponentBaseIndex {
 
         for (HaxeComponentIndexData value : values) {
             FullyQualifiedInfo fqn = value.getFqn();
-            HaxeModuleModel moduleModel = resolveModule(INDEX, name, project, scope, fqn);
+            HaxeModuleModel moduleModel = resolveModule(INDEX, name, project, scope);
 
             if (moduleModel == null) continue;
 

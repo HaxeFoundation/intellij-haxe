@@ -41,16 +41,15 @@ import com.intellij.plugins.haxe.lang.psi.indexes.unified.fqn.HaxeFullyQualified
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.fqn.HaxeFullyQualifiedMemberNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.specialized.HaxeImportHxFileUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeImportHxStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.HaxeSwitchSubjectTypeCache;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
@@ -63,12 +62,12 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.canBeQname;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.evaluate;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findIteratorType;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 /**
  * @author: Fedor.Korotkov
@@ -192,6 +191,68 @@ public class HaxeResolveUtil {
     return findClassOrMemberByQName(qName, psiManager, searchScope);
   }
 
+  /**
+   * Picks among index candidates for a qname. Short-form index keys make an
+   * ANCILLARY type of any module answer its bare name, but haxe only lets a
+   * bare name mean a MAIN (module-named) type or a StdTypes member (the
+   * implicitly imported primitives) — a project file declaring an ancillary
+   * {@code Void} must not hijack the primitive (imports resolve before this
+   * lookup ever runs). A target-specific file ({@code String.go.hx}) is the
+   * module's main type only while its variant is active, and then SHADOWS a
+   * plain {@code String.hx} — the compiler's platform-specific file selection.
+   * Order: exact module-qualified match, then StdTypes, then active-variant
+   * main types, then plain main types, then the first remaining candidate.
+   */
+  @Nullable
+  private static HaxeClass selectVisibleCandidate(@NotNull String qName, @NotNull List<HaxeClass> candidates) {
+    if (candidates.size() == 1) return candidates.getFirst();
+
+    HaxeClass stdType = null;
+    HaxeClass activeVariantMain = null;
+    HaxeClass plainMain = null;
+
+    for (HaxeClass candidate : candidates) {
+      String moduleFileName = moduleFileNameOf(candidate);
+      String moduleName = moduleFileName == null ? null : HaxeModuleVariants.moduleNameOf(moduleFileName);
+
+      if (isModuleQualifiedMatch(qName, candidate, moduleName)) return candidate;
+      if (stdType == null && "StdTypes".equals(moduleName)) stdType = candidate;
+      if (moduleName == null || !moduleName.equals(candidate.getName())) continue;
+
+      String variant = HaxeModuleVariants.variantOf(moduleFileName);
+      if (variant == null) {
+        if (plainMain == null) plainMain = candidate;
+      } else if (activeVariantMain == null && HaxeModuleVariants.isActive(variant, candidate.getProject())) {
+        activeVariantMain = candidate;
+      }
+    }
+
+    if (stdType != null) return stdType;
+    if (activeVariantMain != null) return activeVariantMain;
+    if (plainMain != null) return plainMain;
+    return candidates.getFirst();
+  }
+
+  private static boolean isModuleQualifiedMatch(@NotNull String qName, @NotNull HaxeClass candidate, @Nullable String moduleName) {
+    int lastDot = qName.lastIndexOf('.');
+    if (lastDot < 0 || moduleName == null) return false;
+    String requestedType = qName.substring(lastDot + 1);
+    String beforeType = qName.substring(0, lastDot);
+    int previousDot = beforeType.lastIndexOf('.');
+    String requestedModule = previousDot < 0 ? beforeType : beforeType.substring(previousDot + 1);
+    return requestedType.equals(candidate.getName()) && requestedModule.equals(moduleName);
+  }
+
+  /** The candidate's file name without its extension — a variant's suffix still attached ("String.go"). */
+  @Nullable
+  private static String moduleFileNameOf(@NotNull HaxeClass haxeClass) {
+    PsiFile file = haxeClass.getContainingFile();
+    if (file == null) return null;
+    String fileName = file.getName();
+    int dot = fileName.lastIndexOf('.');
+    return dot < 0 ? fileName : fileName.substring(0, dot);
+  }
+
   @NotNull
   public static GlobalSearchScope getScopeForElement(@NotNull PsiElement context) {
     final Project project = context.getProject();
@@ -208,7 +269,7 @@ public class HaxeResolveUtil {
     if (!DumbService.isDumb(scope.getProject())) {
       List<HaxeClass> results = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
       if (!results.isEmpty()) {
-        return results.getFirst();
+        return selectVisibleCandidate(qName, results);
       }
     }
 
@@ -236,7 +297,7 @@ public class HaxeResolveUtil {
       if (!qualifiedInfo.hasMemberName()) {
         List<HaxeClass> classList = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
         if (!classList.isEmpty()) {
-          return classList.getFirst();
+          return selectVisibleCandidate(qName, classList);
         }
       } else {
         List<PsiElement> memberList = HaxeFullyQualifiedMemberNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
@@ -445,7 +506,7 @@ public class HaxeResolveUtil {
     if (log.isTraceEnabled()) {
       StringBuilder out = new StringBuilder();
 
-      out.append(Thread.currentThread().getId()); // Name());
+      out.append(Thread.currentThread().threadId());
       out.append(' ');
 
       while (0 < depth--) {
@@ -667,9 +728,10 @@ public class HaxeResolveUtil {
         }
       }
       if (psiField.getTypeTag() == null &&  psiField.getVarInit() == null) {
-        HaxeComponentName componentName = psiField.getComponentName();
-        HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(componentName);
-        ResultHolder holder = HaxeExpressionEvaluator.searchReferencesForType(componentName, context, null, null);
+        ResultHolder holder = isSwitchCaseCapture(psiField)
+                              ? evaluate(psiField, null).result
+                              : typeFromUsages(psiField);
+
         if (!holder.isUnknown()) {
           //TODO function literals does not have a HaxeType and will result in null
           HaxeResolveResult resolveResult = holder.getType().asResolveResult();
@@ -711,6 +773,24 @@ public class HaxeResolveUtil {
 
 
     return getHaxeClassResolveResult(initExpression, specialization);
+  }
+
+  /**
+   * Whether the field is a switch-case capture. A capture's type follows
+   * from its pattern position or the switch subject, so its usages add
+   * nothing, and a usage search would rescan the enclosing method on every
+   * read of the capture.
+   */
+  private static boolean isSwitchCaseCapture(@NotNull HaxePsiField field) {
+    return field instanceof HaxeSwitchCaseCapture || field instanceof HaxeSwitchCaseCaptureVar;
+  }
+
+  /** The type a local declared without type tag and initializer gets from how it is used. */
+  @NotNull
+  private static ResultHolder typeFromUsages(@NotNull HaxePsiField field) {
+    HaxeComponentName componentName = field.getComponentName();
+    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(componentName);
+    return HaxeExpressionEvaluator.searchReferencesForType(componentName, context, null, null);
   }
 
   private static HaxeResolveResult resolveValueExpressionClass(HaxeValueExpression valueExpression,
@@ -1285,14 +1365,13 @@ public class HaxeResolveUtil {
   public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name, boolean checkForEnumValues, boolean expectedEnumIsConstructor) {
     final HaxePackageModel packageModel = file.getPackageModel();
     if (packageModel != null) {
-      // TODO make index of package members
       List<HaxeModel> exposedMembers = packageModel.getModulesMainClass();
       for (HaxeModel model : exposedMembers) {
         if (name.equals(model.getName())) {
           return model.getBasePsi();
         }else if (checkForEnumValues) {
           if (model instanceof HaxeClassModel classModel) {
-            HaxeModel possibleModel = typeDefRecursionGuard.doPreventingRecursion(classModel.getPsi(), true, () -> tryResolveTypeDefClass(classModel));
+            HaxeModel possibleModel = HaxeEvaluationTaint.computeOrTaint(typeDefRecursionGuard, classModel.getPsi(), true, () -> tryResolveTypeDefClass(classModel));
             if (possibleModel != null )model = possibleModel;
           }
           if (model instanceof HaxeEnumModel enumModel) {
@@ -1554,18 +1633,11 @@ public class HaxeResolveUtil {
 
   public static SpecificHaxeClassReference resolveExtractorEnum(HaxeEnumArgumentExtractor extractor) {
     HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractor, HaxeSwitchStatement.class);
-    if (switchStatement != null) {
-      HaxeExpression expression = switchStatement.getExpression();
-      if (expression == null) return null;
-      if (expression instanceof  HaxeParenthesizedExpression parenthesizedExpression){
-        expression = parenthesizedExpression.getExpression();
-      }
-      HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
-      ResultHolder switchExpressionResult = evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
+    ResultHolder switchExpressionResult = HaxeSwitchSubjectTypeCache.subjectType(switchStatement);
+    if (switchExpressionResult != null) {
       if (!switchExpressionResult.isUnknown() && switchExpressionResult.getClassType() != null) {
         switchExpressionResult = switchExpressionResult.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference().createHolder();
       }
-
 
       if (switchExpressionResult.isEnum() && switchExpressionResult.getClassType() != null) {
         return switchExpressionResult.getClassType();
@@ -1653,5 +1725,70 @@ public class HaxeResolveUtil {
       }
     }
     return reference.getText();
+  }
+
+  @NotNull
+  public static HaxeResolveResult fullyResolveTypedef(@Nullable HaxeClass typedef, @Nullable HaxeGenericSpecialization specialization) {
+    if (null == typedef) return HaxeResolveResult.EMPTY;
+
+    // typedefs already resolved - a cyclic typedef chain must not loop forever
+    HashSet<String> recursionGuard = new HashSet<>();
+
+    HaxeResolveResult result = HaxeResolveResult.EMPTY;
+    HaxeClassModel model = typedef.getModel();
+    while (null != model && model.isTypedef() && !recursionGuard.contains(model.getName())) {
+      recursionGuard.add(model.getName());
+      final HaxeTypeOrAnonymous toa = model.getUnderlyingTypeOrAnonymous();
+      if (toa != null) {
+        final HaxeType type = toa.getType();
+        if (null == type) {
+          // Anonymous structure
+          result = HaxeResolveResult.create(toa.getAnonymousType(), specialization);
+          break;
+        }
+
+
+      // If the reference is to a type parameter, resolve that instead.
+      HaxeResolveResult nakedResult = specialization.get(type, type.getReferenceExpression().getIdentifier().getText());
+      if (null == nakedResult) {
+        nakedResult = type.getReferenceExpression().resolveHaxeClass();
+      }
+      // translate  type params from typedef left side to right side value
+      HaxeGenericResolver genericResolver = new HaxeGenericResolver();
+        HaxeTypeParam param = type.getTypeParam();
+        if(param != null ) {
+        HaxeGenericResolver localResolver = specialization.toGenericResolver(type);
+          List<HaxeTypeParameterDeclaration> typeparameters = getTypeParameters(nakedResult);
+          List<HaxeTypeListPart> typeParameterList = param.getTypeList();
+        for (int i = 0; i < typeParameterList.size(); i++) {
+          if (typeparameters.size() -1 < i) break;
+          HaxeTypeParameterDeclaration parameter = typeparameters.get(i);
+          HaxeTypeListPart part = typeParameterList.get(i);
+          if (part.getTypeOrAnonymous() != null) {
+            ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(part.getTypeOrAnonymous(), localResolver);
+            genericResolver.add(parameter, holder);
+          }
+          else if (part.getFunctionType() != null) {
+            //TODO resolve  with resolver ?
+            ResultHolder type1 = HaxeTypeResolver.getTypeFromFunctionType(part.getFunctionType());
+            genericResolver.add(parameter, type1);
+          }
+        }
+      }
+
+      result = HaxeResolveResult.create(nakedResult.getHaxeClass(), HaxeGenericSpecialization.fromGenericResolver(null, genericResolver));
+      model = null != result.getHaxeClass() ? result.getHaxeClass().getModel() : null;
+      specialization = result.getSpecialization();
+      }
+    }
+    return result;
+  }
+
+  private static List<HaxeTypeParameterDeclaration> getTypeParameters(HaxeResolveResult nakedResult) {
+    HaxeClass haxeClass = nakedResult.getHaxeClass();
+    if (haxeClass == null) return  List.of();
+    HaxeGenericParam param = haxeClass.getGenericParam();
+    if (param == null) return  List.of();
+    return  param.getGenericListPartList().stream().map(HaxeTypeParameterDeclaration.class::cast).toList();
   }
 }

@@ -38,6 +38,12 @@ public class ExpressionTest extends HaxeParsingTestBase {
   }
 
   @Test
+  @DisplayName("unbound identifier")
+  public void testUnboundIdentifier() throws Throwable {
+    doTest(true, true);
+  }
+
+  @Test
   @DisplayName("offers")
   public void testOffers() throws Throwable {
     doTest(true);

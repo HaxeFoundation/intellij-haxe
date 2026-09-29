@@ -3,24 +3,21 @@ import debugger.IController;
 import debugger.HaxeProtocol;
 
 /**
- * This class implements the serialization and deserialization of
- * hxcpp debugger Command and Message enums.  It is meant to be compiled
- * into a .jar file, to produce Java API for serializing and deserializing
- * debugger messages to a Java OutputStream and from a Java InputStream.
+ * Serializes and deserializes the Command and Message enums of the legacy
+ * hxcpp debugger protocol. Compiled to Java, it gives the IDE an API that
+ * writes commands to a Java OutputStream and reads messages from a Java
+ * InputStream.
  *
- * The haxe compiler will compile this into a Java class called
- * haxe.root.JavaProtocol.  The haxe command that is used to do this is:
- *
- * haxe -cp .. -java JavaProtocol -main JavaProtocol -lib debugger
- *
- * The resulting Java source files will be in JavaProtocol/src.  The only
- * relevant output is the Java source files, everything else can and should be
- * deleted.
+ * The haxe compiler turns it into the Java class haxe.root.JavaProtocol.
+ * The gradle task generateDebuggerJavaSource runs that compile (with the
+ * hxcpp-debugger and hxjava haxelibs) into src/gen, but only when the
+ * generateHxcppDebugger property is true; otherwise the build uses the
+ * checked-in Java sources under src/fallback/java.
  **/
 class JavaProtocol
 {
-    // Unfortunately, haxe enums are not easily testable in Java.  So
-    // use integer identifiers instead.
+    // Haxe enums are awkward to test from Java, so each Message constructor
+    // also has an integer id (see getMessageId).
     public static var IdErrorInternal : Int = 0;
     public static var IdErrorNoSuchThread : Int = 1;
     public static var IdErrorNoSuchFile : Int = 2;
@@ -158,6 +155,8 @@ class JavaProtocol
         return Std.string(message);
     }
 
+    // A manual round-trip check: writes a ThreadsWhere message to stdout,
+    // then reads one message from stdin and prints it to stderr.
     public static function main()
     {
         var stdout = untyped __java__('System.out');
@@ -175,6 +174,7 @@ class JavaProtocol
 }
 
 
+// A haxe.io.Output over a java.io.OutputStream.
 private class OutputAdapter extends haxe.io.Output
 {
     public function new(os : java.io.OutputStream)
@@ -198,6 +198,7 @@ private class OutputAdapter extends haxe.io.Output
 }
 
 
+// A haxe.io.Input over a java.io.InputStream.
 private class InputAdapter extends haxe.io.Input
 {
     public function new(is : java.io.InputStream)

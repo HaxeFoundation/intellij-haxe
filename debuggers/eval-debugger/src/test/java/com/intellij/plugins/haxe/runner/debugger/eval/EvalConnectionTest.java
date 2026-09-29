@@ -53,6 +53,7 @@ public class EvalConnectionTest {
             ]
           }""".formatted(id));
     });
+
     connection.start();
     JsonNode result = connection.request("getThreads", null, 5000);
     assertEquals("Thread 0", result.get(0).path("name").asString());
@@ -70,6 +71,7 @@ public class EvalConnectionTest {
             "error": { "code": -32601, "message": "Method not found" }
           }""".formatted(id));
     });
+
     connection.start();
     EvalProtocolException error = assertThrows(EvalProtocolException.class,
                                                () -> connection.request("bogus", null, 5000));
@@ -97,8 +99,10 @@ public class EvalConnectionTest {
             "params": { "threadId": 0 }
           }""");
     });
+
     BlockingQueue<String> events = new LinkedBlockingQueue<>();
     connection.setEventListener((method, params) -> events.add(method + ":" + params.path("threadId").asInt(-1)));
+
     connection.start();
     connection.request("continue", null, 5000);
     assertEquals("breakpointStop:0", events.poll(5, TimeUnit.SECONDS));
@@ -109,6 +113,7 @@ public class EvalConnectionTest {
   public void transportDeathFailsPendingRequests() throws Exception {
     startFake(request -> null); // never answers
     connection.start();
+
     Thread killer = new Thread(() -> {
       try {
         Thread.sleep(300);
@@ -118,6 +123,7 @@ public class EvalConnectionTest {
     });
     killer.setDaemon(true);
     killer.start();
+
     assertThrows(IOException.class, () -> connection.request("getThreads", null, 10_000));
   }
 

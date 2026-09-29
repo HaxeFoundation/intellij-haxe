@@ -35,6 +35,18 @@ public class HaxeClassLookupData {
         this.modelSupplier = supplier;
     }
 
+    /** Compiler-catalog entries: no index data exists, only the FQN and a lazy blueprint model. */
+    public HaxeClassLookupData(@NotNull FullyQualifiedInfo qualifiedInfo,
+                               @NotNull String name,
+                               @NotNull HaxeComponentType type,
+                               @NotNull Supplier<HaxeClassModel> supplier) {
+        this.qualifiedInfo = qualifiedInfo;
+        this.name = name;
+        this.type = type;
+        this.icon = type.getIcon();
+        this.modelSupplier = supplier;
+    }
+
     public HaxeClassModel getClassModel() {
         if (classModel == null) {
             classModel = modelSupplier.get();
