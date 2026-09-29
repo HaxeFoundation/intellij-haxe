@@ -74,17 +74,29 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean test buildPlugin verifyPlugin
 
+      # the haxelib zips land beside the plugin zip, so select the plugin by name
       - name: Upload asset to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          ARTIFACT_PATHNAME=$(ls *.zip | head -n 1)
+          ARTIFACT_PATHNAME=$(ls intellij-haxe-*.zip | head -n 1)
           ASSET_NAME="intellij-haxe-${{ matrix.IDEA_VERSION }}.zip"
           if [ "$ARTIFACT_PATHNAME" != "$ASSET_NAME" ]; then
             cp "$ARTIFACT_PATHNAME" "$ASSET_NAME"
           fi
           gh release upload "${{ github.ref_name }}" "$ASSET_NAME" --clobber
+
+      # the haxelib upload zips (intellij-dap-protocol, intellij-hxcpp-debug-server),
+      # named after the version in each haxelib.json; lib.haxe.org gets them by a
+      # manual `haxelib submit`
+      - name: Build and upload the haxelib zips
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ./gradlew buildHaxelibZips
+          gh release upload "${{ github.ref_name }}" intellij-dap-protocol-*.zip intellij-hxcpp-debug-server-*.zip --clobber
 
   # tag pushes never trigger the path-filtered debugger-*.yaml workflows, so
   # test every debugger module here for the exact commit being released
