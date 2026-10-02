@@ -1016,10 +1016,12 @@
             text="Getter and Setter">
       <add-to-group anchor="after" relative-to-action="Generate.SetAccessor.Haxe" group-id="GenerateGroup"/>
     </action>
-
-
-
-
-
   </actions>
+
+  <actions resource-bundle="messages.HaxeProjectBundle">
+    <action id="Haxe.ConvertV1Modules" class="com.intellij.plugins.haxe.v2.migration.HaxeConvertV1ModulesAction">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
+  </actions>
+
 </idea-plugin>

@@ -7,10 +7,12 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.GeneralModuleType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
@@ -62,9 +64,37 @@ class HaxeV1Migrator(private val project: Project, private val scope: CoroutineS
 
     private const val LEGACY_TYPE_ID = "HAXE_MODULE"
     internal const val NOTIFICATION_GROUP_ID = "haxe.v1.migration"
+
+    /** Whether the module still uses the legacy (V1) Haxe module type. */
+    @JvmStatic
+    fun isLegacy(module: Module): Boolean = ModuleType.get(module) === HaxeModuleType.getInstance()
   }
 
-  fun convertAsync() {
+  /** The names of the modules that still use the legacy (V1) Haxe module type. */
+  fun legacyModuleNames(): List<String> =
+    ModuleManager.getInstance(project).modules.filter(::isLegacy).map { it.name }
+
+  /**
+   * Asks for confirmation, then converts every legacy module. Returns whether
+   * the conversion started; it does not when the user cancels or no legacy
+   * module is left. Call on the EDT.
+   */
+  fun confirmAndConvert(): Boolean {
+    val moduleCount = legacyModuleNames().size
+    if (moduleCount == 0) return false
+    val answer = Messages.showYesNoDialog(
+      project,
+      HaxeProjectBundle.message("haxe.v1.migration.confirm.message", moduleCount),
+      HaxeProjectBundle.message("haxe.v1.migration.confirm.title"),
+      HaxeProjectBundle.message("haxe.v1.migration.confirm.yes"),
+      Messages.getCancelButton(),
+      Messages.getWarningIcon())
+    if (answer != Messages.YES) return false
+    convertAsync()
+    return true
+  }
+
+  private fun convertAsync() {
     scope.launch {
       val converted = readAction { seedV2State() }
       val runConfigurationPlans = readAction { planRunConfigurationConversion() }
@@ -110,7 +140,7 @@ class HaxeV1Migrator(private val project: Project, private val scope: CoroutineS
     for (settings in RunManager.getInstance(project).allSettings) {
       val configuration = settings.configuration as? LegacyHxcppRunConfiguration ?: continue
       val module = configuration.configurationModule.module ?: continue
-      if (ModuleType.get(module) !== HaxeModuleType.getInstance()) continue
+      if (!isLegacy(module)) continue
       val moduleSettings = HaxeModuleSettings.getInstance(module)
       val output = outputArtifact(moduleSettings)
 
@@ -193,7 +223,7 @@ class HaxeV1Migrator(private val project: Project, private val scope: CoroutineS
     val activeStore = HaxeActiveBuildFileStore.getInstance(project)
     val converted = mutableListOf<String>()
     for (module in ModuleManager.getInstance(project).modules) {
-      if (ModuleType.get(module) !== HaxeModuleType.getInstance()) continue
+      if (!isLegacy(module)) continue
       converted += module.name
       val settings = HaxeModuleSettings.getInstance(module)
 
