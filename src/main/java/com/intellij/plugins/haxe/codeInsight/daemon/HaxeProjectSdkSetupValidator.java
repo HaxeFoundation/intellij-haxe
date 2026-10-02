@@ -142,6 +142,9 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
       .newBuilder()
       .withProject(project)
       .withSdkTypeFilter(type -> type instanceof HaxeSdkType)
+      // a detected or newly added SDK is only created by the popup; without
+      // this it never reaches the SDK table and the module names a missing SDK
+      .registerNewSdk()
       // never the project SDK: the choice lands on the MODULE, via the same
       // path as the tool window's Environment
       .onSdkSelected(sdk -> {
