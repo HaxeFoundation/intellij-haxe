@@ -142,11 +142,10 @@ public final class HaxeEnvironmentDialog extends DialogWrapper {
     }
 
     HaxeEnvironmentStore store = HaxeEnvironmentStore.getInstance(project);
-    String sdkName = (String)sdkCombo.getSelectedItem();
-    store.setSdkName(containerId, sdkName);
-    HaxeModuleSdkApplier.getInstance(project).applyAsync(containerId, sdkName);
     store.setDefines(containerId, defines);
     store.setCustomTarget(containerId, customTargetField.getText());
+    String sdkName = (String)sdkCombo.getSelectedItem();
+    HaxeModuleSdkApplier.getInstance(project).chooseSdk(containerId, sdkName);
     super.doOKAction();
   }
 

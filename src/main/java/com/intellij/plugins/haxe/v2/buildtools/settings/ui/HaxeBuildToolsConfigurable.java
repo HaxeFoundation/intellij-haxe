@@ -12,6 +12,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.util.HaxeModuleDetection;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
@@ -113,6 +114,8 @@ public final class HaxeBuildToolsConfigurable implements SearchableConfigurable 
       // the default SDK is only real once it reaches the module entities -
       // resolution reads the project model, not this settings page
       applyDefaultSdkToModules();
+      // library classpaths come from the SDK's haxelib
+      HaxeLibrarySync.sync(project, null);
     }
     settings.setHaxelibPath(panel.getHaxelibPath());
     settings.setNekoPath(panel.getNekoPath());

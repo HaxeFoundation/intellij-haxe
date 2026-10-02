@@ -102,14 +102,12 @@ public final class HaxeToolWindowEditors {
     for (Sdk sdk : ProjectJdkTable.getInstance().getSdksOfType(HaxeSdkType.getInstance())) {
       choices.add(new SdkChoice(sdk.getName(), sdk.getName()));
     }
+    HaxeModuleSdkApplier applier = HaxeModuleSdkApplier.getInstance(project);
     JBPopupFactory.getInstance()
       .createPopupChooserBuilder(choices)
       .setTitle(HaxeBundle.message("haxe.toolwindow.select.sdk.title"))
       .setRenderer(BuilderKt.textListCellRenderer("", SdkChoice::display))
-      .setItemChosenCallback(choice -> {
-        HaxeEnvironmentStore.getInstance(project).setSdkName(sdkNode.containerId(), choice.name());
-        HaxeModuleSdkApplier.getInstance(project).applyAsync(sdkNode.containerId(), choice.name());
-      })
+      .setItemChosenCallback(choice -> applier.chooseSdk(sdkNode.containerId(), choice.name()))
       .createPopup()
       .show(point);
   }

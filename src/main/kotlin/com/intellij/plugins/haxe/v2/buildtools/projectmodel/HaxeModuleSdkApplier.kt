@@ -11,6 +11,8 @@ import com.intellij.platform.workspace.jps.entities.SdkId
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.jps.entities.sdkId
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore
 import com.intellij.openapi.application.EDT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +32,17 @@ class HaxeModuleSdkApplier(private val project: Project, private val scope: Coro
   companion object {
     @JvmStatic
     fun getInstance(project: Project): HaxeModuleSdkApplier = project.service()
+  }
+
+  /**
+   * A user's SDK choice for one container: stored as its Environment SDK,
+   * applied to the module, and the libraries re-resolved - their classpaths
+   * come from the chosen SDK's haxelib.
+   */
+  fun chooseSdk(containerId: String, sdkName: String?) {
+    HaxeEnvironmentStore.getInstance(project).setSdkName(containerId, sdkName)
+    applyAsync(containerId, sdkName)
+    HaxeLibrarySync.sync(project, null)
   }
 
   /** No-op for container ids that are not modules (the project-root container). */
