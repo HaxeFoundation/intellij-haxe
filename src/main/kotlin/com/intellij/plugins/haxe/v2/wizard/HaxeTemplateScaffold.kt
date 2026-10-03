@@ -12,7 +12,9 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType
 import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeActiveBuildFileStore
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetSelectionStore
 import java.io.IOException
@@ -30,7 +32,7 @@ internal object HaxeTemplateScaffold {
     val base = step.baseData ?: return null
     val contentRoot = contentRootOf(step) ?: return null
 
-    HaxeSdkType.getInstance().ensureSdk()
+    ensureProjectDefaultSdk(project)
 
     val builder = HaxeModuleBuilder()
     builder.name = base.name
@@ -38,6 +40,18 @@ internal object HaxeTemplateScaffold {
     builder.moduleFilePath = "$contentRoot/${base.name}${ModuleFileType.DOT_DEFAULT_EXTENSION}"
     builder.commit(project).firstOrNull() ?: return null
     return contentRoot
+  }
+
+  /**
+   * A project created without an SDK choice follows the first registered
+   * Haxe SDK (auto-detected when none is registered): the one the module
+   * gets and the tools fall back to anyway, made visible as the default.
+   */
+  private fun ensureProjectDefaultSdk(project: Project) {
+    HaxeSdkType.getInstance().ensureSdk()
+    val settings = HaxeBuildToolSettings.getInstance(project)
+    if (settings.sdkName != null) return
+    HaxeToolPathResolver.findConfiguredSdk(project)?.let { settings.sdkName = it.name }
   }
 
   /**

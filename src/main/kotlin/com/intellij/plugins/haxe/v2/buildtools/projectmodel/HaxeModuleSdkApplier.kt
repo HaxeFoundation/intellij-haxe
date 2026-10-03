@@ -11,6 +11,7 @@ import com.intellij.platform.workspace.jps.entities.SdkId
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.jps.entities.sdkId
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore
 import com.intellij.openapi.application.EDT
@@ -37,11 +38,12 @@ class HaxeModuleSdkApplier(private val project: Project, private val scope: Coro
   /**
    * A user's SDK choice for one container: stored as its Environment SDK,
    * applied to the module, and the libraries re-resolved - their classpaths
-   * come from the chosen SDK's haxelib.
+   * come from the chosen SDK's haxelib. A null choice ("Project default")
+   * applies the Build Tools default, so the module keeps a real SDK.
    */
   fun chooseSdk(containerId: String, sdkName: String?) {
     HaxeEnvironmentStore.getInstance(project).setSdkName(containerId, sdkName)
-    applyAsync(containerId, sdkName)
+    applyAsync(containerId, HaxeToolPathResolver.effectiveSdkName(project, containerId))
     HaxeLibrarySync.sync(project, null)
   }
 

@@ -4,19 +4,16 @@ import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.openapi.module.GeneralModuleType;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeWizardBundle;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Creates plain {@link GeneralModuleType} modules for Haxe (v2). The custom
@@ -58,23 +55,19 @@ public final class HaxeModuleBuilder extends ModuleBuilder {
     }
   }
 
-  private static void assignSdk(@NotNull ModifiableRootModel model) {
-    // HaxeProjectSdkStep has already installed the user's chosen SDK as the
-    // project SDK by the time commit runs; an explicit module SDK would
-    // override that choice. Fall back to the first Haxe SDK in the table
-    // only when no Haxe project SDK is set.
-    Sdk projectSdk = ProjectRootManager.getInstance(model.getProject()).getProjectSdk();
-    boolean projectSdkIsHaxe = projectSdk != null && projectSdk.getSdkType() instanceof HaxeSdkType;
-    if (projectSdkIsHaxe) {
-      model.inheritSdk();
-      return;
-    }
-    List<Sdk> haxeSdks = ProjectJdkTable.getInstance().getSdksOfType(HaxeSdkType.getInstance());
-    if (haxeSdks.isEmpty()) {
+  /**
+   * The module gets the SDK v2 resolves it against anyway - the Build Tools
+   * default (HaxeProjectSdkStep writes it before commit), else the first
+   * registered Haxe SDK - as an explicit module SDK, so the editor has it
+   * before the next project open applies the effective SDKs.
+   */
+  static void assignSdk(@NotNull ModifiableRootModel model) {
+    Sdk sdk = HaxeToolPathResolver.findConfiguredSdk(model.getProject());
+    if (sdk == null) {
       model.inheritSdk();
     }
     else {
-      model.setSdk(haxeSdks.getFirst());
+      model.setSdk(sdk);
     }
   }
 }
