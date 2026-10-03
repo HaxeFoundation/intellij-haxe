@@ -15,9 +15,14 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.plugins.haxe.HaxeBundle
 import com.intellij.plugins.haxe.HaxeDebuggerBundle
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.fields.ExtendableTextField
+import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.listCellRenderer.listCellRenderer
+import java.nio.file.Files
+import java.nio.file.InvalidPathException
+import java.nio.file.Path
 import java.util.Locale
 import javax.swing.DefaultComboBoxModel
 import org.jetbrains.annotations.Nls
@@ -39,6 +44,58 @@ fun executableField(@Nls chooserTitle: String): TextFieldWithBrowseButton {
 fun setInheritedDefault(field: TextFieldWithBrowseButton, inherited: String?) {
   val textField = field.textField as? ExtendableTextField ?: return
   textField.emptyText.text = inherited?.let(FileUtil::toSystemDependentName) ?: ""
+}
+
+/**
+ * Warns inline while the field names nothing runnable: a regular file, or a
+ * folder holding [executableName] (the lookup's own rule); with a null
+ * [executableName] any existing folder passes (a macOS .app bundle). A
+ * warning, not an error: Apply stays enabled. Shows only once the owning
+ * panel's validators are registered.
+ */
+fun Cell<TextFieldWithBrowseButton>.warnUnlessRunnable(executableName: String?): Cell<TextFieldWithBrowseButton> =
+  validationOnInput { field -> runnablePathProblem(field.text, executableName)?.let { warning(it) } }
+
+/**
+ * Warns inline while the field names no existing regular file (the haxelib
+ * path is run verbatim, a folder fails). A warning, not an error: Apply stays
+ * enabled. Shows only once the owning panel's validators are registered.
+ */
+fun Cell<TextFieldWithBrowseButton>.warnUnlessFile(): Cell<TextFieldWithBrowseButton> =
+  validationOnInput { field -> filePathProblem(field.text)?.let { warning(it) } }
+
+/** Why [text] names nothing runnable (see [warnUnlessRunnable]); null when it resolves or is empty. */
+@Nls
+internal fun runnablePathProblem(text: String, executableName: String?): String? {
+  val path = pathOf(text) ?: return null
+  if (Files.isRegularFile(path)) return null
+  if (!Files.isDirectory(path)) return HaxeBundle.message("haxe.runtime.path.not.found", text.trim())
+  if (executableName == null) return null
+
+  val executable = HaxeSdkUtilBase.getExecutableName(executableName)
+  if (Files.isRegularFile(path.resolve(executable))) return null
+  return HaxeBundle.message("haxe.runtime.path.no.executable", text.trim(), executable)
+}
+
+/** Why [text] names no existing regular file; null when it does or is empty. */
+@Nls
+internal fun filePathProblem(text: String): String? {
+  val path = pathOf(text) ?: return null
+  if (Files.isRegularFile(path)) return null
+  if (Files.isDirectory(path)) return HaxeBundle.message("haxe.runtime.path.not.file", text.trim())
+  return HaxeBundle.message("haxe.runtime.path.not.found", text.trim())
+}
+
+/** Null for empty text and for text that cannot form a path - the lookup reports that one itself. */
+private fun pathOf(text: String): Path? {
+  val trimmed = text.trim()
+  if (trimmed.isEmpty()) return null
+  return try {
+    Path.of(trimmed)
+  }
+  catch (_: InvalidPathException) {
+    null
+  }
 }
 
 /**

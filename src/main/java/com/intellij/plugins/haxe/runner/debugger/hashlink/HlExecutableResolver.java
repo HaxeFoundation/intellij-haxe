@@ -1,20 +1,27 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Locates the HashLink executable for the (experimental) HashLink run/debug
  * support, in order:
  * <ol>
+ *   <li>the Build Tools | Haxe override ("HashLink executable" under Runtime
+ *       Overrides) — when set it decides alone: resolved as the executable
+ *       itself or a directory containing it, and an unresolvable value yields
+ *       nothing (a typo fails visibly instead of silently running another hl)</li>
  *   <li>the path configured on the Haxe SDK ("HashLink executable")</li>
  *   <li>environment variables {@code HASHLINK_BIN}, {@code HASHLINK},
  *       {@code HASHLINKPATH} — each tried as the executable itself, then as a
@@ -36,13 +43,25 @@ public final class HlExecutableResolver {
   private HlExecutableResolver() {
   }
 
-  /** Resolves for a module, reading the SDK-configured path first. */
-  public static Optional<Path> resolve(@Nullable Module module) {
-    return resolve(sdkHlBinPath(module), System::getenv);
+  /** Resolves with the project's Build Tools override first, then the module's SDK path (no module: no SDK path). */
+  public static Optional<Path> resolve(@NotNull Project project, @Nullable Module module) {
+    String buildToolsOverride = HaxeBuildToolSettings.getInstance(project).getHashlinkPath();
+    return resolve(buildToolsOverride, sdkHlBinPath(module), System::getenv);
   }
 
-  /** Testable core: explicit SDK path, then environment, then PATH. */
+  /** Testable core without a Build Tools override: SDK path, then environment, then PATH. */
   public static Optional<Path> resolve(@Nullable String sdkHlBinPath, Environment env) {
+    return resolve(null, sdkHlBinPath, env);
+  }
+
+  /** Testable core: a non-blank override decides alone; else SDK path, then environment, then PATH. */
+  public static Optional<Path> resolve(@Nullable String buildToolsOverride,
+                                       @Nullable String sdkHlBinPath,
+                                       Environment env) {
+    if (buildToolsOverride != null && !buildToolsOverride.isBlank()) {
+      return asExecutableOrContainingDirectory(buildToolsOverride);
+    }
+
     if (sdkHlBinPath != null && !sdkHlBinPath.isBlank()) {
       Optional<Path> fromSdk = asExecutableOrContainingDirectory(sdkHlBinPath);
       if (fromSdk.isPresent()) {

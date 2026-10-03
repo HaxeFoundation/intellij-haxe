@@ -144,7 +144,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
       if (!Files.isRegularFile(custom)) {
         throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("haxe.run.custom.hl.missing", custom.toString()));
       }
-    } else if (HlExecutableResolver.resolve(module).isEmpty()) {
+    } else if (HlExecutableResolver.resolve(getProject(), module).isEmpty()) {
       throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("haxe.run.bad.hl.bin.path"));
     }
   }
@@ -203,7 +203,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
   /**
    * The HashLink executable to run the program with: the custom override when
    * enabled (it must exist — a broken override fails loudly instead of falling
-   * back to an unexpected binary), else the SDK/environment-resolved one.
+   * back to an unexpected binary), else the Build Tools/SDK/environment-resolved one.
    */
   Path resolveHlExecutable(Module module) throws ExecutionException {
     if (!useCustomHlBinary) {

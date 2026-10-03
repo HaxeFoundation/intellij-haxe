@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.config.sdk.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.plugins.haxe.HaxeBundle
 import com.intellij.ui.components.JBCheckBox
@@ -26,20 +27,30 @@ class HaxeAdditionalConfigurablePanel {
 
   private val mainPanel = panel {
     row(HaxeBundle.message("haxelib.executable")) {
-      cell(haxelibField).align(AlignX.FILL)
+      cell(haxelibField)
+        .align(AlignX.FILL)
+        .warnUnlessFile()
     }
     group(HaxeBundle.message("sdk.runtimes.section")) {
       row(HaxeBundle.message("neko.executable")) {
-        cell(nekoField).align(AlignX.FILL)
+        cell(nekoField)
+          .align(AlignX.FILL)
+          .warnUnlessRunnable("neko")
       }
       row(HaxeBundle.message("hl.executable")) {
-        cell(hlField).align(AlignX.FILL)
+        cell(hlField)
+          .align(AlignX.FILL)
+          .warnUnlessRunnable("hl")
       }
       row(HaxeBundle.message("node.executable")) {
-        cell(nodeField).align(AlignX.FILL)
+        cell(nodeField)
+          .align(AlignX.FILL)
+          .warnUnlessRunnable("node")
       }
       row(HaxeBundle.message("flash.player.executable")) {
-        cell(flashPlayerField).align(AlignX.FILL)
+        cell(flashPlayerField)
+          .align(AlignX.FILL)
+          .warnUnlessRunnable(null)
       }
       row(HaxeBundle.message("flex.sdk")) {
         cell(flexSdkSelector.getComponent())
@@ -54,6 +65,9 @@ class HaxeAdditionalConfigurablePanel {
   }
 
   fun getPanel(): JComponent = mainPanel
+
+  /** Activates the inline path warnings until [parentDisposable] is disposed. */
+  fun registerValidators(parentDisposable: Disposable) = mainPanel.registerValidators(parentDisposable)
 
   /** Shows what the empty fields inherit (bundled haxelib, PATH-detected runtimes) as grayed empty text. */
   fun setInheritedDefaults(haxelib: String?, neko: String?, hashlink: String?, node: String?) {

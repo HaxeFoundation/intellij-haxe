@@ -1,10 +1,14 @@
 package com.intellij.plugins.haxe.v2.buildtools.settings.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.plugins.haxe.HaxeBundle
 import com.intellij.plugins.haxe.config.sdk.ui.FlexSdkSelector
 import com.intellij.plugins.haxe.config.sdk.ui.executableField
 import com.intellij.plugins.haxe.config.sdk.ui.setInheritedDefault
+import com.intellij.plugins.haxe.config.sdk.ui.warnUnlessFile
+import com.intellij.plugins.haxe.config.sdk.ui.warnUnlessRunnable
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver.InheritedRuntimeDefaults
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
@@ -37,7 +41,7 @@ class HaxeBuildToolsSettingsPanel {
 
   private val knownSdkNames = LinkedHashSet<String>()
   private lateinit var runtimeOverridesGroup: CollapsibleRow
-  private val mainPanel: JComponent
+  private val mainPanel: DialogPanel
 
   init {
     sdkCombo.renderer = sdkComboRenderer(knownSdkNames)
@@ -50,20 +54,29 @@ class HaxeBuildToolsSettingsPanel {
       row(HaxeBundle.message("haxe.build.tools.haxelib.path")) {
         cell(haxelibField)
           .align(AlignX.FILL)
+          .warnUnlessFile()
           .comment(HaxeBundle.message("haxe.build.tools.path.hint"))
       }
       runtimeOverridesGroup = collapsibleGroup(HaxeBundle.message("haxe.build.tools.runtime.overrides")) {
         row(HaxeBundle.message("haxe.build.tools.neko.path")) {
-          cell(nekoField).align(AlignX.FILL)
+          cell(nekoField)
+            .align(AlignX.FILL)
+            .warnUnlessRunnable("neko")
         }
         row(HaxeBundle.message("haxe.build.tools.hashlink.path")) {
-          cell(hashlinkField).align(AlignX.FILL)
+          cell(hashlinkField)
+            .align(AlignX.FILL)
+            .warnUnlessRunnable("hl")
         }
         row(HaxeBundle.message("haxe.build.tools.node.path")) {
-          cell(nodeField).align(AlignX.FILL)
+          cell(nodeField)
+            .align(AlignX.FILL)
+            .warnUnlessRunnable("node")
         }
         row(HaxeBundle.message("haxe.build.tools.flash.player.path")) {
-          cell(flashPlayerField).align(AlignX.FILL)
+          cell(flashPlayerField)
+            .align(AlignX.FILL)
+            .warnUnlessRunnable(null)
         }
         row(HaxeBundle.message("haxe.build.tools.flex.sdk")) {
           cell(flexSdkSelector.getComponent())
@@ -100,6 +113,9 @@ class HaxeBuildToolsSettingsPanel {
   }
 
   fun getComponent(): JComponent = mainPanel
+
+  /** Activates the inline path warnings until [parentDisposable] is disposed. */
+  fun registerValidators(parentDisposable: Disposable) = mainPanel.registerValidators(parentDisposable)
 
   /** Fires on every SDK selection change (including programmatic resets); recompute the inherited defaults there. */
   fun addSdkSelectionListener(listener: Runnable) {

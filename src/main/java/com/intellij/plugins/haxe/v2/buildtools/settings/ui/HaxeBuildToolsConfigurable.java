@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools.settings.ui;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
@@ -8,6 +9,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.util.HaxeModuleDetection;
@@ -39,6 +41,7 @@ public final class HaxeBuildToolsConfigurable implements SearchableConfigurable 
 
   private final Project project;
   private HaxeBuildToolsSettingsPanel panel;
+  private Disposable validatorsDisposable;
 
   public HaxeBuildToolsConfigurable(@NotNull Project project) {
     this.project = project;
@@ -59,6 +62,9 @@ public final class HaxeBuildToolsConfigurable implements SearchableConfigurable 
     if (panel == null) {
       panel = new HaxeBuildToolsSettingsPanel();
       panel.addSdkSelectionListener(this::updateInheritedDefaults);
+      // before reset() fills the fields, so a stored path that does not resolve warns on open
+      validatorsDisposable = Disposer.newDisposable();
+      panel.registerValidators(validatorsDisposable);
     }
     reset();
     return panel.getComponent();
@@ -190,6 +196,10 @@ public final class HaxeBuildToolsConfigurable implements SearchableConfigurable 
 
   @Override
   public void disposeUIResources() {
+    if (validatorsDisposable != null) {
+      Disposer.dispose(validatorsDisposable);
+      validatorsDisposable = null;
+    }
     panel = null;
   }
 

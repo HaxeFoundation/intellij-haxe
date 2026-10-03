@@ -25,9 +25,9 @@ final class HashLinkRunConfigurations {
   private HashLinkRunConfigurations() {
   }
 
-  /** The HashLink executable, or an {@link ExecutionException} pointing at the SDK setting. */
-  static Path resolveHlExecutable(@Nullable Module module) throws ExecutionException {
-    return HlExecutableResolver.resolve(module)
+  /** The HashLink executable, or an {@link ExecutionException} naming the places to set it. */
+  static Path resolveHlExecutable(Module module) throws ExecutionException {
+    return HlExecutableResolver.resolve(module.getProject(), module)
       .orElseThrow(() -> new ExecutionException(HaxeDebuggerBundle.message("haxe.run.bad.hl.bin.path")));
   }
 

@@ -454,10 +454,10 @@ final class HaxeTestLaunchPlanner {
     if (!artifact.toString().toLowerCase(Locale.ROOT).endsWith(".hl")) {
       throw unrunnableTarget(target);
     }
-    // the SDK-configured HashLink (then env, then PATH) - a bare "hl" only works
-    // for users who happen to have it on PATH
+    // the Build Tools override, else the SDK-configured HashLink (then env, then
+    // PATH) - a bare "hl" only works for users who happen to have it on PATH
     Module module = ModuleUtilCore.findModuleForFile(file, project);
-    String executable = HlExecutableResolver.resolve(module)
+    String executable = HlExecutableResolver.resolve(project, module)
       .map(Path::toString)
       .orElse(HaxeSdkUtilBase.getExecutableName("hl"));
     return List.of(executable, artifact.toString());

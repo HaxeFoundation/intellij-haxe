@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.config.sdk;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
@@ -24,6 +25,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.config.sdk.ui.HaxeAdditionalConfigurablePanel;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
@@ -40,6 +42,7 @@ import javax.swing.*;
 public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
   private final HaxeAdditionalConfigurablePanel myHaxeAdditionalConfigurablePanel;
   private Sdk mySdk;
+  private Disposable myValidatorsDisposable;
 
   public HaxeAdditionalConfigurable() {
     myHaxeAdditionalConfigurablePanel = new HaxeAdditionalConfigurablePanel();
@@ -52,6 +55,12 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public JComponent createComponent() {
+    // the SDK editor creates the component before reset() fills the fields,
+    // so a stored path that does not resolve warns on open
+    if (myValidatorsDisposable == null) {
+      myValidatorsDisposable = Disposer.newDisposable();
+      myHaxeAdditionalConfigurablePanel.registerValidators(myValidatorsDisposable);
+    }
     return myHaxeAdditionalConfigurablePanel.getPanel();
   }
 
@@ -162,5 +171,9 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public void disposeUIResources() {
+    if (myValidatorsDisposable != null) {
+      Disposer.dispose(myValidatorsDisposable);
+      myValidatorsDisposable = null;
+    }
   }
 }

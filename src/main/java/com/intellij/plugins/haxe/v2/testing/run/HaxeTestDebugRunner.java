@@ -210,7 +210,7 @@ public class HaxeTestDebugRunner extends DapDebugRunnerBase<HaxeTestRunConfigura
 
   /**
    * The runtime that executes the HL debuggee AND the bundled adapter: the
-   * SDK-resolved hl for a plain artifact; for a lime package the bundled
+   * configured hl for a plain artifact; for a lime package the bundled
    * runtime beside the bytecode - it carries the app's .hdll libraries, which
    * the SDK's plain hl lacks.
    */
@@ -231,11 +231,11 @@ public class HaxeTestDebugRunner extends DapDebugRunnerBase<HaxeTestRunConfigura
     throw new ExecutionException(HaxeBundle.message("haxe.test.debug.unsupported.target"));
   }
 
-  /** Same precedence as the plain run's launch command: the SDK-configured HashLink, then env, then PATH. */
+  /** Same precedence as the plain run's launch command: the Build Tools override, else the SDK-configured HashLink, then env, then PATH. */
   @NotNull
   private static Path resolveHlExecutable(HaxeTestRunConfiguration configuration) throws ExecutionException {
     Module module = HaxeTestRunConfigurations.buildFileModule(configuration);
-    return HlExecutableResolver.resolve(module)
+    return HlExecutableResolver.resolve(configuration.getProject(), module)
       .orElseThrow(() -> new ExecutionException(HaxeBundle.message("haxe.test.debug.no.hl")));
   }
 }

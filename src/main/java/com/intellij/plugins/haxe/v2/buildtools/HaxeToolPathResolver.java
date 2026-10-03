@@ -211,6 +211,8 @@ public final class HaxeToolPathResolver {
     }
     String flashPlayer = data == null || data.getFlashPlayerPath().isBlank() ? null : data.getFlashPlayerPath();
     String flexSdkName = data == null || data.getFlexSdkName().isEmpty() ? null : data.getFlexSdkName();
+    // TODO: the HashLink default skips the HASHLINK_BIN/HASHLINK/HASHLINKPATH
+    //       variables that HlExecutableResolver consults before PATH.
     return new InheritedRuntimeDefaults(
       haxelib,
       inheritedExecutable(data == null ? null : data.getNekoBinPath(), "neko"),

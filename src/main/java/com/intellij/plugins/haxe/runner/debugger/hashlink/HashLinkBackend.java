@@ -222,12 +222,14 @@ public class HashLinkBackend implements DapBackend {
     return DapSourceScopes.acceptsWhenScoped(vfsPath, sourceDirectories);
   }
 
-  // NOTE: the adapter currently only STORES the flag — labels stay class names
-  // until the hl_dyn_call_safe rendering lands (a faulting toString must be
-  // impossible, not merely handled; see the adapter docs).
+  // The adapter accepts custom/setToStringRendering but only STORES the flag;
+  // offering the toggle would show a setting without effect.
+  // TODO: return true once the adapter renders labels through toString (needs
+  //       the hl_dyn_call_safe injection: a faulting toString must be impossible,
+  //       not merely handled; see the adapter docs).
   @Override
   public boolean supportsToStringRendering() {
-    return true;
+    return false;
   }
 
   @Override
