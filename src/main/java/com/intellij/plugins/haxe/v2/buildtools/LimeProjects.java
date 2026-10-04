@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.AIR_SDK;
+
 /**
  * Facts about lime-family projects (lime/openfl xml and lime HXP scripts):
  * which build-file types the lime tool owns, which CLI tool builds them and
@@ -198,7 +200,7 @@ public final class LimeProjects {
   public static Map<String, String> commandEnvironment(@NotNull List<String> command) {
     for (String argument : command) {
       if (argument.startsWith(AIR_SDK_DEFINE_PREFIX)) {
-        return Map.of("AIR_SDK", argument.substring(AIR_SDK_DEFINE_PREFIX.length()));
+        return Map.of(AIR_SDK, argument.substring(AIR_SDK_DEFINE_PREFIX.length()));
       }
     }
     return Map.of();

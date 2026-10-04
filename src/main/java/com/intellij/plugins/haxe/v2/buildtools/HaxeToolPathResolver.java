@@ -6,6 +6,7 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
@@ -16,6 +17,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.AIR_SDK;
 
 /**
  * Resolves tool executables for a project from the v2 build tool settings,
@@ -251,8 +254,8 @@ public final class HaxeToolPathResolver {
         return adl.toString();
       }
     }
-    String airSdkHome = System.getenv("AIR_SDK");
-    if (airSdkHome != null && !airSdkHome.isBlank()) {
+    String airSdkHome = HaxeEnvironmentVariables.value(AIR_SDK);
+    if (airSdkHome != null) {
       Path adl = adlInSdk(airSdkHome);
       if (Files.isRegularFile(adl)) {
         return adl.toString();

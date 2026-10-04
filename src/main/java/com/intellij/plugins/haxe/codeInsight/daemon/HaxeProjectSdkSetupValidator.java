@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.HaxeProjectBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.codeInsight.daemon.SdkValidationResult.*;
 import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX;
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HAXE_STD_PATH;
 
 public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 
@@ -56,21 +58,22 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
   @Override
   public String getErrorMessage(@NotNull Project project, @NotNull VirtualFile file) {
     SdkValidationResult result = validateSdk(project, file);
-    if (result != null) {
-      switch (result) {
-        case MODULE_SDK_NOT_DEFINED:
-        case PROJECT_SDK_NOT_DEFINED:
-          // v2 never demands a Project SDK - mixed-language projects use one
-          // SDK per module, configured here or in the tool window's Environment
-          return HaxeProjectBundle.message("module.haxe.sdk.not.configured");
-        case MULTIPLE_ROOTS_FOUND:
-          return HaxeBundle.message("sdk.roots.multiple");
-        case NO_VALID_SDK_ROOTS_FOUND:
-          return HaxeBundle.message("sdk.roots.no.valid.root");
-      }
-    }
+    if (result == null) return null;
 
-    return null;
+    return switch (result) {
+      // v2 never demands a Project SDK - mixed-language projects use one
+      // SDK per module, configured here or in the tool window's Environment
+      case MODULE_SDK_NOT_DEFINED, PROJECT_SDK_NOT_DEFINED -> HaxeProjectBundle.message("module.haxe.sdk.not.configured");
+      case NO_VALID_SDK_ROOTS_FOUND -> noValidRootMessage();
+    };
+  }
+
+  /** With HAXE_STD_PATH set, the SDK's std folders come from the variable alone, so the message names it. */
+  private static String noValidRootMessage() {
+    String stdPathValue = HaxeEnvironmentVariables.value(HAXE_STD_PATH);
+    return stdPathValue == null
+           ? HaxeBundle.message("sdk.roots.no.valid.root")
+           : HaxeBundle.message("sdk.roots.no.valid.root.std.path", stdPathValue);
   }
 
   /**
@@ -101,15 +104,7 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 
   private SdkValidationResult validateSdkRoots(Sdk sdk) {
     List<VirtualFile> roots = getDistinctRoots(sdk);
-
-    if (hasNoValidRoots(roots)) {
-      return NO_VALID_SDK_ROOTS_FOUND;
-    }
-    if (hasMultipleOrEmptyRoots(roots)) {
-      return MULTIPLE_ROOTS_FOUND;
-    }
-
-    return null;
+    return hasNoValidRoots(roots) ? NO_VALID_SDK_ROOTS_FOUND : null;
   }
 
   private List<VirtualFile> getDistinctRoots(Sdk sdk) {
@@ -125,10 +120,6 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 
   private boolean hasNoValidRoots(List<VirtualFile> roots) {
     return roots.stream().noneMatch(root -> root.findChild(STD_TYPES_HX) != null);
-  }
-
-  private boolean hasMultipleOrEmptyRoots(List<VirtualFile> roots) {
-    return roots.size() != 1;
   }
 
   @Override
@@ -158,6 +149,5 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 enum SdkValidationResult {
   PROJECT_SDK_NOT_DEFINED,
   MODULE_SDK_NOT_DEFINED,
-  MULTIPLE_ROOTS_FOUND,
   NO_VALID_SDK_ROOTS_FOUND
 }

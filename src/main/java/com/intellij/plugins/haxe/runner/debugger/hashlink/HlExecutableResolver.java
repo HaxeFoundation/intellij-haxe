@@ -14,6 +14,10 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HASHLINK;
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HASHLINKPATH;
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HASHLINK_BIN;
+
 /**
  * Locates the HashLink executable for the (experimental) HashLink run/debug
  * support, in order:
@@ -31,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * The environment is injectable so the precedence is unit-testable.
  */
 public final class HlExecutableResolver {
-  private static final String[] ENV_VARIABLES = {"HASHLINK_BIN", "HASHLINK", "HASHLINKPATH"};
+  private static final String[] ENV_VARIABLES = {HASHLINK_BIN, HASHLINK, HASHLINKPATH};
   private static final String[] EXECUTABLE_NAMES = {"hl.exe", "hl"};
 
   /** Environment lookup, replaceable in tests. */
