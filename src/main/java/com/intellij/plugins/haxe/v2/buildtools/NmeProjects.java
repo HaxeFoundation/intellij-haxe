@@ -76,23 +76,29 @@ public final class NmeProjects {
   }
 
   /// The raw nmml info completed with the selected target's haxe target and
-  /// artifact path - the xml declares neither. Unchanged when the target's
-  /// artifact is not mapped or the nmml has no `<app file>`.
+  /// artifact path - the xml declares neither. The target alone when the
+  /// target's artifact is not mapped or the nmml has no `<app file>`.
   /// Call in a read action.
   @NotNull
   public static HaxeBuildFileInfo withTargetArtifact(@NotNull Project project,
                                                      @NotNull VirtualFile file,
                                                      @NotNull HaxeBuildFileInfo raw) {
+    String targetFlag = selectedTargetFlag(project, file);
+    TargetArtifact artifact = selectedArtifact(file, targetFlag);
+    if (artifact == null) return raw.withTarget(targetFor(targetFlag), null);
+    return raw.withTarget(artifact.target(), artifact.relativeOutput());
+  }
+
+  @Nullable
+  private static TargetArtifact selectedArtifact(@NotNull VirtualFile file, @NotNull String targetFlag) {
     String content = HaxeBuildFileInspector.loadText(file);
     String appFile = content == null ? null : ProjectXmlParser.parseAppFile(content);
-    if (appFile == null) return raw;
+    if (appFile == null) return null;
 
     // the nmml's <app path> overrides the tool's default "bin" output root
     String appPath = ProjectXmlParser.parseAppPath(content);
     String outputRoot = appPath != null ? appPath : "bin";
-    TargetArtifact artifact = targetArtifact(selectedTargetFlag(project, file), appFile, outputRoot);
-    if (artifact == null) return raw;
-    return raw.withTarget(artifact.target(), artifact.relativeOutput());
+    return targetArtifact(targetFlag, appFile, outputRoot);
   }
 
   /** The haxe compilation target behind an nme CLI target id ("cpp" is nme's host-desktop word), or null for an unknown id. */

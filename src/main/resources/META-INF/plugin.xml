@@ -818,6 +818,12 @@
                      groupPath="Haxe" groupKey="inspections.group.validity.issues" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>
 
+    <!-- no language: it visits hxml files and the XML project files (Lime/OpenFL/NME) -->
+    <localInspection shortName="HaxeDashedDefineName" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.dashed.define.name"
+                     groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeDashedDefineNameInspection"/>
+
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
     <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
     <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>

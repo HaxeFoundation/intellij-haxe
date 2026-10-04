@@ -59,6 +59,8 @@ public final class HxmlFileParser {
   private static final Set<String> LIBRARY_FLAGS = Set.of("-lib", "--library", "-L");
   private static final Set<String> CLASSPATH_FLAGS = Set.of("-cp", "-p", "--class-path");
   private static final Set<String> DEBUG_FLAGS = Set.of("-debug", "--debug");
+  /** What {@code -debug} defines, as {@code -D debug} would. */
+  private static final HaxeDefine DEBUG_DEFINE = new HaxeDefine("debug", null);
   private static final Set<String> MAIN_FLAGS = Set.of("-main", "--main", "-m");
 
   private HxmlFileParser() {
@@ -250,6 +252,9 @@ public final class HxmlFileParser {
       }
       else if (CLASSPATH_FLAGS.contains(flag) && value != null) {
         accumulator.classpaths.add(value);
+      }
+      else if (DEBUG_FLAGS.contains(flag)) {
+        accumulator.defines.add(DEBUG_DEFINE);
       }
       else if (TARGET_FLAGS.containsKey(flag)) {
         if (accumulator.target == null) {

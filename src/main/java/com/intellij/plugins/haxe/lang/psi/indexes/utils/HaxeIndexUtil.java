@@ -39,7 +39,7 @@ import java.util.Map;
  */
 @CustomLog
 public class HaxeIndexUtil {
-  public static int BASE_INDEX_VERSION = 140;
+  public static int BASE_INDEX_VERSION = 142;
 
   static {
       log.setLevel(LogLevel.WARNING);

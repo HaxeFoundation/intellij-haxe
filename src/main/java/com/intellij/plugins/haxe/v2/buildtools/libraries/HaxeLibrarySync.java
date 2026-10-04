@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.buildtools.libraries;
 
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeLimeProjectInfoService;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeNmeProjectInfoService;
 import com.intellij.plugins.haxe.v2.buildtools.LimeProjects;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSections;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeKnownBuildFiles;
@@ -32,6 +33,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.intellij.plugins.haxe.config.HaxeTarget.FLAG_DEFINE_VALUE;
 
 /**
  * Attaches each module's haxelib dependencies as module-level libraries, so they
@@ -71,6 +74,15 @@ public final class HaxeLibrarySync {
     return entryName.equals(base) || entryName.startsWith(base + " ");
   }
 
+  /**
+   * One module's {@code haxelib path} results: the classpaths per External
+   * Libraries entry, and per dependency the {@code -D name=version} defines
+   * the output carried (the dependency and its transitives).
+   */
+  private record Resolution(@NotNull Map<String, List<String>> classpaths,
+                            @NotNull Map<String, Map<String, String>> definesByDependency) {
+  }
+
   /** Resolves and applies module libraries in the background; {@code onFinished} runs on the EDT. */
   public static void sync(@NotNull Project project, @Nullable Runnable onFinished) {
     new Task.Backgroundable(project, HaxeBundle.message("haxe.library.sync.progress"), false) {
@@ -79,13 +91,30 @@ public final class HaxeLibrarySync {
         Map<Module, List<HaxeLibDependency>> dependencies =
           HaxeReadActions.compute(() -> collectDependencies(project));
         Map<String, Map<String, List<String>>> byModuleName = new LinkedHashMap<>();
-        dependencies.forEach((module, moduleDependencies) ->
-          byModuleName.put(module.getName(), resolveClasspaths(project, module, moduleDependencies, indicator)));
+        Map<String, Map<String, Map<String, String>>> definesByModuleName = new LinkedHashMap<>();
+        dependencies.forEach((module, moduleDependencies) -> {
+          Resolution resolution = resolveClasspaths(project, module, moduleDependencies, indicator);
+          byModuleName.put(module.getName(), resolution.classpaths());
+          definesByModuleName.put(module.getName(), resolution.definesByDependency());
+        });
         if (!project.isDisposed()) {
-          HaxeLibraryWorkspace.getInstance(project).applyAllAsync(byModuleName, onFinished);
+          Runnable onApplied = () -> recordLibraryDefines(project, definesByModuleName, onFinished);
+          HaxeLibraryWorkspace.getInstance(project).applyAllAsync(byModuleName, onApplied);
         }
       }
     }.queue();
+  }
+
+  /** On the EDT after the libraries landed: the define context follows the recorded defines before the caller's refresh. */
+  private static void recordLibraryDefines(@NotNull Project project,
+                                           @NotNull Map<String, Map<String, Map<String, String>>> definesByModuleName,
+                                           @Nullable Runnable onFinished) {
+    if (!project.isDisposed()) {
+      HaxeLibraryDefinesStore.getInstance(project).replaceAll(definesByModuleName);
+    }
+    if (onFinished != null) {
+      onFinished.run();
+    }
   }
 
   @NotNull
@@ -133,23 +162,30 @@ public final class HaxeLibrarySync {
 
   /**
    * A build file's library dependencies with conditionals evaluated: lime-family
-   * files use the LimeProjectParser evaluation for the selected target — the raw
-   * xml parse lists every {@code <haxelib>} regardless of its if/unless condition.
-   * The raw parse remains the fallback while the evaluation is pending or when
-   * only the legacy lime-display path ran (its hxml has no -lib entries).
+   * files use the LimeProjectParser evaluation for the selected target, nmml
+   * files the {@code nme prepare} evaluation — the raw xml parse lists every
+   * {@code <haxelib>} regardless of its if/unless condition. The raw parse
+   * remains the fallback while the evaluation is pending or when only the
+   * legacy lime-display path ran (its hxml has no -lib entries).
    */
   @NotNull
   private static List<HaxeLibDependency> effectiveLibraries(@NotNull Project project,
-                                                                              @NotNull Module module,
-                                                                              @NotNull HaxeBuildFile buildFile) {
+                                                            @NotNull Module module,
+                                                            @NotNull HaxeBuildFile buildFile) {
     HaxeBuildFileInfo raw = HaxeBuildSections.inspectSelected(project, buildFile);
     HaxeBuildFileType type = buildFile.type();
+    String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(module.getName());
+    Runnable onEvaluated = () -> sync(project, null);
+    if (type == HaxeBuildFileType.NMML) {
+      return HaxeNmeProjectInfoService.getInstance(project)
+        .effectiveInfo(buildFile, raw, environmentSdk, onEvaluated)
+        .libraries();
+    }
     if (!LimeProjects.isLimeFamily(type)) return raw.libraries();
 
     String targetFlag = LimeProjects.selectedTargetFlag(project, type, buildFile.file());
-    String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(module.getName());
     HaxeBuildFileInfo display = HaxeLimeProjectInfoService.getInstance(project)
-      .getCachedOrSchedule(buildFile, targetFlag, environmentSdk, () -> sync(project, null));
+      .getCachedOrSchedule(buildFile, targetFlag, environmentSdk, onEvaluated);
     return display != null && !display.libraries().isEmpty() ? display.libraries() : raw.libraries();
   }
 
@@ -232,32 +268,36 @@ public final class HaxeLibrarySync {
   }
 
   @NotNull
-  private static Map<String, List<String>> resolveClasspaths(@NotNull Project project,
-                                                             @NotNull Module module,
-                                                             @NotNull List<HaxeLibDependency> dependencies,
-                                                             @NotNull ProgressIndicator indicator) {
+  private static Resolution resolveClasspaths(@NotNull Project project,
+                                              @NotNull Module module,
+                                              @NotNull List<HaxeLibDependency> dependencies,
+                                              @NotNull ProgressIndicator indicator) {
     VirtualFile workDir = ProjectUtil.guessProjectDir(project);
     Sdk sdk = HaxeToolPathResolver.resolveSdk(project, module.getName());
     Map<String, List<String>> libraries = new LinkedHashMap<>();
+    Map<String, Map<String, String>> definesByDependency = new LinkedHashMap<>();
     if (sdk != null && workDir != null) {
       for (HaxeLibDependency dependency : dependencies) {
         indicator.setText2(dependency.name());
         List<String> output = haxelibPathOutput(sdk, workDir, dependency);
+        Map<String, String> defines = new LinkedHashMap<>();
         // one External Libraries entry PER library in the output (see HaxelibPathParser.parseSections)
         for (LibrarySection section : HaxelibPathParser.parseSections(dependency.name(), output)) {
+          String version = sectionVersion(section, dependency);
+          defines.putIfAbsent(section.name(), version != null ? version : FLAG_DEFINE_VALUE);
           if (section.classpaths().isEmpty()) continue;
           // TODO: drop classpaths under the module's own content roots - a lib resolving to the open
           //  checkout (a tests project's <haxelib path="../.."/>) registers the module's source folder
           //  as a library root, and the platform then skips inspections and external annotators there
 
-          String version = sectionVersion(section, dependency);
           String entryName = version == null ? section.name() : section.name() + " " + version;
           if (isScmCheckout(section)) entryName += " [git]";
           libraries.merge(managedLibraryName(entryName), section.classpaths(), HaxeLibrarySync::unionPreservingOrder);
         }
+        definesByDependency.put(dependency.name(), defines);
       }
     }
-    return libraries;
+    return new Resolution(libraries, definesByDependency);
   }
 
   /// The section carries its own version; the queried library itself may only know it from the dependency.

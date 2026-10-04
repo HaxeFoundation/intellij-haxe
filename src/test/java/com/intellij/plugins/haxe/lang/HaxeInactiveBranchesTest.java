@@ -573,7 +573,13 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     arguments("", "(version(\"banana\") > version(\"1.0.0\"))", false),
     arguments("", "(version(\"1.0.0+build5\") == version(\"1.0.0\"))", false),
     arguments("", "(foo(\"x\"))", false),
-    arguments("hl_ver=1.12.0", "(version(hl_ver) > version(\"1.0.0\"))", false));
+    arguments("hl_ver=1.12.0", "(version(hl_ver) > version(\"1.0.0\"))", false),
+    // an operator outside the condition grammar is a compiler error - inactive here
+    arguments("A=1,B=2", "(B-A)", false),
+    arguments("A=1,B=2", "(B > A)", true),
+    // a '-' before a number is the number's sign, not an operation
+    arguments("", "(-1)", true),
+    arguments("v=-1", "(v == -1)", true));
 
   @ParameterizedTest(name = "{1} with [{0}]")
   @FieldSource("CONDITION_EVALUATIONS")
@@ -721,6 +727,66 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     assertTrue(errors.isEmpty(), "an unscannable condition reports nothing: " + errors);
   }
 
+  // (condition as written after #if, its PPEXPRESSION run, the start of the inactive body after it)
+  static final List<Arguments> CONDITION_RUNS = List.of(
+    arguments("(utest-abc)", "(utest-abc)", "\n\tvar marker"),
+    arguments("(B - A)", "(B - A)", "\n\tvar marker"),
+    arguments("(a >>> b = c)", "(a >>> b = c)", "\n\tvar marker"),
+    // without parentheses the condition is one token: '-flag' is already body
+    arguments("my-flag", "my", "-flag\n\tvar marker"));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("CONDITION_RUNS")
+  @DisplayName("rejected operators stay inside a parenthesized condition")
+  public void testRejectedOperatorsStayInsideAParenthesizedCondition(String condition, String run, String bodyStart) {
+    String source = """
+      class Foo {
+      \t#if %s
+      \tvar marker:Int;
+      \t#end
+      }""".formatted(condition);
+
+    List<String> runs = conditionRuns(source);
+    List<String> bodies = ppBodyTokens(source);
+
+    assertEquals(List.of(run), runs, "the whole parenthesized expression is ONE condition run");
+    assertTrue(bodies.get(0).startsWith(bodyStart), "the body starts right after the condition: " + bodies);
+  }
+
+  // (defines, condition, the error the compiler reports for it - null when it compiles)
+  static final List<Arguments> OPERATOR_VERDICTS = List.of(
+    arguments("my-flag", "(my-flag)", "Unsupported operation: '-' is not allowed in a condition"),
+    arguments("A=1,B=2", "(B-A)", "Unsupported operation: '-' is not allowed in a condition"),
+    arguments("", "(a * b)", "Unsupported operation: '*' is not allowed in a condition"),
+    arguments("", "(a >> b)", "Unsupported operation: '>>' is not allowed in a condition"),
+    arguments("", "(-x)", "Invalid condition expression"),
+    arguments("", "(~x)", "Invalid condition expression"),
+    arguments("A=1,B=2", "(B > A)", null),
+    arguments("", "(a == -1)", null),
+    // without parentheses '-flag' is body, and the condition 'my' is fine
+    arguments("my-flag", "my-flag", null));
+
+  @ParameterizedTest(name = "{1} with [{0}]")
+  @FieldSource("OPERATOR_VERDICTS")
+  @DisplayName("operators outside the condition grammar are flagged like the compiler")
+  public void testOperatorsOutsideTheConditionGrammarAreFlaggedLikeTheCompiler(String defines, String condition, String expectedError) {
+    HaxeTestDefines.set(getProject(), defines);
+    try {
+      List<String> errors = conditionErrors("""
+        class Foo {
+        \t#if %s
+        \tvar marker:Int;
+        \t#end
+        }""".formatted(condition));
+
+      List<String> expected = expectedError == null ? List.of() : List.of(expectedError);
+      assertEquals(expected, errors, "wrong verdict for " + condition);
+    }
+    finally {
+      HaxeTestDefines.set(getProject(), null);
+    }
+  }
+
   @Test
   @DisplayName("dead branch completion offers rich member elements")
   public void testDeadBranchCompletionOffersRichMemberElements() {
@@ -777,6 +843,26 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
       lexer.advance();
     }
     return bodies;
+  }
+
+  /** The text of each PPEXPRESSION run the parser lexer produces, surrounding whitespace stripped. */
+  private List<String> conditionRuns(String source) {
+    Lexer lexer = new HaxeLexer(getProject());
+    lexer.start(source);
+    List<String> runs = new ArrayList<>();
+    StringBuilder run = null;
+    while (lexer.getTokenType() != null) {
+      if (lexer.getTokenType() == HaxeTokenTypeSets.PPEXPRESSION) {
+        if (run == null) run = new StringBuilder();
+        run.append(lexer.getTokenText());
+      }
+      else if (run != null) {
+        runs.add(run.toString().strip());
+        run = null;
+      }
+      lexer.advance();
+    }
+    return runs;
   }
 
   private HaxeInactiveBody inactiveBody(String source) {

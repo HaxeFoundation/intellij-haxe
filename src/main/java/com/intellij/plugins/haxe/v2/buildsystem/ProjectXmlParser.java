@@ -15,6 +15,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * StAX parser for XML-based Haxe project files (Lime/OpenFL project.xml, NMML),
@@ -24,6 +25,11 @@ import java.util.Locale;
  */
 @CustomLog
 public final class ProjectXmlParser {
+
+  /** The elements that declare a compiler define through their {@code name} (and optional {@code value}) attribute. */
+  public static final Set<String> DEFINE_TAGS = Set.of("haxedef", "define");
+  /** lime/openfl use {@code <source path>}, historic NMML {@code <classpath name>}. */
+  private static final Set<String> CLASSPATH_TAGS = Set.of("source", "classpath");
 
   private ProjectXmlParser() {
   }
@@ -89,28 +95,24 @@ public final class ProjectXmlParser {
                                     @NotNull List<HaxeLibDependency> libraries,
                                     @NotNull List<String> classpaths) {
     String tag = reader.getLocalName().toLowerCase(Locale.ROOT);
-    switch (tag) {
-      case "haxelib" -> {
-        String name = attribute(reader, "name");
-        if (name != null) {
-          libraries.add(new HaxeLibDependency(name, StringUtil.nullize(attribute(reader, "version"))));
-        }
+    if (tag.equals("haxelib")) {
+      String name = attribute(reader, "name");
+      if (name != null) {
+        libraries.add(new HaxeLibDependency(name, StringUtil.nullize(attribute(reader, "version"))));
       }
-      case "haxedef", "define" -> {
-        String name = attribute(reader, "name");
-        if (name != null) {
-          defines.add(new HaxeDefine(name, StringUtil.nullize(attribute(reader, "value"))));
-        }
+    }
+    else if (DEFINE_TAGS.contains(tag)) {
+      String name = attribute(reader, "name");
+      if (name != null) {
+        defines.add(new HaxeDefine(name, StringUtil.nullize(attribute(reader, "value"))));
       }
-      // lime/openfl use <source path>, historic NMML uses <classpath name>
-      case "source", "classpath" -> {
-        String path = attribute(reader, "path");
-        if (path == null) path = attribute(reader, "name");
-        if (path != null && !path.isBlank()) {
-          classpaths.add(path.trim());
-        }
+    }
+    else if (CLASSPATH_TAGS.contains(tag)) {
+      String path = attribute(reader, "path");
+      if (path == null) path = attribute(reader, "name");
+      if (path != null && !path.isBlank()) {
+        classpaths.add(path.trim());
       }
-      default -> { }
     }
   }
 

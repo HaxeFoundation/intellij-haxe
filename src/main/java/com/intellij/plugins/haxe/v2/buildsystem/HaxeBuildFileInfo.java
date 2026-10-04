@@ -30,8 +30,16 @@ public record HaxeBuildFileInfo(@Nullable HaxeTarget target,
     return new HaxeBuildFileInfo(target, targetOutput, defines, libraries, classpaths);
   }
 
-  /// A `-D name=value` compiler define.
+  /// A `-D name=value` compiler define, the name as the build file spells it.
   public record HaxeDefine(@NotNull String name, @Nullable String value) {
+
+    /// The name `#if` finds a define under: the compiler turns every dash into an
+    /// underscore (`-D my-flag` defines `my_flag`). Macros accept either spelling
+    /// (`Context.defined("my-flag")`); only `#if` needs this one.
+    @NotNull
+    public static String compilerName(@NotNull String name) {
+      return name.replace('-', '_');
+    }
   }
 
   /** A haxelib dependency, optionally pinned to a version (or git ref). */

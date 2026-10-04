@@ -389,31 +389,13 @@ final class HaxeToolWindowModelBuilder {
     return display.withLibraries(libraries);
   }
 
-  /**
-   * NMML info: target + artifact derive statically from the selected target
-   * (the nme tool's output layout is fixed), while defines, classpaths and the
-   * FULL library set (include.nmml transitives, asset handlers) come from the
-   * background `nme prepare` evaluation - the raw xml parse serves until it
-   * lands. The prepared hxml flattens libs into classpaths, so a run whose
-   * derived library list is empty keeps the declared one.
-   */
+  /** NMML info per the shared {@code nme prepare} evaluation - the define context and library sync read the same. */
   @NotNull
   private HaxeBuildFileInfo nmeEffectiveInfo(@NotNull String containerId,
                                              @NotNull HaxeBuildFile buildFile,
                                              @NotNull HaxeBuildFileInfo raw) {
-    VirtualFile file = buildFile.file();
-    HaxeBuildFileInfo withArtifact = NmeProjects.withTargetArtifact(project, file, raw);
-
-    String targetFlag = NmeProjects.selectedTargetFlag(project, file);
     String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
-    HaxeNmeProjectInfoService.Evaluation evaluation = HaxeNmeProjectInfoService.getInstance(project)
-      .getCachedOrSchedule(buildFile, targetFlag, environmentSdk, onEvaluationReady);
-    if (evaluation == null) {
-      return withArtifact;
-    }
-    HaxeBuildFileInfo prepared = evaluation.info();
-    var libraries = !prepared.libraries().isEmpty() ? prepared.libraries() : raw.libraries();
-    return prepared.withTarget(withArtifact.target(), withArtifact.targetOutput()).withLibraries(libraries);
+    return HaxeNmeProjectInfoService.getInstance(project).effectiveInfo(buildFile, raw, environmentSdk, onEvaluationReady);
   }
 
   /**

@@ -25,6 +25,15 @@ public class HaxeBuildFileNavigationTest {
   }
 
   @Test
+  @DisplayName("compiler spelling finds the dashed declaration")
+  public void compilerSpellingFindsTheDashedDeclaration() {
+    // the define context carries the compiler's key (my_flag) for a file writing -D my-flag
+    String content = "-cp src\n-D analyzer-optimize\n-main Main\n";
+    int offset = HaxeBuildFileNavigation.findDefineOffset(content, HaxeBuildFileType.HXML, "analyzer_optimize");
+    assertEquals(content.indexOf("analyzer-optimize"), offset);
+  }
+
+  @Test
   @DisplayName("unknown define falls back to file start")
   public void unknownDefineFallsBackToFileStart() {
     assertEquals(0, HaxeBuildFileNavigation.findDefineOffset("-cp src\n", HaxeBuildFileType.HXML, "missing"));

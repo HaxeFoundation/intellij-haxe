@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.buildtools.info;
 
 import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
+import com.intellij.plugins.haxe.v2.buildtools.NmeProjects;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
@@ -108,6 +109,35 @@ public final class HaxeNmeProjectInfoService implements Disposable {
     String fileName = buildFile.file().getName();
     PreparedRun run = cache.getCachedOrSchedule(key, stamp, () -> evaluate(key, fileName, workDirectory), onUpdated);
     return run != null ? run.evaluation() : null;
+  }
+
+  /**
+   * The nmml's info as the build sees it for the selected target: target and
+   * artifact derive statically from the selection (the tool's output layout
+   * is fixed), while defines, classpaths and the FULL library set
+   * (include.nmml transitives, asset handlers) come from the background
+   * prepare evaluation. Until it lands — or without one: untrusted project,
+   * failed tool — the raw xml parse serves with the selected target, its
+   * conditions unevaluated. The prepared hxml flattens libs into classpaths,
+   * so a run whose derived library list is empty keeps the declared one.
+   * Call in a read action; {@code onUpdated} as in {@link #getCachedOrSchedule}.
+   */
+  @NotNull
+  public HaxeBuildFileInfo effectiveInfo(@NotNull HaxeBuildFile buildFile,
+                                         @NotNull HaxeBuildFileInfo raw,
+                                         @Nullable String preferredSdkName,
+                                         @NotNull Runnable onUpdated) {
+    VirtualFile file = buildFile.file();
+    HaxeBuildFileInfo withArtifact = NmeProjects.withTargetArtifact(project, file, raw);
+
+    String targetFlag = NmeProjects.selectedTargetFlag(project, file);
+    Evaluation evaluation = getCachedOrSchedule(buildFile, targetFlag, preferredSdkName, onUpdated);
+    if (evaluation == null) {
+      return withArtifact;
+    }
+    HaxeBuildFileInfo prepared = evaluation.info();
+    List<HaxeLibDependency> libraries = !prepared.libraries().isEmpty() ? prepared.libraries() : raw.libraries();
+    return prepared.withTarget(withArtifact.target(), withArtifact.targetOutput()).withLibraries(libraries);
   }
 
   public void clearCache() {

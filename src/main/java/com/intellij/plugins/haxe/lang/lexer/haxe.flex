@@ -216,6 +216,19 @@ import com.intellij.openapi.diagnostic.LogLevel;
             ccsupport.conditionEnd();
             popState();
         }
+        // An operator the condition grammar lacks. Inside an unclosed paren
+        // the compiler reads the whole expression and rejects it, so the
+        // operator stays in the condition for the evaluator to report. Outside
+        // parentheses the condition is a single token and the operator starts
+        // the body: `#if my-flag` tests `my`.
+        private IElementType conditionOperator(IElementType type) {
+            if (ccsupport.conditionIsInsideParens()) {
+                return conditionAppend(type);
+            }
+            yypushback(yylength());
+            conditionEnd();
+            return PPBODY;
+        }
 
         // We use the CC_BLOCK state to tell the highlighters, etc. that their context
         // has to go back to the start of the conditional (even though that may be a ways).  Basically,
@@ -737,6 +750,21 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 \'                                        { pushState(CC_APOS_STRING); return conditionAppend( OPEN_QUOTE ); }
 \"                                        { pushState(CC_STRING); return conditionAppend( OPEN_QUOTE ); }
 
+// Operators the compiler rejects in a condition ("Unsupported operation").
+">>>"                                     { return conditionOperator( OUNSIGNED_SHIFT_RIGHT ); }
+"..."                                     { return conditionOperator( OTRIPLE_DOT ); }
+"<<"                                      { return conditionOperator( OSHIFT_LEFT ); }
+">>"                                      { return conditionOperator( OSHIFT_RIGHT ); }
+"+"                                       { return conditionOperator( OPLUS ); }
+"-"                                       { return conditionOperator( OMINUS ); }
+"*"                                       { return conditionOperator( OMUL ); }
+"/"                                       { return conditionOperator( OQUOTIENT ); }
+"%"                                       { return conditionOperator( OREMAINDER ); }
+"&"                                       { return conditionOperator( OBIT_AND ); }
+"|"                                       { return conditionOperator( OBIT_OR ); }
+"^"                                       { return conditionOperator( OBIT_XOR ); }
+"="                                       { return conditionOperator( OASSIGN ); }
+"~"                                       { return conditionOperator( OCOMPLEMENT ); }
 
 // Any other token is an error which needs to kill this state and be processed normally.
 .                                         {

@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.haxelib.HaxelibSemVer;
 import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
 import com.intellij.psi.TokenType;
@@ -111,7 +112,8 @@ public class HaxeConditionalExpression {
     }
   }
 
-  private boolean areTokensBalanced(IElementType leftToken, IElementType rightToken) {
+  /** Opening tokens minus closing tokens; positive while some opener is unclosed. */
+  private int tokenBalance(IElementType leftToken, IElementType rightToken) {
     log.assertTrue(leftToken != rightToken, "Cannot balance tokens of the same type.");
     int tokenCount = 0;
     for (ASTNode t : tokens) {
@@ -123,11 +125,20 @@ public class HaxeConditionalExpression {
         tokenCount--;
       }
     }
-    return tokenCount == 0;
+    return tokenCount;
+  }
+
+  private boolean areTokensBalanced(IElementType leftToken, IElementType rightToken) {
+    return tokenBalance(leftToken, rightToken) == 0;
   }
 
   private boolean areParensBalanced() {
     return areTokensBalanced(PLPAREN, PRPAREN);
+  }
+
+  /** Whether a parenthesis opened in this condition is still unclosed. */
+  public boolean isInsideParens() {
+    return tokenBalance(PLPAREN, PRPAREN) > 0;
   }
 
   private boolean areStringQuotesBalanced() {
@@ -262,19 +273,38 @@ public class HaxeConditionalExpression {
     return condition;
   }
 
-  /** The operators a condition may hold, two-character ones first so they win over their one-character prefixes. */
+  /**
+   * The operator spellings {@link #fromCondition} re-lexes: the same set the
+   * lexer's COMPILER_CONDITIONAL state emits, the supported operators plus the
+   * ones the compiler rejects inside parentheses. Longest first, so
+   * {@code >>>} wins over {@code >>} and {@code >}.
+   */
   private static final List<Map.Entry<String, IElementType>> CONDITION_OPERATORS = List.of(
+    Map.entry(">>>", OUNSIGNED_SHIFT_RIGHT),
+    Map.entry("...", OTRIPLE_DOT),
     Map.entry("==", OEQ),
     Map.entry("!=", ONOT_EQ),
     Map.entry(">=", OGREATER_OR_EQUAL),
     Map.entry("<=", OLESS_OR_EQUAL),
     Map.entry("&&", OCOND_AND),
     Map.entry("||", OCOND_OR),
+    Map.entry("<<", OSHIFT_LEFT),
+    Map.entry(">>", OSHIFT_RIGHT),
     Map.entry("!", ONOT),
     Map.entry(">", OGREATER),
     Map.entry("<", OLESS),
     Map.entry("(", PLPAREN),
-    Map.entry(")", PRPAREN));
+    Map.entry(")", PRPAREN),
+    Map.entry("+", OPLUS),
+    Map.entry("-", OMINUS),
+    Map.entry("*", OMUL),
+    Map.entry("/", OQUOTIENT),
+    Map.entry("%", OREMAINDER),
+    Map.entry("&", OBIT_AND),
+    Map.entry("|", OBIT_OR),
+    Map.entry("^", OBIT_XOR),
+    Map.entry("=", OASSIGN),
+    Map.entry("~", OCOMPLEMENT));
 
   @Nullable
   private static Map.Entry<String, IElementType> operatorAt(String text, int offset) {
@@ -408,6 +438,52 @@ public class HaxeConditionalExpression {
     return argument;
   }
 
+  /**
+   * A '-' in operand position directly before a decimal number is that
+   * number's sign - the compiler folds the two into one negative literal -
+   * and becomes one token here too; every other operator passes through
+   * for the shunting-yard to accept or reject.
+   */
+  private static ArrayList<ASTNode> foldSignedNumbers(ArrayList<ASTNode> source) {
+    ArrayList<ASTNode> folded = new ArrayList<>(source.size());
+    ASTNode previous = null;
+    for (int i = 0; i < source.size(); i++) {
+      ASTNode token = source.get(i);
+      if (isWhitespace(token)) {
+        folded.add(token);
+        continue;
+      }
+      int next = nextNonWhitespace(source, i + 1);
+      boolean signsNumber = isOfType(token, OMINUS) && isOperandPosition(previous)
+                            && next >= 0 && isOfType(source.get(next), LITINT, LITFLOAT);
+      if (signsNumber) {
+        ASTNode number = source.get(next);
+        token = HaxeAstFactory.leaf(number.getElementType(), "-" + number.getText());
+        i = next;
+      }
+      folded.add(token);
+      previous = token;
+    }
+    return folded;
+  }
+
+  /** Whether the token after {@code previous} (the last non-whitespace one) starts an operand. */
+  private static boolean isOperandPosition(@Nullable ASTNode previous) {
+    return previous == null || isLeftParen(previous) || isCCOperator(previous);
+  }
+
+  /**
+   * The compiler's error for an operator outside the condition grammar: a
+   * unary '-', '+' or '~' is "Invalid condition expression", any other
+   * operator "Unsupported operation".
+   */
+  private static String foreignOperatorMessage(ASTNode operator, @Nullable ASTNode previous) {
+    if (isOperandPosition(previous) && isOfType(operator, OMINUS, OPLUS, OCOMPLEMENT)) {
+      return HaxeBundle.message("haxe.cc.diagnostic.invalid.condition");
+    }
+    return HaxeBundle.message("haxe.cc.diagnostic.unsupported.operation", operator.getText());
+  }
+
   private static int nextNonWhitespace(ArrayList<ASTNode> tokens, int start) {
     for (int i = start; i < tokens.size(); i++) {
       if (!isWhitespace(tokens.get(i))) return i;
@@ -427,7 +503,8 @@ public class HaxeConditionalExpression {
     Stack<ASTNode> operatorStack = new Stack<ASTNode>();
 
     try {
-      for (ASTNode token : foldVersionCalls(tokens)) {
+      ASTNode previous = null;
+      for (ASTNode token : foldSignedNumbers(foldVersionCalls(tokens))) {
         if (isWhitespace(token)) {
           continue;
         }
@@ -462,8 +539,11 @@ public class HaxeConditionalExpression {
           operatorStack.push(token);
         }
         else {
-          throw new CalculationException("Couldn't process token '" + token.toString() + "' when converting to postfix.");
+          // the lexer keeps the operators the compiler rejects inside a
+          // parenthesized condition, so they can be reported here
+          throw new CalculationException(foreignOperatorMessage(token, previous));
         }
+        previous = token;
       }
     } catch (HaxeOperatorPrecedenceTable.OperatorNotFoundException e) {
       log.warn("IntelliJ-Haxe plugin internal error: Unknown operator encountered while calculating compiler conditional exression:"
@@ -609,7 +689,7 @@ public class HaxeConditionalExpression {
    * defines: a define is never a boolean, so flags stay comparable
    * (`#if (myVersion < "9.0.0")` must evaluate, not error).
    */
-  public static final String FLAG_DEFINE_VALUE = "1";
+  public static final String FLAG_DEFINE_VALUE = HaxeTarget.FLAG_DEFINE_VALUE;
 
   /**
    * The project's compiler defines exactly as conditional-compilation

@@ -75,6 +75,19 @@ public class HxmlFileParserTest {
     assertEquals(HaxeTarget.JAVA_SCRIPT, info.target());
   }
 
+  /** (hxml content, the defines it yields): both debug spellings define debug, in line order among the -D defines. */
+  static final List<Arguments> DEBUG_FLAG_DEFINES = List.of(
+    arguments("-debug\n-js bin/app.js", List.of(new HaxeDefine("debug", null))),
+    arguments("--debug", List.of(new HaxeDefine("debug", null))),
+    arguments("-D first\n-debug\n-D last=2", List.of(new HaxeDefine("first", null), new HaxeDefine("debug", null), new HaxeDefine("last", "2"))));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("DEBUG_FLAG_DEFINES")
+  @DisplayName("debug flag defines debug")
+  public void debugFlagDefinesDebug(String content, List<HaxeDefine> defines) {
+    assertEquals(defines, HxmlFileParser.parse(content).defines());
+  }
+
   @Test
   @DisplayName("custom target surfaces as the defines the compiler sets")
   public void customTargetSurfacesAsTheDefinesTheCompilerSets() {

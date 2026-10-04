@@ -15,7 +15,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeLibDependency;
 import com.intellij.plugins.haxe.v2.buildtools.*;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibraryDefinesStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.*;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -30,15 +33,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression.FLAG_DEFINE_VALUE;
 
 /**
  * The IDE's conditional-compilation define context, derived from the v2 build
- * configuration: the project's ACTIVE build file's defines (via `lime display`
- * for xml projects — conditionals evaluated, toolchain defines included)
- * overlaid with the owning container's IDE Define overrides. Feeds
+ * configuration: the project's ACTIVE build file's defines (via the tool
+ * evaluation for xml projects — conditionals evaluated, toolchain defines
+ * included), the target's platform defines and the library defines haxelib
+ * reports, overlaid with the owning container's IDE Define overrides. Feeds
  * {@code HaxeDefineDetectionManager.getAllDefinitions()}, i.e. the parsing and
  * indexing of every haxe file — which is why a context change re-indexes the
  * files with conditional compilation ({@link HaxeDefineContextInvalidator}).
@@ -54,10 +59,14 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
    */
   private static final Map<String, String> NEVER_HANDED_OUT = new LinkedHashMap<>();
 
+  /** The defines that identify the compiler itself; no compiler lets a build toggle them. */
+  private static final Set<String> COMPILER_IDENTITY_DEFINES = Set.of("haxe_ver", "haxe", "haxe3", "haxe4", "haxe5");
+
   /** Every input of a computed context; a mismatch invalidates the cached one. */
   private record ContextKey(@NotNull String path, @NotNull HaxeBuildFileType type, long contentStamp,
                             @Nullable String targetId, @Nullable String sdkName, @Nullable String customTarget,
-                            @NotNull String compilerVersion, @NotNull List<EnvironmentDefine> overrides) {
+                            @NotNull String compilerVersion, @NotNull List<EnvironmentDefine> overrides,
+                            @NotNull Map<String, Map<String, String>> libraryDefines) {
   }
 
   private record Snapshot(@NotNull ContextKey key, @NotNull Map<String, String> defines) {
@@ -177,8 +186,13 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
     return HaxeReadActions.compute(() -> {
       HaxeBuildFileType type = HaxeBuildFileScanner.detectType(project, file);
       if (type == null) return false;
-      return baseDefines(file, type).containsKey(name);
+      return definesBeforeOverrides(file, type).containsKey(HaxeDefine.compilerName(name));
     });
+  }
+
+  /** Whether the define identifies the compiler ({@code haxe_ver}, {@code haxe}, {@code haxeN}); an override cannot sensibly toggle it. */
+  public static boolean isCompilerIdentityDefine(@NotNull String name) {
+    return COMPILER_IDENTITY_DEFINES.contains(name);
   }
 
   /**
@@ -272,42 +286,65 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
     String customTarget = environment.getCustomTarget(containerId);
     String compilerVersion = HaxeLanguageLevelUtil.getHaxeVersion(project, containerId);
     List<EnvironmentDefine> overrides = environment.getDefines(containerId);
-    return new ContextKey(file.getPath(), type, contentStamp(file), targetId, sdkName, customTarget, compilerVersion, overrides);
+    Map<String, Map<String, String>> libraryDefines = HaxeLibraryDefinesStore.getInstance(project).definesByDependency(containerId);
+    return new ContextKey(file.getPath(), type, contentStamp(file), targetId, sdkName, customTarget, compilerVersion,
+                          overrides, libraryDefines);
   }
 
+  /** Every define name passes through {@link HaxeDefine#compilerName}: the compiler's key is what {@code #if} looks up. */
   @NotNull
   private Map<String, String> compute(@NotNull VirtualFile file, @NotNull HaxeBuildFileType type) {
-    Map<String, String> defines = baseDefines(file, type);
+    Map<String, String> defines = definesBeforeOverrides(file, type);
 
     String containerId = HaxeContainers.containerIdFor(project, file);
-    putCompilerIdentityDefines(defines, containerId);
-    putHashlinkVersionDefine(defines, containerId);
-    putCustomTargetDefines(defines, containerId);
-
     for (EnvironmentDefine override : HaxeEnvironmentStore.getInstance(project).getDefines(containerId)) {
+      String name = HaxeDefine.compilerName(override.name());
       if (override.effect() == DefineEffect.REMOVE) {
-        defines.remove(override.name());
+        defines.remove(name);
       } else {
-        defines.put(override.name(), override.value().isEmpty() ? FLAG_DEFINE_VALUE : override.value());
+        defines.put(name, override.value().isEmpty() ? FLAG_DEFINE_VALUE : override.value());
       }
     }
     return defines;
   }
 
-  /** The build context's defines BEFORE the container's environment overrides apply. */
+  /** The context's defines BEFORE the container's environment overrides apply - everything an override can mask. */
   @NotNull
-  private Map<String, String> baseDefines(@NotNull VirtualFile file, @NotNull HaxeBuildFileType type) {
-    HaxeBuildFile buildFile = new HaxeBuildFile(file, type);
-    HaxeBuildFileInfo info = effectiveInfo(buildFile);
+  private Map<String, String> definesBeforeOverrides(@NotNull VirtualFile file, @NotNull HaxeBuildFileType type) {
+    HaxeBuildFileInfo info = effectiveInfo(new HaxeBuildFile(file, type));
+    String containerId = HaxeContainers.containerIdFor(project, file);
 
     Map<String, String> defines = new LinkedHashMap<>();
-    for (HaxeBuildFileInfo.HaxeDefine define : info.defines()) {
-      defines.put(define.name(), define.value() != null ? define.value() : FLAG_DEFINE_VALUE);
-    }
-    // the compiler implicitly defines the target (hl, js, sys, ...) - the std
-    // library's per-target sources are gated on exactly these
+    // the compiler implicitly defines the target (hl, js, sys, ...) before
+    // reading the build file - the std library's per-target sources are gated
+    // on exactly these
     if (info.target() != null) {
-      info.target().getDefinitions().forEach(definition -> defines.putIfAbsent(definition, FLAG_DEFINE_VALUE));
+      defines.putAll(info.target().getDefines());
+    }
+    for (HaxeDefine define : info.defines()) {
+      String value = define.value() != null ? define.value() : FLAG_DEFINE_VALUE;
+      defines.put(HaxeDefine.compilerName(define.name()), value);
+    }
+    defines.putAll(libraryDefines(info, containerId));
+    putCompilerIdentityDefines(defines, containerId);
+    putHashlinkVersionDefine(defines, containerId);
+    putCustomTargetDefines(defines, containerId);
+    return defines;
+  }
+
+  /**
+   * The {@code -D lib=version} defines the compiler receives for the build's
+   * libraries and their transitives, as the last library sync recorded them
+   * from {@code haxelib path}; empty before the first sync. Keyed by the
+   * compiler's spelling.
+   */
+  @NotNull
+  private Map<String, String> libraryDefines(@NotNull HaxeBuildFileInfo info, @NotNull String containerId) {
+    Map<String, Map<String, String>> byDependency = HaxeLibraryDefinesStore.getInstance(project).definesByDependency(containerId);
+    Map<String, String> defines = new LinkedHashMap<>();
+    for (HaxeLibDependency library : info.libraries()) {
+      byDependency.getOrDefault(library.name(), Map.of())
+        .forEach((name, value) -> defines.put(HaxeDefine.compilerName(name), value));
     }
     return defines;
   }
@@ -358,7 +395,7 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
    * the container's environment overrides still apply on top.
    */
   private void putHashlinkVersionDefine(@NotNull Map<String, String> defines, @NotNull String containerId) {
-    if (defines.containsKey("hl_ver") || defines.containsKey("hl-ver")) return;
+    if (defines.containsKey("hl_ver")) return;
     String version = readStdHlVersion(containerId);
     if (version != null) {
       defines.put("hl_ver", version);
@@ -384,22 +421,27 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
   }
 
   /**
-   * The build file's parsed info; lime-family files use the selected target's
-   * `lime display` result when available (raw xml defines as the fallback until
-   * the background run lands, which then re-triggers a refresh).
+   * The build file's parsed info; lime-family and nmml files use the selected
+   * target's tool evaluation when available. Until the background run lands
+   * (which re-triggers a refresh) — or without one: untrusted project, failed
+   * tool — the raw xml defines serve with the selected target's platform
+   * defines; {@code if}/{@code unless} conditions stay unevaluated then.
    */
   @NotNull
   private HaxeBuildFileInfo effectiveInfo(@NotNull HaxeBuildFile buildFile) {
     HaxeBuildFileInfo raw = HaxeBuildSections.inspectSelected(project, buildFile);
     HaxeBuildFileType type = buildFile.type();
+    String containerId = HaxeContainers.containerIdFor(project, buildFile.file());
+    String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
+    if (type == HaxeBuildFileType.NMML) {
+      return HaxeNmeProjectInfoService.getInstance(project).effectiveInfo(buildFile, raw, environmentSdk, this::refreshAsync);
+    }
     if (!LimeProjects.isLimeFamily(type)) return raw;
 
     String targetFlag = LimeProjects.selectedTargetFlag(project, type, buildFile.file());
-    String containerId = HaxeContainers.containerIdFor(project, buildFile.file());
-    String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
     HaxeBuildFileInfo display = HaxeLimeProjectInfoService.getInstance(project)
       .getCachedOrSchedule(buildFile, targetFlag, environmentSdk, this::refreshAsync);
-    return display != null ? display : raw;
+    return display != null ? display : raw.withTarget(LimeProjects.targetFor(targetFlag), null);
   }
 
   @Override

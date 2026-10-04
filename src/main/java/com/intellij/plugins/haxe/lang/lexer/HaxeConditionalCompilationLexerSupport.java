@@ -373,6 +373,12 @@ public class HaxeConditionalCompilationLexerSupport {
     return complete;
   }
 
+  /** Whether the current condition has an unclosed parenthesis. */
+  public boolean conditionIsInsideParens() {
+    HaxeConditionalExpression condition = getCurrentBlock().getCondition();
+    return null != condition && condition.isInsideParens();
+  }
+
   /**
    * Map tokens to comments, as appropriate.
    */
