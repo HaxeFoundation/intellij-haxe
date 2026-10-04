@@ -56,6 +56,9 @@ public final class LimeProjects {
   /** The app file every lime platform falls back to when the project xml declares none. */
   private static final String DEFAULT_APP_FILE = "MyApplication";
 
+  /** The export root every lime target builds under when the project xml declares no {@code <app path>}. */
+  public static final String DEFAULT_APP_PATH = "bin";
+
   private static final String AIR_SDK_DEFINE_PREFIX = "-DAIR_SDK=";
 
   private LimeProjects() {
@@ -71,6 +74,12 @@ public final class LimeProjects {
   @NotNull
   private static String appFileOrDefault(@Nullable String declaredAppFile) {
     return StringUtil.defaultIfEmpty(declaredAppFile, DEFAULT_APP_FILE);
+  }
+
+  /** The {@code <app path>} export root: the declared one, else lime's default. */
+  @NotNull
+  public static String appPath(@NotNull String content) {
+    return StringUtil.defaultIfEmpty(ProjectXmlParser.parseAppPath(content), DEFAULT_APP_PATH);
   }
 
   /** True for the types the lime tool can build; a plain hxp SCRIPT is not one of them. */
@@ -269,9 +278,8 @@ public final class LimeProjects {
    */
   @NotNull
   private static Path exportBinDirectory(@NotNull VirtualFile projectFile, @NotNull String content, @NotNull String targetDirectory) {
-    String appPath = StringUtil.defaultIfEmpty(ProjectXmlParser.parseAppPath(content), "bin");
     return Path.of(projectFile.getParent().getPath())
-      .resolve(appPath)
+      .resolve(appPath(content))
       .resolve(targetDirectory)
       .resolve("bin")
       .normalize();

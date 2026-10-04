@@ -6,33 +6,23 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.buildsystem.ProjectXml;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomFileDescription;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
-public class NMMLFileDescription extends DomFileDescription<ProjectXml> {
-
+public class NMMLFileDescription extends DomFileDescription<NmmlProjectXml> {
 
     public NMMLFileDescription() {
-        super(ProjectXml.class, ProjectXml.TAG_NAME);
-    }
-    @Override
-    public @Nullable Icon getFileIcon(@NotNull XmlFile file, @Iconable.IconFlags int flags) {
-        if(isNmmlFile(file)) {
-            return HaxeIcons.NMML_LOGO;
-        }
-        return null;
+        super(NmmlProjectXml.class, ProjectXml.TAG_NAME);
     }
 
     @Override
-    public @Nullable Icon getFileIcon(int flags) {
-        return super.getFileIcon(flags);
+    public @Nullable Icon getFileIcon(@Iconable.IconFlags int flags) {
+        return HaxeIcons.NMML_LOGO;
     }
-
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
@@ -41,11 +31,7 @@ public class NMMLFileDescription extends DomFileDescription<ProjectXml> {
 
     private static boolean isNmmlFile(@NotNull XmlFile file) {
         XmlDocument document = file.getDocument();
-        if(document == null) return false;
-
-        XmlTag rootTag = document.getRootTag();
-        if(rootTag == null) return false;
-
+        if (document == null || document.getRootTag() == null) return false;
         return FileUtilRt.extensionEquals(file.getName(), NMMLFileType.INSTANCE.getDefaultExtension());
     }
 }

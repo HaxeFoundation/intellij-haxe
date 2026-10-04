@@ -18,6 +18,7 @@ import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeLibDependency;
 import com.intellij.plugins.haxe.v2.buildsystem.HxmlFileParser;
+import com.intellij.plugins.haxe.v2.buildsystem.ProjectXmlParser;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.Key;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.Outcome;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
@@ -29,6 +30,8 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -251,11 +254,37 @@ public final class HaxeLimeProjectInfoService implements Disposable {
         log.warn(tool + " display failed for " + fileName + " (" + key.targetFlag() + "): " + firstErrorLine(output));
         return null;
       }
-      return HxmlFileParser.parse(output.getStdout());
+      return parseDisplayOutput(output.getStdout(), key.targetFlag(), projectFileContent(key.filePath()));
     }
     catch (ExecutionException e) {
       log.warn(tool + " display could not run for " + fileName + ": " + e.getMessage());
       return null;
+    }
+  }
+
+  /// The `lime display` output read as hxml: defines, libraries and class paths
+  /// come from it, but target and output follow Lime's export layout, as with
+  /// the bundled project parser. The hxml's own output flag
+  /// (`-cpp bin/android/obj`) names the intermediate compile folder, which would
+  /// make a mobile build look like a C++ executable that can be launched.
+  @NotNull
+  static HaxeBuildFileInfo parseDisplayOutput(@NotNull String stdout, @NotNull String targetFlag, @NotNull String projectXml) {
+    HaxeTarget target = LimeProjects.targetFor(targetFlag);
+    String appPath = LimeProjects.appPath(projectXml);
+    String declaredAppFile = StringUtil.notNullize(ProjectXmlParser.parseAppFile(projectXml));
+    String targetOutput = LimeProjects.relativeTargetOutput(targetFlag, appPath, declaredAppFile);
+    return HxmlFileParser.parse(stdout).withTarget(target, targetOutput);
+  }
+
+  /** The project file's text read from disk (the executor thread must not touch the VirtualFile); empty when unreadable, so lime's defaults apply. */
+  @NotNull
+  private static String projectFileContent(@NotNull String filePath) {
+    try {
+      return Files.readString(Path.of(filePath));
+    }
+    catch (IOException e) {
+      log.warn("Could not read " + filePath + " for its app path and file: " + e.getMessage());
+      return "";
     }
   }
 
@@ -281,11 +310,11 @@ public final class HaxeLimeProjectInfoService implements Disposable {
   private record ParserHaxelib(String name, String version) {
   }
 
-  /// `path` defaults to lime's export root "bin" when the project sets none
+  /// `path` defaults to lime's export root when the project sets none
   /// ("Export" is only an openfl-template convention, not the tool default).
   private record ParserApp(String path, String file) {
     private ParserApp {
-      path = path != null ? path : "bin";
+      path = path != null ? path : LimeProjects.DEFAULT_APP_PATH;
       file = file != null ? file : "";
     }
   }

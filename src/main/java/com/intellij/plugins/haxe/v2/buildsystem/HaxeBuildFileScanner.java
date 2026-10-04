@@ -21,15 +21,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Finds Haxe build/project files (hxml, OpenFL/Lime xml, nmml, hxp). Only the top
+ * Finds Haxe build/project files (hxml, hxp, nmml, Lime/OpenFL .xml or .lime). Only the top
  * level of each content root is scanned: generated build files in subfolders (for
  * example OpenFL's Export directory) must not be picked up - files in subfolders
  * are registered manually via Add Build File. Must run in a read action.
  */
 public final class HaxeBuildFileScanner {
+
+  /** Every extension {@link #detectType} classifies - the Add Build File chooser's filter. */
+  public static final Set<String> BUILD_FILE_EXTENSIONS = Set.of("hxml", "hxp", "nmml", "xml", "lime");
 
   private HaxeBuildFileScanner() {
   }
@@ -118,7 +122,7 @@ public final class HaxeBuildFileScanner {
       case "hxml" -> HaxeBuildFileType.HXML;
       case "hxp" -> isLimeHxpProject(project, file) ? HaxeBuildFileType.HXP_PROJECT : HaxeBuildFileType.HXP_SCRIPT;
       case "nmml" -> HaxeProjectFileDetectionUtil.isNMMLProject(file) ? HaxeBuildFileType.NMML : null;
-      case "xml" -> {
+      case "xml", "lime" -> {
         if (HaxeProjectFileDetectionUtil.isOpenFLProject(file)) yield HaxeBuildFileType.OPENFL;
         if (HaxeProjectFileDetectionUtil.isLimeProject(file)) yield HaxeBuildFileType.LIME;
         yield null;

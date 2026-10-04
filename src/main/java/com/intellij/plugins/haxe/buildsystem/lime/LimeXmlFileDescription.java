@@ -2,45 +2,28 @@ package com.intellij.plugins.haxe.buildsystem.lime;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Iconable;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.buildsystem.ProjectXml;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomFileDescription;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
-public class LimeXmlFileDescription extends DomFileDescription<ProjectXml> {
+public class LimeXmlFileDescription extends DomFileDescription<LimeProjectXml> {
 
     public LimeXmlFileDescription() {
-        super(ProjectXml.class, ProjectXml.TAG_NAME);
+        super(LimeProjectXml.class, ProjectXml.TAG_NAME);
     }
 
     @Override
-    public @Nullable Icon getFileIcon(@NotNull XmlFile file, @Iconable.IconFlags int flags) {
-        if(isLimeFile(file)) {
-            return HaxeIcons.LIME_LOGO;
-        }
-        return null;
-    }
-
-    @Override
-    public @Nullable Icon getFileIcon(int flags) {
-        return super.getFileIcon(flags);
+    public @Nullable Icon getFileIcon(@Iconable.IconFlags int flags) {
+        return HaxeIcons.LIME_LOGO;
     }
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-        return isLimeFile(file);
-    }
-
-    private boolean isLimeFile(@NotNull XmlFile file) {
         return LimeOpenFlUtil.isLimeFile(file);
     }
-
-
 }

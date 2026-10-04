@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.projectStructure.detection;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.NanoXmlUtil;
@@ -11,68 +12,63 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Locale;
+import java.util.Set;
 
 @CustomLog
 @UtilityClass
 public class HaxeProjectFileDetectionUtil {
 
+  /** The extensions of Lime/OpenFL project files: {@code .xml} and Lime's own {@code .lime} (Lime also reads {@code .nmml}, which is classified as NME). */
+  public static final Set<String> LIME_XML_EXTENSIONS = Set.of("xml", "lime");
+
   public boolean isOpenFLProject(VirtualFile file) {
-    if (file == null || file.isDirectory()) return false;
-    if (fileExtensionIs(file, "xml")) {
-      return guessProjectType(file) == XmlProjectType.OPENFL;
-    }
-    return false;
+    if (!hasLimeXmlExtension(file)) return false;
+    return guessProjectType(file) == XmlProjectType.OPENFL;
   }
 
   public boolean isLimeProject(VirtualFile file) {
-    if (file == null || file.isDirectory()) return false;
-    if (fileExtensionIs(file, "xml")) {
-      return guessProjectType(file) == XmlProjectType.LIME;
-    }
-    return false;
+    if (!hasLimeXmlExtension(file)) return false;
+    return guessProjectType(file) == XmlProjectType.LIME;
   }
 
   public boolean isHxmlProject(VirtualFile file) {
-    if (file == null  || file.isDirectory()) return false;
-    return  fileExtensionIs(file, "hxml");
+    return hasExtension(file, "hxml");
   }
 
+  /**
+   * Any file under NME's extension with a {@code <project>} element. NME needs no
+   * {@code <haxelib>} or {@code <source>} (it adds itself and uses the project
+   * folder), and a project declaring the openfl lib is still built by NME.
+   */
   public boolean isNMMLProject(VirtualFile file) {
-    if (file == null  || file.isDirectory()) return false;
-    // nmml files looks like  lime but has different file extension
-    if (fileExtensionIs(file, "nmml")) {
-      return guessProjectType(file) == XmlProjectType.LIME;
-    }
-    return false;
+    if (!hasExtension(file, "nmml")) return false;
+    HaxeXmlProjectParser parsed = parse(file);
+    return parsed != null && parsed.hasProjectTag;
   }
 
   private XmlProjectType guessProjectType(VirtualFile file) {
-
-    try {
-      byte[] data = VfsUtil.loadBytes(file);
-      HaxeXmlProjectParser builder = new HaxeXmlProjectParser();
-      NanoXmlUtil.parse(new ByteArrayInputStream(data), builder);
-      return builder.getProjectType();
-    } catch (IOException e) {
-      log.warn("Unable to read content of file");
-      return XmlProjectType.UNKNOWN;
-    }
-
-
+    HaxeXmlProjectParser parsed = parse(file);
+    return parsed == null ? XmlProjectType.UNKNOWN : parsed.getProjectType();
   }
 
   public static List<String> sourcePaths(VirtualFile file) {
+    HaxeXmlProjectParser parsed = parse(file);
+    return parsed == null ? List.of() : parsed.getSources();
+  }
 
+  /** The file's project elements; null when it cannot be read. */
+  @Nullable
+  private static HaxeXmlProjectParser parse(VirtualFile file) {
     try {
       byte[] data = VfsUtil.loadBytes(file);
       HaxeXmlProjectParser builder = new HaxeXmlProjectParser();
       NanoXmlUtil.parse(new ByteArrayInputStream(data), builder);
-      return builder.getSources();
+      return builder;
     }
     catch (IOException e) {
       log.warn("Unable to read content of file");
-      return List.of();
+      return null;
     }
   }
 
@@ -83,6 +79,10 @@ public class HaxeProjectFileDetectionUtil {
   }
 
   private static class HaxeXmlProjectParser extends NanoXmlUtil.BaseXmlBuilder {
+    // <source path> and its alias <classpath path>; historic nmml spells the latter <classpath name>
+    private static final Set<String> SOURCE_ELEMENTS = Set.of("source", "classpath");
+    private static final Set<String> SOURCE_PATH_ATTRIBUTES = Set.of("path", "name");
+
     String currentElement = null;
     boolean hasOpenFlLib = false;
     boolean hasLibTags = false;
@@ -99,10 +99,8 @@ public class HaxeProjectFileDetectionUtil {
           hasOpenFlLib = true;
         }
       }
-      if (this.currentElement.equals("source")) {
-        if (key.equalsIgnoreCase("path")) {
-          sources.add(value);
-        }
+      if (SOURCE_ELEMENTS.contains(currentElement) && SOURCE_PATH_ATTRIBUTES.contains(key.toLowerCase(Locale.ROOT))) {
+        sources.add(value);
       }
     }
 
@@ -127,9 +125,19 @@ public class HaxeProjectFileDetectionUtil {
 
   }
 
-  private static boolean fileExtensionIs(VirtualFile file, String ext) {
-    return Optional.ofNullable(file.getExtension())
-      .map(s -> s.equalsIgnoreCase(ext))
-      .orElse(false);
+  private static boolean hasLimeXmlExtension(@Nullable VirtualFile file) {
+    return isFile(file) && LIME_XML_EXTENSIONS.contains(extensionOf(file));
+  }
+
+  private static boolean hasExtension(@Nullable VirtualFile file, String extension) {
+    return isFile(file) && extensionOf(file).equals(extension);
+  }
+
+  private static boolean isFile(@Nullable VirtualFile file) {
+    return file != null && !file.isDirectory();
+  }
+
+  private static String extensionOf(VirtualFile file) {
+    return StringUtil.toLowerCase(StringUtil.notNullize(file.getExtension()));
   }
 }

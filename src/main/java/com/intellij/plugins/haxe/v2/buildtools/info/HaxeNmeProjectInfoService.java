@@ -175,6 +175,7 @@ public final class HaxeNmeProjectInfoService implements Disposable {
       GeneralCommandLine commandLine = new GeneralCommandLine(command).withWorkDirectory(workDirectory);
       ProcessOutput output = new CapturingProcessHandler(commandLine).runProcess(PREPARE_TIMEOUT_MS);
       if (output.isTimeout() || output.getExitCode() != 0) {
+        // TODO: show a failed nme prepare to the user; it is only logged.
         log.warn("nme prepare failed for " + fileName + " (" + key.targetFlag() + "): " + firstErrorLine(output));
         return null;
       }

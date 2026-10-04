@@ -91,6 +91,9 @@
         language="XML"
         extensions="nmml"/>
 
+    <!-- lime's own project-file extension (project.lime) is plain XML -->
+    <fileType name="XML" extensions="lime"/>
+
     <fileType
         name="HXML"
         implementationClass="com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType"
@@ -117,9 +120,10 @@
         fileNames="haxelib.json"/>
 
 
-    <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileDescription" rootTagName="project"/>
-    <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlFileDescription" rootTagName="project"/>
-    <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.lime.OpenflXmlFileDescription" rootTagName="project"/>
+    <!-- domVersion: bump when a description's root element class changes; the file icon gist stores that class name -->
+    <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileDescription" rootTagName="project" domVersion="1"/>
+    <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlFileDescription" rootTagName="project" domVersion="1"/>
+    <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.lime.OpenflXmlFileDescription" rootTagName="project" domVersion="1"/>
 
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.buildsystem.nmml.NMMLSchemaProvider"/>
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlSchemaProvider"/>

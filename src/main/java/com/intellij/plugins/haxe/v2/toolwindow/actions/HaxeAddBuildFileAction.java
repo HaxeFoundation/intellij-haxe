@@ -20,16 +20,12 @@ import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.BuildGro
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
 /**
  * Tree context menu on the Build group (or a build file row): registers a build
  * file by hand - subfolders and project xml files with non-standard names are not
  * auto-detected.
  */
 public final class HaxeAddBuildFileAction extends DumbAwareAction {
-
-  private static final Set<String> BUILD_FILE_EXTENSIONS = Set.of("hxml", "xml", "nmml", "hxp");
 
   private final HaxeToolWindowPanel panel;
 
@@ -46,7 +42,7 @@ public final class HaxeAddBuildFileAction extends DumbAwareAction {
 
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.singleFile()
       .withTitle(HaxeBundle.message("haxe.toolwindow.add.build.file.chooser.title"))
-      .withFileFilter(file -> BUILD_FILE_EXTENSIONS.contains(StringUtil.toLowerCase(StringUtil.notNullize(file.getExtension()))));
+      .withFileFilter(HaxeAddBuildFileAction::hasBuildFileExtension);
 
     VirtualFile chosen = FileChooser.chooseFile(descriptor, project, ProjectUtil.guessProjectDir(project));
     if (chosen == null) return;
@@ -64,6 +60,11 @@ public final class HaxeAddBuildFileAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setEnabledAndVisible(selectedContainerId() != null);
+  }
+
+  private static boolean hasBuildFileExtension(@NotNull VirtualFile file) {
+    String extension = StringUtil.toLowerCase(StringUtil.notNullize(file.getExtension()));
+    return HaxeBuildFileScanner.BUILD_FILE_EXTENSIONS.contains(extension);
   }
 
   @Nullable
