@@ -48,16 +48,16 @@ public final class HaxeModuleVariants {
   /**
    * The variant suffix of a module file name (given without its {@code .hx}):
    * {@code "String.go"} → {@code "go"}; null for a plain name. The suffix must
-   * be a lowercase-start identifier — platform and custom-target names are
-   * lowercase, and accepting an uppercase segment would swallow a dotted
-   * plain file name.
+   * be a target name (see {@link #isTargetName}), so {@code "Foo.Bar"} is not
+   * read as module {@code Foo} with a variant {@code Bar}.
    */
   public static String variantOf(@NotNull String moduleFileName) {
     int dot = moduleFileName.lastIndexOf('.');
     if (dot <= 0 || dot == moduleFileName.length() - 1) return null;
     String variant = moduleFileName.substring(dot + 1);
-    return isVariantSegment(variant) ? variant : null;
+    return isTargetName(variant) ? variant : null;
   }
+
   @Nullable
   public static String variantOf(@NotNull PsiFile file) {
     return variantOf(FileUtil.getNameWithoutExtension(file.getName()));
@@ -76,11 +76,18 @@ public final class HaxeModuleVariants {
     return moduleNameOf(FileUtil.getNameWithoutExtension(file.getName()));
   }
 
-  private static boolean isVariantSegment(@NotNull String segment) {
-    char first = segment.charAt(0);
+  /**
+   * Whether the name can be the target in a variant file name
+   * ({@code Module.<target>.hx}): a lowercase letter or {@code _}, then letters,
+   * digits or {@code _}, like every built-in platform name. A custom target
+   * must match it too, or its variant files would never be picked up.
+   */
+  public static boolean isTargetName(@NotNull String name) {
+    if (name.isEmpty()) return false;
+    char first = name.charAt(0);
     if (first != '_' && !(first >= 'a' && first <= 'z')) return false;
-    for (int i = 1; i < segment.length(); i++) {
-      char c = segment.charAt(i);
+    for (int i = 1; i < name.length(); i++) {
+      char c = name.charAt(i);
       if (c != '_' && !Character.isLetterOrDigit(c)) return false;
     }
     return true;

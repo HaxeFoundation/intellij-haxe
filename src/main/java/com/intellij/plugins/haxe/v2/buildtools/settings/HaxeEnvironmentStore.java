@@ -208,9 +208,22 @@ public final class HaxeEnvironmentStore implements PersistentStateComponent<Haxe
 
   /** Adds or updates a SET define, keeping any other entries. */
   public void putDefine(@NotNull String containerId, @NotNull String name, @NotNull String value) {
+    putEntry(containerId, name, value, DefineEffect.SET);
+  }
+
+  /** Adds a REMOVE entry, which hides a define the build context sets; replaces any entry of the same name. */
+  public void putUndefine(@NotNull String containerId, @NotNull String name) {
+    putEntry(containerId, name, "", DefineEffect.REMOVE);
+  }
+
+  private void putEntry(@NotNull String containerId,
+                        @NotNull String name,
+                        @NotNull String value,
+                        @NotNull DefineEffect effect) {
     DefineState defineState = new DefineState();
     defineState.name = name;
     defineState.value = value;
+    defineState.effect = effect.name();
 
     ContainerEnvironment environment = getOrCreate(containerId);
     environment.defines.removeIf(define -> name.equals(define.name));

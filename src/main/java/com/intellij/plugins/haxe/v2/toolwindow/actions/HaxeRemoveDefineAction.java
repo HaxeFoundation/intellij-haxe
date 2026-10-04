@@ -5,13 +5,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowEditors;
 import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowPanel;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.EnvDefineNode;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tree context menu on an environment define: removes it.
+ * Tree context menu on an environment define: removes it after the same
+ * confirmation the Delete key shows.
  */
 public final class HaxeRemoveDefineAction extends DumbAwareAction {
 
@@ -26,7 +27,7 @@ public final class HaxeRemoveDefineAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && panel.getSelectedUserObject() instanceof EnvDefineNode define) {
-      HaxeEnvironmentStore.getInstance(project).removeDefine(define.containerId(), define.name());
+      HaxeToolWindowEditors.confirmAndRemoveDefine(project, define);
     }
   }
 

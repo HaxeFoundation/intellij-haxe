@@ -4,22 +4,24 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleWorkspace;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
 import com.intellij.plugins.haxe.v2.buildtools.settings.*;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore.CompileCommand;
 import com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeBuildToolsConfigurable;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeCompileCommandDialog;
+import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeEnvironmentDialog;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
@@ -30,27 +32,17 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.ListCellRenderer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The settings edits tree rows offer: choosers, the custom-target prompt, the
  * compile command dialog, the server toggle and the confirmed removals. The
- * stores publish every change, so the tree refreshes on its own.
+ * stores publish every change, so the tree refreshes on its own. Module
+ * libraries come from the module's current build context (see
+ * {@link HaxeLibrarySync}), so changing the target, the section or the build
+ * command's file re-syncs them.
  */
 public final class HaxeToolWindowEditors {
-
-  private static final InputValidator CUSTOM_TARGET_VALIDATOR = new InputValidator() {
-    @Override
-    public boolean checkInput(String input) {
-      // a lowercase-start identifier - the only shape variant activation
-      // matches in file names (see HaxeModuleVariants) - or empty to clear
-      return input.isBlank() || input.trim().matches("[a-z_][a-zA-Z0-9_]*");
-    }
-
-    @Override
-    public boolean canClose(String input) {
-      return checkInput(input);
-    }
-  };
 
   private record SectionChoice(int index, @NotNull String label, @NotNull String descriptor) {
   }
@@ -72,7 +64,7 @@ public final class HaxeToolWindowEditors {
       .createPopupChooserBuilder(choices)
       .setTitle(HaxeBundle.message("haxe.toolwindow.select.target.title"))
       .setRenderer(BuilderKt.textListCellRenderer("", HaxeTargetOptions.TargetChoice::displayName))
-      .setItemChosenCallback(choice -> HaxeTargetSelectionStore.getInstance(project).setSelectedTargetId(buildFile, choice.id()))
+      .setItemChosenCallback(choice -> selectTarget(project, buildFile, choice.id()))
       .createPopup()
       .show(point);
   }
@@ -87,10 +79,7 @@ public final class HaxeToolWindowEditors {
       .createPopupChooserBuilder(choices)
       .setTitle(HaxeBundle.message("haxe.toolwindow.select.section.title"))
       .setRenderer(sectionChoiceRenderer())
-      .setItemChosenCallback(choice -> {
-        String sectionId = sectionNode.ids().get(choice.index());
-        HaxeSectionSelectionStore.getInstance(project).setSelectedSection(sectionNode.buildFile().file(), sectionId);
-      })
+      .setItemChosenCallback(choice -> selectSection(project, sectionNode, choice.index()))
       .createPopup()
       .show(point);
   }
@@ -143,17 +132,34 @@ public final class HaxeToolWindowEditors {
                                               HaxeBundle.message("haxe.toolwindow.custom.target.title"),
                                               null,
                                               customTargetNode.customTarget(),
-                                              CUSTOM_TARGET_VALIDATOR);
+                                              HaxeEnvironmentDialog.CUSTOM_TARGET_VALIDATOR);
     if (entered == null) return;
     HaxeEnvironmentStore.getInstance(project).setCustomTarget(customTargetNode.containerId(), entered);
   }
 
-  /** Opens the compile command configuration dialog; OK stores the command. */
+  /** Opens the compile command configuration dialog; OK applies the command. */
   public static void configureCompileCommand(@NotNull Project project, @NotNull EnvCompileCommandNode compileCommand) {
     HaxeCompileCommandDialog dialog = new HaxeCompileCommandDialog(project, compileCommand.containerId(),
                                                                    compileCommand.candidateFilePaths(),
                                                                    compileCommand.actionNamesByFile());
-    dialog.show();
+    if (dialog.showAndGet()) {
+      applyCompileCommand(project, compileCommand.containerId(), dialog.selectedCompileCommand());
+    }
+  }
+
+  /**
+   * Stores the container's compile command. A module that does not own the
+   * active build file takes its libraries from the command's file, so a file
+   * change re-syncs them.
+   */
+  public static void applyCompileCommand(@NotNull Project project,
+                                         @NotNull String containerId,
+                                         @Nullable CompileCommand command) {
+    HaxeEnvironmentStore store = HaxeEnvironmentStore.getInstance(project);
+    String previousFile = buildFilePath(store.getCompileCommand(containerId));
+    boolean fileChanged = !Objects.equals(previousFile, buildFilePath(command));
+    store.setCompileCommand(containerId, command);
+    if (fileChanged) HaxeLibrarySync.sync(project, null);
   }
 
   /** Toggles the container's server participation; while disabled project-wide, opens the settings page instead. */
@@ -199,6 +205,28 @@ public final class HaxeToolWindowEditors {
                                           Messages.getWarningIcon());
     if (answer != Messages.YES) return;
     HaxeModuleWorkspace.getInstance(project).removeModuleAsync(module.name());
+  }
+
+  /** Stores the target and, when it changed, re-syncs the module libraries. */
+  private static void selectTarget(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull String targetId) {
+    HaxeTargetSelectionStore store = HaxeTargetSelectionStore.getInstance(project);
+    boolean changed = !targetId.equals(store.getSelectedTargetId(buildFile));
+    store.setSelectedTargetId(buildFile, targetId);
+    if (changed) HaxeLibrarySync.sync(project, null);
+  }
+
+  /** Stores the section and, when it changed, re-syncs the module libraries. */
+  private static void selectSection(@NotNull Project project, @NotNull SectionNode sectionNode, int index) {
+    VirtualFile buildFile = sectionNode.buildFile().file();
+    HaxeSectionSelectionStore store = HaxeSectionSelectionStore.getInstance(project);
+    boolean changed = index != store.getSelectedSection(buildFile, sectionNode.ids());
+    store.setSelectedSection(buildFile, sectionNode.ids().get(index));
+    if (changed) HaxeLibrarySync.sync(project, null);
+  }
+
+  @Nullable
+  private static String buildFilePath(@Nullable CompileCommand command) {
+    return command == null ? null : command.buildFilePath();
   }
 
   /** Section label first, its target/output descriptor grayed - one glance tells the sections apart. */

@@ -79,6 +79,24 @@ public class HaxeEnvironmentStoreTest {
   }
 
   @Test
+  @DisplayName("put undefine adds a remove entry and replaces a same-named entry either way")
+  public void putUndefineAddsARemoveEntryAndReplacesASameNamedEntryEitherWay() {
+    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
+    store.putDefine(MODULE, "sys", "1");
+    store.putDefine(MODULE, "level", "2");
+
+    store.putUndefine(MODULE, "sys");
+    assertEquals(List.of(new EnvironmentDefine("level", "2", DefineEffect.SET),
+                         new EnvironmentDefine("sys", "", DefineEffect.REMOVE)),
+                 store.getDefines(MODULE));
+
+    store.putDefine(MODULE, "sys", "");
+    assertEquals(List.of(new EnvironmentDefine("level", "2", DefineEffect.SET),
+                         new EnvironmentDefine("sys", "", DefineEffect.SET)),
+                 store.getDefines(MODULE));
+  }
+
+  @Test
   @DisplayName("remove define drops the entry")
   public void removeDefineDropsTheEntry() {
     HaxeEnvironmentStore store = new HaxeEnvironmentStore();

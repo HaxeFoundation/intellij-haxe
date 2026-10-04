@@ -5,10 +5,13 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.InputValidatorEx;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.DefineEffect;
 import com.intellij.plugins.haxe.v2.buildtools.settings.EnvironmentDefine;
@@ -40,6 +43,9 @@ import java.util.Set;
  * (see {@link #createUIComponents}).
  */
 public final class HaxeEnvironmentDialog extends DialogWrapper {
+
+  /** Validates a custom target entry, here and in the tree row's prompt: blank clears it, anything else must be a target name. */
+  public static final InputValidatorEx CUSTOM_TARGET_VALIDATOR = HaxeEnvironmentDialog::customTargetError;
 
   /** Mutable table row; blank names are dropped on apply. */
   private static final class DefineRow {
@@ -129,6 +135,12 @@ public final class HaxeEnvironmentDialog extends DialogWrapper {
   }
 
   @Override
+  protected @Nullable ValidationInfo doValidate() {
+    String error = customTargetError(customTargetField.getText());
+    return error == null ? null : new ValidationInfo(error, customTargetField);
+  }
+
+  @Override
   protected void doOKAction() {
     TableCellEditor editor = table.getCellEditor();
     if (editor != null) {
@@ -147,6 +159,13 @@ public final class HaxeEnvironmentDialog extends DialogWrapper {
     String sdkName = (String)sdkCombo.getSelectedItem();
     HaxeModuleSdkApplier.getInstance(project).chooseSdk(containerId, sdkName);
     super.doOKAction();
+  }
+
+  /** The error for an entered custom target; null when it is blank (clears the target) or a valid target name. */
+  @Nullable
+  private static String customTargetError(@NotNull String entered) {
+    boolean valid = entered.isBlank() || HaxeModuleVariants.isTargetName(entered.trim());
+    return valid ? null : HaxeBundle.message("haxe.environment.dialog.custom.target.invalid");
   }
 
   private static final class NameColumn extends ColumnInfo<DefineRow, String> {

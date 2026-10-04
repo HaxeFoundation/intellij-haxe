@@ -27,7 +27,7 @@ public final class HaxeAddDefineAction extends DumbAwareAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    String containerId = selectedContainerId();
+    String containerId = selectedEnvironmentContainerId(panel);
     if (project == null || containerId == null) return;
 
     DefinePrompt.DefineInput input = DefinePrompt.show(project, null);
@@ -38,11 +38,12 @@ public final class HaxeAddDefineAction extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(selectedContainerId() != null);
+    e.getPresentation().setEnabledAndVisible(selectedEnvironmentContainerId(panel) != null);
   }
 
+  /** The container of the selected IDE environment or Define overrides row; null for any other selection. */
   @Nullable
-  private String selectedContainerId() {
+  static String selectedEnvironmentContainerId(@NotNull HaxeToolWindowPanel panel) {
     return switch (panel.getSelectedUserObject()) {
       case EnvironmentNode environmentNode -> environmentNode.containerId();
       case EnvDefinesNode definesNode -> definesNode.containerId();

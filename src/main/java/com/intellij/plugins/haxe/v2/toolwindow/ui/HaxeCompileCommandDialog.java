@@ -23,6 +23,7 @@ import java.util.Map;
  * Configures a container's compile command: which build file compiling runs
  * (None = the container is skipped on project build), optionally one of the file's
  * actions as command override, and extra arguments such as "-clean -debug".
+ * OK hands the result to the caller through {@link #selectedCompileCommand()}.
  * The layout lives in the matching .form (labels bind their bundle keys there).
  */
 public final class HaxeCompileCommandDialog extends DialogWrapper {
@@ -95,16 +96,11 @@ public final class HaxeCompileCommandDialog extends DialogWrapper {
   }
 
   /// The dialog state as a command; null (= clear) when no build file is selected.
-  private CompileCommand selectedCompileCommand() {
+  @Nullable
+  public CompileCommand selectedCompileCommand() {
     String selectedPath = (String)fileCombo.getSelectedItem();
     if (selectedPath == null) return null;
     String arguments = StringUtil.notNullize(argumentsField.getText()).trim();
     return new CompileCommand(selectedPath, (String)commandCombo.getSelectedItem(), arguments);
-  }
-
-  @Override
-  protected void doOKAction() {
-    HaxeEnvironmentStore.getInstance(project).setCompileCommand(containerId, selectedCompileCommand());
-    super.doOKAction();
   }
 }

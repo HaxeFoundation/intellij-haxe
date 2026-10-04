@@ -36,4 +36,22 @@ public class HaxeModuleVariantsTest {
     assertEquals(variant, HaxeModuleVariants.variantOf(moduleFileName));
     assertEquals(baseModule, HaxeModuleVariants.moduleNameOf(moduleFileName));
   }
+
+  /** (candidate name, whether it has the target-name shape). */
+  static final List<Arguments> TARGET_NAME_SHAPES = List.of(
+    arguments("js", true),
+    arguments("custom_js2", true),
+    arguments("_private", true),
+    // an uppercase start, punctuation, whitespace or nothing at all is not a target name
+    arguments("Go", false),
+    arguments("go-x", false),
+    arguments("go x", false),
+    arguments("", false));
+
+  @ParameterizedTest(name = "\"{0}\"")
+  @FieldSource("TARGET_NAME_SHAPES")
+  @DisplayName("target name shape is a lowercase start identifier")
+  public void targetNameShapeIsALowercaseStartIdentifier(String name, boolean targetName) {
+    assertEquals(targetName, HaxeModuleVariants.isTargetName(name));
+  }
 }
