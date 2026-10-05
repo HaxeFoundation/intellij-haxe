@@ -128,7 +128,7 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
     if (descriptorPath.isBlank()) {
       throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("air.runner.no.descriptor"));
     }
-    Path descriptor = resolveAgainstProject(descriptorPath);
+    Path descriptor = resolveAgainstModule(descriptorPath);
     if (!Files.isRegularFile(descriptor)) {
       throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("air.runner.descriptor.missing", descriptorPath));
     }
@@ -180,7 +180,7 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
 
   @NotNull
   private Path profilerSessionPath() {
-    return resolveAgainstProject(descriptorPath).resolveSibling(PROFILER_SESSION_FILE_NAME);
+    return resolveAgainstModule(descriptorPath).resolveSibling(PROFILER_SESSION_FILE_NAME);
   }
 
   /**
@@ -266,7 +266,7 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
     if (descriptorPath.isBlank()) {
       throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.no.descriptor"));
     }
-    Path descriptor = resolveAgainstProject(descriptorPath);
+    Path descriptor = resolveAgainstModule(descriptorPath);
     if (!Files.isRegularFile(descriptor)) {
       throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.descriptor.missing", descriptor.toString()));
     }
@@ -280,7 +280,7 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
       Path parent = descriptor.getParent();
       return parent != null ? parent : descriptor;
     }
-    return resolveAgainstProject(contentRootPath);
+    return resolveAgainstModule(contentRootPath);
   }
 
   @NotNull

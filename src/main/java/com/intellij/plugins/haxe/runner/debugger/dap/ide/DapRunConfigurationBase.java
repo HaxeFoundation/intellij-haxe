@@ -7,6 +7,8 @@ import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -56,19 +58,36 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
     return value == null ? "" : value;
   }
 
-  /** The given path, resolved against the project base dir when relative; null when unparseable. */
-  protected @Nullable Path resolveAgainstProject(String value) {
+  /**
+   * The given path: absolute as it is, relative against {@link #baseDirectory()};
+   * null when unparseable.
+   */
+  // TODO: HashLinkRunConfigurations.resolveAgainstModule applies the same rule; fold it in once fix/hl-override is merged
+  protected @Nullable Path resolveAgainstModule(String value) {
     try {
       Path path = Path.of(value);
       if (path.isAbsolute()) {
         return path;
       }
-
-      String basePath = getProject().getBasePath();
-      return basePath != null ? Path.of(basePath).resolve(path) : path;
-
+      Path base = baseDirectory();
+      return base != null ? base.resolve(path) : path;
     } catch (InvalidPathException e) {
       return null;
     }
+  }
+
+  /**
+   * The folder relative paths count from: the selected module's, so a module
+   * works as a project of its own; the project folder while no module is
+   * selected; null for a project without one.
+   */
+  protected @Nullable Path baseDirectory() {
+    Module module = getConfigurationModule().getModule();
+    VirtualFile moduleDir = module != null ? ProjectUtil.guessModuleDir(module) : null;
+    if (moduleDir != null) {
+      return Path.of(moduleDir.getPath());
+    }
+    String basePath = getProject().getBasePath();
+    return basePath != null ? Path.of(basePath) : null;
   }
 }

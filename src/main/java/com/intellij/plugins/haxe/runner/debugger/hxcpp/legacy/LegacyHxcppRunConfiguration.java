@@ -142,7 +142,7 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
     if (debug) {
       commandLine.withParameters("-start_debugger", "-debugger_host=localhost:" + port);
     }
-    Path workDir = !workingDirectory.isBlank() ? resolveAgainstProject(workingDirectory) : executable.getParent();
+    Path workDir = !workingDirectory.isBlank() ? resolveAgainstModule(workingDirectory) : executable.getParent();
     if (workDir != null) {
       commandLine.withWorkDirectory(workDir.toString());
     }
@@ -153,7 +153,7 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
 
   @Nullable
   private Path resolveExecutableOrNull() {
-    return executablePath.isBlank() ? null : resolveAgainstProject(executablePath);
+    return executablePath.isBlank() ? null : resolveAgainstModule(executablePath);
   }
 
   // --- persistence ---

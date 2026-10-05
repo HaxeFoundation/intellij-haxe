@@ -165,9 +165,9 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase implements 
     }
   }
 
-  /** The content directory: the setting, project-relative when not absolute. */
+  /** The content directory: the setting, module-relative when not absolute. */
   public @Nullable Path resolveContentRootOrNull() {
-    return contentRoot.isBlank() ? null : resolveAgainstProject(contentRoot);
+    return contentRoot.isBlank() ? null : resolveAgainstModule(contentRoot);
   }
 
   @Override

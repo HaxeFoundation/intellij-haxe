@@ -131,7 +131,7 @@ public class FlashRunConfiguration extends DapRunConfigurationBase {
 
   // --- resolution ---
 
-  /** The .swf to launch/debug: the setting, project-relative when not absolute. */
+  /** The .swf to launch/debug: the setting, module-relative when not absolute. */
   @NotNull
   public Path resolveSwf() throws ExecutionException {
     Path swf = resolveSwfOrNull();
@@ -146,7 +146,7 @@ public class FlashRunConfiguration extends DapRunConfigurationBase {
 
   @Nullable
   private Path resolveSwfOrNull() {
-    return swfFilePath.isBlank() ? null : resolveAgainstProject(swfFilePath);
+    return swfFilePath.isBlank() ? null : resolveAgainstModule(swfFilePath);
   }
 
   // --- persistence ---

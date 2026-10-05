@@ -315,6 +315,15 @@ public final class HxmlFileParser {
     return TARGET_FLAGS.get(flag);
   }
 
+  /**
+   * Whether ANY compilation section of effective (include-merged) content
+   * selects the target — unlike {@link #parse}, whose target is the first
+   * one declared, this also sees a {@code --next} section further down.
+   */
+  public static boolean declaresTarget(@NotNull String content, @NotNull HaxeTarget target) {
+    return significantLines(content).anyMatch(line -> TARGET_FLAGS.get(line.flag()) == target);
+  }
+
   /** Whether effective (include-merged) content declares a debug compile — hxcpp renames its binary on it. */
   public static boolean hasDebugFlag(@NotNull String content) {
     return content.lines()

@@ -16,7 +16,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.util.execution.ParametersListUtil;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import lombok.Getter;
 import org.jdom.Element;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base for DAP-debugger configurations that run a compiled native executable:
- * the executable path (absolute or project-relative), an optional working
+ * the executable path (absolute or module-relative), an optional working
  * directory (default: the executable's directory, so relative resource
  * loading behaves like a manual launch) and program arguments — with their
  * resolution, validation, persistence and the plain-Run state. Subclasses add
@@ -98,17 +97,13 @@ public abstract class DapExecutableRunConfigurationBase extends DapRunConfigurat
   }
 
   private @Nullable Path resolveExecutableOrNull() {
-    return executablePath.isBlank() ? null : resolveAgainstProject(executablePath);
+    return executablePath.isBlank() ? null : resolveAgainstModule(executablePath);
   }
 
-  /** The working directory: the explicit setting, else the executable's directory. */
+  /** The working directory: the explicit setting (a relative one resolved against the module folder, like the executable), else the executable's directory. */
   public @Nullable Path resolveWorkingDirectory() {
     if (!workingDirectory.isBlank()) {
-      try {
-        return Path.of(workingDirectory);
-      } catch (InvalidPathException e) {
-        return null;
-      }
+      return resolveAgainstModule(workingDirectory);
     }
     Path executable = resolveExecutableOrNull();
     return executable != null ? executable.getParent() : null;
