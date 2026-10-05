@@ -227,7 +227,7 @@ final class HaxeToolWindowTreeBuilder {
     }
     if (launchKind != null) {
       ProgramNode program =
-        new ProgramNode(entry.buildFile(), launchKind, entry.info().target(), entry.info().targetOutput());
+        new ProgramNode(entry.buildFile(), launchKind, entry.info().target(), HaxeProgramLaunches.launchOutput(entry.info()));
       actionsNode.add(new DefaultMutableTreeNode(program));
     }
     return actionsNode;

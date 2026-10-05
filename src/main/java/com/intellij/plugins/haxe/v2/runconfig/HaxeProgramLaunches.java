@@ -1,11 +1,13 @@
 package com.intellij.plugins.haxe.v2.runconfig;
 
+import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -20,6 +22,8 @@ import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunConfigurati
 import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.interp.InterpConfigurationFactory;
+import com.intellij.plugins.haxe.runner.debugger.interp.InterpRunConfiguration;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.runner.neko.NekoConfigurationFactory;
 import com.intellij.plugins.haxe.runner.neko.NekoRunConfiguration;
@@ -30,6 +34,7 @@ import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -47,6 +52,11 @@ import java.util.Locale;
 /// -debug build renames the executable (Main-debug.exe), so run and debug launch
 /// different artifacts — a single static executable path cannot serve both
 /// executors yet.
+///
+/// An interpreter build (`--interp`) writes no output to launch: compiling IS
+/// running. Its Haxe Interpreter configuration runs the hxml the way the Build
+/// action does (same working directory, same file argument), gets no build
+/// step, and is matched by the hxml its arguments name.
 public final class HaxeProgramLaunches {
 
   private HaxeProgramLaunches() {
@@ -73,6 +83,8 @@ public final class HaxeProgramLaunches {
     HxcppIntellijRunConfiguration.class, HxcppIntellijConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.hxcpp");
   private static final LaunchSpec NEKO_APP = new LaunchSpec(
     NekoRunConfiguration.class, NekoConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.neko");
+  private static final LaunchSpec INTERP_APP = new LaunchSpec(
+    InterpRunConfiguration.class, InterpConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.interp");
 
   /** The single authority on which run configuration launches which target output. */
   @Nullable
@@ -91,6 +103,7 @@ public final class HaxeProgramLaunches {
       case CPP -> type != HaxeBuildFileType.HXML ? HXCPP_APP : null;
       // hxml runs the .n through the neko runtime; lime/nme package a launcher
       case NEKO -> type != HaxeBuildFileType.HXML || output.endsWith(".n") ? NEKO_APP : null;
+      case INTERP -> INTERP_APP;
       default -> null;
     };
   }
@@ -120,9 +133,28 @@ public final class HaxeProgramLaunches {
   /** Display name of the configuration kind that launches this build ("HashLink Application", …), or null when unsupported. */
   @Nullable
   public static String launchKind(@NotNull HaxeBuildFileInfo info, @NotNull HaxeBuildFileType type) {
-    if (info.target() == null || info.targetOutput() == null) return null;
-    LaunchSpec spec = specFor(info.target(), info.targetOutput(), type);
+    String output = launchOutput(info);
+    if (info.target() == null || output == null) return null;
+    LaunchSpec spec = specFor(info.target(), output, type);
     return spec == null ? null : factoryOf(spec).getName();
+  }
+
+  /**
+   * Whether the target's launch compiles the build file first and then runs
+   * its output. The interpreter compiles AS it runs: a build step before it
+   * would run the program once before the launch does.
+   */
+  public static boolean compilesBeforeLaunch(@NotNull HaxeTarget target) {
+    return target != HaxeTarget.INTERP;
+  }
+
+  /**
+   * The output a launch starts from: the build's target output, or "" for an
+   * interpreter build, which writes none. Null when the build has no output.
+   */
+  @Nullable
+  public static String launchOutput(@NotNull HaxeBuildFileInfo info) {
+    return info.target() == HaxeTarget.INTERP ? "" : info.targetOutput();
   }
 
   /**
@@ -159,10 +191,9 @@ public final class HaxeProgramLaunches {
     DapRunConfigurationBase configuration = (DapRunConfigurationBase)settings.getConfiguration();
     configuration.setModule(module);
 
-    HaxeActionBeforeRunTaskProvider.Task buildTask = new HaxeActionBeforeRunTaskProvider.Task();
-    buildTask.setBuildFilePath(file.getPath());
-    buildTask.setActionName(HaxeBuildSystem.of(buildFile.type()).defaultBuildActionName());
-    configuration.setBeforeRunTasks(List.of(buildTask));
+    // an empty list also drops the platform's default Build step
+    List<BeforeRunTask<?>> beforeLaunch = compilesBeforeLaunch(target) ? List.of(buildStep(buildFile)) : List.of();
+    configuration.setBeforeRunTasks(beforeLaunch);
 
     RunManager.getInstance(project).addConfiguration(settings);
     return settings;
@@ -206,6 +237,19 @@ public final class HaxeProgramLaunches {
     configuration.setExecutablePath(launcher.toString());
   }
 
+  /**
+   * The hxml as the Build action runs it: its working directory (override or
+   * sniffed) and the file argument relative to it. Extra arguments and the
+   * interpreter checkbox stay the user's.
+   */
+  private static void configureInterp(@NotNull Project project,
+                                      @NotNull InterpRunConfiguration configuration,
+                                      @NotNull HaxeBuildFile buildFile) {
+    String workDirectory = HaxeBuildWorkDirectories.workDirectory(project, buildFile.file());
+    configuration.setWorkingDirectory(StringUtil.notNullize(workDirectory));
+    configuration.setCompilerArguments(HaxeBuildWorkDirectories.fileArgument(buildFile.file(), workDirectory));
+  }
+
   /** Applies the derived fields (artifact/launcher paths) onto a configuration; user-owned fields (SDK, browser choice...) stay. */
   private static void configure(@NotNull RunnerAndConfigurationSettings settings,
                                 @NotNull HaxeBuildFile buildFile,
@@ -219,6 +263,7 @@ public final class HaxeProgramLaunches {
       case HxcppIntellijRunConfiguration configuration ->
         configureHxcppExecutable(configuration, buildFile, resolvedOutput(project, buildFile.file(), targetOutput));
       case NekoRunConfiguration configuration -> configureNeko(project, configuration, buildFile, targetOutput);
+      case InterpRunConfiguration configuration -> configureInterp(project, configuration, buildFile);
       default -> { }
     }
   }
@@ -354,8 +399,34 @@ public final class HaxeProgramLaunches {
                                  @NotNull String buildFilePath) {
     RunConfiguration configuration = candidate.getConfiguration();
     if (!configurationClass.isInstance(configuration)) return false;
-    return configuration.getBeforeRunTasks().stream()
-      .anyMatch(task -> task instanceof HaxeActionBeforeRunTaskProvider.Task build
-                        && build.getBuildFilePath().equals(buildFilePath));
+    return configuration instanceof InterpRunConfiguration interp
+           ? namesBuildFile(interp, buildFilePath)
+           : configuration.getBeforeRunTasks().stream().anyMatch(task -> buildsFile(task, buildFilePath));
+  }
+
+  private static boolean buildsFile(@NotNull BeforeRunTask<?> task, @NotNull String buildFilePath) {
+    return task instanceof HaxeActionBeforeRunTaskProvider.Task build && build.getBuildFilePath().equals(buildFilePath);
+  }
+
+  /** Whether the interpreter configuration's arguments are exactly the hxml, resolved against its working directory. */
+  private static boolean namesBuildFile(@NotNull InterpRunConfiguration configuration, @NotNull String buildFilePath) {
+    Path workDirectory = configuration.resolveWorkingDirectory();
+    String arguments = configuration.getCompilerArguments().trim();
+    if (workDirectory == null || arguments.isEmpty()) return false;
+    try {
+      return workDirectory.resolve(arguments).normalize().equals(Path.of(buildFilePath).normalize());
+    }
+    catch (InvalidPathException e) {
+      return false;
+    }
+  }
+
+  /** The "Run Haxe action" step compiling the build file before the program launches. */
+  @NotNull
+  private static HaxeActionBeforeRunTaskProvider.Task buildStep(@NotNull HaxeBuildFile buildFile) {
+    HaxeActionBeforeRunTaskProvider.Task buildTask = new HaxeActionBeforeRunTaskProvider.Task();
+    buildTask.setBuildFilePath(buildFile.file().getPath());
+    buildTask.setActionName(HaxeBuildSystem.of(buildFile.type()).defaultBuildActionName());
+    return buildTask;
   }
 }

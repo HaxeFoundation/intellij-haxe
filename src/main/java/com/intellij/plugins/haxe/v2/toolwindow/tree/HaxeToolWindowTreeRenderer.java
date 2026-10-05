@@ -4,6 +4,7 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.haxelib.HaxelibGitSpec;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeProgramLaunches;
 import com.intellij.plugins.haxe.v2.buildtools.settings.DefineEffect;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -63,8 +64,7 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
       case ToolsGroupNode toolsGroup ->
         countRow(AllIcons.General.ExternalTools, HaxeBundle.message("haxe.toolwindow.node.tools"), toolsGroup.count());
       case ToolNode tool -> valueRow(AllIcons.General.ExternalTools, tool.name(), tool.detail(), false);
-      case ProgramNode program ->
-        valueRow(AllIcons.Actions.Execute, HaxeBundle.message("haxe.toolwindow.node.program"), program.kind(), false);
+      case ProgramNode program -> valueRow(AllIcons.Actions.Execute, programLabel(program), program.kind(), false);
       case TestRunNode ignored ->
         labelRow(AllIcons.RunConfigurations.TestState.Run, HaxeBundle.message("haxe.toolwindow.node.run.unit.tests"));
       case EnvSdkNode sdk -> renderSdk(sdk);
@@ -195,10 +195,24 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
       case TestsGroupNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.tests.group");
       case LibraryNode library -> libraryTooltip(library);
       case SectionNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.section");
-      case ProgramNode program -> HaxeBundle.message("haxe.toolwindow.tooltip.program", program.kind());
+      case ProgramNode program -> programTooltip(program);
       case TestRunNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.run.unit.tests");
       case null, default -> null;
     };
+  }
+
+  /** "Build & run", or "Run" for a target that runs without a build step (the interpreter). */
+  @NotNull
+  private static String programLabel(@NotNull ProgramNode program) {
+    boolean builds = HaxeProgramLaunches.compilesBeforeLaunch(program.target());
+    return HaxeBundle.message(builds ? "haxe.toolwindow.node.program" : "haxe.toolwindow.node.program.run");
+  }
+
+  @NotNull
+  private static String programTooltip(@NotNull ProgramNode program) {
+    boolean builds = HaxeProgramLaunches.compilesBeforeLaunch(program.target());
+    String key = builds ? "haxe.toolwindow.tooltip.program" : "haxe.toolwindow.tooltip.program.run";
+    return HaxeBundle.message(key, program.kind());
   }
 
   @NotNull

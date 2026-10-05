@@ -23,8 +23,8 @@ public class HaxeDebugSupportTest {
     arguments(HaxeTarget.JAVA_SCRIPT, true, true),
     // fdb hosts flash tests and the test console parses its relayed traces
     arguments(HaxeTarget.FLASH, true, true),
-    // programs have no interp lane; the eval adapter serves tests
-    arguments(HaxeTarget.INTERP, false, true),
+    // the eval adapter serves both: programs through the Haxe Interpreter configuration, tests through their lane
+    arguments(HaxeTarget.INTERP, true, true),
     arguments(HaxeTarget.NEKO, false, false),
     // no target resolved: never debuggable
     arguments(null, false, false));
