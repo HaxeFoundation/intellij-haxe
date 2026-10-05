@@ -7,11 +7,10 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -48,8 +47,9 @@ final class HaxeProjectInfoCache<V> {
   private final Map<Key, CacheValue<V>> cache = new ConcurrentHashMap<>();
   private final Set<Key> inFlight = ConcurrentHashMap.newKeySet();
 
-  // every caller waiting on an in-flight evaluation gets its callback fired
-  private final Map<Key, List<Runnable>> pendingCallbacks = new ConcurrentHashMap<>();
+  // callbacks waiting on an in-flight evaluation; a set, so a caller asking
+  // again before it lands is called back once, not once per ask
+  private final Map<Key, Set<Runnable>> pendingCallbacks = new ConcurrentHashMap<>();
   private final ExecutorService executor;
 
   HaxeProjectInfoCache(@NotNull Project project, @NotNull String executorName, @Nullable Consumer<V> onEvict) {
@@ -107,14 +107,14 @@ final class HaxeProjectInfoCache<V> {
                         int previousAttempts,
                         @NotNull Supplier<Outcome<V>> evaluation,
                         @NotNull Runnable onUpdated) {
-    pendingCallbacks.computeIfAbsent(key, ignored -> new CopyOnWriteArrayList<>()).add(onUpdated);
+    pendingCallbacks.computeIfAbsent(key, ignored -> new CopyOnWriteArraySet<>()).add(onUpdated);
     if (!inFlight.add(key)) {
       // an evaluation is already running; it fires the callback registered above
       return;
     }
 
     executor.execute(() -> {
-      List<Runnable> callbacks;
+      Set<Runnable> callbacks;
       try {
         Outcome<V> outcome = evaluation.get();
         CacheValue<V> replaced = cache.put(key, new CacheValue<>(stamp, outcome.value(), outcome.settled(), previousAttempts + 1));
@@ -126,7 +126,7 @@ final class HaxeProjectInfoCache<V> {
         callbacks = pendingCallbacks.remove(key);
         inFlight.remove(key);
       }
-      List<Runnable> toRun = callbacks != null ? callbacks : List.of();
+      Set<Runnable> toRun = callbacks != null ? callbacks : Set.of();
       ApplicationManager.getApplication().invokeLater(() -> {
         if (!project.isDisposed()) {
           toRun.forEach(Runnable::run);

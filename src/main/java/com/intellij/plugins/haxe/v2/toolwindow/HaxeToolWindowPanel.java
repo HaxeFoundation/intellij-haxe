@@ -204,6 +204,7 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     HaxeDefineContextService.getInstance(project).refreshAsync();
     ReadAction.nonBlocking(modelBuilder::build)
       .inSmartMode(project)
+      .coalesceBy(this)
       .expireWith(this)
       .submit(AppExecutorUtil.getAppExecutorService())
       .onSuccess(scan -> AppExecutorUtil.getAppExecutorService().execute(() -> updateTree(scan)));
