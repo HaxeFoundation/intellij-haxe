@@ -16,11 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class HaxeLimeParserOutputTest {
 
   @Test
-  @DisplayName("full output maps defines libraries sources and app")
-  public void fullOutputMapsDefinesLibrariesSourcesAndApp() {
+  @DisplayName("full output maps haxedefs libraries sources and app")
+  public void fullOutputMapsHaxedefsLibrariesSourcesAndApp() {
     String json = """
       {
-        "defines": {"lime": "8.0.2", "flagOnly": ""},
+        "defines": {"lime": "8.0.2", "windows": "1", "expect-lime-version": "7.7.0+"},
+        "haxedefs": {"tools": "8.0.2", "flagOnly": "", "windows": ""},
         "haxelibs": [{"name": "lime", "version": "8.0.2"}, {"name": "local"}],
         "sources": ["src", "gen"],
         "app": {"path": "Export", "file": "Game"},
@@ -32,9 +33,24 @@ public class HaxeLimeParserOutputTest {
     assertNotNull(info);
     assertEquals(HaxeTarget.CPP, info.target());
     assertEquals("Export/windows/bin/Game.exe", info.targetOutput());
-    assertEquals(List.of(new HaxeDefine("lime", "8.0.2"), new HaxeDefine("flagOnly", null)), info.defines());
+    assertEquals(List.of(new HaxeDefine("tools", "8.0.2"), new HaxeDefine("flagOnly", null), new HaxeDefine("windows", null)),
+                 info.defines());
     assertEquals(List.of(new HaxeLibDependency("lime", "8.0.2"), new HaxeLibDependency("local", null)), info.libraries());
     assertEquals(List.of("src", "gen"), info.classpaths());
+  }
+
+  @Test
+  @DisplayName("condition only defines are not mapped")
+  public void conditionOnlyDefinesAreNotMapped() {
+    // <set> names and target seeds live in the tool's `defines`; only the -D set reaches the IDE
+    String json = """
+      {"defines": {"expect-lime-version": "7.7.0+", "html5": "1", "lime-flag": ""}, "haxedefs": {"lime-flag": "", "html5": ""}}
+      """;
+
+    HaxeBuildFileInfo info = HaxeLimeProjectInfoService.parseToolOutput(json, "html5");
+
+    assertNotNull(info);
+    assertEquals(List.of(new HaxeDefine("lime-flag", null), new HaxeDefine("html5", null)), info.defines());
   }
 
   @Test

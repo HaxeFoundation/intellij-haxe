@@ -62,6 +62,16 @@ class HxpRunner {
 			Reflect.setField(haxedefs, name, value);
 			Reflect.setField(defines, name, value);
 		}
+		// the -D flags lime's build adds beyond the script's haxedefs: the
+		// platform (never for flash), its type, macos for mac, tools=<lime version>
+		if (project.target != Platform.FLASH) {
+			Reflect.setField(haxedefs, Std.string(project.target).toLowerCase(), "");
+		}
+		Reflect.setField(haxedefs, Std.string(project.platformType).toLowerCase(), "");
+		if (targetId == "mac") {
+			Reflect.setField(haxedefs, "macos", "");
+		}
+		Reflect.setField(haxedefs, "tools", Std.string(Haxelib.getVersion(new Haxelib("lime"))));
 		for (name in userDefines.keys()) {
 			Reflect.setField(defines, name, Std.string(userDefines.get(name)));
 		}

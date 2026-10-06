@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,16 @@ public class LimeProjectsTest {
   @DisplayName("app file defaults to limes when the project xml declares none")
   public void testAppFileDefaultsToLimesWhenTheProjectXmlDeclaresNone() {
     assertEquals("MyApplication", LimeProjects.appFile("<project><app main=\"Tests\"/></project>"));
+  }
+
+  @Test
+  @DisplayName("display command line points lime at an export root no build uses")
+  public void testDisplayCommandLinePointsLimeAtAnExportRootNoBuildUses() {
+    GeneralCommandLine commandLine = LimeProjects.displayCommandLine("haxelib", "openfl", "/work", "project.xml", "html5");
+
+    String appPathArgument = "--app-path=" + LimeProjects.displayAppPath();
+    assertEquals(List.of("run", "openfl", "display", "project.xml", "html5", appPathArgument),
+                 commandLine.getParametersList().getList());
   }
 
   /** (target flag, app file as declared, expected output relative to the project file). */

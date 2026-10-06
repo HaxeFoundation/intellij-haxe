@@ -98,6 +98,22 @@ public class ProjectXmlParserTest {
   }
 
   @Test
+  @DisplayName("collects include paths regardless of conditions except haxelib includes")
+  public void collectsIncludePathsRegardlessOfConditionsExceptHaxelibIncludes() {
+    List<String> includes = ProjectXmlParser.parseIncludePaths("""
+      <project>
+        <include path="defs.xml"/>
+        <include path="conf" if="html5"/>
+        <include name="legacy.xml" unless="debug"/>
+        <include haxelib="openfl"/>
+        <include path=""/>
+        <assets path="img"/>
+      </project>
+      """);
+    assertEquals(List.of("defs.xml", "conf", "legacy.xml"), includes);
+  }
+
+  @Test
   @DisplayName("external entities are not resolved")
   public void externalEntitiesAreNotResolved() {
     HaxeBuildFileInfo info = ProjectXmlParser.parse("""

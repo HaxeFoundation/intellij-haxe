@@ -2,8 +2,19 @@ package limeparser;
 
 import haxe.Json;
 import haxe.io.Path;
+import limeparser.ProjectXmlEvaluator.Resolvers;
 import sys.FileSystem;
 import sys.io.File;
+
+/** The command line, parsed. **/
+private typedef Options = {
+	projectFile:Null<String>,
+	command:String,
+	target:String,
+	haxeExecutable:String,
+	haxelibExecutable:String,
+	seedDefines:Map<String, String>
+}
 
 /**
 	The command-line entry point: evaluates a lime/openfl project file and
@@ -11,9 +22,9 @@ import sys.io.File;
 	directly. A project.hxp is a Haxe script, which the user's haxe runs with
 	-lib lime -lib hxp (see HxpEvaluator).
 
-	The caller passes the initial defines (target, platform, tool versions)
-	as -D arguments; the tool does not derive them itself. Relative <include>
-	paths resolve against the project file's directory.
+	The target's own defines are derived from `--target` the way lime derives
+	them (see TargetDefines); `-D` adds further condition defines. Relative
+	<include> paths resolve against the including file's folder.
 **/
 class Main {
 	static final USAGE = "usage: LimeProjectParser <project.xml|project.hxp> [--target <id>] [--command <cmd>]"
@@ -25,70 +36,86 @@ class Main {
 			Sys.stderr().writeString(USAGE);
 			Sys.exit(2);
 		}
-
-		var projectFile:String = null;
-		var command = "display";
-		var target = "windows";
-		var haxeExecutable = "haxe";
-		var haxelibExecutable = "haxelib";
-		var seedDefines:Map<String, String> = [];
-
-		var i = 0;
-		while (i < args.length) {
-			var hasValue = i + 1 < args.length;
-			switch (args[i]) {
-				case "--command" if (hasValue): command = args[++i];
-				case "--target" if (hasValue): target = args[++i];
-				case "--haxe" if (hasValue): haxeExecutable = args[++i];
-				case "--haxelib" if (hasValue): haxelibExecutable = args[++i];
-				case "-D" if (hasValue): addDefine(seedDefines, args[++i]);
-				case arg if (projectFile == null): projectFile = arg;
-				case _:
-			}
-			i++;
-		}
-
+		var options = parseArguments(args);
+		var projectFile = options.projectFile;
 		if (projectFile == null || !FileSystem.exists(projectFile)) {
 			Sys.stderr().writeString("project file not found: " + projectFile + "\n");
 			Sys.exit(2);
 		}
 
-		if (Path.extension(projectFile).toLowerCase() == "hxp") {
-			var json = HxpEvaluator.evaluate(projectFile, target, seedDefines, haxeExecutable);
-			if (json == null) {
-				Sys.exit(1);
+		var json = Path.extension(projectFile).toLowerCase() == "hxp"
+			? HxpEvaluator.evaluate(projectFile, options.target, options.seedDefines, options.haxeExecutable)
+			: evaluateXml(projectFile, options);
+		if (json == null) {
+			Sys.exit(1);
+		}
+		Sys.println(json);
+	}
+
+	static function parseArguments(args:Array<String>):Options {
+		var options:Options = {
+			projectFile: null,
+			command: "display",
+			target: "windows",
+			haxeExecutable: "haxe",
+			haxelibExecutable: "haxelib",
+			seedDefines: []
+		};
+		var i = 0;
+		while (i < args.length) {
+			var hasValue = i + 1 < args.length;
+			switch (args[i]) {
+				case "--command" if (hasValue): options.command = args[++i];
+				case "--target" if (hasValue): options.target = args[++i];
+				case "--haxe" if (hasValue): options.haxeExecutable = args[++i];
+				case "--haxelib" if (hasValue): options.haxelibExecutable = args[++i];
+				case "-D" if (hasValue): addDefine(options.seedDefines, args[++i]);
+				case arg if (options.projectFile == null): options.projectFile = arg;
+				case _:
 			}
-			Sys.println(json);
-			return;
+			i++;
+		}
+		return options;
+	}
+
+	/**
+		lime's sequence: the target's condition defines seed the parser, the
+		project is parsed, then the build adds tools=<lime version> and the
+		target's own -D flags on top of the project's haxedefs.
+	**/
+	static function evaluateXml(projectFile:String, options:Options):String {
+		var projectDirectory = Path.directory(FileSystem.absolutePath(projectFile));
+		var host = TargetDefines.hostPlatform(Sys.systemName());
+		var targetDefines = TargetDefines.resolve(options.target, host, options.seedDefines.exists("debug"));
+		for (name => value in options.seedDefines) {
+			targetDefines.conditions.set(name, value);
+		}
+		var environment = ToolEnvironment.build(options.haxeExecutable);
+		var resolvers:Resolvers = {
+			include: IncludeFiles.resolve.bind(projectDirectory),
+			haxelib: HaxelibLookup.resolver(options.haxelibExecutable),
+			localHaxelib: HaxelibLookup.local.bind(projectDirectory)
+		};
+
+		var evaluator = new ProjectXmlEvaluator(targetDefines.conditions, options.command, environment, projectDirectory, resolvers);
+		evaluator.parse(File.getContent(projectFile));
+		evaluator.defineToolsVersion();
+		for (name => value in targetDefines.haxedefs) {
+			evaluator.haxedefs.set(name, value);
 		}
 
-		var projectDirectory = Path.directory(FileSystem.absolutePath(projectFile));
-		var includeReader = readInclude.bind(projectDirectory);
-		var haxelibResolver = HaxelibLookup.resolver(haxelibExecutable);
-		var evaluator = new ProjectXmlEvaluator(seedDefines, command, Sys.environment(), includeReader, haxelibResolver);
-		evaluator.parse(File.getContent(projectFile));
-
-		Sys.println(Json.stringify({
+		return Json.stringify({
 			defines: mapToObject(evaluator.defines),
 			haxedefs: mapToObject(evaluator.haxedefs),
 			haxelibs: evaluator.haxelibs,
 			sources: evaluator.sources,
 			app: {path: evaluator.appPath, file: evaluator.appFile},
-		}));
+		});
 	}
 
 	static function addDefine(defines:Map<String, String>, text:String):Void {
 		var define = ProjectXmlEvaluator.splitDefine(text);
 		defines.set(define.name, define.value);
-	}
-
-	/** An include path relative to the project directory; a directory stands for its include.xml. **/
-	static function readInclude(projectDirectory:String, path:String):Null<String> {
-		var resolved = Path.isAbsolute(path) ? path : Path.join([projectDirectory, path]);
-		if (FileSystem.exists(resolved) && FileSystem.isDirectory(resolved)) {
-			resolved = Path.join([resolved, "include.xml"]);
-		}
-		return FileSystem.exists(resolved) ? File.getContent(resolved) : null;
 	}
 
 	static function mapToObject(map:Map<String, String>):Dynamic {

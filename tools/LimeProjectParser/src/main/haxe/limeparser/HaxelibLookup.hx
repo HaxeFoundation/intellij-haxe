@@ -1,5 +1,6 @@
 package limeparser;
 
+import haxe.Json;
 import haxe.io.Path;
 import limeparser.ProjectXmlEvaluator.ResolvedHaxelib;
 import sys.FileSystem;
@@ -13,7 +14,7 @@ import sys.io.Process;
 	of its extraParams.hxml INLINE, one or more bare classpath lines, and
 	finally a `-D name=version` line that closes the library. A -D line seen
 	before any classpath therefore comes from extraParams, not from that
-	closing line. Each library root is also checked for an include.xml.
+	closing line. Each library root is also checked for an include file.
 **/
 class HaxelibLookup {
 	public static function resolver(haxelibExecutable:String):(String, String) -> Null<Array<ResolvedHaxelib>> {
@@ -25,6 +26,22 @@ class HaxelibLookup {
 			}
 			return cache.get(spec);
 		};
+	}
+
+	/**
+		A library checked out at a folder (`<haxelib path>`), relative to the
+		project directory: version and classpath from its haxelib.json, the
+		include file per lime's order. Null when the folder is missing.
+	**/
+	public static function local(projectDirectory:String, name:String, root:String):Null<ResolvedHaxelib> {
+		var location = Path.isAbsolute(root) ? root : Path.join([projectDirectory, root]);
+		if (!FileSystem.exists(location) || !FileSystem.isDirectory(location)) return null;
+
+		var json = haxelibJson(location);
+		var version = json == null || json.version == null ? "" : Std.string(json.version);
+		var classpath = json == null || json.classPath == null ? location : Path.join([location, json.classPath]);
+		return {name: name, version: version, root: location, classpaths: [classpath],
+			includeXml: IncludeFiles.contentIn(location), extraDefines: [], extraArgs: []};
 	}
 
 	static function resolve(haxelibExecutable:String, spec:String):Null<Array<ResolvedHaxelib>> {
@@ -76,24 +93,26 @@ class HaxelibLookup {
 
 	static function makeLibrary(name:String, version:String, classpaths:Array<String>,
 			extraDefines:Array<String>, extraArgs:Array<String>):ResolvedHaxelib {
-		var root = "";
-		var includeXml:Null<String> = null;
-		for (classpath in classpaths) {
-			// include.xml sits at the library ROOT; the classpath is usually <root>/src
-			for (candidate in [classpath, Path.directory(classpath)]) {
-				var includePath = Path.join([candidate, "include.xml"]);
-				if (FileSystem.exists(includePath)) {
-					root = candidate;
-					includeXml = try File.getContent(includePath) catch (e:Dynamic) null;
-					break;
-				}
-			}
-			if (includeXml != null) break;
-		}
-		if (root == "" && classpaths.length > 0) {
-			root = classpaths[0];
-		}
+		// lime takes the classpath printed right before the -D marker as the library's path
+		var root = classpaths.length > 0 ? libraryRoot(classpaths[classpaths.length - 1]) : "";
+		var includeXml = root == "" ? null : IncludeFiles.contentIn(root);
 		return {name: name, version: version, root: root, classpaths: classpaths,
 			includeXml: includeXml, extraDefines: extraDefines, extraArgs: extraArgs};
+	}
+
+	/** lime's Haxelib.getPath: the first folder at or above the classpath holding a haxelib.json, else the classpath. **/
+	public static function libraryRoot(classpath:String):String {
+		var folder = classpath;
+		while (folder != "") {
+			if (FileSystem.exists(Path.join([folder, "haxelib.json"]))) return folder;
+			folder = Path.directory(folder);
+		}
+		return classpath;
+	}
+
+	static function haxelibJson(root:String):Null<Dynamic> {
+		var path = Path.join([root, "haxelib.json"]);
+		if (!FileSystem.exists(path)) return null;
+		return try Json.parse(File.getContent(path)) catch (e:Dynamic) null;
 	}
 }

@@ -4,6 +4,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -60,6 +61,9 @@ public final class LimeProjects {
   public static final String DEFAULT_APP_PATH = "bin";
 
   private static final String AIR_SDK_DEFINE_PREFIX = "-DAIR_SDK=";
+
+  /** The lime flag overriding the project's {@code <app path>}, attached spelling like the define above. */
+  private static final String APP_PATH_FLAG = "--app-path=";
 
   private LimeProjects() {
   }
@@ -156,9 +160,9 @@ public final class LimeProjects {
    * ({@code haxelib run lime|openfl display <file> <target>}), prefixed with
    * {@code --cwd <project dir>} so relative paths resolve against the
    * project. Null when the tool fails. Spawns a process - never call under
-   * the read lock. The output can ECHO arguments injected into earlier
-   * builds (the tool persists CLI extras in its export state) - consumers
-   * appending their own arguments must skip verbatim duplicates.
+   * the read lock. The command runs under an export root without a cache
+   * (see {@link #displayCommandLine}), so the output is a fresh evaluation
+   * and does not echo flags of earlier builds.
    */
   @Nullable
   public static List<String> displayArguments(@NotNull String haxelibExecutable,
@@ -167,10 +171,7 @@ public final class LimeProjects {
                                               @NotNull String fileName,
                                               @NotNull String targetFlag,
                                               int timeoutMs) {
-    GeneralCommandLine commandLine = new GeneralCommandLine()
-      .withExePath(haxelibExecutable)
-      .withParameters("run", tool, "display", fileName, targetFlag)
-      .withWorkDirectory(directory);
+    GeneralCommandLine commandLine = displayCommandLine(haxelibExecutable, tool, directory, fileName, targetFlag);
     try {
       ProcessOutput output = new CapturingProcessHandler(commandLine).runProcess(timeoutMs);
       if (output.isTimeout()) {
@@ -195,6 +196,39 @@ public final class LimeProjects {
       LOG.warn(tool + " display could not be spawned for " + fileName + ": " + e.getMessage());
       return null;
     }
+  }
+
+  /**
+   * The display invocation, pointed at an export root no build uses. Under
+   * the project's own export root lime prints the CACHED
+   * {@code <app path>/<target>/haxe/<build type>.hxml} verbatim whenever that
+   * file is newer than the project file. An edit to an included file or a
+   * library's include.xml is not part of that check, and the cached file
+   * carries the last build's flags ({@code --connect <port>}, test-runner
+   * macros). Under a
+   * root without a cache the tool evaluates the project fresh in memory and
+   * writes nothing there.
+   */
+  @NotNull
+  static GeneralCommandLine displayCommandLine(@NotNull String haxelibExecutable,
+                                               @NotNull String tool,
+                                               @NotNull String directory,
+                                               @NotNull String fileName,
+                                               @NotNull String targetFlag) {
+    String appPathArgument = APP_PATH_FLAG + displayAppPath();
+    return new GeneralCommandLine()
+      .withExePath(haxelibExecutable)
+      .withParameters("run", tool, "display", fileName, targetFlag, appPathArgument)
+      .withWorkDirectory(directory);
+  }
+
+  /** The export root display runs are pointed at: a plugin folder under the IDE's system directory, never created. */
+  @NotNull
+  static String displayAppPath() {
+    return PathManager.getSystemDir()
+      .resolve("haxe")
+      .resolve("lime-display")
+      .toString();
   }
 
   /**

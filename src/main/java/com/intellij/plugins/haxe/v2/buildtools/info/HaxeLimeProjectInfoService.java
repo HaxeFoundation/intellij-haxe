@@ -33,7 +33,6 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ import static com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.
  * Resolves the effective compiler configuration of Lime/OpenFL/HXP project files.
  * Primary path: the bundled LimeProjectParser jar (tools/LimeProjectParser.jar,
  * run on the IDE's own JRE) evaluates the project natively and returns structured
- * JSON — defines, haxelibs WITH their identity, sources and app data. Fallback
+ * JSON — the compiler's -D set, haxelibs WITH their identity, sources and app data. Fallback
  * when the jar is missing or fails: {@code haxelib run lime|openfl display},
  * whose hxml output flattens haxelibs into classpaths.
  *
@@ -148,19 +147,14 @@ public final class HaxeLimeProjectInfoService implements Disposable {
                                           @NotNull Key key,
                                           @Nullable String workDirectory,
                                           @NotNull String haxePath) {
-    List<String> command = new ArrayList<>(List.of(
+    // the tool derives the target's own defines from --target, as lime does
+    List<String> command = List.of(
       javaExecutable(),
       "-jar", parserJar.toString(),
       key.filePath(),
       "--target", key.targetFlag(),
       "--haxe", haxePath,
-      "--haxelib", key.haxelibPath()));
-
-    for (String seed : seedDefines(key.targetFlag())) {
-      command.add("-D");
-      command.add(seed);
-    }
-
+      "--haxelib", key.haxelibPath());
     GeneralCommandLine commandLine = new GeneralCommandLine(command).withWorkDirectory(workDirectory);
 
     try {
@@ -183,7 +177,7 @@ public final class HaxeLimeProjectInfoService implements Disposable {
     try {
       LimeParserOutput parsed = PARSER_OUTPUT_MAPPER.readValue(StringUtil.trimTrailing(stdout), LimeParserOutput.class);
 
-      List<HaxeDefine> defines = parsed.defines().entrySet().stream()
+      List<HaxeDefine> defines = parsed.haxedefs().entrySet().stream()
         .map(entry -> new HaxeDefine(entry.getKey(), StringUtil.nullize(entry.getValue())))
         .toList();
 
@@ -201,32 +195,6 @@ public final class HaxeLimeProjectInfoService implements Disposable {
     }
   }
 
-  /** Approximates the condition defines lime seeds before parsing: the target id plus its platform family. */
-  @NotNull
-  private static List<String> seedDefines(@NotNull String targetFlag) {
-    // TODO: verify the seeds against real `lime display` output per target
-    List<String> seeds = new ArrayList<>();
-    seeds.add(targetFlag);
-    switch (targetFlag) {
-      case "html5" -> seeds.add("web");
-      case "android", "ios" -> {
-        seeds.add("mobile");
-        seeds.add("native");
-      }
-      case "windows", "mac", "linux" -> {
-        seeds.add("desktop");
-        seeds.add("native");
-      }
-      case "hl", "neko", "java", "cs" -> {
-        seeds.add("desktop");
-        // pseudo-targets run on the host platform, which lime also defines
-        seeds.add(LimeProjects.hostPlatformTarget());
-      }
-      default -> { }
-    }
-    return seeds;
-  }
-
   @NotNull
   private static String javaExecutable() {
     return Path.of(System.getProperty("java.home"), "bin", SystemInfo.isWindows ? "java.exe" : "java").toString();
@@ -240,6 +208,8 @@ public final class HaxeLimeProjectInfoService implements Disposable {
 
   // --- legacy lime display fallback ---
 
+  // TODO: point the display at an export root no build uses (LimeProjects.displayCommandLine) - lime prints the
+  //  cached <app path>/<target>/haxe/<build type>.hxml whenever it is newer than the project file
   @Nullable
   private HaxeBuildFileInfo runDisplay(@NotNull Key key,
                                        @NotNull String tool,
@@ -293,13 +263,16 @@ public final class HaxeLimeProjectInfoService implements Disposable {
     cache.shutdown();
   }
 
-  private record LimeParserOutput(Map<String, String> defines,
+  /// `haxedefs` is every -D the lime build passes to haxe for the target. The
+  /// tool's `defines` member (lime's own condition defines: `<set>` names,
+  /// target seeds) is not mapped - the IDE's define set is the compiler's.
+  private record LimeParserOutput(Map<String, String> haxedefs,
                                   List<ParserHaxelib> haxelibs,
                                   List<String> sources,
                                   ParserApp app) {
 
     private LimeParserOutput {
-      defines = defines != null ? defines : Map.of();
+      haxedefs = haxedefs != null ? haxedefs : Map.of();
       haxelibs = haxelibs != null ? haxelibs : List.of();
       sources = sources != null ? sources : List.of();
       app = app != null ? app : new ParserApp(null, null);

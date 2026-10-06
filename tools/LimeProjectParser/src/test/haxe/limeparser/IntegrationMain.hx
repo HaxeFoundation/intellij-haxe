@@ -2,7 +2,6 @@ package limeparser;
 
 import haxe.Json;
 import haxe.io.Path;
-import sys.FileSystem;
 import sys.io.File;
 import sys.io.Process;
 
@@ -24,7 +23,7 @@ class IntegrationMain {
 			return;
 		}
 
-		var directory = createTempDirectory();
+		var directory = TempFiles.createDirectory();
 		var xmlPath = Path.join([directory, "project.xml"]);
 		var hxpPath = Path.join([directory, "project.hxp"]);
 		File.saveContent(xmlPath, XML_FIXTURE);
@@ -35,6 +34,7 @@ class IntegrationMain {
 		assertConfiguration("hxp/hl", evaluateHxp(hxpPath, "hl"), "hlsteam", "webaudio");
 		assertConfiguration("hxp/html5", evaluateHxp(hxpPath, "html5"), "webaudio", "hlsteam");
 		transitiveDependenciesResolve(xmlPath);
+		TempFiles.delete(directory);
 
 		if (failures > 0) {
 			Sys.stderr().writeString(failures + " assertion(s) failed\n");
@@ -81,8 +81,8 @@ class Project extends HXProject {
 			Sys.println("openfl not installed - skipping the transitive resolution case");
 			return;
 		}
-		var evaluator = new ProjectXmlEvaluator(["hl" => ""], "display", new Map(),
-			ProjectXmlEvaluator.NO_INCLUDES, HaxelibLookup.resolver("haxelib"));
+		var resolvers = ProjectXmlEvaluator.resolversOf(null, HaxelibLookup.resolver("haxelib"));
+		var evaluator = new ProjectXmlEvaluator(["hl" => ""], "display", new Map(), "", resolvers);
 		evaluator.parse(File.getContent(xmlPath));
 		if (!Lambda.exists(evaluator.haxelibs, lib -> lib.name == "lime")) {
 			fail("transitive: lime not surfaced by openfl resolution");
@@ -93,7 +93,7 @@ class Project extends HXProject {
 	}
 
 	static function evaluateXml(path:String, seeds:Map<String, String>):Dynamic {
-		var evaluator = new ProjectXmlEvaluator(seeds, "display", new Map(), ProjectXmlEvaluator.NO_INCLUDES);
+		var evaluator = new ProjectXmlEvaluator(seeds, "display", new Map(), "", ProjectXmlEvaluator.resolversOf());
 		evaluator.parse(File.getContent(path));
 		var haxedefs = {};
 		for (name in evaluator.haxedefs.keys()) {
@@ -144,14 +144,5 @@ class Project extends HXProject {
 		} catch (e:Dynamic) {
 			return false;
 		}
-	}
-
-	static function createTempDirectory():String {
-		var base = Sys.getEnv("TEMP");
-		if (base == null) base = Sys.getEnv("TMPDIR");
-		if (base == null) base = "/tmp";
-		var directory = Path.join([base, "limeparser-it-" + Std.string(Std.random(0x7FFFFFFF))]);
-		FileSystem.createDirectory(directory);
-		return directory;
 	}
 }

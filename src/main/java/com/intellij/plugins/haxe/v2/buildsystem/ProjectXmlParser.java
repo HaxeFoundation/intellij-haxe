@@ -71,6 +71,33 @@ public final class ProjectXmlParser {
     return appAttribute(content, "path");
   }
 
+  /**
+   * The {@code <include>} project files the file merges, as spelled
+   * ({@code path}, or legacy {@code name}), in file order and regardless of
+   * {@code if}/{@code unless}. A {@code haxelib} include is left out: lime
+   * reads that library's own include file and ignores a path beside it.
+   */
+  @NotNull
+  public static List<String> parseIncludePaths(@NotNull String content) {
+    List<String> includes = new ArrayList<>();
+    try {
+      XMLStreamReader reader = createSecureFactory().createXMLStreamReader(new StringReader(content));
+      while (reader.hasNext()) {
+        if (reader.next() != XMLStreamConstants.START_ELEMENT) continue;
+        if (!"include".equals(reader.getLocalName().toLowerCase(Locale.ROOT))) continue;
+        if (attribute(reader, "haxelib") != null) continue;
+        String path = pathOrLegacyName(reader);
+        if (path != null) {
+          includes.add(path);
+        }
+      }
+    }
+    catch (XMLStreamException e) {
+      log.debug("Failed to parse project xml: " + e.getMessage());
+    }
+    return List.copyOf(includes);
+  }
+
   @Nullable
   private static String appAttribute(@NotNull String content, @NotNull String attributeName) {
     try {
@@ -108,12 +135,19 @@ public final class ProjectXmlParser {
       }
     }
     else if (CLASSPATH_TAGS.contains(tag)) {
-      String path = attribute(reader, "path");
-      if (path == null) path = attribute(reader, "name");
-      if (path != null && !path.isBlank()) {
-        classpaths.add(path.trim());
+      String path = pathOrLegacyName(reader);
+      if (path != null) {
+        classpaths.add(path);
       }
     }
+  }
+
+  /** The element's {@code path} attribute, else its legacy {@code name} spelling; null when neither carries a value. */
+  @Nullable
+  private static String pathOrLegacyName(@NotNull XMLStreamReader reader) {
+    String path = attribute(reader, "path");
+    if (path == null) path = attribute(reader, "name");
+    return path == null || path.isBlank() ? null : path.trim();
   }
 
   @Nullable
