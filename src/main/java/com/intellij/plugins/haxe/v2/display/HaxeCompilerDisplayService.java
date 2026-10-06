@@ -324,7 +324,7 @@ public final class HaxeCompilerDisplayService {
   }
 
   // TODO: keyed on the project file's stamp only - an edited library
-  //  include.xml does not invalidate this cache.
+  //  include.xml takes effect on Reload Haxe Project or Purge Caches, not by itself.
   @Nullable
   private List<String> limeArgsFor(@NotNull LimeDisplaySpec spec, @Nullable String sdkName) {
     String cacheKey = spec.directory() + "/" + spec.fileName();
@@ -452,6 +452,8 @@ public final class HaxeCompilerDisplayService {
   /** Forgets which contexts were compiled, so the next module lookup compiles again. */
   public void resetCompiledContexts() {
     compiledContexts.clear();
+    capabilities.clear();
+    limeArgsCache.clear();
   }
 
   /** The file on disk behind an element; a completion copy maps back to its original. */
