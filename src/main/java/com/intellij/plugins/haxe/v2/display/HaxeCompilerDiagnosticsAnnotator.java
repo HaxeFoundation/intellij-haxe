@@ -6,6 +6,7 @@ import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.display.protocol.Diagnostic;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticKind;
@@ -142,9 +143,13 @@ public class HaxeCompilerDiagnosticsAnnotator extends HaxeCompilerDiagnosticsAnn
     return HaxeSyntaxMigrationFixes.modernizeFixAt(file, range);
   }
 
+  /** The haxe version of the server behind the file's context; null without a context or a running server. */
   @Nullable
   private static InitializeResult.SemVer connectedHaxeVersion(@NotNull PsiFile file) {
-    return HaxeCompilerDisplayService.getInstance(file.getProject()).connectedHaxeVersion();
+    HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(file.getProject());
+    VirtualFile virtualFile = file.getOriginalFile().getVirtualFile();
+    var context = virtualFile == null ? null : displayService.contextFor(virtualFile);
+    return context == null ? null : displayService.connectedHaxeVersion(context.sdkName());
   }
 
   @NotNull

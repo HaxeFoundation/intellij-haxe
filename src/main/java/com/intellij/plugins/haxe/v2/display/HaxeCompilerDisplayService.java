@@ -78,9 +78,8 @@ public final class HaxeCompilerDisplayService {
                                 long fileStamp) {
   }
 
-  /** The methods and haxe version the running server reported; asked again when the port changes. */
-  private record Capability(int port, @NotNull Set<String> methods,
-                            @Nullable InitializeResult.SemVer haxeVersion) {
+  /** The methods and haxe version a running server reported on initialize; kept per port. */
+  private record Capability(@NotNull Set<String> methods, @Nullable InitializeResult.SemVer haxeVersion) {
   }
 
   /** A client for a running server that supports the requested method, with the resolved arguments. */
@@ -97,7 +96,8 @@ public final class HaxeCompilerDisplayService {
   private final Map<String, CachedLimeArgs> limeArgsCache = new ConcurrentHashMap<>();
   /** Keys of the contexts compiled this session; the server's module cache fills only from a compile. */
   private final Set<String> compiledContexts = ConcurrentHashMap.newKeySet();
-  private volatile Capability capability;
+  /** What each running server answered on initialize, by port; a server state change empties it. */
+  private final Map<Integer, Capability> capabilities = new ConcurrentHashMap<>();
 
   public HaxeCompilerDisplayService(@NotNull Project project) {
     this.project = project;
@@ -113,10 +113,15 @@ public final class HaxeCompilerDisplayService {
     return project;
   }
 
-  /** The connected server's haxe version; null before the first successful initialize. */
+  /**
+   * The haxe version of the server serving the given SDK; null while that
+   * server does not run or has not answered an initialize yet. Each SDK has
+   * its own server, so a mixed-version project asks per context.
+   */
   @Nullable
-  public InitializeResult.SemVer connectedHaxeVersion() {
-    Capability known = capability;
+  public InitializeResult.SemVer connectedHaxeVersion(@Nullable String sdkName) {
+    int port = HaxeCompilationServerManager.getInstance(project).runningPortForSdk(sdkName);
+    Capability known = port > 0 ? capabilities.get(port) : null;
     return known != null ? known.haxeVersion() : null;
   }
 
@@ -256,12 +261,17 @@ public final class HaxeCompilerDisplayService {
     }
     try {
       DisplayResponse compiled = compileContext(connected);
-      String errors = compiled.hasError() ? compiled.payload().strip() : "";
-      return errors.isEmpty() ? message
-                              : HaxeBundle.message("haxe.display.context.compile.failed", errors);
+      boolean explained = compiled.hasError() && !compiled.payload().isBlank();
+      return explained ? contextCompileFailure(compiled) : message;
     } catch (DisplayRequestException probeFailure) {
       return message;
     }
+  }
+
+  /** The user-facing text for a context compile that reported errors. */
+  @NotNull
+  private static String contextCompileFailure(@NotNull DisplayResponse compiled) {
+    return HaxeBundle.message("haxe.display.context.compile.failed", compiled.payload().strip());
   }
 
   /**
@@ -380,15 +390,15 @@ public final class HaxeCompilerDisplayService {
     client.setObserver((requestMethod, millis, success) ->
                          HaxeServerMetrics.getInstance(project).record(serverId, millis, success));
 
-    Capability known = capability;
-    if (known == null || known.port() != port) {
+    Capability known = capabilities.get(port);
+    if (known == null) {
       InitializeResult initialized = initializeWithRetry(client, args);
       if (initialized == null) return null;
-      known = new Capability(port, Set.copyOf(initialized.methods()), initialized.haxeVersion());
+      known = new Capability(Set.copyOf(initialized.methods()), initialized.haxeVersion());
       log.info("haxe display protocol " + initialized.protocolVersion()
-               + " (haxe " + initialized.haxeVersion() + "), "
+               + " (haxe " + initialized.haxeVersion() + ") on port " + port + ", "
                + known.methods().size() + " methods");
-      capability = known;
+      capabilities.put(port, known);
     }
     return known.methods().contains(method) ? new Connected(client, args, port) : null;
   }
@@ -422,20 +432,26 @@ public final class HaxeCompilerDisplayService {
    * fills only from a real compile. Returns whether the context compiled. A
    * FAILED compile (broken code) is not remembered: remembering it would keep
    * module lookups broken until the caches are purged, even after the code is
-   * fixed. The next call retries instead. Background threads only.
+   * fixed. The next call retries instead. The outcome is recorded as the
+   * container's context failure, so a broken build context shows in the tool
+   * window even while compiler diagnostics are off. Background threads only.
    */
-  boolean ensureContextCompiled(@NotNull Connected connected, @NotNull String contextKey) {
+  boolean ensureContextCompiled(@NotNull Connected connected, @NotNull String contextKey, @NotNull String containerId) {
     if (compiledContexts.contains(contextKey)) return true;
+    HaxeContextFailures failures = HaxeContextFailures.getInstance(project);
     try {
       DisplayResponse compiled = compileContext(connected);
       if (compiled.hasError()) {
         log.info("context warm-up compile reported errors - will retry: " + compiled.payload());
+        failures.record(containerId, contextCompileFailure(compiled));
         return false;
       }
       compiledContexts.add(contextKey);
+      failures.record(containerId, null);
       return true;
     } catch (DisplayRequestException e) {
       log.info("context warm-up compile failed: " + e.getMessage());
+      failures.record(containerId, StringUtil.notNullize(e.getMessage()));
       return false;
     }
   }
@@ -449,8 +465,12 @@ public final class HaxeCompilerDisplayService {
                                         CONTEXT_COMPILE_TIMEOUT_MS);
   }
 
-  /** Forgets which contexts were compiled, so the next module lookup compiles again. */
-  public void resetCompiledContexts() {
+  /**
+   * Forgets which contexts were compiled, what each server answered on
+   * initialize and the cached lime display arguments, so the next request
+   * initializes, evaluates and compiles again.
+   */
+  public void clearCaches() {
     compiledContexts.clear();
     capabilities.clear();
     limeArgsCache.clear();

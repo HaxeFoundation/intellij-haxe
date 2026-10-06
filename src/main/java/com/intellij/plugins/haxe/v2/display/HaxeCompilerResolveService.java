@@ -337,7 +337,7 @@ public final class HaxeCompilerResolveService {
 
     // a failed warm-up compile does not stop the lookup: the module may
     // already be in the server's cache from an earlier compile
-    displayService.ensureContextCompiled(connected, key.contextKey());
+    displayService.ensureContextCompiled(connected, key.contextKey(), context.containerId());
 
     try {
       String dotPath = key.dotPath();

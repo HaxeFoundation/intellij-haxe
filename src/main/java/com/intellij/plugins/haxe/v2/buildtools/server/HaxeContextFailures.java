@@ -14,8 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * The last failed compiler request per container. A build context that fails
  * to compile, for example because a define override breaks a library,
  * silently disables every compiler-backed feature. This store makes such a
- * failure visible: the display service records the outcome of each request,
- * and the tool window shows the failure in the Compilation server row.
+ * failure visible: the display service records the outcome of each request
+ * and of the context warm-up compile, and the tool window shows the failure
+ * in the Compilation server row.
  */
 @Service(Service.Level.PROJECT)
 public final class HaxeContextFailures {

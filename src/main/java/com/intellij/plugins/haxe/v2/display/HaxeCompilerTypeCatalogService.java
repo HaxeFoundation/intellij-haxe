@@ -237,7 +237,7 @@ public final class HaxeCompilerTypeCatalogService {
     // a failed warm-up compile must not abort the fill. The module cache may
     // already be filled by an earlier compile, and re-running init macros can
     // fail on redefinitions while the cache is fine.
-    displayService.ensureContextCompiled(connected, contextKey);
+    displayService.ensureContextCompiled(connected, contextKey, context.containerId());
 
     try {
       ContextCatalog previous = catalogs.get(contextKey);
