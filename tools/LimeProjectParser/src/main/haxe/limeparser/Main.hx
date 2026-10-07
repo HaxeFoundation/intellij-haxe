@@ -110,6 +110,7 @@ class Main {
 			haxelibs: evaluator.haxelibs,
 			sources: evaluator.sources,
 			app: {path: evaluator.appPath, file: evaluator.appFile},
+			config: mapToObject(evaluator.config),
 		});
 	}
 

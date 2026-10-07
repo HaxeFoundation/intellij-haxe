@@ -49,6 +49,7 @@ class TestMain {
 		toolsDefineFollowsTheLimeHaxelib();
 		haxeVersionSeeds();
 		targetNamedEnvironmentVariablesAreDropped();
+		configValuesFlattenedToDotKeys();
 
 		if (failures > 0) {
 			Sys.stderr().writeString(failures + " assertion(s) failed\n");
@@ -515,6 +516,25 @@ class TestMain {
 			?extraDefines:Array<String>, ?extraArgs:Array<String>):ResolvedHaxelib {
 		return {name: name, version: version, root: root, classpaths: [root + "/src"], includeXml: includeXml,
 			extraDefines: extraDefines == null ? [] : extraDefines, extraArgs: extraArgs == null ? [] : extraArgs};
+	}
+
+	static function configValuesFlattenedToDotKeys():Void {
+		// $$ = literal $ in a single-quoted haxe string (interpolation escape)
+		var xml = '<project>
+			<set name="dist" value="airdist"/>
+			<config:air output-directory="$${dist}"/>
+			<config><flash output-directory="swfdist"/></config>
+			<config:html5><output-directory>web</output-directory></config:html5>
+			<config:linux output-directory="lin" if="true"/>
+			<config:windows output-directory="skipped" if="never"/>
+		</project>';
+		var result = evaluate(xml);
+		assertEquals("airdist", result.config.get("air.output-directory"), "config: prefix form, variable substituted");
+		assertEquals("swfdist", result.config.get("flash.output-directory"), "nested <config> form");
+		assertEquals("web", result.config.get("html5.output-directory"), "text child form");
+		assertEquals("lin", result.config.get("linux.output-directory"), "matched if keeps the value");
+		assertTrue(!result.config.exists("linux.if"), "condition attributes are not values");
+		assertTrue(!result.config.exists("windows.output-directory"), "unmatched if excludes the config");
 	}
 
 	static function hasLib(evaluator:ProjectXmlEvaluator, name:String):Bool {

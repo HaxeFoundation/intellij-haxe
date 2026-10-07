@@ -43,7 +43,7 @@ public final class HaxeProfileProgramAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null || !(panel.getSelectedUserObject() instanceof ProgramNode programNode)) return;
-    List<ProfilerEntry> entries = profilerEntriesFor(programNode);
+    List<ProfilerEntry> entries = profilerEntriesFor(project, programNode);
     if (entries.isEmpty()) return; // raced a settings change - the action was disabled a moment ago
     if (entries.size() == 1) {
       HaxeToolWindowLaunches.runProgram(project, programNode, entries.getFirst().executor());
@@ -73,8 +73,9 @@ public final class HaxeProfileProgramAction extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    List<ProfilerEntry> entries = panel.getSelectedUserObject() instanceof ProgramNode programNode
-                                  ? profilerEntriesFor(programNode)
+    Project project = e.getProject();
+    List<ProfilerEntry> entries = project != null && panel.getSelectedUserObject() instanceof ProgramNode programNode
+                                  ? profilerEntriesFor(project, programNode)
                                   : List.of();
     e.getPresentation().setEnabledAndVisible(!entries.isEmpty());
     e.getPresentation().setText(entries.size() == 1
@@ -82,9 +83,9 @@ public final class HaxeProfileProgramAction extends DumbAwareAction {
                                 : HaxeBundle.message("haxe.toolwindow.profile.action"));
   }
 
-  private static List<ProfilerEntry> profilerEntriesFor(ProgramNode programNode) {
+  private static List<ProfilerEntry> profilerEntriesFor(Project project, ProgramNode programNode) {
     HaxeProfilableRunConfiguration.Lane lane =
-      HaxeProgramLaunches.profilingLaneFor(programNode.target(), programNode.targetOutput());
+      HaxeProgramLaunches.profilingLaneFor(project, programNode.buildFile(), programNode.target());
     return lane == null ? List.of() : HaxeProfilerExecutorSupport.profilerExecutors(lane);
   }
 

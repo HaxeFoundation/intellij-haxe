@@ -22,7 +22,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
 import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
@@ -43,8 +42,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An AIR run/debug configuration: the application descriptor (application.xml)
  * plus the Flex/AIR SDK whose {@code adl} launches it. Plain Run spawns adl
- * directly — no Flash plugin needed; debugging attaches the Flex debugger
- * (the Flash/Flex plugin must be installed) while adl launches the app.
+ * directly — no Flash plugin needed, and no registered SDK either when the
+ * Build Tools chain or the AIR_SDK environment variable supplies adl (see
+ * {@link #findAdl}); debugging attaches the Flex debugger (the Flash/Flex
+ * plugin must be installed, the SDK registered) while adl launches the app.
  * A lime/openfl {@code air} build exports the descriptor at the export root
  * with the content (swf) in {@code bin/} beside it.
  */
@@ -109,12 +110,6 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
     programParameters = orEmpty(parameters);
   }
 
-  /** The Flex/AIR SDK supplying adl (and the debugger): this configuration's own selection, else the Build Tools/Haxe SDK chain. */
-  @NotNull
-  public String effectiveFlexSdkName() {
-    return HaxeToolPathResolver.flexSdkNameOrEmpty(getProject(), flexSdkName);
-  }
-
   @Override
   public @NotNull SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     return new AirRunConfigurationEditor(getProject());
@@ -132,8 +127,8 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
     if (!Files.isRegularFile(descriptor)) {
       throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("air.runner.descriptor.missing", descriptorPath));
     }
-    if (effectiveFlexSdkName().isBlank()) {
-      throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("air.runner.no.flex.sdk"));
+    if (findAdl() == null) {
+      throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("air.runner.no.adl"));
     }
   }
 
@@ -285,19 +280,30 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
 
   @NotNull
   private Path resolveAdl() throws ExecutionException {
-    String sdkName = effectiveFlexSdkName();
-    if (sdkName.isBlank()) {
-      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.no.flex.sdk"));
-    }
-    Sdk sdk = ProjectJdkTable.getInstance().findJdk(sdkName);
-    if (sdk == null || sdk.getHomePath() == null) {
-      throw new ExecutionException(HaxeBundle.message("flex.sdk.not.found", sdkName));
-    }
-    Path adl = HaxeToolPathResolver.adlInSdk(sdk.getHomePath());
-    if (!Files.isRegularFile(adl)) {
-      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.adl.missing", sdkName, adl.toString()));
+    Path adl = findAdl();
+    if (adl == null) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.no.adl"));
     }
     return adl;
+  }
+
+  /**
+   * adl for a plain Run: this configuration's own Flex/AIR SDK selection when
+   * it has one, else the project chain of
+   * {@link HaxeToolPathResolver#resolveAdlExecutable} (the Build Tools / Haxe
+   * SDK entry, then the AIR_SDK environment variable). Null when none yields an
+   * existing executable. Debug needs a registered SDK regardless - the debugger
+   * comes from it ({@link AirDebugRunner}).
+   */
+  @Nullable
+  private Path findAdl() {
+    Sdk ownSdk = flexSdkName.isBlank() ? null : ProjectJdkTable.getInstance().findJdk(flexSdkName);
+    if (ownSdk != null && ownSdk.getHomePath() != null) {
+      Path adl = HaxeToolPathResolver.adlInSdk(ownSdk.getHomePath());
+      if (Files.isRegularFile(adl)) return adl;
+    }
+    String resolved = HaxeToolPathResolver.resolveAdlExecutable(getProject());
+    return resolved == null ? null : Path.of(resolved);
   }
 
   // --- persistence ---

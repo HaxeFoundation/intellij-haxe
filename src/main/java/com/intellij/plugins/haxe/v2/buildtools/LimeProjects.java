@@ -54,6 +54,9 @@ public final class LimeProjects {
   /** The target flags whose packaged app runs in a BROWSER page, served and console-captured for test runs. */
   public static final Set<String> BROWSER_TARGETS = Set.of("html5");
 
+  /** The target flags lime builds through the HOST desktop platform (see {@link #outputDirectoryConfigKey}). */
+  private static final Set<String> HOST_BUILT_TARGETS = Set.of("cpp", "hl", "neko", "java", "cs");
+
   /** The app file every lime platform falls back to when the project xml declares none. */
   private static final String DEFAULT_APP_FILE = "MyApplication";
 
@@ -254,6 +257,11 @@ public final class LimeProjects {
     return FLASH_FAMILY_TARGETS.contains(targetFlag) || BROWSER_TARGETS.contains(targetFlag);
   }
 
+  /** Whether the flag is lime's air target - the one swf build launched under adl instead of the standalone player. */
+  public static boolean isAirTarget(@Nullable String targetFlag) {
+    return "air".equals(targetFlag);
+  }
+
   /**
    * The html5 build's packaged web root ({@code <app path>/html5/bin}, lime's
    * own index.html inside), or null for other targets or without an app path.
@@ -294,14 +302,19 @@ public final class LimeProjects {
    * {@code <app path>/<target dir>/bin/<app file>[.exe]}, relative to the
    * project file. Neko output is wrapped in a launcher executable and an HL
    * build ships a renamed copy of the hl runtime beside its hlboot.dat — for
-   * all host targets the packaged binary itself is what runs. Null when the
-   * target is not host-launchable.
+   * all host targets the packaged binary itself is what runs. A mac build
+   * packages a {@code .app} bundle; the binary is the executable inside it.
+   * Null when the target is not host-launchable.
+   * TODO honour a {@code <platform>.output-directory} config value here as
+   *  {@link #relativeTargetOutput} does (the test lane reads the project xml
+   *  directly, without the parser tool's evaluation)
    */
   @Nullable
   public static Path packagedBinary(@NotNull VirtualFile projectFile, @NotNull String content, @NotNull String targetFlag) {
     if (!HOST_LAUNCHABLE_TARGETS.contains(targetFlag)) return null;
-    return exportBinDirectory(projectFile, content, targetDirectory(targetFlag))
-      .resolve(HaxeSdkUtilBase.getExecutableName(appFile(content)))
+    String platformTarget = platformTarget(targetFlag);
+    return exportBinDirectory(projectFile, content, targetDirectory(platformTarget))
+      .resolve(packagedLauncher(platformTarget, appFile(content)))
       .normalize();
   }
 
@@ -319,10 +332,28 @@ public final class LimeProjects {
       .normalize();
   }
 
-  /** The export subdirectory a target builds into; "cpp" is the tool's alias for the host platform. */
+  /** The lime platform that builds the target: the host desktop platform behind the tool's "cpp" alias, the flag itself otherwise. */
   @NotNull
-  private static String targetDirectory(@NotNull String targetFlag) {
+  private static String platformTarget(@NotNull String targetFlag) {
     return targetFlag.equals("cpp") ? hostPlatformTarget() : targetFlag;
+  }
+
+  /** The export subdirectory a platform target builds into by default; lime names the mac one "macos". */
+  @NotNull
+  private static String targetDirectory(@NotNull String platformTarget) {
+    return platformTarget.equals("mac") ? "macos" : platformTarget;
+  }
+
+  /** The launcher a desktop build leaves in its bin: the executable inside the .app bundle on mac, {@code <app file>[.exe]} elsewhere. */
+  @NotNull
+  private static String packagedLauncher(@NotNull String platformTarget, @NotNull String appFile) {
+    return platformTarget.equals("mac") ? macBundleExecutable(appFile) : HaxeSdkUtilBase.getExecutableName(appFile);
+  }
+
+  /** The executable inside the {@code .app} bundle a mac build packages - the bundle itself is a directory, not a launchable file. */
+  @NotNull
+  private static String macBundleExecutable(@NotNull String appFile) {
+    return appFile + ".app/Contents/MacOS/" + appFile;
   }
 
   /** The lime target naming the host desktop platform. */
@@ -332,26 +363,42 @@ public final class LimeProjects {
     return SystemInfo.isMac ? "mac" : "linux";
   }
 
-  /// The compile artifact per lime's export layout (`<app path>/<target>/...`),
+  /// The project-xml config key lime's platform reads its export subdirectory
+  /// from (`<config:air output-directory="dist"/>` → `air.output-directory`).
+  /// Targets built through the host desktop platform (cpp, hl, neko, java,
+  /// cs) read the HOST platform's key, as lime routes them to that platform.
+  @NotNull
+  public static String outputDirectoryConfigKey(@NotNull String targetFlag) {
+    String platform = HOST_BUILT_TARGETS.contains(targetFlag) ? hostPlatformTarget() : targetFlag;
+    return platform + ".output-directory";
+  }
+
+  /// The compile artifact per lime's export layout (`<app path>/<target dir>/...`),
   /// RELATIVE to the project file - the shape the parser-tool evaluation
-  /// reports. Only the targets Build & run can launch need one; the packaged*
+  /// reports. `outputDirectory` is the project's `<platform>.output-directory`
+  /// config value (see [#outputDirectoryConfigKey]), null for lime's default
+  /// directory. Only the targets Build & run can launch need one; the packaged*
   /// lookups above answer the same layout as absolute paths at launch time.
   @Nullable
-  public static String relativeTargetOutput(@NotNull String targetFlag, @NotNull String appPath, @NotNull String declaredAppFile) {
+  public static String relativeTargetOutput(@NotNull String targetFlag,
+                                            @NotNull String appPath,
+                                            @NotNull String declaredAppFile,
+                                            @Nullable String outputDirectory) {
     String appFile = appFileOrDefault(declaredAppFile);
-    return switch (targetFlag) {
-      case "hl" -> appPath + "/hl/obj/ApplicationMain.hl";
-      case "html5" -> appPath + "/html5/bin/" + appFile + ".js";
-      case "flash" -> appPath + "/flash/bin/" + appFile + ".swf";
-      // air: the descriptor (application.xml) sits at <app path>/air with the content swf in bin beside it
-      case "air" -> appPath + "/air/bin/" + appFile + ".swf";
-      // desktop cpp: lime copies the built executable into bin, named after
+    String platformTarget = platformTarget(targetFlag);
+    String targetRoot = appPath + "/" + StringUtil.defaultIfEmpty(outputDirectory, targetDirectory(platformTarget));
+    return switch (platformTarget) {
+      case "hl" -> targetRoot + "/obj/ApplicationMain.hl";
+      case "html5" -> targetRoot + "/bin/" + appFile + ".js";
+      // air: the descriptor (application.xml) sits at the target root with the content swf in bin beside it
+      case "flash", "air" -> targetRoot + "/bin/" + appFile + ".swf";
+      // desktop: lime copies the built executable into bin, named after
       // <app file>, independent of -debug (unlike raw hxcpp's Main-debug.exe)
-      case "windows" -> appPath + "/windows/bin/" + appFile + ".exe";
-      case "linux" -> appPath + "/linux/bin/" + appFile;
+      case "windows" -> targetRoot + "/bin/" + appFile + ".exe";
+      case "linux" -> targetRoot + "/bin/" + appFile;
+      case "mac" -> targetRoot + "/bin/" + macBundleExecutable(appFile);
       // neko is wrapped in a launcher executable named after the app, host-suffixed
-      case "neko" -> appPath + "/neko/bin/" + HaxeSdkUtilBase.getExecutableName(appFile);
-      // TODO mac: the artifact is a .app bundle (Contents/MacOS/<app file>) - needs bundle-aware launch
+      case "neko" -> targetRoot + "/bin/" + HaxeSdkUtilBase.getExecutableName(appFile);
       default -> null;
     };
   }

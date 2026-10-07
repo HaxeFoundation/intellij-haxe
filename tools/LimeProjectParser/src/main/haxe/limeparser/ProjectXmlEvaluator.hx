@@ -75,10 +75,16 @@ class ProjectXmlEvaluator {
 	static final HAXELIB_PREFIX = "haxelib:";
 	static final DEFINE_FLAG = "-D ";
 
+	static final CONFIG_PREFIX = "config:";
+	// <config> attributes that steer the parse instead of holding a value
+	static final CONFIG_META_ATTRIBUTES = ["type", "if", "unless"];
+
 	public final defines:Map<String, String> = [];
 	public final haxedefs:Map<String, String> = [];
 	public final haxelibs:Array<{name:String, version:String}> = [];
 	public final sources:Array<String> = [];
+	/** <config> values flattened to the dot keys lime's ConfigData reads (`air.output-directory`). **/
+	public final config:Map<String, String> = [];
 	// The <app> attributes: path is the export root (lime's default is
 	// "bin"), file the executable name.
 	public var appPath:String = "bin";
@@ -179,10 +185,44 @@ class ProjectXmlEvaluator {
 				case "source", "classpath": parseSource(element);
 				case "app": parseApp(element);
 				case "library": parseLibrary(element);
+				case "config": parseConfig(element, "");
+				case name if (StringTools.startsWith(name, CONFIG_PREFIX)): parseConfig(element, name.substr(CONFIG_PREFIX.length));
 				default:
 					// window, meta, assets, icon and the like carry no build configuration
 			}
 		}
+	}
+
+	/**
+		Collects a <config> element the way lime's ConfigData does, flattened
+		to dot keys: `<config:air output-directory="x"/>` and
+		`<config><air output-directory="x"/></config>` both yield
+		`air.output-directory`. A `type` attribute names the bucket like the
+		`config:` prefix does; attributes and text-only children are leaves,
+		other children nest one level deeper.
+	**/
+	function parseConfig(element:Xml, bucket:String):Void {
+		parseConfigBucket(element, element.exists("type") ? element.get("type") : bucket);
+	}
+
+	function parseConfigBucket(element:Xml, bucket:String):Void {
+		for (name in element.attributes()) {
+			if (!CONFIG_META_ATTRIBUTES.contains(name)) {
+				config.set(configKey(bucket, name), attribute(element, name));
+			}
+		}
+		for (child in element.elements()) {
+			var key = configKey(bucket, child.nodeName);
+			if (child.elements().hasNext() || child.attributes().hasNext()) {
+				parseConfigBucket(child, key);
+			} else if (child.firstChild() != null) {
+				config.set(key, substitute(child.firstChild().nodeValue));
+			}
+		}
+	}
+
+	static function configKey(bucket:String, name:String):String {
+		return bucket == "" ? name : bucket + "." + name;
 	}
 
 	/** <set> is a condition define and an environment variable; BUILD_DIR also moves the export root. **/

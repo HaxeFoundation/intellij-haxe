@@ -41,8 +41,9 @@ import java.util.Locale;
 
 /// Maps a build's compilation target to the run configuration able to launch its
 /// output (the tool window's Build & run): HL bytecode → HashLink Application,
-/// JS → Browser, a swf → Flash or AIR, C++ → hxcpp, neko → Neko. For hxml files the target comes from the file itself;
-/// for lime/openfl/hxp files from the selected target's `lime display` hxml. The
+/// JS → Browser, a swf → Flash (or AIR when the selected lime target is air), C++ → hxcpp, neko → Neko.
+/// For hxml files the target comes from the file itself;
+/// for lime/openfl/hxp files from the selected target's evaluation. The
 /// configuration is created once with a "Run Haxe action" build step attached and
 /// matched by that step's build file afterwards, so tree launches and the
 /// run-configuration dropdown stay in sync.
@@ -66,9 +67,9 @@ public final class HaxeProgramLaunches {
    * The configuration flavour serving one target's output, the factory that
    * creates it and the bundle key naming a created configuration.
    */
-  private record LaunchSpec(@NotNull Class<? extends RunConfiguration> configurationClass,
-                            @NotNull Class<? extends ConfigurationFactory> factoryClass,
-                            @NotNull String nameKey) {
+  record LaunchSpec(@NotNull Class<? extends RunConfiguration> configurationClass,
+                    @NotNull Class<? extends ConfigurationFactory> factoryClass,
+                    @NotNull String nameKey) {
   }
 
   private static final LaunchSpec HASHLINK_APP = new LaunchSpec(
@@ -86,11 +87,18 @@ public final class HaxeProgramLaunches {
   private static final LaunchSpec INTERP_APP = new LaunchSpec(
     InterpRunConfiguration.class, InterpConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.interp");
 
-  /** The single authority on which run configuration launches which target output. */
+  /**
+   * The single authority on which run configuration launches which target
+   * output. {@code targetFlag} is the lime/nme target the file is set to
+   * build (null for hxml): a swf launches as AIR only when that flag is
+   * lime's air target - the output path says nothing reliable about it,
+   * since the air export directory is configurable.
+   */
   @Nullable
-  private static LaunchSpec specFor(@NotNull HaxeTarget target,
-                                    @NotNull String targetOutput,
-                                    @NotNull HaxeBuildFileType type) {
+  static LaunchSpec specFor(@NotNull HaxeTarget target,
+                            @NotNull String targetOutput,
+                            @NotNull HaxeBuildFileType type,
+                            @Nullable String targetFlag) {
     String output = targetOutput.toLowerCase(Locale.ROOT);
     return switch (target) {
       // HL/C output (-hl out/main.c) is a source directory, not runnable bytecode
@@ -98,7 +106,7 @@ public final class HaxeProgramLaunches {
       case JAVA_SCRIPT -> output.endsWith(".js") ? BROWSER_APP : null;
       case FLASH -> {
         if (!output.endsWith(".swf")) yield null;
-        yield isAirOutput(output) ? AIR_APP : FLASH_APP;
+        yield LimeProjects.isAirTarget(targetFlag) ? AIR_APP : FLASH_APP;
       }
       case CPP -> type != HaxeBuildFileType.HXML ? HXCPP_APP : null;
       // hxml runs the .n through the neko runtime; lime/nme package a launcher
@@ -109,34 +117,35 @@ public final class HaxeProgramLaunches {
   }
 
   /**
-   * The profiler lane the target's launch configuration profiles under,
+   * The profiler lane the build's launch configuration profiles under,
    * null for targets without one. Flash profiles only as AIR: adl's
    * debugger runtime carries the telemetry sampler; the standalone player
    * launch does not.
    */
   @Nullable
-  public static Lane profilingLaneFor(@NotNull HaxeTarget target, @NotNull String targetOutput) {
+  public static Lane profilingLaneFor(@NotNull Project project, @NotNull HaxeBuildFile buildFile, @NotNull HaxeTarget target) {
     return switch (target) {
       case HL -> Lane.HASHLINK;
       case CPP -> Lane.HXCPP;
       case JAVA_SCRIPT -> Lane.JS;
-      case FLASH -> isAirOutput(targetOutput.toLowerCase(Locale.ROOT)) ? Lane.FLASH : null;
+      case FLASH -> LimeProjects.isAirTarget(selectedTargetFlag(project, buildFile)) ? Lane.FLASH : null;
       default -> null;
     };
   }
 
-  /** True when the target's launch configuration can run under a Haxe profiler entry. */
-  public static boolean supportsProgramProfiling(@NotNull HaxeTarget target, @NotNull String targetOutput) {
-    return profilingLaneFor(target, targetOutput) != null;
-  }
-
   /** Display name of the configuration kind that launches this build ("HashLink Application", …), or null when unsupported. */
   @Nullable
-  public static String launchKind(@NotNull HaxeBuildFileInfo info, @NotNull HaxeBuildFileType type) {
+  public static String launchKind(@NotNull Project project, @NotNull HaxeBuildFileInfo info, @NotNull HaxeBuildFile buildFile) {
     String output = launchOutput(info);
     if (info.target() == null || output == null) return null;
-    LaunchSpec spec = specFor(info.target(), output, type);
+    LaunchSpec spec = specFor(info.target(), output, buildFile.type(), selectedTargetFlag(project, buildFile));
     return spec == null ? null : factoryOf(spec).getName();
+  }
+
+  /** The lime/nme target flag the file is currently set to build; null for hxml, whose target is in the file itself. */
+  @Nullable
+  private static String selectedTargetFlag(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    return HaxeBuildSystem.of(buildFile.type()).selectedTargetFlag(project, buildFile);
   }
 
   /**
@@ -168,7 +177,7 @@ public final class HaxeProgramLaunches {
                                                             @NotNull HaxeBuildFile buildFile,
                                                             @NotNull HaxeTarget target,
                                                             @NotNull String targetOutput) {
-    LaunchSpec spec = specFor(target, targetOutput, buildFile.type());
+    LaunchSpec spec = specFor(target, targetOutput, buildFile.type(), selectedTargetFlag(project, buildFile));
     if (spec == null) return null;
     VirtualFile file = buildFile.file();
 
@@ -302,16 +311,10 @@ public final class HaxeProgramLaunches {
   }
 
   /**
-   * lime's air target exports into {@code <app path>/air/}: the descriptor
-   * (application.xml) at the export root, the content (swf) in {@code bin/}
-   * beside it. A plain flash swf never lives in that layout.
-   * TODO honor a custom air.output-directory from project.xml (the "air"
-   *  segment is that setting's default)
+   * lime's air target exports the descriptor (application.xml) at the
+   * target root with the content (swf) in {@code bin/} beside it, whatever
+   * the configured output directory - the target output names the swf.
    */
-  private static boolean isAirOutput(@NotNull String lowerCaseOutput) {
-    return lowerCaseOutput.replace('\\', '/').contains("/air/bin/");
-  }
-
   private static void configureAir(@NotNull Project project,
                                    @NotNull AirRunConfiguration configuration,
                                    @NotNull HaxeBuildFile buildFile,

@@ -186,7 +186,8 @@ public final class HaxeLimeProjectInfoService implements Disposable {
         .toList();
 
       HaxeTarget target = LimeProjects.targetFor(targetFlag);
-      String targetOutput = LimeProjects.relativeTargetOutput(targetFlag, parsed.app().path(), parsed.app().file());
+      String outputDirectory = parsed.config().get(LimeProjects.outputDirectoryConfigKey(targetFlag));
+      String targetOutput = LimeProjects.relativeTargetOutput(targetFlag, parsed.app().path(), parsed.app().file(), outputDirectory);
       return new HaxeBuildFileInfo(target, targetOutput, defines, libraries, List.copyOf(parsed.sources()));
     }
     catch (Exception e) {
@@ -242,7 +243,9 @@ public final class HaxeLimeProjectInfoService implements Disposable {
     HaxeTarget target = LimeProjects.targetFor(targetFlag);
     String appPath = LimeProjects.appPath(projectXml);
     String declaredAppFile = StringUtil.notNullize(ProjectXmlParser.parseAppFile(projectXml));
-    String targetOutput = LimeProjects.relativeTargetOutput(targetFlag, appPath, declaredAppFile);
+    // TODO: the display output carries no <config> values, so a custom
+    //  <platform>.output-directory is only honoured on the parser-tool path
+    String targetOutput = LimeProjects.relativeTargetOutput(targetFlag, appPath, declaredAppFile, null);
     return HxmlFileParser.parse(stdout).withTarget(target, targetOutput);
   }
 
@@ -266,16 +269,20 @@ public final class HaxeLimeProjectInfoService implements Disposable {
   /// `haxedefs` is every -D the lime build passes to haxe for the target. The
   /// tool's `defines` member (lime's own condition defines: `<set>` names,
   /// target seeds) is not mapped - the IDE's define set is the compiler's.
+  /// `config` holds the project's `<config>` values flattened to lime's dot
+  /// keys (`air.output-directory`), as the tool reports them.
   private record LimeParserOutput(Map<String, String> haxedefs,
                                   List<ParserHaxelib> haxelibs,
                                   List<String> sources,
-                                  ParserApp app) {
+                                  ParserApp app,
+                                  Map<String, String> config) {
 
     private LimeParserOutput {
       haxedefs = haxedefs != null ? haxedefs : Map.of();
       haxelibs = haxelibs != null ? haxelibs : List.of();
       sources = sources != null ? sources : List.of();
       app = app != null ? app : new ParserApp(null, null);
+      config = config != null ? config : Map.of();
     }
 
   }

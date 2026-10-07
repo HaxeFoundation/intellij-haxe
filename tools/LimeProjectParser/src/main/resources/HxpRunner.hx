@@ -85,6 +85,9 @@ class HxpRunner {
 			}
 		}
 
+		var config = {};
+		flattenConfig(project.config, "", config);
+
 		Sys.println(Json.stringify({
 			defines: defines,
 			haxedefs: haxedefs,
@@ -94,7 +97,28 @@ class HxpRunner {
 				path: project.app.path == null ? "bin" : project.app.path,
 				file: project.app.file == null ? "" : project.app.file
 			},
+			config: config,
 		}));
+	}
+
+	/**
+		project.config (lime's ConfigData: nested anonymous objects) flattened
+		to dot keys with string leaves (`air.output-directory`), the shape the
+		project.xml evaluator reports. The `___array` siblings lime keeps for
+		repeated keys are skipped.
+	**/
+	static function flattenConfig(bucket:Dynamic, prefix:String, into:Dynamic):Void {
+		for (field in Reflect.fields(bucket)) {
+			if (StringTools.endsWith(field, "___array")) continue;
+			var value:Dynamic = Reflect.field(bucket, field);
+			var key = prefix == "" ? field : prefix + "." + field;
+			switch (Type.typeof(value)) {
+				case TObject: flattenConfig(value, key, into);
+				case TInt, TFloat, TBool: Reflect.setField(into, key, Std.string(value));
+				case TClass(c) if (c == String): Reflect.setField(into, key, value);
+				default:
+			}
+		}
 	}
 
 	/**

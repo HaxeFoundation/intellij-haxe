@@ -218,8 +218,8 @@ final class HaxeToolWindowTreeBuilder {
   }
 
   @NotNull
-  private static DefaultMutableTreeNode actionsGroupNode(@NotNull FileEntry entry) {
-    String launchKind = HaxeProgramLaunches.launchKind(entry.info(), entry.buildFile().type());
+  private DefaultMutableTreeNode actionsGroupNode(@NotNull FileEntry entry) {
+    String launchKind = HaxeProgramLaunches.launchKind(project, entry.info(), entry.buildFile());
     int count = entry.actions().size() + (launchKind != null ? 1 : 0);
     DefaultMutableTreeNode actionsNode = new DefaultMutableTreeNode(
       new ActionsGroupNode(entry.buildFile().file().getPath(), count));

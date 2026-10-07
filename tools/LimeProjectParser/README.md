@@ -2,7 +2,9 @@
 
 Evaluates a lime/openfl project file — `project.xml` or `project.hxp` — into
 the build configuration the IDE needs: defines, haxedefs, haxelibs (with
-versions) and source classpaths, as JSON on stdout. Replaces scraping
+versions), source classpaths, the `<app>` export layout and the `<config>`
+values (flattened to lime's dot keys, `air.output-directory`), as JSON on
+stdout. Replaces scraping
 `haxelib run lime display` output, which flattens haxelibs into `-cp`
 classpaths and loses their identity.
 

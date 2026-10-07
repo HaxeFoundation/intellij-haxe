@@ -81,6 +81,25 @@ public class HaxeLimeParserOutputTest {
   }
 
   @Test
+  @DisplayName("configured output directory relocates the target output")
+  public void configuredOutputDirectoryRelocatesTheTargetOutput() {
+    String json = """
+      {
+        "app": {"path": "Export", "file": "Game"},
+        "config": {"air.output-directory": "airdist", "flash.output-directory": "swf"}
+      }""";
+
+    HaxeBuildFileInfo airInfo = HaxeLimeProjectInfoService.parseToolOutput(json, "air");
+    HaxeBuildFileInfo html5Info = HaxeLimeProjectInfoService.parseToolOutput(json, "html5");
+
+    assertNotNull(airInfo);
+    assertEquals("Export/airdist/bin/Game.swf", airInfo.targetOutput());
+    assertNotNull(html5Info);
+    // only the target's own key applies
+    assertEquals("Export/html5/bin/Game.js", html5Info.targetOutput());
+  }
+
+  @Test
   @DisplayName("malformed output yields null")
   public void malformedOutputYieldsNull() {
     assertNull(HaxeLimeProjectInfoService.parseToolOutput("not json at all", "hl"));
