@@ -271,6 +271,7 @@ public class EvalDebugAdapter implements Closeable {
   private void handleInitialize(InitializeRequest request) throws IOException {
     Capabilities capabilities = new Capabilities();
     capabilities.setSupportsConfigurationDoneRequest(true);
+    capabilities.setSupportsConditionalBreakpoints(true);
     capabilities.setSupportsVariableType(true);
     capabilities.setSupportsEvaluateForHovers(true);
     InitializeResponse response = new InitializeResponse();
@@ -290,15 +291,21 @@ public class EvalDebugAdapter implements Closeable {
     String file = request.getArguments().getSource().getPath();
     List<SourceBreakpoint> requested = request.getArguments().getBreakpoints() != null
                                        ? request.getArguments().getBreakpoints() : List.of();
-    int[] lines = new int[requested.size()];
-    Set<Integer> lineSet = new HashSet<>();
-    for (int i = 0; i < requested.size(); i++) {
-      lines[i] = requested.get(i).getLine();
-      lineSet.add(requested.get(i).getLine());
+    List<EvalSourceBreakpoint> vmBreakpoints = new ArrayList<>();
+    Set<Integer> unconditionalLines = new HashSet<>();
+    for (SourceBreakpoint breakpoint : requested) {
+      String condition = vmConditionOf(breakpoint);
+      vmBreakpoints.add(new EvalSourceBreakpoint(breakpoint.getLine(), condition));
+      if (condition == null) {
+        unconditionalLines.add(breakpoint.getLine());
+      }
     }
-    List<EvalBreakpoint> registered = vm().setBreakpoints(file, lines);
-    // mirror for the step loops; setBreakpoints REPLACES the file's set
-    breakpointLines.put(DapPaths.toMatchKey(file), lineSet);
+    List<EvalBreakpoint> registered = vm().setBreakpoints(file, vmBreakpoints);
+    // mirror for the step loops; setBreakpoints REPLACES the file's set. Only
+    // unconditional lines: whether a conditional breakpoint hits is the VM's
+    // call (it pushes breakpointStop when the condition holds), so a step
+    // landing on its line must not stop on the line alone.
+    breakpointLines.put(DapPaths.toMatchKey(file), unconditionalLines);
 
     List<Breakpoint> verified = new ArrayList<>();
     for (int i = 0; i < requested.size(); i++) {
@@ -316,6 +323,12 @@ public class EvalDebugAdapter implements Closeable {
     SetBreakpointsResponse response = new SetBreakpointsResponse();
     response.setBody(body);
     sendResponse(request, response);
+  }
+
+  /** The breakpoint's condition as the VM's expression parser takes it, or null when absent or blank. */
+  private static String vmConditionOf(SourceBreakpoint breakpoint) {
+    String condition = stripTrailingSemicolons(breakpoint.getCondition());
+    return condition != null && !condition.isEmpty() ? condition : null;
   }
 
   private void handleSetExceptionBreakpoints(SetExceptionBreakpointsRequest request) throws IOException {
@@ -1138,7 +1151,7 @@ public class EvalDebugAdapter implements Closeable {
    * carries one (copied from source, or typed by habit), so drop trailing
    * semicolons and surrounding whitespace. Verified against the VM.
    */
-  static String stripTrailingSemicolons(String expression) {
+  public static String stripTrailingSemicolons(String expression) {
     if (expression == null) {
       return null;
     }

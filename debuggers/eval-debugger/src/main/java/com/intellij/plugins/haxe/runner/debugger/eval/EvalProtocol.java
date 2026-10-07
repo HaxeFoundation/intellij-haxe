@@ -40,6 +40,18 @@ public final class EvalProtocol {
 
   public record EvalBreakpoint(int id) {}
 
+  /**
+   * A breakpoint to register. {@code condition} is a Haxe expression the VM
+   * parses on registration and evaluates at each hit, stopping only when it
+   * yields {@code true} (a condition that fails to evaluate never stops);
+   * null registers an unconditional breakpoint.
+   */
+  public record EvalSourceBreakpoint(int line, String condition) {
+    public EvalSourceBreakpoint(int line) {
+      this(line, null);
+    }
+  }
+
   // --- run control ---
 
   public void resume() throws IOException {
@@ -134,13 +146,24 @@ public final class EvalProtocol {
 
   // --- breakpoints ---
 
-  /** Replaces the file's breakpoints; returns the VM-assigned ids in order. */
-  public List<EvalBreakpoint> setBreakpoints(String file, int... lines) throws IOException {
+  /**
+   * Replaces the file's breakpoints; returns the VM-assigned ids in order.
+   * Each entry carries {@code line} plus {@code condition} when set — the
+   * optional field Protocol.hx leaves out but evalDebugSocket.ml's
+   * parse_breakpoint reads (since haxe 4.1). A condition the VM cannot parse
+   * is fatal to the session: the handler does not catch the parse error, the
+   * VM's socket thread dies without answering, and every later request times
+   * out — callers send only syntax-checked conditions.
+   */
+  public List<EvalBreakpoint> setBreakpoints(String file, List<EvalSourceBreakpoint> requested) throws IOException {
     ObjectNode params = MAPPER.createObjectNode();
     params.put("file", file);
     ArrayNode breakpoints = params.putArray("breakpoints");
-    for (int line : lines) {
-      breakpoints.addObject().put("line", line);
+    for (EvalSourceBreakpoint breakpoint : requested) {
+      ObjectNode entry = breakpoints.addObject().put("line", breakpoint.line());
+      if (breakpoint.condition() != null) {
+        entry.put("condition", breakpoint.condition());
+      }
     }
     JsonNode result = connection.request("setBreakpoints", params, DEFAULT_TIMEOUT_MS);
     List<EvalBreakpoint> ids = new ArrayList<>();

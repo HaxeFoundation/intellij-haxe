@@ -116,20 +116,11 @@ public abstract class EvalLiveTestBase {
 
   /** setBreakpoints on a file in the fixture dir + assert success. */
   protected void setBreakpoints(String fixtureFile, int... lines) throws Exception {
-    SetBreakpointsRequest setBreakpoints = new SetBreakpointsRequest();
-    SetBreakpointsArguments arguments = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(fixtureDir().resolve(fixtureFile).toString());
-    arguments.setSource(source);
     List<SourceBreakpoint> breakpoints = new ArrayList<>();
     for (int line : lines) {
-      SourceBreakpoint breakpoint = new SourceBreakpoint();
-      breakpoint.setLine(line);
-      breakpoints.add(breakpoint);
+      breakpoints.add(lineBreakpoint(line));
     }
-    arguments.setBreakpoints(breakpoints);
-    setBreakpoints.setArguments(arguments);
-    assertTrue(request(setBreakpoints).isSuccess(), "setBreakpoints");
+    assertTrue(request(setBreakpointsRequest(fixtureFile, breakpoints)).isSuccess(), "setBreakpoints");
   }
 
   /** The whole opening dance to the first breakpoint stop. */
@@ -200,6 +191,31 @@ public abstract class EvalLiveTestBase {
   }
 
   // --- request factories: the build/set/assign dance, named once each -------
+
+  /** setBreakpoints replacing the whole set of a file in the fixture dir. */
+  protected static SetBreakpointsRequest setBreakpointsRequest(String fixtureFile, List<SourceBreakpoint> breakpoints) {
+    SetBreakpointsRequest request = new SetBreakpointsRequest();
+    SetBreakpointsArguments arguments = new SetBreakpointsArguments();
+    Source source = new Source();
+    source.setPath(fixtureDir().resolve(fixtureFile).toString());
+    arguments.setSource(source);
+    arguments.setBreakpoints(breakpoints);
+    request.setArguments(arguments);
+    return request;
+  }
+
+  protected static SourceBreakpoint lineBreakpoint(int line) {
+    SourceBreakpoint breakpoint = new SourceBreakpoint();
+    breakpoint.setLine(line);
+    return breakpoint;
+  }
+
+  /** A breakpoint the VM stops on only while {@code condition} (a Haxe expression) is true. */
+  protected static SourceBreakpoint conditionalBreakpoint(int line, String condition) {
+    SourceBreakpoint breakpoint = lineBreakpoint(line);
+    breakpoint.setCondition(condition);
+    return breakpoint;
+  }
 
   protected static StackTraceRequest stackTraceRequest(int threadId) {
     StackTraceRequest request = new StackTraceRequest();

@@ -218,6 +218,16 @@ public interface DapBackend extends Closeable {
   }
 
   /**
+   * Why this backend cannot take {@code condition} (already qualified) on a
+   * breakpoint, or null when it can. A rejected breakpoint is withheld from
+   * the server and shown invalid with the reason — arming it without the
+   * condition would make it stop every time.
+   */
+  default @Nullable String conditionProblem(Project project, @NotNull String condition) {
+    return null;
+  }
+
+  /**
    * Maps a frame's server-reported source path to an IDE position. The
    * default resolves absolute paths directly and relative ones through the
    * filename index.

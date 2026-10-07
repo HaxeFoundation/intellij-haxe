@@ -114,7 +114,7 @@ public class EvalLiveTest {
     assertFalse(threads.isEmpty(), "VM reports at least one thread");
 
     String fixture = EvalLiveTestBase.fixtureDir().resolve("EvalMain.hx").toString();
-    List<EvalBreakpoint> ids = protocol.setBreakpoints(fixture, BREAK_LINE);
+    List<EvalBreakpoint> ids = protocol.setBreakpoints(fixture, List.of(new EvalSourceBreakpoint(BREAK_LINE)));
     assertEquals(1, ids.size(), "one breakpoint registered");
     assertTrue(ids.get(0).id() >= 0, "VM assigned a breakpoint id");
 

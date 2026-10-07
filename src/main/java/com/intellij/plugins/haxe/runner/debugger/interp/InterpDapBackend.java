@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.interp;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
 import com.intellij.plugins.haxe.runner.debugger.eval.EvalDebugAdapter;
@@ -8,6 +9,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Backend over the in-process {@link EvalDebugAdapter} (the haxe compiler's
@@ -65,6 +68,11 @@ public class InterpDapBackend implements DapBackend {
   @Override
   public boolean supportsToStringRendering() {
     return false; // eval values are already rendered by the VM; not controllable
+  }
+
+  @Override
+  public @Nullable String conditionProblem(Project project, @NotNull String condition) {
+    return InterpConditionValidator.problem(project, condition);
   }
 
   @Override
