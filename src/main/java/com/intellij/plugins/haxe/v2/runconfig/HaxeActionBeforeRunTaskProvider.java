@@ -431,15 +431,21 @@ public final class HaxeActionBeforeRunTaskProvider extends BeforeRunTaskProvider
    */
   @NotNull
   public static List<String> buildStepSourceDirectories(@NotNull RunConfiguration configuration) {
-    String buildFilePath = configuration.getBeforeRunTasks().stream()
+    String buildFilePath = buildStepFilePath(configuration);
+    if (buildFilePath == null) return List.of();
+    return HaxeReadActions.compute(
+      () -> HaxeBuildClasspaths.sourceDirectories(configuration.getProject(), buildFilePath));
+  }
+
+  /** The build file of the configuration's Haxe build step, or null without one. */
+  @Nullable
+  public static String buildStepFilePath(@NotNull RunConfiguration configuration) {
+    return configuration.getBeforeRunTasks().stream()
       .filter(Task.class::isInstance)
       .map(task -> ((Task)task).getBuildFilePath())
       .filter(path -> !path.isBlank())
       .findFirst()
       .orElse(null);
-    if (buildFilePath == null) return List.of();
-    return HaxeReadActions.compute(
-      () -> HaxeBuildClasspaths.sourceDirectories(configuration.getProject(), buildFilePath));
   }
 
   /**

@@ -156,7 +156,7 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
     HaxeTelemetryCapture.Handle capture = profiling
                                           ? HaxeTelemetryCapture.startCapture(getProject(), getName(), profilerSessionPath(), Lane.FLASH)
                                           : null;
-    return new DapCommandLineRunningState(env, getProject(), () -> profiledAdlCommandLine(capture)) {
+    return new DapCommandLineRunningState(env, () -> profiledAdlCommandLine(capture)) {
       @Override
       protected @NotNull ProcessHandler startProcess() throws ExecutionException {
         ProcessHandler handler = super.startProcess();

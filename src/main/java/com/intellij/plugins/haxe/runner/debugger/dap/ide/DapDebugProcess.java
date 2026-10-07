@@ -2,6 +2,9 @@ package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.search.ExecutionSearchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
@@ -166,8 +169,10 @@ public class DapDebugProcess extends XDebugProcess {
     if (testConsole != null) {
       return testConsole;
     }
+    Project project = getSession().getProject();
+    GlobalSearchScope scope = ExecutionSearchScopes.executionScope(project, getSession().getRunProfile());
     ConsoleView console = TextConsoleBuilderFactory.getInstance()
-      .createBuilder(getSession().getProject())
+      .createBuilder(project, scope)
       .getConsole();
     console.attachToProcess(processHandler);
     return console;

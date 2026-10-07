@@ -2,14 +2,18 @@ package com.intellij.plugins.haxe.v2.runconfig;
 
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.SearchScopeProvidingRunProfile;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.execution.console.HaxeLaunchSearchScope;
 import com.intellij.plugins.haxe.runner.debugger.flash.AirRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.flash.FlashRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpRunConfiguration;
 import com.intellij.plugins.haxe.runner.neko.NekoRunConfiguration;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
@@ -29,6 +33,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -71,11 +77,11 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @AfterEach
-  public void removeInterpreterConfigurations() {
+  public void removeCreatedConfigurations() {
     RunManager runManager = RunManager.getInstance(getProject());
     List<RunnerAndConfigurationSettings> created = runManager.getAllSettings()
       .stream()
-      .filter(settings -> settings.getConfiguration() instanceof InterpRunConfiguration)
+      .filter(settings -> settings.getConfiguration() instanceof DapRunConfigurationBase)
       .toList();
     created.forEach(runManager::removeConfiguration);
   }
@@ -121,6 +127,32 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
     assertEquals(INTERP_HXML_NAME, configuration.getCompilerArguments());
     assertEquals(hxmlFolder, configuration.resolveWorkingDirectory());
     assertTrue(configuration.getBeforeRunTasks().isEmpty(), "compiling is the run - no build step before it");
+  }
+
+  @Test
+  @DisplayName("the interpreter configuration scopes console links by its hxml")
+  public void testTheInterpreterConfigurationScopesConsoleLinksByItsHxml() throws IOException {
+    HaxeBuildFile buildFile = interpHxml();
+    InterpRunConfiguration configuration = interpConfiguration(findOrCreate(buildFile));
+
+    List<VirtualFile> preferred = HaxeLaunchSearchScope.preferredDirectoriesOf(configuration.getSearchScope());
+
+    assertEquals(List.of(buildFile.file().getParent()), preferred, "the hxml's folder: its work directory and implicit classpath");
+  }
+
+  @Test
+  @DisplayName("a build and run configuration scopes console links by its build step")
+  public void testABuildAndRunConfigurationScopesConsoleLinksByItsBuildStep() throws IOException {
+    HaxeBuildFile buildFile = interpHxml();
+    RunnerAndConfigurationSettings settings =
+      HaxeProgramLaunches.findOrCreate(getProject(), myFixture.getModule(), buildFile, HaxeTarget.HL, "out/game.hl");
+
+    assertNotNull(settings);
+    RunConfiguration configuration = settings.getConfiguration();
+    assertInstanceOf(SearchScopeProvidingRunProfile.class, configuration);
+    List<VirtualFile> preferred =
+      HaxeLaunchSearchScope.preferredDirectoriesOf(((SearchScopeProvidingRunProfile)configuration).getSearchScope());
+    assertEquals(List.of(buildFile.file().getParent()), preferred, "the build step's hxml folder");
   }
 
   @Test

@@ -6,6 +6,8 @@ import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.psi.search.ExecutionSearchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ProgramRunner;
@@ -54,8 +56,9 @@ public class BrowserRunningState implements RunProfileState {
       }
       openBrowser(url);
 
+      GlobalSearchScope scope = ExecutionSearchScopes.executionScope(configuration.getProject(), configuration);
       ConsoleView console = TextConsoleBuilderFactory.getInstance()
-        .createBuilder(configuration.getProject())
+        .createBuilder(configuration.getProject(), scope)
         .getConsole();
       ServerLifetimeHandler handler = new ServerLifetimeHandler(server, buildBanner(server, url));
       console.attachToProcess(handler);

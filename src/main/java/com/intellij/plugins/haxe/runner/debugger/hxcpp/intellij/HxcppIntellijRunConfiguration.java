@@ -102,7 +102,7 @@ public class HxcppIntellijRunConfiguration extends DapExecutableRunConfiguration
     // the Process CPU curve needs the scheduler's context switches, which
     // tracy's system tracing only streams from a privileged process
     boolean elevated = tracy && HaxeProfilerExecutorSupport.hxcppTracyElevated(executor);
-    return new DapCommandLineRunningState(env, getProject(), () -> profiledCommandLine(capture, tracyCapture)) {
+    return new DapCommandLineRunningState(env, () -> profiledCommandLine(capture, tracyCapture)) {
       @Override
       protected @NotNull ProcessHandler createProcessHandler(@NotNull GeneralCommandLine commandLine) throws ExecutionException {
         return elevated ? elevatedProcessHandler(commandLine) : super.createProcessHandler(commandLine);

@@ -10,6 +10,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeLaunchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -27,6 +29,12 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
 
   protected DapRunConfigurationBase(String name, Project project, ConfigurationFactory factory) {
     super(name, new RunConfigurationModule(project), factory);
+  }
+
+  /** Console links resolve inside the build step's classpaths before the project at large. */
+  @Override
+  public GlobalSearchScope getSearchScope() {
+    return HaxeLaunchScopes.forConfiguration(this);
   }
 
   @Override

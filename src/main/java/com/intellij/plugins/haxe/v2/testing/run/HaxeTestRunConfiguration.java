@@ -9,6 +9,9 @@ import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.LocatableConfigurationBase;
+import com.intellij.execution.configurations.SearchScopeProvidingRunProfile;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeLaunchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
@@ -59,7 +62,7 @@ import java.util.Objects;
  * single test process.
  */
 public class HaxeTestRunConfiguration extends LocatableConfigurationBase<RunProfileState>
-  implements SMRunnerConsolePropertiesProvider {
+  implements SMRunnerConsolePropertiesProvider, SearchScopeProvidingRunProfile {
 
   /** SM framework id: keys the console's splitter/settings storage and debug diagnostics; not user-visible. */
   static final String TEST_FRAMEWORK_NAME = "HaxeUnitTests";
@@ -279,6 +282,12 @@ public class HaxeTestRunConfiguration extends LocatableConfigurationBase<RunProf
       return HaxeBundle.message("haxe.test.config.suggested.single.name", test, PathUtil.getFileName(buildFilePath));
     }
     return HaxeBundle.message("haxe.test.config.suggested.name", PathUtil.getFileName(buildFilePath));
+  }
+
+  /** Console links resolve inside the tests build's classpaths before the project at large. */
+  @Override
+  public GlobalSearchScope getSearchScope() {
+    return HaxeLaunchScopes.forConfiguration(this);
   }
 
   @Override

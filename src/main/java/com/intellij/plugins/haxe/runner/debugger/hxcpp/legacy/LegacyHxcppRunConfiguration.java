@@ -126,7 +126,7 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
     boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
-    return new DapCommandLineRunningState(env, getProject(), () -> createCommandLine(debug));
+    return new DapCommandLineRunningState(env, () -> createCommandLine(debug));
   }
 
   private GeneralCommandLine createCommandLine(boolean debug) throws ExecutionException {

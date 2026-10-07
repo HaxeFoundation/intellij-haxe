@@ -159,7 +159,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     // non-null exactly when the IU "Run with Profiler" executor launched us
     // with the HashLink profiler configuration selected
     Integer profilerSamples = HaxeProfilerExecutorSupport.hashlinkSamplesFor(executor);
-    return new DapCommandLineRunningState(env, getProject(), () -> createRunCommandLine(profilerSamples)) {
+    return new DapCommandLineRunningState(env, () -> createRunCommandLine(profilerSamples)) {
       @Override
       protected @NotNull ProcessHandler startProcess() throws ExecutionException {
         ProcessHandler handler = super.startProcess();

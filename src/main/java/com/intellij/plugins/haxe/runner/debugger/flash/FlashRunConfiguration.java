@@ -114,7 +114,7 @@ public class FlashRunConfiguration extends DapRunConfigurationBase {
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
-    return new DapCommandLineRunningState(env, getProject(), this::createRunCommandLine);
+    return new DapCommandLineRunningState(env, this::createRunCommandLine);
   }
 
   private GeneralCommandLine createRunCommandLine() throws ExecutionException {

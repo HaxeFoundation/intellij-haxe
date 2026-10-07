@@ -82,7 +82,7 @@ public abstract class DapExecutableRunConfigurationBase extends DapRunConfigurat
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
-    return new DapCommandLineRunningState(env, getProject(), this::createCommandLine);
+    return new DapCommandLineRunningState(env, this::createCommandLine);
   }
 
   // --- resolution ---

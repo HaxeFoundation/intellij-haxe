@@ -3,10 +3,8 @@ package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,12 +24,10 @@ public class DapCommandLineRunningState extends CommandLineState {
     GeneralCommandLine get() throws ExecutionException;
   }
 
-  private final Project project;
   private final CommandLineSupplier commandLineSupplier;
 
-  public DapCommandLineRunningState(ExecutionEnvironment env, Project project, CommandLineSupplier commandLineSupplier) {
+  public DapCommandLineRunningState(ExecutionEnvironment env, CommandLineSupplier commandLineSupplier) {
     super(env);
-    this.project = project;
     this.commandLineSupplier = commandLineSupplier;
   }
 
@@ -39,7 +35,6 @@ public class DapCommandLineRunningState extends CommandLineState {
   @Override
   protected ProcessHandler startProcess() throws ExecutionException {
     GeneralCommandLine commandLine = commandLineSupplier.get();
-    setConsoleBuilder(TextConsoleBuilderFactory.getInstance().createBuilder(project));
     return createProcessHandler(commandLine);
   }
 

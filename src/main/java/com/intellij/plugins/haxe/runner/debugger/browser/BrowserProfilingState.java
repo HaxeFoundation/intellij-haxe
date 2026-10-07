@@ -7,6 +7,8 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.psi.search.ExecutionSearchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
@@ -72,8 +74,9 @@ public class BrowserProfilingState implements RunProfileState {
                                            debugPort, samplingIntervalUs, contentRoot, url);
       ProcessHandler handler = profiledBrowserHandler(commandLine, capture, server);
 
+      GlobalSearchScope scope = ExecutionSearchScopes.executionScope(configuration.getProject(), configuration);
       ConsoleView console = TextConsoleBuilderFactory.getInstance()
-        .createBuilder(configuration.getProject())
+        .createBuilder(configuration.getProject(), scope)
         .getConsole();
       console.attachToProcess(handler);
       handedOver = true;

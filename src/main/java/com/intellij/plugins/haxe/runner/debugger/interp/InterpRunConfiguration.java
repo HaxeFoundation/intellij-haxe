@@ -21,6 +21,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapCommandLineRunningSt
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import com.intellij.plugins.haxe.v2.buildsystem.HxmlFileParser;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeLaunchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.execution.ParametersListUtil;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -89,7 +91,7 @@ public class InterpRunConfiguration extends DapRunConfigurationBase {
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
-    return new DapCommandLineRunningState(env, getProject(), () -> createCommandLine(List.of()));
+    return new DapCommandLineRunningState(env, () -> createCommandLine(List.of()));
   }
 
   // --- resolution ---
@@ -136,6 +138,30 @@ public class InterpRunConfiguration extends DapRunConfigurationBase {
   /** The working directory: the explicit setting (a relative one resolved against the module folder), else the module folder. */
   public @Nullable Path resolveWorkingDirectory() {
     return workingDirectory.isBlank() ? baseDirectory() : resolveAgainstModule(workingDirectory);
+  }
+
+  /**
+   * Console links resolve inside the named hxml's classpaths, else the working
+   * directory, before the project at large. The interpreter has no build step
+   * to take them from: the compile is the run.
+   */
+  @Override
+  public GlobalSearchScope getSearchScope() {
+    Path workDirectory = resolveWorkingDirectory();
+    Path hxml = namedHxml(workDirectory);
+    if (hxml != null) return HaxeLaunchScopes.forBuildFile(getProject(), hxml.toString());
+    List<String> directories = workDirectory == null ? List.of() : List.of(workDirectory.toString());
+    return HaxeLaunchScopes.forDirectories(getProject(), directories);
+  }
+
+  /** The first argument naming an existing hxml, resolved against the working directory as the compiler does. */
+  private @Nullable Path namedHxml(@Nullable Path workDirectory) {
+    for (String argument : ParametersListUtil.parse(compilerArguments)) {
+      if (!argument.endsWith(HXML_EXTENSION)) continue;
+      Path resolved = resolveOrNull(workDirectory, argument);
+      if (resolved != null && Files.isRegularFile(resolved)) return resolved.toAbsolutePath().normalize();
+    }
+    return null;
   }
 
   /**
