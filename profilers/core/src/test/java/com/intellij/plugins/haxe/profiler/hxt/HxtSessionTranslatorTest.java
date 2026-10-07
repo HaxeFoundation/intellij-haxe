@@ -124,6 +124,21 @@ public class HxtSessionTranslatorTest {
   }
 
   @Test
+  @DisplayName("a collection window record yields no frame event but keeps its gc time and heap reading")
+  public void testACollectionWindowRecordYieldsNoFrameEventButKeepsItsGcTimeAndHeapReading() throws IOException {
+    SessionBuilder session = new SessionBuilder(1000, 5.0);
+    session.beginFrame(5.016, 2500, 4096, 8192, List.of("Main.main"));
+    session.sample(new int[]{1}, 1);
+    session.endFrameAsWindow();
+
+    ProfilerSnapshot snapshot = HxtSessionTranslator.translate(session.stream());
+
+    assertEquals(List.of(new ProfilerEvent(5.016, 0, ProfilerEvent.GC_TIME_CODE, "2500")), snapshot.events());
+    assertEquals(List.of(new ProfilerMemorySample(5.016, 4096, 8192)), snapshot.memory());
+    assertEquals(1, snapshot.samples().size());
+  }
+
+  @Test
   @DisplayName("trailing allocation fields surface and records without them read as zero")
   public void testTrailingAllocationFieldsSurfaceAndRecordsWithoutThemReadAsZero() throws IOException {
     SessionBuilder session = new SessionBuilder(1000, 10.0);
@@ -242,6 +257,19 @@ public class HxtSessionTranslatorTest {
       sampleInts = 0;
       writeInt(frame, allocatedBytes);
       writeInt(frame, freedBytes);
+      rawRecord(HxtSessionTranslator.FRAME_RECORD, frame.toByteArray());
+      frame = null;
+    }
+
+    /** The hxcpp collector's record shape: zero allocation counters, then the segment-window flag byte. */
+    void endFrameAsWindow() {
+      writeInt(frame, sampleInts);
+      frame.writeBytes(samples.toByteArray());
+      samples.reset();
+      sampleInts = 0;
+      writeInt(frame, 0);
+      writeInt(frame, 0);
+      frame.write(HxtSessionWriter.FLAG_SEGMENT_WINDOW);
       rawRecord(HxtSessionTranslator.FRAME_RECORD, frame.toByteArray());
       frame = null;
     }

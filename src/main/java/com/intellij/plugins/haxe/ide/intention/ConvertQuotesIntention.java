@@ -17,7 +17,6 @@
 package com.intellij.plugins.haxe.ide.intention;
 
 import com.intellij.codeInsight.intention.impl.BaseIntentionAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -32,8 +31,6 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 public class ConvertQuotesIntention extends BaseIntentionAction {
   private static final String SINGLE_QUOTES = "'";
   private static final String DOUBLE_QUOTES = "\"";
@@ -47,17 +44,21 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
   @NotNull
   @Override
   public String getFamilyName() {
-    return "Convert quotes";
+    return HaxeBundle.message("haxe.intention.convert.quotes.family");
   }
 
+  /** The label says what the switch does to a {@code $}: the two quote kinds differ in exactly that. */
   @NotNull
   @Override
   public String getText() {
     if (isWrappedWithDoubleQuotes(expression)) {
-      return HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks");
+      return hasDollar(expression)
+             ? HaxeBundle.message("haxe.quickfix.convert.to.single.quotes.interpolating")
+             : HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks");
     }
-
-    return HaxeBundle.message("haxe.quickfix.surround.with.double.quotation.marks");
+    return hasInterpolation(expression)
+           ? HaxeBundle.message("haxe.quickfix.convert.to.double.quotes.plain.text")
+           : HaxeBundle.message("haxe.quickfix.surround.with.double.quotation.marks");
   }
 
   @Override
@@ -67,21 +68,26 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
     expression = PsiTreeUtil.getParentOfType(place, HaxeStringLiteralExpression.class);
 
-    return expression != null; //  && canSwitchQuotes(expression);
+    return expression != null;
   }
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    WriteCommandAction.runWriteCommandAction(project, "Change quotation marks", null,
-                                             HaxeSurroundFixer.exchangeQuoteType(expression));
+    String commandName = HaxeBundle.message("haxe.intention.convert.quotes.command");
+    WriteCommandAction.runWriteCommandAction(project, commandName, null, HaxeSurroundFixer.exchangeQuoteType(expression));
   }
 
-  private boolean canSwitchQuotes(HaxeStringLiteralExpression expression) {
-    boolean hasInterpolation = expression.getLongTemplateEntryList().size() != 0 || expression.getShortTemplateEntryList().size() != 0;
-    return !hasInterpolation || isWrappedWithDoubleQuotes(expression);
+  /** Whether a single-quoted string interpolates something; only the lexer of single quotes produces template entries. */
+  static boolean hasInterpolation(HaxeStringLiteralExpression expression) {
+    return !expression.getLongTemplateEntryList().isEmpty() || !expression.getShortTemplateEntryList().isEmpty();
   }
 
-  private boolean isWrappedWithDoubleQuotes(HaxeStringLiteralExpression expression) {
+  /** Whether a double-quoted string holds a {@code $} that single quotes would start interpolating. */
+  static boolean hasDollar(HaxeStringLiteralExpression expression) {
+    return expression.getText().indexOf('$') >= 0;
+  }
+
+  static boolean isWrappedWithDoubleQuotes(HaxeStringLiteralExpression expression) {
     if (expression== null || expression.getFirstChild() == null) return  false;
     return expression.getFirstChild().textMatches(DOUBLE_QUOTES);
   }

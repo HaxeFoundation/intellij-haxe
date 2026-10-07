@@ -5,15 +5,18 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.impl.RunDialog;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeConfigurationLaunches;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCommandNotifications;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCompileCommands;
@@ -27,6 +30,7 @@ import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.ToolNode
 import com.intellij.util.PathUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -84,21 +88,75 @@ public final class HaxeToolWindowLaunches {
    * before-launch step compiles the file.
    */
   public static void runProgram(@NotNull Project project, @NotNull ProgramNode programNode, @NotNull Executor executor) {
+    RunnerAndConfigurationSettings settings = programConfiguration(project, programNode);
+    if (settings != null) {
+      HaxeConfigurationLaunches.runSelected(project, settings, executor);
+    }
+  }
+
+  /**
+   * The "compile &amp; run" row under a profiler entry's executor. A
+   * configuration that is not ready to profile (a non-Chromium browser, no
+   * compiled executable, no AIR descriptor) has no runner, and launching it
+   * anyway would only earn the platform's generic "Cannot find runner"
+   * balloon — so its editor opens instead, and the launch follows once the
+   * configuration is completed.
+   */
+  public static void profileProgram(@NotNull Project project, @NotNull ProgramNode programNode, @NotNull Executor executor) {
+    RunnerAndConfigurationSettings settings = programConfiguration(project, programNode);
+    if (settings == null) return;
+    if (DumbService.isDumb(project)) {
+      String message = HaxeBundle.message("haxe.toolwindow.profile.indexing");
+      DumbService.getInstance(project).showDumbModeNotificationForAction(message, null);
+      return;
+    }
+    if (!isProfilingReady(settings)) {
+      String title = profileEditorTitle(settings);
+      boolean completed = RunDialog.editConfiguration(project, settings, title, executor);
+      if (!completed || !isProfilingReady(settings)) return;
+    }
+    HaxeConfigurationLaunches.runSelected(project, settings, executor);
+  }
+
+  private static boolean isProfilingReady(@NotNull RunnerAndConfigurationSettings settings) {
+    return settings.getConfiguration() instanceof HaxeProfilableRunConfiguration configuration
+           && configuration.isProfilingReady();
+  }
+
+  /** The editor's title names what the lane's readiness check is missing. */
+  private static String profileEditorTitle(@NotNull RunnerAndConfigurationSettings settings) {
+    if (!(settings.getConfiguration() instanceof HaxeProfilableRunConfiguration configuration)) {
+      return HaxeBundle.message("haxe.toolwindow.profile.edit.title");
+    }
+    return switch (configuration.profilingLane()) {
+      case JS -> HaxeBundle.message("haxe.toolwindow.profile.edit.title.js");
+      case HXCPP -> HaxeBundle.message("haxe.toolwindow.profile.edit.title.hxcpp");
+      case FLASH -> HaxeBundle.message("haxe.toolwindow.profile.edit.title.flash");
+      case HASHLINK -> HaxeBundle.message("haxe.toolwindow.profile.edit.title");
+    };
+  }
+
+  /**
+   * The program row's run configuration (created on first use), or null —
+   * with the reason notified — when the build file belongs to no module or
+   * its target produces nothing runnable.
+   */
+  @Nullable
+  private static RunnerAndConfigurationSettings programConfiguration(@NotNull Project project, @NotNull ProgramNode programNode) {
     VirtualFile file = programNode.buildFile().file();
     // the file index needs a read action - the EDT has no implicit read access
     Module module = ReadAction.computeBlocking(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file));
     if (module == null) {
       notifyUser(project, HaxeBundle.message("haxe.toolwindow.program.no.module", file.getName()));
-      return;
+      return null;
     }
 
     RunnerAndConfigurationSettings settings = HaxeProgramLaunches.findOrCreate(
       project, module, programNode.buildFile(), programNode.target(), programNode.targetOutput());
     if (settings == null) {
       notifyUser(project, HaxeBundle.message("haxe.toolwindow.program.unsupported", file.getName()));
-      return;
     }
-    HaxeConfigurationLaunches.runSelected(project, settings, executor);
+    return settings;
   }
 
   /** The action row's run configuration: the registered one, else a new one added to the RunManager. */

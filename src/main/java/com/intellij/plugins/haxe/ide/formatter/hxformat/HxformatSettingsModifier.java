@@ -7,12 +7,15 @@ import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.application.options.CodeStyle;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.modifier.CodeStyleSettingsModifier;
 import com.intellij.psi.codeStyle.modifier.CodeStyleStatusBarUIContributor;
 import com.intellij.psi.codeStyle.modifier.TransientCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.databind.JsonNode;
+
+import java.util.function.Consumer;
 
 /**
  * Formats a file by the project's OWN hxformat.json (haxe-formatter config)
@@ -44,9 +47,17 @@ public class HxformatSettingsModifier implements CodeStyleSettingsModifier {
     return true;
   }
 
+  /** Decides the "may be overridden" note on the code style pages: only while a config can actually govern a file. */
   @Override
   public boolean mayOverrideSettingsOf(@NotNull Project project) {
-    return CodeStyle.getSettings(project).getCustomSettings(HaxeCodeStyleSettings.class).USE_PROJECT_HXFORMAT;
+    boolean enabled = CodeStyle.getSettings(project).getCustomSettings(HaxeCodeStyleSettings.class).USE_PROJECT_HXFORMAT;
+    return enabled && HxformatConfigs.getInstance(project).anyConfigAvailable();
+  }
+
+  /** Backs the note's Disable link; the platform applies it to the scheme and to the settings page's model. */
+  @Override
+  public @Nullable Consumer<CodeStyleSettings> getDisablingFunction(@NotNull Project project) {
+    return settings -> settings.getCustomSettings(HaxeCodeStyleSettings.class).USE_PROJECT_HXFORMAT = false;
   }
 
   @Override

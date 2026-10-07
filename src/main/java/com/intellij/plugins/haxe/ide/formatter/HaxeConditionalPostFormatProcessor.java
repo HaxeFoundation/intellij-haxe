@@ -19,14 +19,17 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 /**
  * Aligns the inactive branches of #if/#elseif/#else regions after a reformat.
  * <p>
- * A branch that parses cleanly is block-formatted like active code (see
- * FORMAT_INACTIVE_BRANCHES). This pass serves only the branches that do not
- * parse and so stay one unstructured piece of text. It shifts all lines of
- * such a branch by the same amount, keeping their relative nesting, so the
- * branch lines up with the nearest directive before it. Regions written on
- * a single line are left alone. A region nested inside an inactive branch
- * is part of that branch's text, because the lexer does not split it out,
- * so its directives move together with the enclosing branch.
+ * A branch that parses cleanly is block-formatted like active code while
+ * FORMAT_INACTIVE_BRANCHES is on, and this pass leaves it alone. It serves
+ * every other branch, the ones the block formatter leaves unformatted (see
+ * HaxeInactiveBranches): those that do not parse, and all of them with
+ * FORMAT_INACTIVE_BRANCHES off. Such a branch is one unstructured piece of
+ * text, so the pass shifts all its lines by the same amount, keeping their
+ * relative nesting, until the branch lines up with the nearest directive
+ * before it. Regions written on a single line are left alone. A region
+ * nested inside an inactive branch is part of that branch's text, because
+ * the lexer does not split it out, so its directives move together with the
+ * enclosing branch.
  */
 public class HaxeConditionalPostFormatProcessor extends HaxeTextPostFormatProcessor {
 

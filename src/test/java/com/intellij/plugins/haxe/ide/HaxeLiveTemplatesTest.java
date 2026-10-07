@@ -66,4 +66,10 @@ public class HaxeLiveTemplatesTest extends HaxeLightFixtureTestCase {
   public void testItar() throws Throwable {
     doTest("Itar.hx", "Array.hx");
   }
+
+  @Test
+  @DisplayName("ritar - reverse indexed loop template")
+  public void testRitar() throws Throwable {
+    doTest("Ritar.hx", "Array.hx");
+  }
 }

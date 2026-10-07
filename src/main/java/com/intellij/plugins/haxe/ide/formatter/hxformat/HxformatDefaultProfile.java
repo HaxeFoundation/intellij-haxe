@@ -53,7 +53,7 @@ public final class HxformatDefaultProfile {
     indent.INDENT_SIZE = HxformatDefaults.TAB_WIDTH;
     // a wrapped declaration header (implementsExtends) continues TWO steps in
     indent.CONTINUATION_INDENT_SIZE = HxformatDefaults.CONTINUATION_STEPS * HxformatDefaults.TAB_WIDTH;
-    // indentation.conditionalPolicy=Aligned, applied to unparsable inactive branches too
+    // indentation.conditionalPolicy=Aligned, applied to unformatted inactive branches too
     haxe.ALIGN_INACTIVE_CONDITIONAL_BRANCHES = true;
     // haxe-formatter indents every comment to its scope, first-column ones
     // included, and always reindents the inner lines of plain /*..*/ comments

@@ -14,6 +14,8 @@ import com.intellij.psi.codeStyle.modifier.TransientCodeStyleSettings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.function.Consumer;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -131,6 +133,39 @@ public class HxformatModifierTest extends HaxeLightFixtureTestCase {
     PsiFile file = myFixture.addFileToProject("src/Main.hx", MAIN_HX_SOURCE);
 
     assertNull(new HxformatSettingsModifier().getStatusBarUiContributor(transientFor(file)));
+  }
+
+  @Test
+  @DisplayName("disabling function clears the toggle")
+  public void testDisablingFunctionClearsTheToggle() {
+    CodeStyleSettings settings = projectSettingsCopy();
+
+    Consumer<CodeStyleSettings> disable = new HxformatSettingsModifier().getDisablingFunction(getProject());
+    assertNotNull(disable, "the code style note's Disable link needs a function");
+    disable.accept(settings);
+
+    assertFalse(settings.getCustomSettings(HaxeCodeStyleSettings.class).USE_PROJECT_HXFORMAT);
+  }
+
+  @Test
+  @DisplayName("may override only while a config is in reach")
+  public void testMayOverrideOnlyWhileAConfigIsInReach() {
+    HxformatSettingsModifier modifier = new HxformatSettingsModifier();
+    HxformatConfigs configs = HxformatConfigs.getInstance(getProject());
+    // the shared project may still carry another test's fallback choice
+    configs.setOverrideConfigUrl(null);
+    assertFalse(modifier.mayOverrideSettingsOf(getProject()), "no hxformat.json and no fallback");
+
+    PsiFile override = myFixture.addFileToProject("configs/hxformat.json", "{}");
+    configs.setOverrideConfigUrl(override.getVirtualFile().getUrl());
+    assertTrue(modifier.mayOverrideSettingsOf(getProject()), "the fallback config is in reach");
+
+    configs.setOverrideConfigUrl(null);
+    myFixture.addFileToProject("hxformat.json", "{}");
+    assertTrue(modifier.mayOverrideSettingsOf(getProject()), "a config in the project is in reach");
+
+    installTemporarySettings(settings -> settings.getCustomSettings(HaxeCodeStyleSettings.class).USE_PROJECT_HXFORMAT = false);
+    assertFalse(modifier.mayOverrideSettingsOf(getProject()), "the toggle opts out");
   }
 
   private TransientCodeStyleSettings transientFor(PsiFile file) {

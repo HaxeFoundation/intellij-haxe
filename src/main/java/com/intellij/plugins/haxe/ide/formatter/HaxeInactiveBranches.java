@@ -7,10 +7,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Decides which inactive conditional-compilation branches the formatter
- * leaves byte-identical. With FORMAT_INACTIVE_BRANCHES off that is every
- * branch; otherwise it is every branch that does not parse cleanly. The block
- * formatter, the branch aligner and the comment passes all skip such a branch.
+ * Decides which inactive conditional-compilation branches the block
+ * formatter leaves unformatted. With FORMAT_INACTIVE_BRANCHES off that is
+ * every branch; otherwise it is every branch that does not parse cleanly.
+ * The block formatter and the comment passes skip such a branch; the branch
+ * aligner (ALIGN_INACTIVE_CONDITIONAL_BRANCHES) serves exactly these and
+ * shifts each one as a group to its directive, so only with the aligner off
+ * too does the branch stay byte-identical.
  */
 public final class HaxeInactiveBranches {
 

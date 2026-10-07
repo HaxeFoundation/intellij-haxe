@@ -34,9 +34,9 @@ import static com.intellij.plugins.haxe.profiler.io.LittleEndian.readIntLe;
  *              window's allocation traffic from collectors that track it;
  *              records without them read as 0,
  *          OPTIONAL trailing u8 flags — bit 0 marks a COLLECTION-SEGMENT
- *              window (a transcoder's flush boundary, not a display frame:
- *              no frame event), bit 1 a record without a heap reading (no
- *              memory sample)
+ *              window (the hxcpp collector's timer tick, a transcoder's
+ *              flush boundary — not a display frame: no frame event), bit 1
+ *              a record without a heap reading (no memory sample)
  * </pre>
  *
  * A truncated final record (the app died mid-write) ends the session

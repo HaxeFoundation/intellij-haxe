@@ -20,6 +20,8 @@ import haxe.io.BytesOutput;
 class TelemetryRun {
 	/** A tick can fail once in a while (when it coincides with a major collection); only repeated failures stop the collector. */
 	static inline var MAX_TICK_FAILURES = 5;
+	/** FRAME record flag: the record bounds a collection window, not a display frame (HxtSessionWriter.FLAG_SEGMENT_WINDOW). */
+	static inline var FLAG_SEGMENT_WINDOW = 1;
 
 	static var threadNum = -1;
 	static var socket:sys.net.Socket;
@@ -129,6 +131,11 @@ class TelemetryRun {
 		payload.writeInt32(samples.length);
 		for (value in samples)
 			payload.writeInt32(value);
+		// optional tail: no allocation counters, and the window is a timer
+		// tick, not a display frame - the reader emits no frame event for it
+		payload.writeInt32(0); // allocatedBytes
+		payload.writeInt32(0); // freedBytes
+		payload.writeByte(FLAG_SEGMENT_WINDOW);
 
 		var record = output();
 		record.writeByte(1); // FRAME

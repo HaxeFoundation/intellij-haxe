@@ -166,18 +166,39 @@ public final class HxformatJsonMapper {
     collectLeftovers(root, "");
   }
 
+  /**
+   * The indent unit is {@code character}: one tab, or that many spaces.
+   * {@code tabWidth} is the width of a tab character, so it is the indent
+   * size only while indenting with tabs.
+   */
   private void applyIndentation() {
-    String character = str("indentation.character");
-    if (character != null) {
-      settings.getIndentOptions(HaxeFileType.INSTANCE).USE_TAB_CHARACTER = "tab".equals(character);
-    }
+    CodeStyleSettings.IndentOptions indent = settings.getIndentOptions(HaxeFileType.INSTANCE);
     Integer tabWidth = intVal("indentation.tabWidth");
     if (tabWidth != null) {
-      CodeStyleSettings.IndentOptions indent = settings.getIndentOptions(HaxeFileType.INSTANCE);
       indent.TAB_SIZE = tabWidth;
-      indent.INDENT_SIZE = tabWidth;
-      indent.CONTINUATION_INDENT_SIZE = tabWidth * 2;
     }
+    String character = indentCharacter();
+    if (character == null && tabWidth == null) return;
+    boolean spaces = character != null && !"tab".equals(character);
+    if (character != null) {
+      indent.USE_TAB_CHARACTER = !spaces;
+    }
+    int unit = spaces ? character.length() : indent.TAB_SIZE;
+    indent.INDENT_SIZE = unit;
+    indent.CONTINUATION_INDENT_SIZE = unit * HxformatDefaults.CONTINUATION_STEPS;
+  }
+
+  /** The indentation.character value when it is "tab" or a run of spaces; anything else is reported and counts as absent. */
+  @Nullable
+  private String indentCharacter() {
+    String character = str("indentation.character");
+    if (character == null || "tab".equals(character) || isSpaceRun(character)) return character;
+    unsupported.add(HaxeCodeStyleBundle.message("hxformat.unsupported.indent.character", character));
+    return null;
+  }
+
+  private static boolean isSpaceRun(String text) {
+    return !text.isEmpty() && text.chars().allMatch(c -> c == ' ');
   }
 
   private void applyWrapping() {

@@ -57,10 +57,11 @@ public class HaxeCodeStyleSettings extends CustomCodeStyleSettings {
   // untouched while KEEP_FIRST_COLUMN_COMMENT keeps its opener in place.
   public boolean REINDENT_MULTILINE_COMMENTS = true;
 
-  // reformat also aligns inactive branches that do not parse cleanly
-  // (branches that parse are formatted under FORMAT_INACTIVE_BRANCHES).
-  // Off by default, because the lines of an unparsable branch shift as one
-  // group, so statements nested inside it do not get their own indent steps
+  // reformat shifts every inactive branch the block formatter leaves
+  // unformatted (one that does not parse; all of them with
+  // FORMAT_INACTIVE_BRANCHES off) as one group to its directive's indent.
+  // Off by default, because the lines move together, so statements nested
+  // inside such a branch do not get their own indent steps
   public boolean ALIGN_INACTIVE_CONDITIONAL_BRANCHES = false;
   public boolean FORMAT_INACTIVE_BRANCHES = true;
 

@@ -6,6 +6,7 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -17,7 +18,10 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
+import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,10 +95,12 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
   }
 
   /**
-   * The nearest hxformat.json in the file's directory or above it, up to the
-   * project base directory; else the chosen fallback config; else null. This
-   * is the CLI's upward search, bounded by the project. Content roots are no
-   * boundary, so a config at the project root also governs nested modules.
+   * The nearest hxformat.json in the file's directory or above it; else the
+   * chosen fallback config; else null. The upward search is the CLI's: for a
+   * file inside the project it stops at the project base directory, for one
+   * outside it (a library or SDK source) it reaches the file-system root.
+   * Content roots are no boundary, so a config at the project root also
+   * governs nested modules.
    */
   @Nullable
   public static VirtualFile findConfig(@NotNull Project project, @NotNull VirtualFile file) {
@@ -124,6 +130,25 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
   @Nullable
   public String overrideConfigUrl() {
     return state.overrideConfigUrl;
+  }
+
+  /**
+   * Whether any config can govern a file of the project: the fallback is
+   * set, or an hxformat.json lies in the project scope. Runs on any thread.
+   */
+  public boolean anyConfigAvailable() {
+    return overrideConfig() != null || HaxeReadActions.compute(this::projectHasConfigFile);
+  }
+
+  private boolean projectHasConfigFile() {
+    GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
+    try {
+      return !FilenameIndex.getVirtualFilesByName(HXFORMAT_FILE_NAME, scope).isEmpty();
+    }
+    catch (IndexNotReadyException e) {
+      // dumb mode: a config may exist, so the note stays rather than flickers
+      return true;
+    }
   }
 
   /** Sets (or clears, with null) the fallback config and re-triggers code style recalculation. */

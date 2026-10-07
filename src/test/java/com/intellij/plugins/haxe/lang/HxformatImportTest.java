@@ -1,15 +1,20 @@
 package com.intellij.plugins.haxe.lang;
 
+import com.intellij.plugins.haxe.HaxeCodeStyleBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatDefaultProfile;
+import com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatDefaults;
 import com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatJsonMapper;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 import tools.jackson.databind.ObjectMapper;
 
 import java.lang.reflect.Field;
@@ -20,6 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * The hxformat.json mapping behind the scheme importer: overrides land on the
@@ -71,6 +77,46 @@ public class HxformatImportTest extends HaxeLightFixtureTestCase {
     assertEquals(1, haxe.BLANK_LINES_BETWEEN_IMPORT_GROUPS);
     assertEquals(2, haxe.IMPORT_GROUP_PACKAGE_DEPTH);
     assertEquals(List.of("whitespace.unknownKey"), unsupported);
+  }
+
+  /** (indentation section, tab character expected, indent size, tab size). */
+  static final List<Arguments> INDENT_UNITS = List.of(
+    arguments("{ \"character\": \"  \" }", false, 2, HxformatDefaults.TAB_WIDTH),
+    arguments("{ \"character\": \"    \", \"tabWidth\": 2 }", false, 4, 2),
+    arguments("{ \"character\": \"tab\", \"tabWidth\": 8 }", true, 8, 8),
+    // the tool's default character is tab, so tabWidth alone is the indent
+    arguments("{ \"tabWidth\": 2 }", true, 2, 2));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("INDENT_UNITS")
+  @DisplayName("indent unit follows character")
+  public void testIndentUnitFollowsCharacter(String indentation, boolean tabs, int indentSize, int tabSize) throws Exception {
+    CodeStyleSettings settings = freshDefaults();
+    var root = new ObjectMapper().readTree("{ \"indentation\": " + indentation + " }");
+
+    List<String> unsupported = HxformatJsonMapper.apply(settings, root);
+
+    CodeStyleSettings.IndentOptions indent = settings.getIndentOptions(HaxeFileType.INSTANCE);
+    assertEquals(tabs, indent.USE_TAB_CHARACTER);
+    assertEquals(indentSize, indent.INDENT_SIZE);
+    assertEquals(indentSize * HxformatDefaults.CONTINUATION_STEPS, indent.CONTINUATION_INDENT_SIZE);
+    assertEquals(tabSize, indent.TAB_SIZE);
+    assertTrue(unsupported.isEmpty(), "both keys map, got: " + unsupported);
+  }
+
+  @Test
+  @DisplayName("indent character other than tab or spaces is reported")
+  public void testIndentCharacterOtherThanTabOrSpacesIsReported() throws Exception {
+    CodeStyleSettings settings = freshDefaults();
+    var root = new ObjectMapper().readTree("""
+      { "indentation": { "character": "\\t" } }""");
+
+    List<String> unsupported = HxformatJsonMapper.apply(settings, root);
+
+    CodeStyleSettings.IndentOptions indent = settings.getIndentOptions(HaxeFileType.INSTANCE);
+    assertTrue(indent.USE_TAB_CHARACTER, "the profile's tab indent stays");
+    assertEquals(HxformatDefaults.TAB_WIDTH, indent.INDENT_SIZE);
+    assertEquals(List.of(HaxeCodeStyleBundle.message("hxformat.unsupported.indent.character", "\t")), unsupported);
   }
 
   /** A config with only lineEnds and sameLine keys leaves wrapping at the profile. */

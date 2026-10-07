@@ -4,6 +4,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
@@ -28,7 +29,9 @@ import java.util.List;
  * before-launch step, with the profiler's compile additions where the lane
  * needs them). One registered entry runs directly and names itself on the
  * action; several open a chooser; none — the profiler module missing, the
- * target without a lane, or every entry deleted in settings — disables it.
+ * target without a lane, or every entry deleted in settings — hides it. A
+ * configuration the profiler runner would refuse opens its editor instead
+ * of launching (see {@link HaxeToolWindowLaunches#profileProgram}).
  */
 public final class HaxeProfileProgramAction extends DumbAwareAction {
 
@@ -46,7 +49,7 @@ public final class HaxeProfileProgramAction extends DumbAwareAction {
     List<ProfilerEntry> entries = profilerEntriesFor(project, programNode);
     if (entries.isEmpty()) return; // raced a settings change - the action was disabled a moment ago
     if (entries.size() == 1) {
-      HaxeToolWindowLaunches.runProgram(project, programNode, entries.getFirst().executor());
+      HaxeToolWindowLaunches.profileProgram(project, programNode, entries.getFirst().executor());
       return;
     }
     BaseListPopupStep<ProfilerEntry> step =
@@ -63,7 +66,7 @@ public final class HaxeProfileProgramAction extends DumbAwareAction {
 
         @Override
         public @Nullable PopupStep<?> onChosen(ProfilerEntry entry, boolean finalChoice) {
-          return doFinalStep(() -> HaxeToolWindowLaunches.runProgram(project, programNode, entry.executor()));
+          return doFinalStep(() -> HaxeToolWindowLaunches.profileProgram(project, programNode, entry.executor()));
         }
       };
     JBPopupFactory.getInstance()
@@ -77,7 +80,10 @@ public final class HaxeProfileProgramAction extends DumbAwareAction {
     List<ProfilerEntry> entries = project != null && panel.getSelectedUserObject() instanceof ProgramNode programNode
                                   ? profilerEntriesFor(project, programNode)
                                   : List.of();
-    e.getPresentation().setEnabledAndVisible(!entries.isEmpty());
+    // no profiler runner accepts a configuration while the project indexes - Run/Debug gray out then too
+    boolean indexing = project == null || DumbService.isDumb(project);
+    e.getPresentation().setVisible(!entries.isEmpty());
+    e.getPresentation().setEnabled(!entries.isEmpty() && !indexing);
     e.getPresentation().setText(entries.size() == 1
                                 ? HaxeBundle.message("haxe.toolwindow.profile.action.with", entries.getFirst().displayName())
                                 : HaxeBundle.message("haxe.toolwindow.profile.action"));

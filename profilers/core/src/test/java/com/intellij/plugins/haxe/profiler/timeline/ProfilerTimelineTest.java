@@ -218,6 +218,19 @@ public class ProfilerTimelineTest {
   }
 
   @Test
+  @DisplayName("application events with small positive codes are not gc time")
+  public void testApplicationEventsWithSmallPositiveCodesAreNotGcTime() {
+    // HashLink records hl.Profile.event(1, ...) verbatim; only the plugin's own negative code carries gc time
+    List<ProfilerEvent> events = List.of(new ProfilerEvent(1.016, 0, 1, "2000"),
+                                         new ProfilerEvent(1.032, 0, 2, "2000"));
+    ProfilerSnapshot snapshot = snapshot(1000, List.of(sample(1.0, MAIN_TID, false)), events);
+
+    List<ProfilerTimeline.UsSpan> spans = ProfilerTimeline.gcSpansFromEvents(snapshot);
+
+    assertEquals(List.of(), spans);
+  }
+
+  @Test
   @DisplayName("frame spans pair consecutive end of frame events")
   public void testFrameSpansPairConsecutiveEndOfFrameEvents() {
     List<ProfilerEvent> events = List.of(new ProfilerEvent(1.0, MAIN_TID, 0, ""),

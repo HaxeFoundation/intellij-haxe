@@ -81,7 +81,8 @@ public class HaxeIuProfilerExecutorSupport implements HaxeProfilerExecutorSuppor
     // reads each stack frame's line number unconditionally, and that field
     // only exists with the define, so a tracy build without it fails to
     // compile. HXCPP_TRACY_MEMORY adds the GC alloc/free hooks feeding the
-    // memory curves and GC lane; the settings page toggles it (runtime cost).
+    // memory curves and GC lane; the settings page toggles it (runtime cost,
+    // and hxcpp refuses it next to HXCPP_GC_GENERATIONAL / HXCPP_GC_MOVING).
     List<String> defines = new ArrayList<>(List.of("HXCPP_TELEMETRY", "HXCPP_TRACY",
                                                    "HXCPP_STACK_TRACE", "HXCPP_STACK_LINE"));
     if (state.isCaptureMemory()) {

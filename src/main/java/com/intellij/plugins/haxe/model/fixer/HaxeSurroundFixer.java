@@ -118,8 +118,17 @@ public class HaxeSurroundFixer extends HaxeFixer {
     return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks"), el, (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE);
   }
 
+  /** Double to single quotes, the {@code $} kept as is, so the string starts interpolating - what a string written with the wrong quotes needs. */
   public static HaxeSurroundFixer replaceQuotesWithSingleQuotes(PsiElement el) {
-    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks"), el, el.getTextRange(),
+    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.convert.to.single.quotes.interpolating"), el, el.getTextRange(),
+                                 (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE,
+                                 (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE,
+                                 HaxeStringEscapeUtil.TO_SINGLE_QUOTE_INTERPOLATING_TRANSLATOR);
+  }
+
+  /** Double to single quotes with every {@code $} escaped, so the text stays exactly what it was. */
+  public static HaxeSurroundFixer replaceQuotesWithSingleQuotesKeepingText(PsiElement el) {
+    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.convert.to.single.quotes.keep.text"), el, el.getTextRange(),
                                  (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE,
                                  (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE,
                                  HaxeStringEscapeUtil.TO_SINGLE_QUOTE_TRANSLATOR);

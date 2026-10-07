@@ -28,17 +28,16 @@ import java.util.Set;
 
 /**
  * A capture's time aggregated per source line, for the editor gutter
- * hints. Sampled captures (HL) attribute like the Java hints: every frame's
- * line is the CALL SITE inside its own method, so a line knows the method
- * enclosing it and that method's total. Tracy zones only carry the callee
- * function's declaration line (the caller's current line never reaches the
- * wire), so tracy hints are per function with no enclosing share. A sampled
- * capture WITHOUT positions (flash: its telemetry carries bare qualified
- * names) resolves each symbol to its project declaration instead and
- * attributes per function like tracy. Lines whose total rounds below a
- * microsecond are dropped rather than shown as zero. Files are keyed by
- * their forward-slashed path as the capture spelled it (declarations by
- * their full path); editors match by path suffix.
+ * hints. Every capture kind attributes per FUNCTION today, one line per
+ * function: tracy zones carry only the callee's declaration line (the
+ * caller's current line never reaches the wire); the HL translator merges
+ * a function's sampled lines onto its earliest one; V8 positions are
+ * declaration lines; a sampled capture WITHOUT positions (flash: its
+ * telemetry carries bare qualified names) resolves each symbol to its
+ * project declaration. Lines whose total rounds below a microsecond are
+ * dropped rather than shown as zero. Files are keyed by their
+ * forward-slashed path as the capture spelled it (declarations by their
+ * full path); editors match by path suffix.
  */
 final class HaxeLineTimes {
 
@@ -102,13 +101,19 @@ final class HaxeLineTimes {
   }
 
   /**
-   * Sampled captures, attributed like the Java hints: every frame's line is
-   * a call site inside that frame's own method, the leaf line gets the self
-   * time, and each line remembers its method and the method's total. The
-   * hints are SOURCE-level while HL compiles a generic into one function
-   * per type argument ({@code Pool_pack_Item.get}), so methods are keyed by
-   * file and displayed name: a line's "% of method" denominator covers
-   * every specialization of the source method, never just its own.
+   * Sampled captures with positions (HL, JS): the fold is per line — the
+   * leaf line gets the self time, each line remembers its method and the
+   * method's total — but the positions arrive ONE PER FUNCTION (the HL
+   * translator has merged each function's lines onto its earliest sampled
+   * line, V8 reports declaration lines), so one chip carries a function's
+   * whole time and its "% of method" share reads 100 %. The hints are
+   * SOURCE-level while HL compiles a generic into one function per type
+   * argument ({@code Pool_pack_Item.get}), so methods are keyed by file and
+   * displayed name: a line's "% of method" denominator covers every
+   * specialization of the source method, never just its own.
+   * TODO: call-site attribution — keep per-position frames in the HL
+   * translator and merge by (symbol, file) in ProfilerTimeline.commonPrefix
+   * and the HaxeSamplingProfilerData intern key instead.
    */
   @NotNull
   static HaxeLineTimes fromSnapshot(@NotNull ProfilerSnapshot snapshot) {

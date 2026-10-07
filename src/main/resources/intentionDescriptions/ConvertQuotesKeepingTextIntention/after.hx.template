@@ -1,0 +1,6 @@
+package ;
+class SomeClass {
+    function myFun(intValue:Int) {
+        return <spot>'</spot>value = $intValue<spot>'</spot>;
+    }
+}
