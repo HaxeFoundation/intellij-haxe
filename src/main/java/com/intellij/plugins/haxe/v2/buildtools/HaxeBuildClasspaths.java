@@ -12,18 +12,23 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The directories a build's sources come from: the build file's own directory
- * plus its declared classpaths, resolved against the file's work directory
- * ({@link HaxeBuildWorkDirectories}) — hxml {@code -cp} entries of the selected
- * section; for the lime family the raw {@code <source>}/{@code <classpath>}
- * entries of the project xml (no tool run, so haxelib-provided paths are not
- * seen). Name-based lookups scope themselves to these — test-result
+ * The directories a build's sources come from: its declared classpaths,
+ * resolved against the file's work directory ({@link HaxeBuildWorkDirectories})
+ * — hxml {@code -cp} entries of the selected section; for the lime family the
+ * raw {@code <source>}/{@code <classpath>} entries of the project xml (no tool
+ * run, so haxelib-provided paths are not seen). An hxml build also gets its
+ * work directory itself: haxe treats the directory it runs in as an implicit
+ * classpath (the file's own folder plays no part unless it IS that directory).
+ * The lime tools compile from their export folder, which holds no sources, so
+ * xml builds get only their declared entries. Name-based lookups scope
+ * themselves to these — test-result
  * navigation and debugger source mapping would otherwise pick a same-named
  * file from a SIBLING project in the same IDE project.
  */
@@ -57,20 +62,21 @@ public final class HaxeBuildClasspaths {
     HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, buildFilePath);
     if (buildFile == null) return List.of();
     List<String> classpaths = HaxeBuildSections.inspectSelected(project, buildFile).classpaths();
-    return sourceDirectories(project, buildFile.file(), classpaths);
+    return sourceDirectories(project, buildFile, classpaths);
   }
 
   /** Same, for a caller that already inspected the build file (no second parse of its selected section). Call in a read action. */
   @NotNull
   public static List<String> sourceDirectories(@NotNull Project project,
-                                               @NotNull VirtualFile buildFile,
+                                               @NotNull HaxeBuildFile buildFile,
                                                @NotNull List<String> classpaths) {
-    VirtualFile parent = buildFile.getParent();
-    VirtualFile anchor = HaxeBuildWorkDirectories.anchor(project, buildFile);
-    if (parent == null || anchor == null) return List.of();
+    VirtualFile anchor = HaxeBuildWorkDirectories.anchor(project, buildFile.file());
+    if (anchor == null) return List.of();
 
     List<String> directories = new ArrayList<>();
-    directories.add(parent.getPath());
+    if (buildFile.type() == HaxeBuildFileType.HXML) {
+      directories.add(anchor.getPath());
+    }
     for (String classpath : classpaths) {
       VirtualFile resolved = resolveClasspathEntry(anchor, classpath);
       if (resolved != null) {
@@ -82,7 +88,7 @@ public final class HaxeBuildClasspaths {
     // libraries carry their resolved roots - include them so a file inside
     // library code stays in scope. The module's union of libraries
     // over-includes, which errs on the safe (fail-open) side.
-    Module module = ModuleUtilCore.findModuleForFile(buildFile, project);
+    Module module = ModuleUtilCore.findModuleForFile(buildFile.file(), project);
     if (module != null) {
       collectManagedLibraryRoots(module, directories);
     }

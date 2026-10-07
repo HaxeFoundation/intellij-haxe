@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildClasspaths;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSections;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
 import com.intellij.plugins.haxe.v2.buildtools.LimeProjects;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTestsBuildFileStore;
 import com.intellij.psi.PsiFile;
@@ -33,9 +34,13 @@ import java.util.List;
  * declares — what every test entry point (gutter markers, context-menu runs)
  * needs before it can compile a selection: the build supplies classpaths,
  * defines and libraries, the framework the template and detection.
- * Ownership is by PATH: the first marked-or-conventional tests build whose
- * classpaths contain the file or directory (see {@link #candidateTestsPaths});
- * nothing claims a path outside every build. Resolved from a project-level
+ * Ownership is by PATH: among the marked-or-conventional tests builds whose
+ * classpaths contain the file or directory (see {@link #candidateTestsPaths}),
+ * the one with the most specific classpath wins, ties going to the earlier
+ * candidate. An hxml build's work directory counts as a classpath (haxe's
+ * implicit one), so a root-level tests build would otherwise claim every file
+ * of a nested one. Nothing
+ * claims a path outside every build. Resolved from a project-level
  * cache of the builds' classpaths, invalidated by the marked set, the VFS
  * structure and build-file content (see {@link #dependencies}) — never by
  * the whole-PSI counter, which bumps on every keystroke.
@@ -44,6 +49,14 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
 
   /** One tests build and the source directories it compiles. */
   private record Ownership(@NotNull HaxeTestContext context, @NotNull List<String> sourceDirectories) {
+    /** Length of the longest source directory containing the path, or -1 when none does. */
+    int specificity(@NotNull String pathAsPrefix) {
+      int longest = -1;
+      for (String directory : sourceDirectories) {
+        if (pathAsPrefix.startsWith(directory + "/")) longest = Math.max(longest, directory.length());
+      }
+      return longest;
+    }
   }
 
   /** The file's context, or null when no marked-or-conventional tests build owns it (or its framework has no single-run support). */
@@ -63,11 +76,16 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
   private static HaxeTestContext forPath(@NotNull Project project, @NotNull String path) {
     // TODO: a directory ABOVE a classpath root (the tests build's own directory) is claimed by nothing
     String pathAsPrefix = path + "/";
+    HaxeTestContext owner = null;
+    int ownerSpecificity = -1;
     for (Ownership ownership : ownerships(project)) {
-      boolean owns = ownership.sourceDirectories().stream().anyMatch(directory -> pathAsPrefix.startsWith(directory + "/"));
-      if (owns) return ownership.context();
+      int specificity = ownership.specificity(pathAsPrefix);
+      if (specificity > ownerSpecificity) {
+        owner = ownership.context();
+        ownerSpecificity = specificity;
+      }
     }
-    return null;
+    return owner;
   }
 
   @NotNull
@@ -99,12 +117,13 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
       if (!supported) continue;
       // ONE inspection per candidate: its classpaths decide ownership, its
       // -lib declarations the framework
-      HaxeBuildFileInfo info = HaxeBuildSections.inspectSelected(project, new HaxeBuildFile(testsFile, type));
+      HaxeBuildFile testsBuild = new HaxeBuildFile(testsFile, type);
+      HaxeBuildFileInfo info = HaxeBuildSections.inspectSelected(project, testsBuild);
       // a build declaring no framework lib offers no runs - the detection
       // default must not turn an application build into a utest run
       HaxeTestFramework framework = HaxeTestFrameworks.detectedFramework(info.libraries());
       if (framework == null || framework.singleRunTemplate(false) == null) continue;
-      List<String> sourceDirectories = HaxeBuildClasspaths.sourceDirectories(project, testsFile, info.classpaths());
+      List<String> sourceDirectories = HaxeBuildClasspaths.sourceDirectories(project, testsBuild, info.classpaths());
       ownerships.add(new Ownership(new HaxeTestContext(framework, testsPath), List.copyOf(sourceDirectories)));
     }
     return List.copyOf(ownerships);
@@ -125,24 +144,31 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
     List<String> candidates = new ArrayList<>(store.getAllTestsFilePaths());
     List<String> excluded = store.getAllExcludedFilePaths();
     for (VirtualFile hxml : FileTypeIndex.getFiles(HXMLFileType.INSTANCE, GlobalSearchScope.projectScope(project))) {
-      addConventional(candidates, excluded, hxml.getPath());
+      addConventional(project, candidates, excluded, hxml);
     }
     for (VirtualFile xml : FileTypeIndex.getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))) {
       // the cheap path check gates the per-file type detection
-      if (HaxeTestsBuildFileStore.isConventionalTestsPath(xml.getPath())
-          && LimeProjects.isLimeFamily(HaxeBuildFileScanner.detectType(project, xml))) {
-        addConventional(candidates, excluded, xml.getPath());
+      if (isConventionalTestsPath(project, xml) && LimeProjects.isLimeFamily(HaxeBuildFileScanner.detectType(project, xml))) {
+        addConventional(project, candidates, excluded, xml);
       }
     }
     return List.copyOf(candidates);
   }
 
-  private static void addConventional(@NotNull List<String> candidates,
+  private static void addConventional(@NotNull Project project,
+                                      @NotNull List<String> candidates,
                                       @NotNull List<String> excluded,
-                                      @NotNull String path) {
-    boolean conventional = HaxeTestsBuildFileStore.isConventionalTestsPath(path) && !excluded.contains(path);
+                                      @NotNull VirtualFile file) {
+    String path = file.getPath();
+    boolean conventional = isConventionalTestsPath(project, file) && !excluded.contains(path);
     if (conventional && !candidates.contains(path)) {
       candidates.add(path);
     }
+  }
+
+  /** The store's convention, relative to the file's container root - the same answer the tool window's Tests rows give. */
+  private static boolean isConventionalTestsPath(@NotNull Project project, @NotNull VirtualFile file) {
+    String containerRoot = HaxeContainers.containerRootPath(project, HaxeContainers.containerIdFor(project, file));
+    return HaxeTestsBuildFileStore.isConventionalTestsPath(file.getPath(), containerRoot);
   }
 }

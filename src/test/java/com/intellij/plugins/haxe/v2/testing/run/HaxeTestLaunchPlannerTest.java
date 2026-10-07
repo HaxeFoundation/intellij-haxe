@@ -105,7 +105,7 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   public void testSingleSuiteRunSwapsTheEntryPointForTheGeneratedMain() throws Exception {
     String path = fixturePath("test.hxml");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("cases.SampleTest"), null);
-    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false);
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
     List<String> command = plan.command();
 
     assertTrue(plan.singleStage(), "the interp single run compiles-and-runs as one process");
@@ -127,9 +127,32 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   public void testSingleTestRunAddsTheAnchoredUtestPattern() throws ExecutionException {
     String path = fixturePath("test.hxml");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("cases.SampleTest"), "testPasses");
-    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false);
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
     assertTrue(plan.command().contains("UTEST_PATTERN=\\.testPasses$"),
                "anchored method pattern expected: " + plan.command());
+  }
+
+  @Test
+  @DisplayName("single suite run narrows by the filter pattern")
+  public void testSingleSuiteRunNarrowsByTheFilterPattern() throws ExecutionException {
+    String path = fixturePath("test.hxml");
+    HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("cases.SampleTest"), null);
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, "testPasses", singleRun, false);
+    assertTrue(plan.command().contains("UTEST_PATTERN=testPasses"),
+               "the configuration's pattern composes with the suite template: " + plan.command());
+    assertTrue(plan.command().contains(HaxeTestSingleRuns.MAIN_CLASS), "the suite still runs through the generated main");
+  }
+
+  @Test
+  @DisplayName("single test run ignores the filter pattern")
+  public void testSingleTestRunIgnoresTheFilterPattern() throws ExecutionException {
+    String path = fixturePath("test.hxml");
+    HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("cases.SampleTest"), "testPasses");
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, "testFails", singleRun, false);
+    assertTrue(plan.command().contains("UTEST_PATTERN=\\.testPasses$"),
+               "the method's anchored pattern stays: " + plan.command());
+    assertFalse(plan.command().contains("UTEST_PATTERN=testFails"),
+                "a second pattern would collide with the anchored one: " + plan.command());
   }
 
   @Test
@@ -137,7 +160,7 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   public void testSingleRunRedirectsTheArtifactAwayFromTheTestsOutput() throws ExecutionException {
     String path = fixturePath("targets/hl.hxml");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("cases.SampleTest"), null);
-    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false);
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
     assertFalse(plan.singleStage(), "artifact targets keep the compile in the before-run step");
     assertTrue(plan.command().get(1).endsWith("single.hl"),
                "the run must launch the redirected artifact: " + plan.command());
@@ -150,12 +173,12 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   public void testMunitSingleMethodNarrowsThroughTheMacroDefine() throws ExecutionException {
     String path = fixturePath("targets/munit-neko.hxml");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), "testAdd");
-    HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false);
+    HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
     assertNotNull(file);
     HaxeCompileCommands.Resolved compile = HaxeTestLaunchPlanner.singleRunCompile(
-      getProject(), file, HaxeTestFrameworks.forBuildFile(getProject(), path), singleRun);
+      getProject(), file, HaxeTestFrameworks.forBuildFile(getProject(), path), null, singleRun);
     assertNotNull(compile, "the single-run compile must resolve");
     assertTrue(compile.command().contains("intellij_munit_test=testAdd"),
                "the macro's narrowing define must ride the compile: " + compile.command());
@@ -169,7 +192,7 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
     HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, "Neko");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), null);
 
-    Plan single = HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false);
+    Plan single = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
     Plan whole = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
     assertFalse(single.singleStage(), "the compile stays in the before-run step");
     assertEquals(HaxeTarget.NEKO, single.target());
@@ -225,7 +248,7 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
     HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, "HTML5");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), null);
 
-    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false);
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
     assertTrue(plan.browserHosted(), "the packaged html5 output is served like the whole build");
     assertTrue(plan.command().get(0).replace('\\', '/').endsWith("export/html5/bin"),
                "the packaged web root is what gets served: " + plan.command());
@@ -237,7 +260,7 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
     String path = fixturePath("targets/tests.nmml");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), null);
     assertThrows(ExecutionException.class,
-                 () -> HaxeTestLaunchPlanner.planSingle(getProject(), path, singleRun, false));
+                 () -> HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false));
   }
 
   @Test

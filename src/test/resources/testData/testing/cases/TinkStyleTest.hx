@@ -12,4 +12,12 @@ class TinkStyleTest {
   function notPublic() {}
 
   public static function staticFactory() {}
+
+  @:before
+  public function prepare() {}
+
+  @:exclude
+  public function skipped() {
+    return asserts.done();
+  }
 }

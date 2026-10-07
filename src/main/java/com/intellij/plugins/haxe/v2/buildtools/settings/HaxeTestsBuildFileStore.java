@@ -145,7 +145,9 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
    * Candidate order is preserved.
    */
   @NotNull
-  public List<String> resolveTestsFiles(@NotNull String containerId, @NotNull List<String> candidatePaths) {
+  public List<String> resolveTestsFiles(@NotNull String containerId,
+                                        @Nullable String containerRoot,
+                                        @NotNull List<String> candidatePaths) {
     List<String> marked = getTestsFilePaths(containerId);
     List<String> excluded = state.excludedFiles.stream()
       .filter(entry -> containerId.equals(entry.containerId))
@@ -153,13 +155,19 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
       .toList();
     return candidatePaths.stream()
       .filter(candidate -> marked.contains(candidate)
-                           || (isConventionalTestsPath(candidate) && !excluded.contains(candidate)))
+                           || (isConventionalTestsPath(candidate, containerRoot) && !excluded.contains(candidate)))
       .toList();
   }
 
-  /** Whether the path is a tests build by CONVENTION - a test.hxml/tests.hxml name, or any build file under a tests/ directory. */
-  public static boolean isConventionalTestsPath(@NotNull String path) {
-    return isConventionalTestsFileName(path) || isUnderTestsDirectory(path);
+  /**
+   * Whether the path is a tests build by CONVENTION - a test.hxml/tests.hxml
+   * name, or any build file under a tests/ directory of its container.
+   * {@code containerRoot} is the container's root directory: its own name
+   * counts (a tests module), the directories above it do not (a checkout
+   * under {@code D:/tests/app} is not all tests); null checks the whole path.
+   */
+  public static boolean isConventionalTestsPath(@NotNull String path, @Nullable String containerRoot) {
+    return isConventionalTestsFileName(path) || isUnderTestsDirectory(path, containerRoot);
   }
 
   private static boolean isConventionalTestsFileName(@NotNull String path) {
@@ -167,12 +175,21 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
     return name.equals("test.hxml") || name.equals("tests.hxml");
   }
 
-  private static boolean isUnderTestsDirectory(@NotNull String path) {
-    String parents = PathUtil.getParentPath(path).toLowerCase(Locale.ROOT);
-    for (String segment : StringUtil.tokenize(parents.replace('\\', '/'), "/")) {
+  private static boolean isUnderTestsDirectory(@NotNull String path, @Nullable String containerRoot) {
+    String parents = normalized(PathUtil.getParentPath(path));
+    String aboveRoot = containerRoot == null ? "" : normalized(PathUtil.getParentPath(containerRoot));
+    if (!aboveRoot.isEmpty() && parents.startsWith(aboveRoot + "/")) {
+      parents = parents.substring(aboveRoot.length() + 1);
+    }
+    for (String segment : StringUtil.tokenize(parents, "/")) {
       if (segment.equals("tests")) return true;
     }
     return false;
+  }
+
+  @NotNull
+  private static String normalized(@NotNull String path) {
+    return path.replace('\\', '/').toLowerCase(Locale.ROOT);
   }
 
   /** Matches the entry identified by the container/path pair. */

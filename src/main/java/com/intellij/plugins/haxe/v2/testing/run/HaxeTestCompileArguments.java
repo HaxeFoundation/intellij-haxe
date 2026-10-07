@@ -88,7 +88,7 @@ final class HaxeTestCompileArguments {
     HaxeBuildFileType type = buildFile == null ? null : buildFile.type();
     if (LimeProjects.isLimeFamily(type)) {
       return singleRun != null
-             ? limeSingleRunCompileArguments(project, buildFile.file(), type, singleRun)
+             ? limeSingleRunCompileArguments(project, buildFile.file(), type, filterPattern, singleRun)
              : limeCompileArguments(project, buildFile.file(), type, filterPattern);
     }
     if (type == HaxeBuildFileType.NMML) {
@@ -137,10 +137,11 @@ final class HaxeTestCompileArguments {
   private static String limeSingleRunCompileArguments(@NotNull Project project,
                                                       @NotNull VirtualFile file,
                                                       @NotNull HaxeBuildFileType type,
+                                                      @Nullable String filterPattern,
                                                       @NotNull HaxeTestSingleRuns.SingleRun singleRun) {
     HaxeTestFramework framework = HaxeTestFrameworks.forBuildFile(project, file.getPath());
     String targetFlag = LimeProjects.selectedTargetFlag(project, type, file);
-    List<String> plain = singleRunArguments(project, framework, limeSuiteContext(targetFlag), singleRun);
+    List<String> plain = singleRunArguments(project, framework, limeSuiteContext(targetFlag), filterPattern, singleRun);
     List<String> spelled = limeSpelled(project, targetFlag, plain);
     Path generated = HaxeTestSingleRuns.generatedDirectory(file.getPath(), framework, singleRun);
     if (generated == null) return null;
@@ -263,25 +264,36 @@ final class HaxeTestCompileArguments {
     return suiteLabel(Objects.requireNonNullElse(target, HaxeTarget.INTERP));
   }
 
-  /** The hxml single-run compile arguments: the reporting set plus the method narrowing. */
+  /** The hxml single-run compile arguments: the reporting set plus the selection's narrowing (see {@link #singleRunArguments}). */
   @NotNull
   static String singleRunCompileArguments(@NotNull Project project,
-                                                  @NotNull String buildFilePath,
-                                                  @NotNull HaxeTestFramework framework,
-                                                  @NotNull HaxeTestSingleRuns.SingleRun singleRun) {
+                                          @NotNull String buildFilePath,
+                                          @NotNull HaxeTestFramework framework,
+                                          @Nullable String filterPattern,
+                                          @NotNull HaxeTestSingleRuns.SingleRun singleRun) {
     SuiteContext suite = hxmlSuiteContext(project, buildFilePath);
-    return ParametersListUtil.join(singleRunArguments(project, framework, suite, singleRun));
+    return ParametersListUtil.join(singleRunArguments(project, framework, suite, filterPattern, singleRun));
   }
 
-  /** The reporting set, narrowed to the one method for a single-test run, in plain hxml spelling. */
+  /**
+   * The reporting set plus the selection's narrowing, in plain hxml spelling:
+   * a single-TEST run narrows to its method; a suite run narrows by the
+   * configuration's filter pattern instead (utest matches it against
+   * {@code Class.method}, so it composes with the template's suite) - the
+   * method's anchored pattern would collide with it, so a single test ignores it.
+   */
   @NotNull
   private static List<String> singleRunArguments(@NotNull Project project,
                                                  @NotNull HaxeTestFramework framework,
                                                  @NotNull SuiteContext suite,
+                                                 @Nullable String filterPattern,
                                                  @NotNull HaxeTestSingleRuns.SingleRun singleRun) {
     List<String> arguments = reportingArguments(project, framework, suite);
     if (singleRun.singleTest()) {
       arguments.addAll(framework.singleRunFilterArgs(singleRun.testMethod()));
+    }
+    else {
+      arguments.addAll(framework.filterArgs(StringUtil.nullize(filterPattern, true)));
     }
     return arguments;
   }

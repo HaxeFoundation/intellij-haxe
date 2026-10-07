@@ -44,6 +44,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -165,7 +166,7 @@ public class HaxeTestRunConfiguration extends LocatableConfigurationBase<RunProf
     // the before-run task calls this on a pooled thread
     return ReadAction.nonBlocking(() -> {
         HaxeTestFramework framework = HaxeTestFrameworks.forBuildFile(getProject(), buildFilePath);
-        return HaxeTestLaunchPlanner.singleRunCompile(getProject(), file, framework, run);
+        return HaxeTestLaunchPlanner.singleRunCompile(getProject(), file, framework, filterPattern, run);
       })
       .executeSynchronously();
   }
@@ -177,16 +178,16 @@ public class HaxeTestRunConfiguration extends LocatableConfigurationBase<RunProf
    * none. Call after mutating the build file or filter.
    */
   public void syncCompileStep() {
-    setBeforeRunTasks(computedCompileStep());
+    applyCompileStep(computedCompileStep());
   }
 
-  /** The before-run tasks {@link #syncCompileStep} would set, computed without mutating (parses build files). */
-  @NotNull
-  List<BeforeRunTask<?>> computedCompileStep() {
+  /** The compile step {@link #syncCompileStep} would attach, computed without mutating (parses build files); null for a single-stage build. */
+  @Nullable
+  BeforeRunTask<?> computedCompileStep() {
     boolean singleStage = HaxeReadActions.compute(
       () -> HaxeTestLaunchPlanner.isSingleStage(getProject(), buildFilePath));
     if (singleStage) {
-      return List.of();
+      return null;
     }
     HaxeActionBeforeRunTaskProvider.Task compileTask = new HaxeActionBeforeRunTaskProvider.Task();
     compileTask.setBuildFilePath(buildFilePath);
@@ -196,7 +197,26 @@ public class HaxeTestRunConfiguration extends LocatableConfigurationBase<RunProf
     // a multi-section hxml compiles only its selected --next section, so the
     // reporting arguments reach that section instead of the chain's last one
     compileTask.setSectionScoped(true);
-    return List.of(compileTask);
+    return compileTask;
+  }
+
+  /**
+   * Replaces the Haxe compile step in the Before launch list and keeps every
+   * other task (Run Another Configuration, External Tool...) where it is. The
+   * step is derived state, not a user choice: every Haxe action task counts
+   * as it, and one the user deleted comes back on the next sync.
+   */
+  void applyCompileStep(@Nullable BeforeRunTask<?> compileTask) {
+    List<BeforeRunTask<?>> tasks = new ArrayList<>(getBeforeRunTasks());
+    int haxeStep = tasks.stream()
+      .map(BeforeRunTask::getProviderId)
+      .toList()
+      .indexOf(HaxeActionBeforeRunTaskProvider.ID);
+    tasks.removeIf(task -> task.getProviderId() == HaxeActionBeforeRunTaskProvider.ID);
+    if (compileTask != null) {
+      tasks.add(Math.max(haxeStep, 0), compileTask);
+    }
+    setBeforeRunTasks(tasks);
   }
 
   /**

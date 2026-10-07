@@ -15,11 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The tink_unittest framework: a test class carries {@code @:asserts}
  * metadata (the build macro that threads the asserts collector through); a
- * test is any public instance method of such a class.
+ * test is any public instance method of such a class that is not a lifecycle
+ * hook or an excluded case (see {@link #NON_CASE_META}).
  *
  * tink has no TeamCity reporter of its own, so the shipped
  * {@code intellij_tink} reporter IS the IDE's result channel: its build macro
@@ -28,6 +30,15 @@ import java.util.List;
  * its own reporter keeps it.
  */
 public final class TinkFramework implements HaxeTestFramework {
+
+  /**
+   * Method metadata tink's TestBuilder turns into lifecycle hooks instead of
+   * cases (startup/shutdown are the deprecated setup/teardown spellings), plus
+   * the case flag the runner always skips - a single run of such a method
+   * includes nothing, so it gets no marker.
+   */
+  private static final Set<String> NON_CASE_META =
+    Set.of("setup", "startup", "teardown", "shutdown", "before", "after", "exclude");
 
   @Override
   public @NotNull String libraryName() {
@@ -50,8 +61,17 @@ public final class TinkFramework implements HaxeTestFramework {
   public boolean isTestMethod(@NotNull HaxeMethod method) {
     HaxeMethodModel model = method.getModel();
     if (model.isConstructor() || model.isStatic() || !model.isPublic()) return false;
+    if (hasNonCaseMeta(method)) return false;
     HaxeClassModel declaringClass = model.getDeclaringClass();
     return declaringClass != null && isTestClass(declaringClass.haxeClass);
+  }
+
+  private static boolean hasNonCaseMeta(@NotNull HaxeMethod method) {
+    return method.getMetadataList(HaxeMeta.COMPILE_TIME).stream().anyMatch(TinkFramework::isNonCaseMeta);
+  }
+
+  private static boolean isNonCaseMeta(@NotNull HaxeMeta meta) {
+    return NON_CASE_META.stream().anyMatch(meta::isType);
   }
 
   /** Or null when extraction fails - the run then reports to the console only. */

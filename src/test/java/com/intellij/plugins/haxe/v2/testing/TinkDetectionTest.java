@@ -49,6 +49,15 @@ public class TinkDetectionTest extends HaxeTestFrameworkDetectionTestBase {
   }
 
   @Test
+  @DisplayName("lifecycle hooks and excluded cases are not tests")
+  public void testLifecycleHooksAndExcludedCasesAreNotTests() {
+    configureFixtureProject();
+    HaxeClass tinkTest = classByQName("cases.TinkStyleTest");
+    assertFalse(framework.isTestMethod(methodOf(tinkTest, "prepare")), "@:before runs around cases, a single run of it includes nothing");
+    assertFalse(framework.isTestMethod(methodOf(tinkTest, "skipped")), "@:exclude cases never run");
+  }
+
+  @Test
   @DisplayName("case location resolves through the file when the bare class name is packaged")
   public void testCaseLocationResolvesThroughTheFileWhenTheBareClassNameIsPackaged() {
     configureFixtureProject();

@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSections;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTestsBuildFileStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,7 @@ public final class HaxeTestFrameworks {
         candidates.add(path);
       }
     });
-    return HaxeTestsBuildFileStore.getInstance(project).resolveTestsFiles(containerId, candidates);
+    String containerRoot = HaxeContainers.containerRootPath(project, containerId);
+    return HaxeTestsBuildFileStore.getInstance(project).resolveTestsFiles(containerId, containerRoot, candidates);
   }
 }

@@ -149,9 +149,10 @@ final class HaxeTestLaunchPlanner {
   @NotNull
   static Plan planSingle(@NotNull Project project,
                          @NotNull String buildFilePath,
+                         @Nullable String filterPattern,
                          @NotNull HaxeTestSingleRuns.SingleRun singleRun,
                          boolean nodeOnPath) throws ExecutionException {
-    return plan(project, buildFilePath, null, singleRun, bareNode(nodeOnPath), false);
+    return plan(project, buildFilePath, filterPattern, singleRun, bareNode(nodeOnPath), false);
   }
 
   @Nullable
@@ -193,7 +194,7 @@ final class HaxeTestLaunchPlanner {
 
     HaxeBuildFileInfo info = HaxeBuildSections.inspectSelected(project, new HaxeBuildFile(file, HaxeBuildFileType.HXML));
     if (singleRun != null) {
-      return singleRunPlan(project, file, info, singleRun, nodeExecutable, debugLaunch);
+      return singleRunPlan(project, file, info, filterPattern, singleRun, nodeExecutable, debugLaunch);
     }
     if (info.target() == null || info.target() == HaxeTarget.INTERP) {
       HaxeTestFramework framework = HaxeTestFrameworks.forBuildFile(project, file.getPath());
@@ -216,6 +217,7 @@ final class HaxeTestLaunchPlanner {
   private static Plan singleRunPlan(@NotNull Project project,
                                     @NotNull VirtualFile file,
                                     @NotNull HaxeBuildFileInfo info,
+                                    @Nullable String filterPattern,
                                     @NotNull HaxeTestSingleRuns.SingleRun singleRun,
                                     @Nullable String nodeExecutable,
                                     boolean debugLaunch) throws ExecutionException {
@@ -230,7 +232,7 @@ final class HaxeTestLaunchPlanner {
         throw new ExecutionException(
           HaxeBundle.message("haxe.test.config.framework.no.interp", framework.libraryName()));
       }
-      HaxeCompileCommands.Resolved resolved = singleRunCompile(project, file, framework, singleRun);
+      HaxeCompileCommands.Resolved resolved = singleRunCompile(project, file, framework, filterPattern, singleRun);
       if (resolved == null) {
         throw new ExecutionException(HaxeBundle.message("haxe.test.single.unresolvable", file.getName()));
       }
@@ -293,8 +295,10 @@ final class HaxeTestLaunchPlanner {
   static HaxeCompileCommands.Resolved singleRunCompile(@NotNull Project project,
                                                        @NotNull VirtualFile file,
                                                        @NotNull HaxeTestFramework framework,
+                                                       @Nullable String filterPattern,
                                                        @NotNull HaxeTestSingleRuns.SingleRun singleRun) {
-    String arguments = HaxeTestCompileArguments.singleRunCompileArguments(project, file.getPath(), framework, singleRun);
+    String arguments =
+      HaxeTestCompileArguments.singleRunCompileArguments(project, file.getPath(), framework, filterPattern, singleRun);
     return HaxeTestSingleRuns.resolveCompile(project, file, framework, arguments, singleRun);
   }
 

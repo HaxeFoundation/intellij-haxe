@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.v2.testing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTestsBuildFileStore;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeWorkDirectoryStore;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +38,49 @@ public class HaxeTestContextTest extends HaxeCodeInsightFixtureTestCase {
     assertNotNull(context, "the marked build's classpaths contain the file");
     assertEquals("utest", context.framework().libraryName(), "no -lib in the build falls to the utest default");
     assertEquals(buildFile.getPath(), context.testsBuildPath());
+  }
+
+  @Test
+  @DisplayName("the most specific classpath owns a file when several marked builds contain it")
+  public void testTheMostSpecificClasspathOwnsAFileWhenSeveralMarkedBuildsContainIt() {
+    VirtualFile rootBuild = myFixture.copyFileToProject("utest/test.hxml", "test.hxml");
+    VirtualFile rootSource = myFixture.copyFileToProject("src/TestMain.hx", "src/TestMain.hx");
+    VirtualFile tinkBuild = myFixture.copyFileToProject("tink/test.hxml", "tink/test.hxml");
+    VirtualFile tinkSource = myFixture.copyFileToProject("tink/src/TinkCase.hx", "tink/src/TinkCase.hx");
+    HaxeTestsBuildFileStore store = HaxeTestsBuildFileStore.getInstance(getProject());
+    store.markTestsFile("container", rootBuild.getPath());
+    store.markTestsFile("container", tinkBuild.getPath());
+
+    HaxeTestContext tinkContext = HaxeTestContext.forFile(psiFile(tinkSource));
+    assertNotNull(tinkContext);
+    assertEquals(tinkBuild.getPath(), tinkContext.testsBuildPath(),
+                 "the root build's own folder contains the file too, but the nested build's classpath is more specific");
+    assertInstanceOf(TinkFramework.class, tinkContext.framework());
+
+    HaxeTestContext rootContext = HaxeTestContext.forFile(psiFile(rootSource));
+    assertNotNull(rootContext);
+    assertEquals(rootBuild.getPath(), rootContext.testsBuildPath(), "a file only the root build contains stays with it");
+  }
+
+  @Test
+  @DisplayName("the work directory is an implicit classpath, the build files own folder is not")
+  public void testTheWorkDirectoryIsAnImplicitClasspathTheBuildFilesOwnFolderIsNot() {
+    // the build runs from src/ (override), so haxe's implicit classpath is
+    // src/, and conf/ beside the hxml is no classpath at all
+    VirtualFile buildFile = myFixture.copyFileToProject("utest/test.hxml", "conf/test.hxml");
+    VirtualFile inWorkDirectory = myFixture.copyFileToProject("src/TestMain.hx", "src/TestMain.hx");
+    VirtualFile besideBuildFile = myFixture.copyFileToProject("src/TestMain.hx", "conf/ConfCase.hx");
+    HaxeWorkDirectoryStore workDirectories = HaxeWorkDirectoryStore.getInstance(getProject());
+    workDirectories.setWorkDirectory(buildFile.getPath(), inWorkDirectory.getParent().getPath());
+    HaxeTestsBuildFileStore.getInstance(getProject()).markTestsFile("container", buildFile.getPath());
+
+    HaxeTestContext context = HaxeTestContext.forFile(psiFile(inWorkDirectory));
+    assertNotNull(context, "a file in the work directory compiles through the implicit classpath");
+    assertEquals(buildFile.getPath(), context.testsBuildPath());
+    assertNull(HaxeTestContext.forFile(psiFile(besideBuildFile)),
+               "haxe does not look beside the hxml, only in the directory it runs in");
+
+    workDirectories.setWorkDirectory(buildFile.getPath(), null);
   }
 
   @Test

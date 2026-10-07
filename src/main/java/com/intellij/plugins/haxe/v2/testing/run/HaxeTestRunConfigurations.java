@@ -152,14 +152,14 @@ public final class HaxeTestRunConfigurations {
       .submit(AppExecutorUtil.getAppExecutorService());
   }
 
-  /** One deferred setBeforeRunTasks per test configuration, computed under the caller's read action. */
+  /** One deferred compile-step application per test configuration, computed under the caller's read action. */
   @NotNull
   private static List<Runnable> compileStepUpdates(@NotNull Project project) {
     List<Runnable> applications = new ArrayList<>();
     for (RunnerAndConfigurationSettings settings : RunManager.getInstance(project).getAllSettings()) {
       if (settings.getConfiguration() instanceof HaxeTestRunConfiguration configuration) {
-        List<BeforeRunTask<?>> tasks = configuration.computedCompileStep();
-        applications.add(() -> configuration.setBeforeRunTasks(tasks));
+        BeforeRunTask<?> compileTask = configuration.computedCompileStep();
+        applications.add(() -> configuration.applyCompileStep(compileTask));
       }
     }
     return applications;
@@ -176,7 +176,7 @@ public final class HaxeTestRunConfigurations {
     Project project = configuration.getProject();
     ReadAction.nonBlocking(configuration::computedCompileStep)
       .expireWith(project)
-      .finishOnUiThread(ModalityState.defaultModalityState(), configuration::setBeforeRunTasks)
+      .finishOnUiThread(ModalityState.defaultModalityState(), configuration::applyCompileStep)
       .submit(AppExecutorUtil.getAppExecutorService());
   }
 }

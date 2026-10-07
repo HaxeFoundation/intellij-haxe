@@ -65,11 +65,13 @@ public final class HaxeToolWindowNodes {
    * A build file row; at most one in the project is active (its defines drive the
    * parse context). Manual rows were added by hand and can be removed;
    * auto-detected rows can only be hidden. {@code testsFile} marks one of the
-   * container's tests build files; {@code frameworkDetected} = its libraries
-   * include a known test framework.
+   * container's tests build files; {@code marked} = the store holds an explicit
+   * mark for it (a stale mark outlives its framework lib, so it is no
+   * testsFile); {@code frameworkDetected} = its libraries include a known test
+   * framework.
    */
   public record BuildFileRow(@NotNull HaxeBuildFile buildFile, @NotNull String containerId, boolean active,
-                             boolean manual, boolean testsFile, boolean frameworkDetected)
+                             boolean manual, boolean testsFile, boolean marked, boolean frameworkDetected)
     implements HaxeToolWindowNode {
     @Override
     public String expansionKey() {

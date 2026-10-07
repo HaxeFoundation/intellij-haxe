@@ -65,10 +65,16 @@ final class HaxeToolWindowModelBuilder {
                    int selectedSection) {
   }
 
-  /** A build-file container: a module, or the project root for files outside every module. */
+  /**
+   * A build-file container: a module, or the project root for files outside
+   * every module. {@code testsPaths} are its effective tests builds (marked or
+   * conventional, framework-gated); {@code markedTestsPaths} the raw store
+   * marks, which outlive a removed framework lib.
+   */
   record ContainerEntry(String id, String displayName, boolean projectRoot,
                         List<FileEntry> files, @Nullable String activePath,
                         List<String> testsPaths,
+                        List<String> markedTestsPaths,
                         EnvironmentData environment,
                         EnvCompileCommandNode compileCommand,
                         CompilationServerNode server,
@@ -118,11 +124,12 @@ final class HaxeToolWindowModelBuilder {
       EnvironmentData environment = buildEnvironmentData(raw.id(), activeDefines);
       CompilationServerNode server = compilationServerNode(raw.id(), compileCommand.connectEligible());
       List<String> testsPaths = resolveTestsPaths(raw);
+      List<String> markedTestsPaths = HaxeTestsBuildFileStore.getInstance(project).getTestsFilePaths(raw.id());
       List<ToolNode> tools = containerTools(raw);
       boolean userConfigured = hasUserConfiguration(raw.id());
       ContainerEntry container = new ContainerEntry(raw.id(), raw.displayName(), raw.projectRoot(), raw.files(),
-                                                    activePath, testsPaths, environment, compileCommand, server,
-                                                    tools, userConfigured);
+                                                    activePath, testsPaths, markedTestsPaths, environment, compileCommand,
+                                                    server, tools, userConfigured);
       containers.add(container);
     }
     return containers;

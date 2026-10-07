@@ -34,7 +34,7 @@ public final class HaxeMarkTestsBuildFileAction extends DumbAwareAction {
       String path = row.buildFile().file().getPath();
       // each file's (Tests) tag is an independent toggle: unmark records an
       // exclusion, so a conventionally-named file stays out too
-      if (row.testsFile()) {
+      if (isUnmark(row)) {
         store.unmarkTestsFile(row.containerId(), path);
       }
       else {
@@ -51,17 +51,21 @@ public final class HaxeMarkTestsBuildFileAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     if (panel.getSelectedUserObject() instanceof BuildFileRow row) {
-      String key = row.testsFile() ? "haxe.toolwindow.unmark.tests.build.file"
-                                   : "haxe.toolwindow.mark.tests.build.file";
+      boolean unmark = isUnmark(row);
+      String key = unmark ? "haxe.toolwindow.unmark.tests.build.file" : "haxe.toolwindow.mark.tests.build.file";
       e.getPresentation().setText(HaxeBundle.message(key));
-      // marking is only offered for builds declaring a test framework lib -
-      // a marked file without one still shows unmark, so a stale mark (the
-      // lib was removed) can be cleaned up
-      e.getPresentation().setEnabledAndVisible(row.frameworkDetected() || row.testsFile());
+      // marking is only offered for builds declaring a test framework lib;
+      // unmarking also for a stale mark (the lib was removed), so it can be cleaned up
+      e.getPresentation().setEnabledAndVisible(row.frameworkDetected() || unmark);
     }
     else {
       e.getPresentation().setEnabledAndVisible(false);
     }
+  }
+
+  /** Whether the row toggles OFF: an effective tests build, or a stale mark whose framework lib is gone. */
+  private static boolean isUnmark(@NotNull BuildFileRow row) {
+    return row.testsFile() || row.marked();
   }
 
   @Override
