@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
 import com.intellij.execution.configurations.RuntimeConfigurationError;
+import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.ide.browsers.WebBrowser;
 import com.intellij.ide.browsers.WebBrowserManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -43,6 +44,26 @@ public class BrowserRunConfigurationValidationTest extends HaxeCodeInsightFixtur
       BrowserRunConfiguration configuration = chromeConfiguration();
       configuration.setContentRoot(tempDir.toString());
       assertDoesNotThrow(configuration::checkConfiguration);
+    } finally {
+      browsers.setBrowserPath(chrome, storedPath, storedActive);
+    }
+  }
+
+  @Test
+  @DisplayName("a content directory the build step has not created yet is a warning")
+  public void testAContentDirectoryTheBuildStepHasNotCreatedYetIsAWarning() throws Exception {
+    WebBrowserManager browsers = WebBrowserManager.getInstance();
+    WebBrowser chrome = browsers.findBrowserById("chrome");
+    String storedPath = chrome.getPath();
+    boolean storedActive = browsers.isActive(chrome);
+    Path executable = Files.createFile(tempDir.resolve("chrome.exe"));
+    browsers.setBrowserPath(chrome, executable.toString(), true);
+
+    try {
+      BrowserRunConfiguration configuration = chromeConfiguration();
+      configuration.setContentRoot(tempDir.resolve("Export/html5/bin").toString());
+      assertThrows(RuntimeConfigurationWarning.class, configuration::checkConfiguration,
+                   "the Before launch build creates the directory, so Run must not be blocked before the first build");
     } finally {
       browsers.setBrowserPath(chrome, storedPath, storedActive);
     }

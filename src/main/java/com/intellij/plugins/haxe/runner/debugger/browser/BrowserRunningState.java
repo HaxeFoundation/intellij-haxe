@@ -18,6 +18,7 @@ import com.intellij.ide.browsers.WebBrowser;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,11 +84,14 @@ public class BrowserRunningState implements RunProfileState {
     return banner.toString();
   }
 
-  /** The configured content directory; the run fails when it is unset. */
+  /** The configured content directory; the run fails when it is unset or, after the build step, still absent. */
   private Path contentRoot() throws ExecutionException {
     Path root = configuration.resolveContentRootOrNull();
     if (root == null) {
       throw new ExecutionException(HaxeDebuggerBundle.message("browser.runner.no.content.root"));
+    }
+    if (!Files.isDirectory(root)) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("browser.runner.content.root.missing", root));
     }
     return root;
   }

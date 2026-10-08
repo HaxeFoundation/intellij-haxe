@@ -7,6 +7,7 @@ import com.intellij.execution.configurations.ConfigurationPerRunnerSettings;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
+import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
@@ -123,8 +124,11 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase implements 
       if (root == null) {
         throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("browser.runner.no.content.root"));
       }
+      // a warning, not an error: the Before launch build step creates the
+      // directory, and this check runs before that step; the launch itself
+      // fails with the same message when it is still missing afterwards
       if (!Files.isDirectory(root)) {
-        throw new RuntimeConfigurationError(
+        throw new RuntimeConfigurationWarning(
           HaxeDebuggerBundle.message("browser.runner.content.root.missing", contentRoot));
       }
     } else {
@@ -136,7 +140,7 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase implements 
       if (!contentRoot.isBlank()) {
         Path root = resolveContentRootOrNull();
         if (root == null || !Files.isDirectory(root)) {
-          throw new RuntimeConfigurationError(
+          throw new RuntimeConfigurationWarning(
             HaxeDebuggerBundle.message("browser.runner.content.root.missing", contentRoot));
         }
       }
