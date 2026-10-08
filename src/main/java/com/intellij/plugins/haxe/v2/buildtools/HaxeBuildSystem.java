@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -86,10 +87,10 @@ public interface HaxeBuildSystem {
 
   /**
    * The extra compile arguments that make the current selection's output
-   * debuggable (applied by the before-run compile under the Debug executor
-   * only), or null when the selection has no debugger support yet.
-   * Call inside a read action.
+   * debuggable for the launched debugger (applied by the before-run compile
+   * under the Debug executor only), or null when the selection has no
+   * debugger support yet. Call inside a read action.
    */
   @Nullable
-  List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile);
+  List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile, @NotNull Debugger debugger);
 }

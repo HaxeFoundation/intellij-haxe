@@ -67,9 +67,12 @@ public final class HaxelibStatusRow {
     });
   }
 
-  // the editor lives in a MODAL dialog: without its modality state the
-  // update would only run after the dialog closes
+  // The editor lives in a MODAL dialog, and the first refresh runs while the
+  // editor is still being built: the label is not in a shown window yet, so
+  // its own modality state is the non-modal one and the update would wait
+  // until the dialog closes. The label update touches no model, so it may
+  // run under any modality.
   private void onEditorModality(@NotNull Runnable update) {
-    ApplicationManager.getApplication().invokeLater(update, ModalityState.stateForComponent(statusLabel));
+    ApplicationManager.getApplication().invokeLater(update, ModalityState.any());
   }
 }

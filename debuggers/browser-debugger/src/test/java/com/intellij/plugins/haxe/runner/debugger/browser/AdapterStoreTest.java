@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,8 +51,8 @@ public class AdapterStoreTest {
   @Test
   @DisplayName("downloads verifies unpacks and caches")
   public void downloadsVerifiesUnpacksAndCaches() throws Exception {
-    AdapterStore store = new AdapterStore(storeRoot);
-    Path entry = store.resolveEntry(pin(archiveSha), null);
+    AdapterStore store = new AdapterStore(storeRoot, HttpClient::newHttpClient);
+    Path entry = store.resolveEntry(pin(archiveSha));
 
     assertTrue(Files.isRegularFile(entry));
     assertEquals(BUNDLE_CONTENT, Files.readString(entry));
@@ -60,17 +61,17 @@ public class AdapterStoreTest {
     // second resolve is a pure cache hit: kill the server to prove no fetch
     server.close();
 
-    Path again = new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), null);
+    Path again = new AdapterStore(storeRoot, HttpClient::newHttpClient).resolveEntry(pin(archiveSha));
     assertEquals(entry, again);
   }
 
   @Test
   @DisplayName("wrong hash refuses the artifact and caches nothing")
   public void wrongHashRefusesTheArtifactAndCachesNothing() throws Exception {
-    AdapterStore store = new AdapterStore(storeRoot);
+    AdapterStore store = new AdapterStore(storeRoot, HttpClient::newHttpClient);
     String wrongSha = "0".repeat(64);
     try {
-      store.resolveEntry(pin(wrongSha), null);
+      store.resolveEntry(pin(wrongSha));
       fail("expected the SHA-256 mismatch to refuse the artifact");
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("SHA-256 mismatch"), e.getMessage());
@@ -88,34 +89,9 @@ public class AdapterStoreTest {
     Files.createDirectories(versionDir.resolve("extension"));
     Files.writeString(versionDir.resolve("extension/leftover.txt"), "torn");
 
-    Path entry = new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), null);
+    Path entry = new AdapterStore(storeRoot, HttpClient::newHttpClient).resolveEntry(pin(archiveSha));
     assertEquals(BUNDLE_CONTENT, Files.readString(entry));
     assertFalse(Files.exists(versionDir.resolve("extension/leftover.txt")), "torn leftovers discarded");
-  }
-
-  @Test
-  @DisplayName("override directory wins and skips the store")
-  public void overrideDirectoryWinsAndSkipsTheStore() throws Exception {
-    Path override = Files.createTempDirectory("adapter-override");
-    Path overrideEntry = override.resolve(ENTRY);
-    Files.createDirectories(overrideEntry.getParent());
-    Files.writeString(overrideEntry, "// user-provided bundle");
-    server.close(); // no fetch may happen
-
-    Path entry = new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), override);
-    assertEquals(overrideEntry, entry);
-  }
-
-  @Test
-  @DisplayName("empty override directory fails with a clear message")
-  public void emptyOverrideDirectoryFailsWithAClearMessage() throws Exception {
-    Path override = Files.createTempDirectory("adapter-override-empty");
-    try {
-      new AdapterStore(storeRoot).resolveEntry(pin(archiveSha), override);
-      fail("expected the empty override to be rejected");
-    } catch (IOException e) {
-      assertTrue(e.getMessage().contains("does not contain"), e.getMessage());
-    }
   }
 
   @Test
@@ -124,7 +100,7 @@ public class AdapterStoreTest {
     byte[] evil = zipWith("../escaped.txt", "evil");
     Files.write(www.resolve("adapter.vsix"), evil);
     try {
-      new AdapterStore(storeRoot).resolveEntry(pin(sha256(evil)), null);
+      new AdapterStore(storeRoot, HttpClient::newHttpClient).resolveEntry(pin(sha256(evil)));
       fail("expected the zip-slip entry to be rejected");
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("zip-slip"), e.getMessage());
@@ -140,7 +116,7 @@ public class AdapterStoreTest {
     Files.write(www.resolve("adapter.tar.gz"), tarGz);
     AdapterPin pin = new AdapterPin("test-tgz", "1.0.0", server.getBaseUrl() + "adapter.tar.gz",
                                     sha256(tarGz), "js-debug/src/dapDebugServer.js");
-    Path entry = new AdapterStore(storeRoot).resolveEntry(pin, null);
+    Path entry = new AdapterStore(storeRoot, HttpClient::newHttpClient).resolveEntry(pin);
     assertEquals("// fake dap server", Files.readString(entry));
   }
 
@@ -154,7 +130,7 @@ public class AdapterStoreTest {
                                     sha256(evil), "whatever.js");
 
     try {
-      new AdapterStore(storeRoot).resolveEntry(pin, null);
+      new AdapterStore(storeRoot, HttpClient::newHttpClient).resolveEntry(pin);
       fail("expected the tar-slip entry to be rejected");
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("tar-slip"), e.getMessage());

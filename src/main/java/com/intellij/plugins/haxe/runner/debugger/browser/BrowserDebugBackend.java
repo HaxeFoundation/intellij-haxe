@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration.BrowserFamily;
@@ -27,12 +26,12 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The browser backend: resolves the family's pinned vscode debug adapter
- * through the {@link AdapterStore} (download on first use, SHA-256-verified),
- * spawns it on the user's node in DAP TCP server mode, optionally serves the
- * content directory over the plugin's own loopback {@link ContentHttpServer},
- * and connects the shared DAP client. The BROWSER is launched by the adapter
- * (the launch config carries the url and optional executable), so the runner
- * spawns no debuggee.
+ * through the {@link AdapterStore} (downloaded beforehand from the run
+ * configuration, SHA-256-verified), spawns it on the user's node in DAP TCP
+ * server mode, optionally serves the content directory over the plugin's own
+ * loopback {@link ContentHttpServer}, and connects the shared DAP client. The
+ * BROWSER is launched by the adapter (the launch config carries the url and
+ * optional executable), so the runner spawns no debuggee.
  *
  * FIREFOX (vscode-firefox-debug, single session — wire behaviour pinned by
  * FirefoxAdapterLiveTest): initialize needs pathFormat=path, the initialized
@@ -99,7 +98,7 @@ public class BrowserDebugBackend implements DapBackend {
   public DapEndpoint connect() throws IOException {
     Path node = NodeLocator.locate(configuredNodePath);
     NodeLocator.requireModern(node);
-    AdapterStore store = new AdapterStore(adapterStoreRoot());
+    AdapterStore store = AdapterStores.open();
 
     String targetUrl = url;
     if (serveContent) {
@@ -128,16 +127,16 @@ public class BrowserDebugBackend implements DapBackend {
 
   /**
    * The adapter's entry point, WITHOUT downloading: acquisition is the user's
-   * explicit decision (the run configuration's Download link), and a missing
-   * adapter is already a validation error — this guard only covers a session
-   * forced past the configuration warning.
+   * explicit decision (the run configuration's Download link). The browser
+   * configuration already refuses a Debug launch without it; this guard
+   * covers the test lanes, whose configurations validate nothing about it.
    */
   static Path installedAdapterEntry(AdapterStore store, AdapterPin pin, String displayName) throws IOException {
     if (!store.isInstalled(pin)) {
       throw new IOException(HaxeDebuggerBundle.message(
         "browser.runner.adapter.missing", displayName + " " + pin.version()));
     }
-    return store.resolveEntry(pin, null); // already installed: no network
+    return store.resolveEntry(pin); // already installed: no network
   }
 
   private Path installedAdapterEntry(AdapterStore store, AdapterPin pin) throws IOException {
@@ -268,11 +267,6 @@ public class BrowserDebugBackend implements DapBackend {
   // retry inside a short window instead of failing the session.
   static DapClient connectWithRetry(int port) throws IOException {
     return DapClient.connectWithRetry("127.0.0.1", port, CONNECT_TIMEOUT_MILLIS, CONNECT_RETRY_WINDOW_MILLIS);
-  }
-
-  /** The pinned-adapter cache: {@code <ide-system>/haxe/debug-adapters}. */
-  public static Path adapterStoreRoot() {
-    return Path.of(PathManager.getSystemPath(), "haxe", "debug-adapters");
   }
 
   // --- session behaviour (wire facts from the live probes) ---

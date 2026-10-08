@@ -56,7 +56,7 @@ public class NodeTestDebugBackend implements DapBackend {
   @Override
   public DapEndpoint connect() throws IOException {
     NodeLocator.requireModern(nodeExecutable);
-    AdapterStore store = new AdapterStore(BrowserDebugBackend.adapterStoreRoot());
+    AdapterStore store = AdapterStores.open();
     // the same bundle display name the browser lane reports, so one missing
     // artifact reads identically from both entry points
     String adapterName = BrowserRunConfiguration.adapterDisplayName(BrowserFamily.CHROMIUM);

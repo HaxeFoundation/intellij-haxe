@@ -3,10 +3,13 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationPerRunnerSettings;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -16,6 +19,7 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
 import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import java.nio.file.Files;
@@ -154,12 +158,30 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase implements 
       throw new RuntimeConfigurationError(
         HaxeDebuggerBundle.message("browser.runner.browser.no.exe", browser.getName()));
     }
+  }
 
-    // downloading the adapter is the USER's explicit decision (the editor's
-    // Download link) - a session never downloads, so a missing adapter is an
-    // incorrect configuration, not a launch-time surprise
+  // Only Debug uses the adapter (Run opens the page, Profile drives CDP
+  // itself), so its check hangs off the runner: the platform calls this hook
+  // for the runner about to execute, and an error here blocks that launch
+  // without touching the other executors. Downloading is the USER's explicit
+  // decision (the editor's Download link) - a session never downloads, so a
+  // missing adapter is an incorrect configuration, not a launch-time surprise.
+  @Override
+  public void checkRunnerSettings(@NotNull ProgramRunner runner,
+                                  @Nullable RunnerSettings runnerSettings,
+                                  @Nullable ConfigurationPerRunnerSettings configurationPerRunnerSettings)
+    throws RuntimeConfigurationException {
+    if (runner instanceof DapDebugRunnerBase<?, ?>) {
+      checkAdapterDownloaded();
+    }
+  }
+
+  /** The selected browser's pinned adapter must be in the store; a missing or unsupported browser is checkConfiguration's error. */
+  private void checkAdapterDownloaded() throws RuntimeConfigurationError {
+    BrowserFamily family = DebugBrowser.familyOf(DebugBrowser.resolve(browserId));
+    if (family == null) return;
     AdapterPin pin = adapterPinFor(family);
-    if (!new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).isInstalled(pin)) {
+    if (!AdapterStores.open().isInstalled(pin)) {
       throw new RuntimeConfigurationError(HaxeDebuggerBundle.message(
         "browser.runner.adapter.missing", adapterDisplayName(family) + " " + pin.version()));
     }

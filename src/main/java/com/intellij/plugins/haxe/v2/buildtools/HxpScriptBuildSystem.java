@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.v2.buildtools;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +43,8 @@ final class HxpScriptBuildSystem implements HaxeBuildSystem {
   }
 
   @Override
-  public @Nullable List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+  public @Nullable List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile,
+                                                      @NotNull Debugger debugger) {
     return null;
   }
 }

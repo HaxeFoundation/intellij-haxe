@@ -7,6 +7,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider.Task;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBCheckBox;
@@ -24,12 +25,14 @@ import java.util.List;
 
 /**
  * Configures a "Run Haxe action" before-launch step: the build file, the action to
- * run and extra arguments. Applies to the task on OK.
+ * run and extra arguments. The debug preview shows the additions of the owning
+ * configuration's debugger. Applies to the task on OK.
  */
 final class HaxeActionBeforeRunDialog extends DialogWrapper {
 
   private final Project project;
   private final Task task;
+  private final Debugger debugger;
   private final TextFieldWithBrowseButton fileField = new TextFieldWithBrowseButton();
   private final ComboBox<String> actionCombo = new ComboBox<>();
   private final JBTextField argumentsField = new JBTextField();
@@ -37,10 +40,11 @@ final class HaxeActionBeforeRunDialog extends DialogWrapper {
     new JBCheckBox(HaxeDebuggerBundle.message("haxe.before.run.dialog.inject.debug"));
   private final JBLabel injectDebugPreview = new JBLabel("", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
 
-  HaxeActionBeforeRunDialog(@NotNull Project project, @NotNull Task task) {
+  HaxeActionBeforeRunDialog(@NotNull Project project, @NotNull Task task, @NotNull Debugger debugger) {
     super(project);
     this.project = project;
     this.task = task;
+    this.debugger = debugger;
     setTitle(HaxeDebuggerBundle.message("haxe.before.run.dialog.title"));
 
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.singleFile()
@@ -90,14 +94,14 @@ final class HaxeActionBeforeRunDialog extends DialogWrapper {
     super.doOKAction();
   }
 
-  /** The file's debug additions (from its type and selected target), or null without a file. */
+  /** The file's debug additions (from its type, selected target and the debugger), or null without a file. */
   @Nullable
   private List<String> debugAdditionsFor(@NotNull String path) {
     if (path.isEmpty()) return null;
-    return HaxeActionBeforeRunTaskProvider.debugAdditions(project, path);
+    return HaxeActionBeforeRunTaskProvider.debugAdditions(project, path, debugger);
   }
 
-  /** Shows the exact arguments a Debug launch would append for the chosen file's target. */
+  /** Shows the exact arguments a Debug launch would append for the chosen file's target and the debugger. */
   private void refreshDebugPreview() {
     String path = fileField.getText().trim();
     List<String> additions = debugAdditionsFor(path);

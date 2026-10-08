@@ -12,6 +12,7 @@ import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapExecutableRunConfigurationBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions;
 import lombok.Getter;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -21,14 +22,13 @@ import org.jetbrains.annotations.Nullable;
  * An HXCPP (vshaxe debug server) run/debug configuration: the shared
  * executable configuration plus the debug host/port. For debugging, the
  * executable must have been compiled with {@code -debug} and {@code -lib
- * hxcpp-debug-server}; its embedded debug server connects out to host:port,
- * which are compile-time defines in the executable
+ * hxcpp-debug-server} ({@link HaxeDebugAdditions#VSHAXE_DEBUG_SERVER_LIB},
+ * which a Run Haxe action step adds on Debug); its embedded debug server
+ * connects out to host:port, which are compile-time defines in the executable
  * (HXCPP_DEBUG_HOST/HXCPP_DEBUG_PORT) — the fields here are prefilled with
  * the protocol defaults and only need changing when the build overrides them.
  */
 public class HxcppVshaxeRunConfiguration extends DapExecutableRunConfigurationBase {
-  /** The haxelib id of vshaxe's in-debuggee debug server the executable must be compiled with. */
-  public static final String VSHAXE_DEBUG_SERVER_LIB = "hxcpp-debug-server";
   public static final String DEFAULT_DEBUG_HOST = "127.0.0.1";
   public static final int DEFAULT_DEBUG_PORT = 6972;
 

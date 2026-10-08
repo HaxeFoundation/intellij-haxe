@@ -15,6 +15,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -39,16 +40,15 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
  */
 public final class AdapterStore {
   private final Path storeRoot;
-  private final HttpClient httpClient;
+  private final Supplier<HttpClient> httpClient;
 
-  public AdapterStore(Path storeRoot) {
-    this(storeRoot, HttpClient.newBuilder()
-      .followRedirects(HttpClient.Redirect.NORMAL)
-      .connectTimeout(Duration.ofSeconds(30))
-      .build());
-  }
-
-  AdapterStore(Path storeRoot, HttpClient httpClient) {
+  /**
+   * {@code httpClient} is asked for a client only when an artifact is
+   * actually downloaded; the read-only checks never open one. The IDE
+   * supplies a client carrying its proxy, proxy credentials and accepted
+   * certificates.
+   */
+  public AdapterStore(Path storeRoot, Supplier<HttpClient> httpClient) {
     this.storeRoot = storeRoot;
     this.httpClient = httpClient;
   }
@@ -66,18 +66,11 @@ public final class AdapterStore {
 
   /**
    * The adapter's entry-point file, downloading and unpacking the pinned
-   * artifact on first use. {@code overrideDir} (a settings field: an already
-   * unpacked artifact, the offline story) wins when it contains the entry.
+   * artifact on first use.
    */
-  public Path resolveEntry(AdapterPin pin, Path overrideDir) throws IOException {
-    if (overrideDir != null) {
-      Path overridden = overrideDir.resolve(pin.entryRelativePath());
-      if (Files.isRegularFile(overridden)) {
-        return overridden;
-      }
-      throw new IOException("The configured " + pin.id() + " adapter directory does not contain "
-                            + pin.entryRelativePath() + ": " + overrideDir);
-    }
+  // TODO: offline installs - a machine without access to GitHub/Open VSX has no way to hand the
+  //  store an already unpacked artifact; the download is the only acquisition path.
+  public Path resolveEntry(AdapterPin pin) throws IOException {
     Path versionDir = storeRoot.resolve(pin.id()).resolve(pin.version());
     Path marker = storeRoot.resolve(pin.id()).resolve(pin.version() + ".ok");
     Path entry = versionDir.resolve(pin.entryRelativePath());
@@ -124,7 +117,7 @@ public final class AdapterStore {
       .build();
     try {
       HttpResponse<Path> response =
-        httpClient.send(request, HttpResponse.BodyHandlers.ofFile(target));
+        httpClient.get().send(request, HttpResponse.BodyHandlers.ofFile(target));
       if (response.statusCode() != 200) {
         throw new IOException("Download of " + url + " failed with HTTP " + response.statusCode());
       }

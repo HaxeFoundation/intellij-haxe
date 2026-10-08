@@ -33,9 +33,11 @@ public class BrowserDebugRunner extends DapDebugRunnerBase<BrowserRunConfigurati
 
   @Override
   protected void validate(BrowserRunConfiguration configuration) throws ExecutionException {
-    // same checks as the editor's red banner, surfaced at run time too
+    // same checks as the editor's red banner, surfaced at run time too -
+    // including the Debug-only adapter check hanging off this runner
     try {
       configuration.checkConfiguration();
+      configuration.checkRunnerSettings(this, null, null);
     } catch (RuntimeConfigurationException e) {
       throw new ExecutionException(e.getMessageHtml().toString());
     }

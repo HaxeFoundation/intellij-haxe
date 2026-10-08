@@ -35,10 +35,14 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.flash.AirRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.flash.FlashRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.HxcppVshaxeRunConfiguration;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.buildtools.*;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxelibInstaller;
 import com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfiguration;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
@@ -59,9 +63,9 @@ import java.util.Objects;
 
 /**
  * Before-launch step that runs a Haxe action (a build file's compile/build command).
- * Under the Debug executor the target's debug additions (e.g. {@code -debug}) are
- * appended automatically, so one visible configuration compiles a normal build on
- * Run and a debuggable build on Debug.
+ * Under the Debug executor the target's debug additions (e.g. {@code -debug}) for
+ * the launched configuration's debugger are appended automatically, so one visible
+ * configuration compiles a normal build on Run and a debuggable build on Debug.
  */
 public final class HaxeActionBeforeRunTaskProvider extends BeforeRunTaskProvider<HaxeActionBeforeRunTaskProvider.Task> {
 
@@ -185,7 +189,8 @@ public final class HaxeActionBeforeRunTaskProvider extends BeforeRunTaskProvider
   public @NotNull Promise<Boolean> configureTask(@NotNull DataContext context,
                                                  @NotNull RunConfiguration configuration,
                                                  @NotNull Task task) {
-    HaxeActionBeforeRunDialog dialog = new HaxeActionBeforeRunDialog(configuration.getProject(), task);
+    Debugger debugger = debuggerOf(configuration);
+    HaxeActionBeforeRunDialog dialog = new HaxeActionBeforeRunDialog(configuration.getProject(), task, debugger);
     return Promises.resolvedPromise(dialog.showAndGet());
   }
 
@@ -268,14 +273,15 @@ public final class HaxeActionBeforeRunTaskProvider extends BeforeRunTaskProvider
     List<String> command = new ArrayList<>(baseCommand(project, task, templateCompile, resolved));
     boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
     if (debug && task.isInjectDebugArguments()) {
+      Debugger debugger = debuggerOf(configuration);
       // a single-run compile is a DIRECT haxe compile whatever the build
       // system, so its additions use the haxe spelling - the tool spellings
       // (lime's --haxelib=) are unknown options to haxe itself
       List<String> additions = templateCompile
-                               ? singleRunDebugAdditions(project, task.getBuildFilePath())
-                               : debugAdditions(project, task.getBuildFilePath());
+                               ? singleRunDebugAdditions(project, task.getBuildFilePath(), debugger)
+                               : debugAdditions(project, task.getBuildFilePath(), debugger);
       if (additions != null) {
-        if (!ensureHxcppDebugServerInstalled(project, additions)) return null;
+        if (!ensureHxcppDebugServerInstalled(project, additions, debugger)) return null;
         command.addAll(additions);
       }
     }
@@ -483,66 +489,87 @@ public final class HaxeActionBeforeRunTaskProvider extends BeforeRunTaskProvider
     return null;
   }
 
-  /** The build system's debug compile additions for the file's current selection, or null when it has none. */
+  /**
+   * The debugger the configuration attaches on Debug - it picks the hxcpp
+   * server lib and the Flash debugger tag of the debug build. Everything
+   * without a dedicated debugger (HashLink, browser, AIR, HXCPP (IntelliJ),
+   * tests) takes the default additions.
+   */
+  @NotNull
+  static Debugger debuggerOf(@NotNull RunConfiguration configuration) {
+    return switch (configuration) {
+      case HxcppVshaxeRunConfiguration _ -> Debugger.HXCPP_VSHAXE;
+      case LegacyHxcppRunConfiguration _ -> Debugger.HXCPP_LEGACY;
+      case FlashRunConfiguration _ -> Debugger.FLASH_PLAYER;
+      default -> Debugger.DEFAULT;
+    };
+  }
+
+  /** The build system's debug compile additions for the file's current selection and the debugger, or null when it has none. */
   @Nullable
-  static List<String> debugAdditions(@NotNull Project project, @NotNull String buildFilePath) {
+  static List<String> debugAdditions(@NotNull Project project, @NotNull String buildFilePath, @NotNull Debugger debugger) {
     HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, buildFilePath);
     if (buildFile == null) return null;
     return HaxeReadActions.compute(
-      () -> HaxeBuildSystem.of(buildFile.type()).debugCompileAdditions(project, buildFile));
+      () -> HaxeBuildSystem.of(buildFile.type()).debugCompileAdditions(project, buildFile, debugger));
   }
 
   /** Debug additions for a single-run compile: always the plain haxe spelling for the selected target (see the call site). */
   @Nullable
-  private static List<String> singleRunDebugAdditions(@NotNull Project project, @NotNull String buildFilePath) {
+  private static List<String> singleRunDebugAdditions(@NotNull Project project,
+                                                      @NotNull String buildFilePath,
+                                                      @NotNull Debugger debugger) {
     HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, buildFilePath);
     if (buildFile == null) return null;
     return ReadAction.nonBlocking(() -> {
         HaxeTarget target = HaxeBuildSystem.of(buildFile.type()).launchTarget(project, buildFile);
-        return target != null ? HaxeDebugAdditions.forTarget(target) : null;
+        return target != null ? HaxeDebugAdditions.forTarget(target, debugger) : null;
       })
       .executeSynchronously();
   }
 
   /**
-   * A debug compile pulling in the hxcpp debug-server haxelib dies with a raw
-   * haxelib error in the build console when the lib is absent. Checked up
-   * front instead, turning the failure into a notification whose Install
+   * A debug compile pulling in the debugger's hxcpp server haxelib dies with
+   * a raw haxelib error in the build console when the lib is absent. Checked
+   * up front instead, turning the failure into a notification whose Install
    * action fetches the lib (published on lib.haxe.org). True when the
    * additions need no server lib or it is already present.
    */
-  private static boolean ensureHxcppDebugServerInstalled(@NotNull Project project, @NotNull List<String> additions) {
-    // covers every spelling: haxe's "-lib X", lime's "--haxelib=X", hxp's "--library X"
-    boolean needsServerLib = additions.stream()
-      .anyMatch(addition -> addition.contains(HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB));
+  private static boolean ensureHxcppDebugServerInstalled(@NotNull Project project,
+                                                         @NotNull List<String> additions,
+                                                         @NotNull Debugger debugger) {
+    String serverLib = debugger.hxcppServerLib();
+    if (serverLib == null) return true;
+    // covers every spelling: haxe's "-lib X", lime's "--haxelib=X", nme's "--library X"
+    boolean needsServerLib = additions.stream().anyMatch(addition -> addition.contains(serverLib));
     if (!needsServerLib) return true;
-    if (HaxelibInstaller.isInstalled(project, HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB)) return true;
+    if (HaxelibInstaller.isInstalled(project, serverLib)) return true;
 
     String title = HaxeDebuggerBundle.message("haxe.before.run.name");
-    String message = HaxeDebuggerBundle.message("haxe.before.run.debug.server.missing",
-                                                HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB);
-    HaxeCommandNotifications.notify(project, title, message, NotificationType.ERROR, installDebugServerAction(project));
+    String message = HaxeDebuggerBundle.message("haxe.before.run.debug.server.missing", serverLib);
+    AnAction installAction = installDebugServerAction(project, serverLib);
+    HaxeCommandNotifications.notify(project, title, message, NotificationType.ERROR, installAction);
     return false;
   }
 
   @NotNull
-  private static AnAction installDebugServerAction(@NotNull Project project) {
+  private static AnAction installDebugServerAction(@NotNull Project project, @NotNull String serverLib) {
     String text = HaxeDebuggerBundle.message("haxe.before.run.debug.server.install");
-    return NotificationAction.createSimpleExpiring(text, () -> installDebugServerInBackground(project));
+    return NotificationAction.createSimpleExpiring(text, () -> installDebugServerInBackground(project, serverLib));
   }
 
-  private static void installDebugServerInBackground(@NotNull Project project) {
-    String progressTitle = HaxeDebuggerBundle.message("haxe.before.run.debug.server.installing");
+  private static void installDebugServerInBackground(@NotNull Project project, @NotNull String serverLib) {
+    String progressTitle = HaxeDebuggerBundle.message("haxe.before.run.debug.server.installing", serverLib);
     new Backgroundable(project, progressTitle, true) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        String failure = HaxelibInstaller.install(project, HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB, null, null);
+        String failure = HaxelibInstaller.install(project, serverLib, null, null);
         if (failure != null) {
-          String title = HaxeDebuggerBundle.message("haxe.before.run.debug.server.install.failed");
+          String title = HaxeDebuggerBundle.message("haxe.before.run.debug.server.install.failed", serverLib);
           HaxeCommandNotifications.notify(project, title, failure, NotificationType.ERROR);
         }
         else {
-          String message = HaxeDebuggerBundle.message("haxe.before.run.debug.server.installed");
+          String message = HaxeDebuggerBundle.message("haxe.before.run.debug.server.installed", serverLib);
           HaxeCommandNotifications.notify(project, message, NotificationType.INFORMATION);
         }
       }

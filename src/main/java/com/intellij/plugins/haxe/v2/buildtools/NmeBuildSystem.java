@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.v2.buildtools;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -51,14 +52,20 @@ final class NmeBuildSystem implements HaxeBuildSystem {
    * nme has no lime-style --haxelib override: a single-token
    * {@code --library <lib>} haxeflag becomes one line of the generated
    * build.hxml, and haxe pulls the lib with its extraParams (the
-   * server-injection macro).
+   * server-injection macro). A tool define ({@code -Dfdb}) becomes a
+   * haxedef of the generated build.
    */
   @Override
-  public @NotNull List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+  public @NotNull List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile,
+                                                     @NotNull Debugger debugger) {
     List<String> additions = new ArrayList<>();
     additions.add("-debug");
-    if (DESKTOP_CPP_TARGETS.contains(selectedTargetFlag(project, buildFile))) {
-      additions.add("--library " + HaxeDebugAdditions.HXCPP_DEBUG_SERVER_LIB);
+    String serverLib = debugger.hxcppServerLib();
+    if (serverLib != null && DESKTOP_CPP_TARGETS.contains(selectedTargetFlag(project, buildFile))) {
+      additions.add("--library " + serverLib);
+    }
+    if (debugger.flashDebuggerTag() && launchTarget(project, buildFile) == HaxeTarget.FLASH) {
+      additions.add("-Dfdb");
     }
     return additions;
   }

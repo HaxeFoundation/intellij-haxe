@@ -6,6 +6,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapExecutableRunConfigurationEditorBase;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.HaxelibStatusRow;
 import com.intellij.plugins.haxe.util.ui.HaxeDialogHints;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
@@ -45,7 +46,7 @@ public class HxcppVshaxeRunConfigurationEditor
     debugHostField.setText(HxcppVshaxeRunConfiguration.DEFAULT_DEBUG_HOST);
     debugPortField.setText(Integer.toString(HxcppVshaxeRunConfiguration.DEFAULT_DEBUG_PORT));
     HaxeDialogHints.style(debugHintArea);
-    serverLibRow = new HaxelibStatusRow(project, HxcppVshaxeRunConfiguration.VSHAXE_DEBUG_SERVER_LIB,
+    serverLibRow = new HaxelibStatusRow(project, HaxeDebugAdditions.VSHAXE_DEBUG_SERVER_LIB,
                                         serverLibStatusLabel, installServerLibLink);
   }
 

@@ -39,8 +39,9 @@ import org.jetbrains.annotations.Nullable;
  * family), the serve-vs-url content mode (checkbox toggles which field is
  * live), an optional node executable override, and the selected browser's
  * DAP adapter status with a Download link. The link is the ONLY acquisition
- * path: sessions never download, and a missing adapter fails configuration
- * validation — downloading third-party code is the user's explicit decision.
+ * path: sessions never download, and a missing adapter fails validation for
+ * Debug (the one executor using it) — downloading third-party code is the
+ * user's explicit decision.
  * An unsupported browser family (Safari, IE, ...) shows a message in the
  * status row instead of an adapter version.
  *
@@ -150,7 +151,7 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
     }
     AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
     String name = BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version();
-    boolean installed = new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).isInstalled(pin);
+    boolean installed = AdapterStores.open().isInstalled(pin);
     adapterStatusLabel.setText(adapterStatusText(installed, name));
     openStoreLink.setVisible(installed);
     downloadLink.setVisible(!installed);
@@ -163,8 +164,7 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
       return;
     }
     AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    RevealFileAction.openDirectory(
-      BrowserDebugBackend.adapterStoreRoot().resolve(pin.id()).resolve(pin.version()).toFile());
+    RevealFileAction.openDirectory(AdapterStores.root().resolve(pin.id()).resolve(pin.version()).toFile());
   }
 
   private void downloadAdapter() {
@@ -181,7 +181,7 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       String failure;
       try {
-        new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).resolveEntry(pin, null);
+        AdapterStores.open().resolveEntry(pin);
         failure = null;
       } catch (Exception e) {
         failure = e.getMessage();
