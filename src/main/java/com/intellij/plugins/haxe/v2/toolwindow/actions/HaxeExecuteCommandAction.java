@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.v2.toolwindow.actions;
 
+import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import icons.HaxeIcons;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -47,10 +49,13 @@ public final class HaxeExecuteCommandAction extends DumbAwareAction {
     if (StringUtil.isEmptyOrSpaces(arguments)) return;
     properties.setValue(LAST_COMMAND_KEY, arguments);
 
+    // the project node's container: its environment SDK, else the Build Tools default
+    String containerId = HaxeContainers.projectNodeContainerId(project);
+    String sdkName = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
     List<String> command = new ArrayList<>();
-    command.add(HaxeToolPathResolver.resolveHaxeExecutable(project));
+    command.add(HaxeToolPathResolver.resolveHaxeExecutable(project, sdkName));
     command.addAll(ParametersListUtil.parse(arguments.trim()));
-    HaxeConsoleCommandRunner.run(project, "haxe " + arguments.trim(), command, project.getBasePath());
+    HaxeConsoleCommandRunner.run(project, containerId, "haxe " + arguments.trim(), command, project.getBasePath());
   }
 
   @Override

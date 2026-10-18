@@ -670,22 +670,13 @@ public class HxcppDebugAdapterTest {
   }
 
   @Test
-  @DisplayName("server error becomes dap error response")
-  public void serverErrorBecomesDapErrorResponse() throws Exception {
-    server.handle("threads", params -> {
-      throw new RuntimeException("boom");
-    });
-    Response response = dapClient.sendRequest(new ThreadsRequest(), TIMEOUT);
-    assertFailedWith(response, "boom");
-  }
-
-  @Test
   @DisplayName("request loop survives a failed request")
   public void requestLoopSurvivesAFailedRequest() throws Exception {
     server.handle("threads", params -> {
       throw new RuntimeException("boom");
     });
-    assertFalse(dapClient.sendRequest(new ThreadsRequest(), TIMEOUT).isSuccess());
+    Response failed = dapClient.sendRequest(new ThreadsRequest(), TIMEOUT);
+    assertFailedWith(failed, "boom");
 
     server.handle("threads", params -> """
         [{"id": 0, "name": "main"}]

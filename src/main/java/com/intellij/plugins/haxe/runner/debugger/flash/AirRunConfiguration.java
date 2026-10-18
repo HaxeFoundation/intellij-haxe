@@ -21,7 +21,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
 import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
@@ -30,11 +29,9 @@ import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapCommandLineRunningSt
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import com.intellij.util.execution.ParametersListUtil;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -152,7 +149,7 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
     // with the Flash Profiler entry selected (the collector itself goes into
     // the before-launch compile, not this command line)
     boolean profiling = !descriptorPath.isBlank()
-                        && HaxeProfilerExecutorSupport.flashProfilingAdditions(executor, false) != null;
+                        && HaxeProfilerExecutorSupport.flashProfilingAdditions(executor) != null;
     HaxeTelemetryCapture.Handle capture = profiling
                                           ? HaxeTelemetryCapture.startCapture(getProject(), getName(), profilerSessionPath(), Lane.FLASH)
                                           : null;
@@ -190,68 +187,23 @@ public class AirRunConfiguration extends DapRunConfigurationBase implements Haxe
   }
 
   /**
-   * {@code adl [options] [-nodebug] <descriptor> <content-root> [-- args]},
-   * with adl from the effective Flex/AIR SDK's bin directory. The SDK entry is
-   * read from the plain SDK table, so plain Run works without the Flash plugin.
-   * Plain Run passes {@code -nodebug}: adl's default debug-launch mode swallows
-   * trace output; a debug launch must NOT pass it, or the swf never connects
-   * to fdb. With multiple instances allowed, each launch runs a descriptor
-   * COPY carrying a unique app id (see {@link #uniqueIdDescriptor}).
+   * The adl launch ({@link AdlLaunches#command}) with adl from the effective
+   * Flex/AIR SDK's bin directory. The SDK entry is read from the plain SDK
+   * table, so plain Run works without the Flash plugin. With multiple instances
+   * allowed, and on every debug launch, the descriptor is a COPY carrying a
+   * unique app id ({@link AdlLaunches#uniqueIdDescriptor}): a debug player
+   * orphaned by a stopped fdb would otherwise swallow the launch.
    */
   @NotNull
   public GeneralCommandLine createAdlCommandLine(boolean debugLaunch) throws ExecutionException {
     Path descriptor = resolveDescriptor();
     Path contentRoot = resolveContentRoot(descriptor);
-    if (isAllowRunningInParallel()) {
-      descriptor = uniqueIdDescriptor(descriptor);
+    if (isAllowRunningInParallel() || debugLaunch) {
+      descriptor = AdlLaunches.uniqueIdDescriptor(descriptor);
     }
-
-    GeneralCommandLine commandLine = new GeneralCommandLine()
-      .withExePath(resolveAdl().toString())
-      .withWorkDirectory(contentRoot.toString());
-    commandLine.addParameters(ParametersListUtil.parse(adlOptions));
-    if (!debugLaunch) {
-      commandLine.addParameter("-nodebug");
-    }
-    commandLine.addParameter(descriptor.toString());
-    commandLine.addParameter(contentRoot.toString());
-
+    List<String> options = ParametersListUtil.parse(adlOptions);
     List<String> programArguments = ParametersListUtil.parse(programParameters);
-    if (!programArguments.isEmpty()) {
-      commandLine.addParameter("--");
-      commandLine.addParameters(programArguments);
-    }
-    return commandLine;
-  }
-
-  /**
-   * AIR is single-instance per application id (a second same-id launch just
-   * forwards to the first and exits; {@code -pubid} is rejected for post-1.5.3
-   * namespaces), so a parallel launch runs a COPY of the descriptor whose id
-   * carries a unique suffix. The content root still points at the original
-   * content; the suffixed id also gives the instance its own application
-   * storage.
-   */
-  @NotNull
-  private static Path uniqueIdDescriptor(@NotNull Path descriptor) throws ExecutionException {
-    try {
-      String content = Files.readString(descriptor);
-      String suffix = ".ij" + UUID.randomUUID().toString().substring(0, 8);
-      // the first <id>...</id> element is the application id; the suffix lands inside it
-      String modified = content.replaceFirst("(<id>[^<]*)</id>", "$1" + suffix + "</id>");
-      if (modified.equals(content)) {
-        throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.descriptor.no.id", descriptor.toString()));
-      }
-      // deleteOnExit: adl reads the copy at launch only, but its lifetime is
-      // unknown here - IDE-exit cleanup bounds the per-launch dirs to one session
-      Path directory = FileUtil.createTempDirectory("haxe-air-run", null, true).toPath();
-      Path copy = directory.resolve(descriptor.getFileName());
-      Files.writeString(copy, modified);
-      return copy;
-    }
-    catch (IOException e) {
-      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.descriptor.copy.failed", e.getMessage()));
-    }
+    return AdlLaunches.command(resolveAdl(), options, descriptor, contentRoot, debugLaunch, programArguments);
   }
 
   // --- resolution ---

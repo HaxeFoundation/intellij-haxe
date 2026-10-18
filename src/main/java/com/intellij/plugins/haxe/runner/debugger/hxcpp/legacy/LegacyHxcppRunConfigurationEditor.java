@@ -51,7 +51,7 @@ public final class LegacyHxcppRunConfigurationEditor extends SettingsEditor<Lega
     moduleCombo.fillModules(configuration.getProject());
     moduleCombo.setSelectedModule(configuration.getConfigurationModule().getModule());
     executableField.setText(configuration.getExecutablePath());
-    parametersField.setText(configuration.getProgramParameters());
+    parametersField.setText(configuration.getProgramArguments());
     workingDirectoryField.setText(configuration.getWorkingDirectory());
     portField.setValue(configuration.getPort());
     remoteCheckBox.setSelected(configuration.isRemoteDebugging());
@@ -62,7 +62,7 @@ public final class LegacyHxcppRunConfigurationEditor extends SettingsEditor<Lega
   protected void applyEditorTo(@NotNull LegacyHxcppRunConfiguration configuration) {
     configuration.setModule(moduleCombo.getSelectedModule());
     configuration.setExecutablePath(executableField.getText().trim());
-    configuration.setProgramParameters(parametersField.getText().trim());
+    configuration.setProgramArguments(parametersField.getText().trim());
     configuration.setWorkingDirectory(workingDirectoryField.getText().trim());
     configuration.setPort(portField.getValue());
     configuration.setRemoteDebugging(remoteCheckBox.isSelected());

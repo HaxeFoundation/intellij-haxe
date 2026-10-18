@@ -55,7 +55,8 @@ public class HaxeMultilineCommentFormattingTest extends HaxeLightFixtureTestCase
 
     String result = reformat(toggleOff, MISALIGNED_COMMENT_SOURCE);
 
-    assertTrue(result.contains("   step two */"), "interior lines keep their columns:\n" + result);
+    // the written column 5, where the reindented line would sit at 12
+    assertTrue(result.contains("\n     step two */"), "interior lines keep their columns:\n" + result);
   }
 
   @Test

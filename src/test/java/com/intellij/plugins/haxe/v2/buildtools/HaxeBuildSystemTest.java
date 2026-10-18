@@ -8,10 +8,15 @@ import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetSelectionStore;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /** Each build system resolves its CURRENT selection: the haxe target it compiles to, and the debug compile additions that target takes. */
 @DisplayName("Build tools: build system")
@@ -65,43 +70,29 @@ public class HaxeBuildSystemTest extends HaxeCodeInsightFixtureTestCase {
     assertNull(HaxeBuildSystem.of(HaxeBuildFileType.HXP_SCRIPT).launchTarget(getProject(), script));
   }
 
-  @Test
-  @DisplayName("hxml debug additions follow the selected target")
-  public void testHxmlDebugAdditionsFollowTheSelectedTarget() {
-    HaxeBuildSystem system = HaxeBuildSystem.of(HaxeBuildFileType.HXML);
+  /** (hxml fixture, debugger, debug compile additions - null when the target has no debugger lane). */
+  static final List<Arguments> HXML_DEBUG_ADDITIONS = List.of(
+    // hxml debug additions follow the selected target
+    arguments("targets/hl.hxml", Debugger.DEFAULT, List.of("-debug")),
+    arguments("targets/cpp.hxml", Debugger.DEFAULT, List.of("-debug", "-lib", "intellij-hxcpp-debug-server")),
+    // targets without a debugger lane add nothing
+    arguments("targets/jvm.hxml", Debugger.DEFAULT, null),
+    // hxml cpp additions compile in the launched debuggers server
+    arguments("targets/cpp.hxml", Debugger.HXCPP_VSHAXE, List.of("-debug", "-lib", "hxcpp-debug-server")),
+    // the legacy build keeps its own debugger lib
+    arguments("targets/cpp.hxml", Debugger.HXCPP_LEGACY, List.of("-debug")),
+    // hxml flash additions tag the swf for the player debugger only
+    arguments("targets/swf.hxml", Debugger.FLASH_PLAYER, List.of("-debug", "-D", "fdb")),
+    // AIR under adl needs no debugger tag
+    arguments("targets/swf.hxml", Debugger.DEFAULT, List.of("-debug")));
 
-    HaxeBuildFile hl = fixture("targets/hl.hxml", HaxeBuildFileType.HXML);
-    assertEquals(List.of("-debug"), system.debugCompileAdditions(getProject(), hl, Debugger.DEFAULT));
+  @ParameterizedTest(name = "{0} / {1}")
+  @FieldSource("HXML_DEBUG_ADDITIONS")
+  @DisplayName("hxml debug additions follow the target and debugger")
+  public void testHxmlDebugAdditionsFollowTheTargetAndDebugger(String fixturePath, Debugger debugger, List<String> additions) {
+    HaxeBuildFile hxml = fixture(fixturePath, HaxeBuildFileType.HXML);
 
-    HaxeBuildFile cpp = fixture("targets/cpp.hxml", HaxeBuildFileType.HXML);
-    assertEquals(List.of("-debug", "-lib", "intellij-hxcpp-debug-server"),
-                 system.debugCompileAdditions(getProject(), cpp, Debugger.DEFAULT));
-
-    HaxeBuildFile jvm = fixture("targets/jvm.hxml", HaxeBuildFileType.HXML);
-    assertNull(system.debugCompileAdditions(getProject(), jvm, Debugger.DEFAULT), "targets without a debugger lane add nothing");
-  }
-
-  @Test
-  @DisplayName("hxml cpp additions compile in the launched debuggers server")
-  public void testHxmlCppAdditionsCompileInTheLaunchedDebuggersServer() {
-    HaxeBuildSystem system = HaxeBuildSystem.of(HaxeBuildFileType.HXML);
-    HaxeBuildFile cpp = fixture("targets/cpp.hxml", HaxeBuildFileType.HXML);
-
-    assertEquals(List.of("-debug", "-lib", "hxcpp-debug-server"),
-                 system.debugCompileAdditions(getProject(), cpp, Debugger.HXCPP_VSHAXE));
-    assertEquals(List.of("-debug"), system.debugCompileAdditions(getProject(), cpp, Debugger.HXCPP_LEGACY),
-                 "the legacy build keeps its own debugger lib");
-  }
-
-  @Test
-  @DisplayName("hxml flash additions tag the swf for the player debugger only")
-  public void testHxmlFlashAdditionsTagTheSwfForThePlayerDebuggerOnly() {
-    HaxeBuildSystem system = HaxeBuildSystem.of(HaxeBuildFileType.HXML);
-    HaxeBuildFile swf = fixture("targets/swf.hxml", HaxeBuildFileType.HXML);
-
-    assertEquals(List.of("-debug", "-D", "fdb"), system.debugCompileAdditions(getProject(), swf, Debugger.FLASH_PLAYER));
-    assertEquals(List.of("-debug"), system.debugCompileAdditions(getProject(), swf, Debugger.DEFAULT),
-                 "AIR under adl needs no debugger tag");
+    assertEquals(additions, HaxeBuildSystem.of(HaxeBuildFileType.HXML).debugCompileAdditions(getProject(), hxml, debugger));
   }
 
   @Test
@@ -169,6 +160,64 @@ public class HaxeBuildSystemTest extends HaxeCodeInsightFixtureTestCase {
   public void testHxpScriptHasNoDebugAdditions() {
     HaxeBuildFile script = fixture("test.hxml", HaxeBuildFileType.HXP_SCRIPT);
     assertNull(HaxeBuildSystem.of(HaxeBuildFileType.HXP_SCRIPT).debugCompileAdditions(getProject(), script, Debugger.DEFAULT));
+  }
+
+  /** (build file type, its own action names - the names a custom action may not take). */
+  static final List<Arguments> DEFAULT_ACTION_NAMES = List.of(
+    arguments(HaxeBuildFileType.HXML, Set.of("Build")),
+    arguments(HaxeBuildFileType.LIME, Set.of("test", "run", "build", "clean")),
+    arguments(HaxeBuildFileType.NMML, Set.of("test", "run", "build", "clean")),
+    arguments(HaxeBuildFileType.HXP_SCRIPT, Set.of("build")));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("DEFAULT_ACTION_NAMES")
+  @DisplayName("default action names all resolve as built ins")
+  public void testDefaultActionNamesAllResolveAsBuiltIns(HaxeBuildFileType type, Set<String> names) {
+    HaxeBuildSystem buildSystem = HaxeBuildSystem.of(type);
+    VirtualFile file = myFixture.addFileToProject("reserved." + extensionOf(type), "").getVirtualFile();
+    HaxeBuildFile buildFile = new HaxeBuildFile(file, type);
+
+    assertEquals(names, Set.copyOf(buildSystem.defaultActionNames()));
+    for (String name : names) {
+      boolean answered = buildSystem.actionCommand(getProject(), null, buildFile, name) != null;
+      assertTrue(answered, name + " must resolve as a built-in");
+    }
+  }
+
+  @Test
+  @DisplayName("a C++ hxml gets a clean action that runs in its output folder")
+  public void testACppHxmlGetsACleanActionThatRunsInItsOutputFolder() {
+    VirtualFile file = myFixture.addFileToProject("native/cpp.hxml", "-main Main\n-cpp out/cpp\n").getVirtualFile();
+    HaxeBuildFile buildFile = new HaxeBuildFile(file, HaxeBuildFileType.HXML);
+    HaxeBuildSystem buildSystem = HaxeBuildSystem.of(HaxeBuildFileType.HXML);
+
+    List<String> clean = buildSystem.actionCommand(getProject(), null, buildFile, "Clean");
+    String workDirectory = buildSystem.actionWorkDirectory(getProject(), buildFile, "Clean");
+
+    assertEquals(List.of("Build", "Clean"), buildSystem.actionNames(getProject(), buildFile));
+    assertEquals(List.of("run", "hxcpp", "Build.xml", "clean"), clean.subList(1, clean.size()));
+    assertEquals(HaxeBuildWorkDirectories.resolve(getProject(), file, "out/cpp").toString(), workDirectory);
+    assertEquals("hxcpp clean out/cpp", buildSystem.presentableCommand(getProject(), buildFile, "Clean"));
+  }
+
+  @Test
+  @DisplayName("an hxml building another target has no clean action")
+  public void testAnHxmlBuildingAnotherTargetHasNoCleanAction() {
+    VirtualFile file = myFixture.addFileToProject("web/js.hxml", "-main Main\n-js out/main.js\n").getVirtualFile();
+    HaxeBuildFile buildFile = new HaxeBuildFile(file, HaxeBuildFileType.HXML);
+    HaxeBuildSystem buildSystem = HaxeBuildSystem.of(HaxeBuildFileType.HXML);
+
+    assertEquals(List.of("Build"), buildSystem.actionNames(getProject(), buildFile));
+    assertNull(buildSystem.actionCommand(getProject(), null, buildFile, "Clean"));
+  }
+
+  private static String extensionOf(HaxeBuildFileType type) {
+    return switch (type) {
+      case HXML -> "hxml";
+      case NMML -> "nmml";
+      case HXP_SCRIPT -> "hxp";
+      default -> "xml";
+    };
   }
 
   private HaxeBuildFile fixture(String relativePath, HaxeBuildFileType type) {

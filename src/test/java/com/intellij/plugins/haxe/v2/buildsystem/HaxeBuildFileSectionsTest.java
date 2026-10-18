@@ -1,11 +1,17 @@
 package com.intellij.plugins.haxe.v2.buildsystem;
 
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,6 +51,23 @@ public class HaxeBuildFileSectionsTest extends HaxeCodeInsightFixtureTestCase {
     }
     assertEquals(HaxeTarget.JAVA_SCRIPT, HxmlFileParser.parse(sections.get(0)).target());
     assertEquals(HaxeTarget.HL, HxmlFileParser.parse(sections.get(1)).target());
+  }
+
+  @Test
+  @DisplayName("sections are cached until the file or an include changes")
+  public void testSectionsAreCachedUntilTheFileOrAnIncludeChanges() throws IOException {
+    VirtualFile common = addHxml("cached/common.hxml", "-lib utest\n");
+    VirtualFile root = addHxml("cached/build.hxml", "common.hxml\n-neko bin/app.n\n");
+    List<String> first = HaxeBuildFileInspector.sectionContents(getProject(), root);
+    List<String> again = HaxeBuildFileInspector.sectionContents(getProject(), root);
+    assertSame(first, again, "an unchanged file answers from the cache");
+
+    WriteAction.runAndWait(() -> VfsUtil.saveText(common, "-lib utest\n-lib hxnodejs\n"));
+
+    List<String> afterIncludeEdit = HaxeBuildFileInspector.sectionContents(getProject(), root);
+    int libraries = HxmlFileParser.parse(afterIncludeEdit.getFirst()).libraries().size();
+    assertNotSame(first, afterIncludeEdit, "an edited include drops the cached sections");
+    assertEquals(2, libraries, "the new include content reaches the section");
   }
 
   @Test
@@ -110,6 +133,32 @@ public class HaxeBuildFileSectionsTest extends HaxeCodeInsightFixtureTestCase {
 
     List<String> sections = HaxeBuildFileInspector.sectionContents(getProject(), root);
     assertEquals(1, sections.size(), "a single real build means a single section");
+  }
+
+  @Test
+  @DisplayName("section index of a line follows the split")
+  public void testSectionIndexOfALineFollowsTheSplit() {
+    VirtualFile root = addHxml("index/build.hxml", """
+      -cp src
+      --each
+      -js bin/app.js
+      --next
+      -hl bin/app.hl
+      """);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(root);
+    assertNotNull(psiFile);
+
+    assertEquals(-1, HaxeBuildFileInspector.sectionIndexOf(psiFile, lineStartingWith(psiFile, "-cp")),
+                 "the --each block belongs to every section");
+    assertEquals(0, HaxeBuildFileInspector.sectionIndexOf(psiFile, lineStartingWith(psiFile, "-js")));
+    assertEquals(1, HaxeBuildFileInspector.sectionIndexOf(psiFile, lineStartingWith(psiFile, "-hl")));
+  }
+
+  private static PsiElement lineStartingWith(PsiFile psiFile, String prefix) {
+    for (PsiElement child : psiFile.getChildren()) {
+      if (child.getText().startsWith(prefix)) return child;
+    }
+    throw new AssertionError("no line starts with " + prefix);
   }
 
   private VirtualFile addHxml(String relativePath, String content) {

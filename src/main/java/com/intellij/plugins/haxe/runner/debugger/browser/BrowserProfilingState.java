@@ -19,11 +19,11 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.profiler.HaxeJsProfilerCapture;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.MostlySilentColoredProcessHandler;
+import com.intellij.util.net.NetUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.nio.file.Path;
 
 /**
@@ -162,8 +162,8 @@ public class BrowserProfilingState implements RunProfileState {
   }
 
   private static int freePort() throws ExecutionException {
-    try (ServerSocket probe = new ServerSocket(0)) {
-      return probe.getLocalPort();
+    try {
+      return NetUtils.findAvailableSocketPort();
     }
     catch (IOException e) {
       throw new ExecutionException(HaxeDebuggerBundle.message("browser.runner.server.failed", e.getMessage()), e);

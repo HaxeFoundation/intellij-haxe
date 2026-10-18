@@ -42,7 +42,7 @@ public class HaxeLambdaCompletionContributor extends CompletionContributor {
 
   private static void addLambdas(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result) {
     PsiElement position = parameters.getPosition();
-    if (HaxeCompilerSettings.getInstance(position.getProject()).getCompletionMode() == HaxeCompletionMode.COMPILER_ONLY) return;
+    if (HaxeCompilerSettings.getInstance(position.getProject()).getEffectiveCompletionMode() == HaxeCompletionMode.COMPILER_ONLY) return;
     HaxeReferenceExpression reference = PsiTreeUtil.getParentOfType(position, HaxeReferenceExpression.class);
     // in a chain the left side dictates the members; the expected type adds nothing
     if (reference == null || HaxeCompletionUtil.isInReferenceChain(position)) return;

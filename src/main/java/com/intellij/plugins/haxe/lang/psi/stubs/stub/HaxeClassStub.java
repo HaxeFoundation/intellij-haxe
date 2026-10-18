@@ -4,7 +4,6 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
-import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.tree.IElementType;
@@ -17,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * Stub for Haxe class-like declarations: class, interface, enum, abstract, typedef,
  * extern class, extern interface (and their macro variants).
  */
-public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
+public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName, StubWithMeta {
 
     // @formatter:off
     // Metadata-modifier flags (stored in `metaFlags`).

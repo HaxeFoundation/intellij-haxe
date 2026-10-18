@@ -34,6 +34,9 @@ public final class DisplayMethods {
   public static final String SERVER_MODULE_CREATED = "server/moduleCreated";
   public static final String SERVER_MEMORY = "server/memory";
 
+  /** Every type of a compile, with member positions; a compile with the arguments, so it reads the files on disk. */
+  public static final String COMPILED_TYPES = "typer/compiledTypes";
+
   private DisplayMethods() {
   }
 }

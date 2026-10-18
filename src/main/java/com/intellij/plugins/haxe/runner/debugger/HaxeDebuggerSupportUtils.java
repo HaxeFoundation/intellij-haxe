@@ -23,10 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.xdebugger.XSourcePosition;
 import java.util.ArrayList;
@@ -112,17 +110,6 @@ public class HaxeDebuggerSupportUtils {
    * while runtime frames and type names carry "pack.ClassName". (Verified
    * live: a secondary class matched as its bare package+name.)
    */
-  @Nullable
-  public static String runtimeClassName(HaxeClass haxeClass) {
-    String name = haxeClass.getName();
-    if (name == null || name.isEmpty()) {
-      return null;
-    }
-    PsiFile file = haxeClass.getContainingFile();
-    String packageName = file != null ? HaxeResolveUtil.getPackageName(file) : null;
-    return packageName == null || packageName.isEmpty() ? name : packageName + "." + name;
-  }
-
   @Nullable
   public static PsiElement getContextElement(VirtualFile virtualFile, int offset, final @NotNull Project project) {
     Document document = FileDocumentManager.getInstance().getDocument(virtualFile);

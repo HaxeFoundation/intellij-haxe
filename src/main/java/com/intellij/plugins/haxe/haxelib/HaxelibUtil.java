@@ -29,9 +29,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.plugins.haxe.HaxeBundle;
-
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeEventLogUtil;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.xml.XmlDocument;
@@ -39,7 +39,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,8 +54,6 @@ import static com.intellij.plugins.haxe.haxelib.HaxelibSemVer.versionPattern;
  */
 @CustomLog
 public class HaxelibUtil {
-  static public final String LOCAL_REPO = ".haxelib";
-
   static private  Map<String,String> libBasePathCache = new HashMap<>();
   public static void clearCache() {
     libBasePathCache.clear();
@@ -101,8 +98,10 @@ public class HaxelibUtil {
   private static VirtualFile _getLibraryBasePath(@NotNull final Sdk sdk, VirtualFile workDir) {
       List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDir, "config");
       for (String s : output) {
-        if (s.isEmpty()) continue;
-        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(s);
+        // a newer haxelib prints notices around the path
+        String line = s.trim();
+        if (HaxeExternalPaths.absolutePathOf(line) == null) continue;
+        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(line);
         if (null != file) {
           return file;
         }
@@ -143,7 +142,7 @@ public class HaxelibUtil {
       if(libVersion == null) {
         // Hidden ".current" file contains the semantic version (not the path!) of the
         // library that haxelib will use.
-        VirtualFile dotCurrent = libDir.findChild(".current");
+        VirtualFile dotCurrent = libDir.findChild(HaxelibRepositoryLayout.CURRENT_VERSION_FILE_NAME);
         if (null != dotCurrent) {
           try {
             String currentVer = FileUtil.loadFile(new File(dotCurrent.getPath()));
@@ -155,12 +154,12 @@ public class HaxelibUtil {
             }
           }
           catch (IOException e) {
-            log.debug("IOException reading .current file for library " + libName, e);
+            if (log.isDebugEnabled()) log.debug("IOException reading .current file for library " + libName, e);
           }
         }
-      } else if(libVersion.equalsIgnoreCase("dev")) {
+      } else if(HaxelibSemVer.DEV.equalsIgnoreCase(libVersion)) {
           // Hidden ".dev" file takes precedence.  It contains the path to the library root.
-          VirtualFile dotDev = libDir.findChild(".dev");
+          VirtualFile dotDev = libDir.findChild(HaxelibRepositoryLayout.DEV_POINTER_FILE_NAME);
           if (null != dotDev) {
             try {
               String libRootName = FileUtil.loadFile(new File(dotDev.getPath()));
@@ -170,11 +169,11 @@ public class HaxelibUtil {
               }
             }
             catch (IOException e) {
-              log.debug("IOException reading .dev file for library " + libName, e);
+              if (log.isDebugEnabled()) log.debug("IOException reading .dev file for library " + libName, e);
             }
           }
       }else {
-        VirtualFile libVersionDir = libDir.findChild(libVersion.replaceAll("\\.", ","));
+        VirtualFile libVersionDir = libDir.findChild(HaxelibRepositoryLayout.versionDirName(libVersion));
         if(libVersionDir!= null  && libVersionDir.exists()) {
           return libVersionDir;
         }
@@ -206,8 +205,8 @@ public class HaxelibUtil {
           }
           // Second is normally the version string.  But that's not *always* the case, if it's a dev path.
           if (!versionPattern.matcher(libParts[1]).matches()
-              && !(new File(HaxeStringUtil.join("/", rootName, libParts[0], ".dev"))).exists()) {
-            log.debug("Library version '" + libParts[1] + "' didn't match the regex.");
+              && !(new File(HaxeStringUtil.join("/", rootName, libParts[0], HaxelibRepositoryLayout.DEV_POINTER_FILE_NAME))).exists()) {
+            if (log.isDebugEnabled()) log.debug("Library version '" + libParts[1] + "' didn't match the regex.");
           }
         }
         String libRoot = FileUtil.join(rootName, libParts[0], libParts[1]);

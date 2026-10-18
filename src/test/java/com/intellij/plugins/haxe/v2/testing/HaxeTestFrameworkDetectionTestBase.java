@@ -13,6 +13,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 /** The fixture lookups every framework detection test uses. */
 public abstract class HaxeTestFrameworkDetectionTestBase extends HaxeLightFixtureTestCase {
 
+  @Override
+  protected String getBasePath() {
+    return "/testing/";
+  }
+
   protected HaxeClass classByQName(String qName) {
     HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qName, getPsiManager(),
                                                            GlobalSearchScope.allScope(getProject()));

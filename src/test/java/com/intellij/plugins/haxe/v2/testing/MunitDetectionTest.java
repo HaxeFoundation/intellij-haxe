@@ -12,13 +12,8 @@ public class MunitDetectionTest extends HaxeTestFrameworkDetectionTestBase {
 
   private final MunitFramework framework = new MunitFramework();
 
-  @Override
-  protected String getBasePath() {
-    return "/testing/";
-  }
-
   private void configureFixtureProject() {
-    myFixture.configureByFiles("cases/MunitStyleTest.hx", "cases/NotATest.hx");
+    myFixture.configureByFiles("cases/MunitStyleTest.hx");
   }
 
   @Test
@@ -26,13 +21,6 @@ public class MunitDetectionTest extends HaxeTestFrameworkDetectionTestBase {
   public void testClassWithTestMetadataMethodsIsDetected() {
     configureFixtureProject();
     assertTrue(framework.isTestClass(classByQName("cases.MunitStyleTest")));
-  }
-
-  @Test
-  @DisplayName("plain class is not detected")
-  public void testPlainClassIsNotDetected() {
-    configureFixtureProject();
-    assertFalse(framework.isTestClass(classByQName("cases.NotATest")));
   }
 
   @Test

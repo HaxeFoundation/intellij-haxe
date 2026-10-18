@@ -4,11 +4,11 @@ import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
@@ -70,7 +70,7 @@ public class HaxeIntroduceMethodFromTypeIntention
 
   @Override
   public @IntentionName @NotNull String getText() {
-    return "Create method '" + methodName + "'";
+    return HaxeBundle.message("haxe.intention.create.method", methodName);
   }
 
   @Override
@@ -92,7 +92,6 @@ public class HaxeIntroduceMethodFromTypeIntention
     methodDeclaration = anchor.getParent().addAfter(methodDeclaration, anchor);
     anchor.getParent().addBefore(createNewLine(project), methodDeclaration);
 
-//    generateMissingImports()
 
     methodDeclaration = CodeStyleManager.getInstance(project).reformat(methodDeclaration);
     if(!preview) {
@@ -130,7 +129,7 @@ public class HaxeIntroduceMethodFromTypeIntention
 
   private PsiElement generateDeclaration(@NotNull Project project) {
     String returnType = returnTypeText;
-    String returnStatement = determineReturnStatement(returnType);
+    String returnStatement = defaultReturnStatement(returnType);
     String optionalStaticKeyword = needsToBeStatic() ? "static" : "";
     String privateKeyword = needsToBePublic() ? "public" : "private";
     String function = """
@@ -141,14 +140,6 @@ public class HaxeIntroduceMethodFromTypeIntention
       .formatted(privateKeyword, optionalStaticKeyword, methodName, generateParameterList(), returnType, returnStatement);
 
     return HaxeElementGenerator.createMethodDeclaration(project, function);
-  }
-
-  private String determineReturnStatement(String type) {
-    if (Objects.equals(type, SpecificHaxeClassReference.VOID)) return "";
-    if (Objects.equals(type, SpecificHaxeClassReference.INT)) return " return 0;";
-    if (Objects.equals(type, SpecificHaxeClassReference.FLOAT)) return " return 0.0;";
-    if (Objects.equals(type, SpecificHaxeClassReference.BOOL)) return " return false;";
-    return "return null;";
   }
 
 

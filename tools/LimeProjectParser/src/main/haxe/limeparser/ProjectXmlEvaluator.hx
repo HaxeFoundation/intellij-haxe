@@ -85,6 +85,10 @@ class ProjectXmlEvaluator {
 	public final sources:Array<String> = [];
 	/** <config> values flattened to the dot keys lime's ConfigData reads (`air.output-directory`). **/
 	public final config:Map<String, String> = [];
+	/** What stops lime: invalid XML (also in an included file) and a missing <include>; the run reports them and fails. **/
+	public final problems:Array<String> = [];
+	/** What lime tolerates but the IDE should hear of: a declared haxelib the resolver cannot find. **/
+	public final warnings:Array<String> = [];
 	// The <app> attributes: path is the export root (lime's default is
 	// "bin"), file the executable name.
 	public var appPath:String = "bin";
@@ -133,14 +137,26 @@ class ProjectXmlEvaluator {
 		return {name: pair[0], value: pair.slice(1).join("=")};
 	}
 
-	/** Lime accepts both <project> and legacy <xml> roots. **/
-	public function parse(content:String):Void {
-		var xml = try Xml.parse(content) catch (e:Dynamic) null;
+	/** Lime accepts both <project> and legacy <xml> roots. `fileName` names the document in a problem. **/
+	public function parse(content:String, ?fileName:String):Void {
+		var xml = parseXml(content, fileName != null ? fileName : "project file");
 		if (xml == null) return;
 		for (element in xml.elements()) {
 			parseElements(element, "");
 		}
 		resolveAssetHandlers();
+	}
+
+	/** The document, or null with the problem recorded: lime stops on invalid XML, so the IDE must hear of it instead of an empty project. **/
+	function parseXml(content:String, source:String):Null<Xml> {
+		try {
+			return Xml.parse(content);
+		} catch (e:haxe.xml.Parser.XmlParserException) {
+			problems.push(source + ": invalid XML at line " + e.lineNumber + ", column " + e.positionAtLine + ": " + e.message);
+		} catch (e:Dynamic) {
+			problems.push(source + ": invalid XML: " + Std.string(e));
+		}
+		return null;
 	}
 
 	/** The running tool's own version, which lime defines for the compiler as tools=<lime version>. **/
@@ -344,7 +360,11 @@ class ProjectXmlEvaluator {
 
 		var resolved = resolvers.haxelib(name, version);
 		if (resolved == null) {
-			if (!optional) registerHaxelib(name, version, version);
+			// listed as declared, so the IDE can flag it against the installed set
+			if (!optional) {
+				registerHaxelib(name, version, version);
+				warnings.push("haxelib not installed: " + name);
+			}
 			return;
 		}
 		for (library in resolved) {
@@ -395,7 +415,7 @@ class ProjectXmlEvaluator {
 			haxedefs.set(define.name, define.value);
 		}
 		if (library.includeXml != null) {
-			parseIncluded(library.includeXml, library.root, "");
+			parseIncluded(library.includeXml, library.root, "", library.name + " include file");
 		}
 	}
 
@@ -424,8 +444,8 @@ class ProjectXmlEvaluator {
 	}
 
 	/** Parses included content with its folder as the base for relative paths. **/
-	function parseIncluded(content:String, folder:String, section:String):Void {
-		var xml = try Xml.parse(content) catch (e:Dynamic) null;
+	function parseIncluded(content:String, folder:String, section:String, source:String):Void {
+		var xml = parseXml(content, source);
 		if (xml == null) return;
 		var previousBase = pathBase;
 		pathBase = folder;
@@ -455,20 +475,24 @@ class ProjectXmlEvaluator {
 		if (reference == "") return;
 
 		var included = resolvers.include(rebase(reference));
-		if (included == null || visitedIncludes.contains(included.path)) return;
+		if (included == null) {
+			problems.push("include not found: " + reference);
+			return;
+		}
+		if (visitedIncludes.contains(included.path)) return;
 		visitedIncludes.push(included.path);
 
 		var folder = Path.directory(included.path);
 		if (folder != "" && !sources.contains(folder)) {
 			sources.push(folder);
 		}
-		parseIncluded(included.content, folder, orEmpty(element.get("section")));
+		parseIncluded(included.content, folder, orEmpty(element.get("section")), included.path);
 	}
 
 	function includeLibrary(name:String):Void {
 		var included = library(name);
 		if (included != null && included.includeXml != null) {
-			parseIncluded(included.includeXml, included.root, "");
+			parseIncluded(included.includeXml, included.root, "", name + " include file");
 		}
 	}
 

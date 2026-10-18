@@ -3,18 +3,13 @@ package com.intellij.plugins.haxe.ide.completion;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.project.Project;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.ide.lookup.HaxeLookupElement;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.fakes.HaxeSyntheticDeclarations;
-import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataArguments;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +22,6 @@ import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isInMe
 import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isInReferenceChain;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceSuggestionUtil.addAbstractUnderlyingClassSuggestions;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.*;
-import static com.intellij.plugins.haxe.util.HaxeResolveUtil.findClassByQName;
 
 public class HaxeMetadataCompletionContributor extends CompletionContributor {
 
@@ -49,63 +43,30 @@ public class HaxeMetadataCompletionContributor extends CompletionContributor {
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-                 final PsiFile file = parameters.getOriginalFile();
-
-                 boolean inChain = isInReferenceChain(parameters.getPosition());
-                 if (!inChain) {
-                     boolean nullSafetyMetadata = isInMetadataOfType(parameters.getPosition(), NULL_SAFETY);
-                     if (nullSafetyMetadata) {
-                         addNullSafetyCompletion(result, file, parameters);
+                 PsiElement position = parameters.getPosition();
+                 if (!isInReferenceChain(position)) {
+                     HaxeMetadataCompileTimeMeta meta = PsiTreeUtil.getParentOfType(position, HaxeMetadataCompileTimeMeta.class);
+                     if (meta != null) {
+                         addArgumentCandidates(result, meta, position);
                      }
-
-                     boolean analyzerMetadata = isInMetadataOfType(parameters.getPosition(), ANALYZER);
-                     if (analyzerMetadata) {
-                         addAnalyzerCompletion(result, file);
-                     }
-
-                     boolean forwardMetadata = isInMetadataOfType(parameters.getPosition(), FORWARD);
-                     if (forwardMetadata) {
-                         addForwardMemberCompletion(result,  parameters);
+                     if (isInMetadataOfType(position, FORWARD)) {
+                         addForwardMemberCompletion(result, parameters);
                      }
                  }
-
              }
            });
   }
 
-    private static void addNullSafetyCompletion(final CompletionResultSet resultSet,
-                                                final PsiFile targetFile,
-                                                CompletionParameters parameters) {
-        final Project project = targetFile.getProject();
-        final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-        final PrefixMatcher matcher = resultSet.getPrefixMatcher();
-        PsiElement position =  parameters.getOriginalPosition() != null ?  parameters.getOriginalPosition() : parameters.getPosition();
-        HaxeClass NullSafetyMode = findClassByQName("haxe.macro.Compiler.NullSafetyMode", position);
-        if (NullSafetyMode != null) {
-            List<HaxeBaseMemberModel> members = NullSafetyMode.getModel().getMembersSelf();
-            for (HaxeBaseMemberModel member : members) {
-                LookupElementBuilder lookup = HaxeLookupElementFactory.create(member);
-                resultSet.addElement(lookup);
-            }
-            resultSet.stopHere();
+    /** The metadata's argument values ({@link HaxeMetadataArguments}); analyzer options show bare, they carry no type. */
+    private static void addArgumentCandidates(CompletionResultSet resultSet, HaxeMetadataCompileTimeMeta meta, PsiElement position) {
+        List<HaxeNamedComponent> candidates = HaxeMetadataArguments.candidates(meta, position);
+        if (candidates.isEmpty()) return;
+        boolean bare = meta.isType(ANALYZER);
+        for (HaxeNamedComponent candidate : candidates) {
+            LookupElementBuilder lookup = HaxeLookupElementFactory.create(candidate, null);
+            resultSet.addElement(bare ? lookup.withTailText(null).withTypeText(null) : lookup);
         }
-    }
-    private static void addAnalyzerCompletion(final CompletionResultSet resultSet,
-                                                final PsiFile targetFile) {
-
-        final Project project = targetFile.getProject();
-        HaxeClassModel analyzerOptions = HaxeSyntheticDeclarations.getAnalyzerOptions(project);
-        if (analyzerOptions != null) {
-            List<HaxeBaseMemberModel> members =analyzerOptions.getMembersSelf();
-            for (HaxeBaseMemberModel member : members) {
-                LookupElementBuilder lookup = HaxeLookupElementFactory.create(member)
-                  .withTailText(null)
-                  .withTypeText(null);
-
-                resultSet.addElement(lookup);
-            }
-            resultSet.stopHere();
-        }
+        resultSet.stopHere();
     }
 
     private static void addForwardMemberCompletion(final CompletionResultSet resultSet,

@@ -113,3 +113,14 @@ build bundles the jar into the plugin distribution.
 - Validation lane in the compat matrix comparing this tool's output against
   real `lime display` across lime versions, so semantic drift turns into a red
   lane instead of a user bug report.
+
+## Errors
+
+Invalid XML - in the project file or an included one - and a missing
+`<include>` stop lime, so they stop the tool: exit code 1, one problem per
+line on stderr (`project.xml: invalid XML at line 3, column 14: ...`,
+`include not found: defs.xml`); the IDE shows the first line as the build
+file's build-tool failure and falls back to `lime display`. A `<haxelib>`
+the resolver cannot find does not stop lime: it stays listed as declared,
+with a `warning: haxelib not installed: <name>` line on stderr, and the
+IDE flags it against the installed libraries. Exit code 2 is a usage error.

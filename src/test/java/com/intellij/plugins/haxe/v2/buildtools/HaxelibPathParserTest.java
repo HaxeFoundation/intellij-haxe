@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools;
 
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxelibPathParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,5 +55,40 @@ public class HaxelibPathParserTest {
     assertEquals("mylib", sections.get(1).name());
     assertNull(sections.get(1).version());
     assertEquals(List.of("C:/dev/mylib/extra-src/"), sections.get(1).classpaths());
+  }
+
+  @Test
+  @DisplayName("notices and network paths are not classpaths")
+  public void noticesAndNetworkPathsAreNotClasspaths() {
+    // a newer haxelib than the one a haxe preview bundles warns before the classpaths
+    List<HaxelibPathParser.LibrarySection> sections = HaxelibPathParser.parseSections("lime", List.of(
+      "Warning: Repository requires reformatting. To reformat, run `haxelib fixrepo`.",
+      "\\\\server\\share\\lime/8,1,2/src/",
+      "C:/HaxeToolkit/haxe/lib/lime/8,1,2/src/",
+      "-D lime=8.1.2"));
+
+    assertEquals(1, sections.size());
+    assertEquals(List.of("C:/HaxeToolkit/haxe/lib/lime/8,1,2/src/"), sections.getFirst().classpaths());
+  }
+
+  @Test
+  @DisplayName("extra params defines belong to the library that follows")
+  public void extraParamsDefinesBelongToTheLibraryThatFollows() {
+    // haxelib prints a library's extraParams.hxml lines before its classpath and its marker
+    List<HaxelibPathParser.LibrarySection> sections = HaxelibPathParser.parseSections("haxeui-core", List.of(
+      "-D haxeui",
+      "C:/HaxeToolkit/haxe/lib/haxeui-core/1,7,0/",
+      "-D haxeui-core=1.7.0",
+      "--macro allowPackage('sys')",
+      // a macro sets its define at compile time; only the compiler knows it
+      "--macro define('nodejs')",
+      "-D flavour=pure",
+      "C:/HaxeToolkit/haxe/lib/hxnodejs/12,2,0/src/",
+      "-D hxnodejs=12.2.0"));
+
+    List<String> names = sections.stream().map(HaxelibPathParser.LibrarySection::name).toList();
+    assertEquals(List.of("haxeui-core", "hxnodejs"), names, "a valued extraParams define is no library");
+    assertEquals(List.of(new HaxeDefine("haxeui", null)), sections.get(0).extraDefines());
+    assertEquals(List.of(new HaxeDefine("flavour", "pure")), sections.get(1).extraDefines());
   }
 }

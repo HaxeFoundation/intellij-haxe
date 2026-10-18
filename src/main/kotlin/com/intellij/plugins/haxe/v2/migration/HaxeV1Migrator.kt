@@ -36,6 +36,7 @@ import com.intellij.plugins.haxe.runner.debugger.flash.FlashRunConfiguration
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppRunConfiguration
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType
+import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectSync
 import com.intellij.plugins.haxe.v2.buildtools.HxmlProjects
 import com.intellij.plugins.haxe.v2.buildtools.LimeProjects
 import com.intellij.plugins.haxe.v2.buildtools.NmeProjects
@@ -52,7 +53,8 @@ import kotlinx.coroutines.withContext
  * module settings seed the V2 stores (environment SDK, compile command from
  * the configured hxml/openfl/nmml file, project active file), then the module
  * type becomes a plain [GeneralModuleType] so the legacy machinery never
- * engages again. The old settings component stays in the .iml untouched —
+ * engages again, and a project sync attaches the modules' haxelib libraries.
+ * The old settings component stays in the .iml untouched —
  * harmless, and the user's backup keeps the pre-conversion state anyway.
  */
 @Service(Service.Level.PROJECT)
@@ -110,6 +112,8 @@ class HaxeV1Migrator(private val project: Project, private val scope: CoroutineS
       withContext(Dispatchers.EDT) {
         applyRunConfigurationPlans(runConfigurationPlans)
         notifyDone(converted)
+        // the v2 library sync skips legacy modules, so the converted ones get their libraries now
+        HaxeProjectSync.sync(project, null)
       }
     }
   }
@@ -191,7 +195,7 @@ class HaxeV1Migrator(private val project: Project, private val scope: CoroutineS
         is ConfigurationPlan.Hxcpp -> {
           (old.configuration as? LegacyHxcppRunConfiguration)?.apply {
             setModule(module)
-            executablePath = plan.executablePath
+            setExecutablePath(plan.executablePath)
           }
         }
       }

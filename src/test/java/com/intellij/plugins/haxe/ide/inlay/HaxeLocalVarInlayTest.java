@@ -15,19 +15,6 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
     return "/inlay/haxe.local.variable/";
   }
 
-  @Override
-  public void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
-    setTestStyleSettings(2);
-  }
-
-  // test to generate preview used in inlay settings example
-  @Test
-  @DisplayName("preview")
-  public void testPreview() throws Exception {
-    doTest(hintsProvider);
-  }
   @Test
   @DisplayName("simple var hints")
   public void testSimpleVarHints() throws Exception {

@@ -72,20 +72,13 @@ final class HaxeTestSingleRuns {
     HaxeCompileCommands.Resolved resolved = HaxeCompileCommands.resolveAction(project, buildFile.getPath(), buildAction, extraArguments);
     if (resolved == null) return null;
 
-    int fileArgumentIndex = resolved.command().indexOf(HaxeBuildWorkDirectories.fileArgument(project, buildFile));
-    if (fileArgumentIndex < 0) return null;
-
-    HaxeBuildFile hxml = new HaxeBuildFile(buildFile, HaxeBuildFileType.HXML);
-    String section = HaxeBuildSections.selectedSectionContent(project, hxml);
-    if (section == null) return null;
-
     Path generated = generatedDirectory(buildFile.getPath(), framework, singleRun);
     if (generated == null) return null;
 
-    List<String> sectionArguments = swapEntryPoint(HxmlArguments.parseLines(section.lines().toList()), generated);
-    List<String> command = new ArrayList<>(resolved.command().subList(0, fileArgumentIndex));
-    command.addAll(sectionArguments);
-    command.addAll(resolved.command().subList(fileArgumentIndex + 1, resolved.command().size()));
+    List<String> spliced =
+      HxmlProjects.spliceSelectedSection(project, buildFile, resolved.command(), arguments -> swapEntryPoint(arguments, generated));
+    if (spliced == null) return null;
+    List<String> command = new ArrayList<>(spliced);
     command.add("-cp");
     command.add(generated.toString());
     command.add("--main");
@@ -121,11 +114,11 @@ final class HaxeTestSingleRuns {
         i++;
         continue;
       }
-      // -x <Main> is main + interp + run in one flag; the swapped build keeps
-      // only the interp part
-      if (argument.equals("-x") && hasValue) {
+      // -x/--run <Main> is main + interp + run in one flag; the swapped build
+      // keeps only the interp part
+      if (HxmlFileParser.isRunFlag(argument) && hasValue) {
         i++;
-        swapped.add("--interp");
+        swapped.add(HxmlFileParser.INTERP_FLAG);
         continue;
       }
       HaxeTarget target = HxmlFileParser.targetForFlag(argument);

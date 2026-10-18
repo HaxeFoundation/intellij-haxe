@@ -17,15 +17,16 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Finds the source file a stack frame names. The compiler prints positions
- * relative to its working directory or a classpath root, so a launch's own
- * directories (see {@link HaxeLaunchSearchScope}) are tried first; then a
- * path that exists as written, or under the project root; otherwise the
- * indexed file sharing the longest trailing path with it — a trace pasted
- * from another machine names {@code /home/username/work/app/src/shapes/Circle.hx},
- * which is this project's {@code src/shapes/Circle.hx}. A suffix match under
- * the launch's directories beats a project-root hit, which may belong to a
- * sibling build; then project content beats libraries.
+ * Finds the source file a stack frame or a compiler message names. The
+ * compiler prints positions relative to its working directory or a classpath
+ * root, so a launch's own directories (see {@link HaxeLaunchSearchScope}) are
+ * tried first; then a path that exists as written, or under the project root;
+ * otherwise the indexed file sharing the longest trailing path with it — a
+ * trace pasted from another machine names
+ * {@code /home/username/work/app/src/shapes/Circle.hx}, which is this
+ * project's {@code src/shapes/Circle.hx}. A suffix match under the launch's
+ * directories beats a project-root hit, which may belong to a sibling build;
+ * then project content beats libraries.
  */
 final class HaxeStackFrameFiles {
 

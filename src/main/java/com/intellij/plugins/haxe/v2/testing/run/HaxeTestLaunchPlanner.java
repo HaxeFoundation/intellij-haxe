@@ -12,6 +12,8 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.runner.debugger.hashlink.HlExecutableResolver;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeEffectiveBuildFileInfo;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeDebugSupport;
 import com.intellij.plugins.haxe.v2.buildtools.*;
 import com.intellij.plugins.haxe.v2.testing.*;
@@ -19,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -101,7 +104,7 @@ final class HaxeTestLaunchPlanner {
     if (!packagedHl) return null;
     Path runtime = Path.of(plan.command().getFirst());
     Path binDirectory = runtime.getParent();
-    return binDirectory == null ? null : binDirectory.resolve("hlboot.dat");
+    return binDirectory == null ? null : binDirectory.resolve(LimeProjects.HL_BOOT_FILE);
   }
 
   @NotNull
@@ -307,10 +310,9 @@ final class HaxeTestLaunchPlanner {
   private static Path singleRunCppBinary(@NotNull Project project,
                                          @NotNull VirtualFile file,
                                          @NotNull Path outputDirectory,
-                                         boolean debugLaunch) {
+                                         boolean debugLaunch) throws ExecutionException {
     String effective = HaxeBuildSections.selectedSectionContent(project, new HaxeBuildFile(file, HaxeBuildFileType.HXML));
-    boolean debugBuild = debugLaunch || (effective != null && HxmlFileParser.hasDebugFlag(effective));
-    return HxcppBinaries.binary(outputDirectory, HaxeTestSingleRuns.MAIN_CLASS, debugBuild);
+    return outputDirectory.resolve(hxcppFileName(StringUtil.notNullize(effective), HaxeTestSingleRuns.MAIN_CLASS, debugLaunch));
   }
 
   /**
@@ -347,7 +349,7 @@ final class HaxeTestLaunchPlanner {
       }
       return new Plan(List.of(webRoot.toString()), webRoot.toString(), false, HaxeTarget.JAVA_SCRIPT, null, true);
     }
-    Path binary = content == null ? null : LimeProjects.packagedBinary(file, content, targetFlag);
+    Path binary = packagedLimeBinary(project, file, type, content, targetFlag);
     if (binary == null) {
       boolean unrunnableTarget = !LimeProjects.HOST_LAUNCHABLE_TARGETS.contains(targetFlag);
       if (unrunnableTarget) {
@@ -359,6 +361,27 @@ final class HaxeTestLaunchPlanner {
     return new Plan(List.of(binary.toString()), workDirectory, false, HaxeTestCompileArguments.limeTarget(targetFlag), null);
   }
 
+  /**
+   * The lime build's launchable binary: from the evaluated target output when
+   * the build tool has reported one (the parser tool's evaluation honours the
+   * project's {@code <platform>.output-directory}), else from the project xml
+   * alone, since configuration validation plans a launch too and the
+   * evaluation may not have landed yet. Null without the xml content or for a
+   * target that is not host-launchable.
+   */
+  @Nullable
+  private static Path packagedLimeBinary(@NotNull Project project,
+                                         @NotNull VirtualFile file,
+                                         @NotNull HaxeBuildFileType type,
+                                         @Nullable String content,
+                                         @NotNull String targetFlag) {
+    if (content == null) return null;
+    String targetOutput = HaxeEffectiveBuildFileInfo.of(project, new HaxeBuildFile(file, type)).targetOutput();
+    if (targetOutput == null) return LimeProjects.packagedBinary(file, content, targetFlag);
+    Path output = HaxeBuildWorkDirectories.resolve(project, file, targetOutput);
+    return LimeProjects.packagedBinary(output, targetFlag, LimeProjects.appFile(content));
+  }
+
   /** An nmml tests build: compile through the nme tool, launch the packaged desktop/neko artifact. */
   @NotNull
   private static Plan nmePlan(@NotNull Project project,
@@ -366,14 +389,10 @@ final class HaxeTestLaunchPlanner {
                               boolean debugLaunch) throws ExecutionException {
     String targetFlag = NmeProjects.selectedTargetFlag(project, file);
     String content = HaxeBuildFileInspector.loadText(file);
-    String appFile = content == null ? null : ProjectXmlParser.parseAppFile(content);
-    if (appFile == null) {
+    if (content == null || ProjectXmlParser.parseAppFile(content) == null) {
       throw new ExecutionException(HaxeBundle.message("haxe.test.config.no.app.file", file.getName()));
     }
-    // content is non-null here: a null load already failed the appFile guard
-    String appPath = ProjectXmlParser.parseAppPath(content);
-    String outputRoot = appPath != null ? appPath : "bin";
-    NmeProjects.TargetArtifact artifact = NmeProjects.targetArtifact(targetFlag, appFile, outputRoot);
+    NmeProjects.TargetArtifact artifact = NmeProjects.selectedArtifact(content, targetFlag);
     if (artifact == null) {
       throw new ExecutionException(HaxeBundle.message("haxe.test.config.unrunnable.target", targetFlag));
     }
@@ -490,13 +509,7 @@ final class HaxeTestLaunchPlanner {
     return List.of(nodeExecutable, artifact.toString());
   }
 
-  /**
-   * The hxcpp binary the compile arguments produce, derived deterministically:
-   * a {@code -debug} in the effective hxml renames the binary even for plain
-   * runs, and the debug executor's compile additions do the same for debug
-   * sessions — never guessed from what happens to sit on disk (a stale
-   * leftover of the other flavor must not be launched).
-   */
+  /** The hxcpp binary of the hxml's selected section inside its output directory (see {@link #hxcppFileName}); the section must name a main class. */
   @NotNull
   private static Path cppExecutable(@NotNull Project project,
                                     @NotNull VirtualFile file,
@@ -507,24 +520,36 @@ final class HaxeTestLaunchPlanner {
     if (mainClass == null) {
       throw new ExecutionException(HaxeBundle.message("haxe.test.config.no.main", file.getName()));
     }
-    boolean debugBuild = debugLaunch || (effective != null && HxmlFileParser.hasDebugFlag(effective));
-    return HxcppBinaries.binary(outputDirectory, StringUtil.getShortName(mainClass), debugBuild);
+    return outputDirectory.resolve(hxcppFileName(effective, mainClass, debugLaunch));
+  }
+
+  /**
+   * hxcpp's name for the binary a section builds. It follows from the
+   * section's defines ({@code -debug} lines, {@code -D debug},
+   * {@code HAXE_OUTPUT_FILE}, {@code DEBUGSUFFIX}) plus the {@code -debug} a
+   * debug launch compiles with, by the same rule Build &amp; run uses - never
+   * from whatever sits on disk, where a stale binary of the other flavor must
+   * not be picked. Throws for a build that links nothing this machine runs (a
+   * cross toolchain, a static or shared library).
+   */
+  @NotNull
+  private static String hxcppFileName(@NotNull String effective, @NotNull String mainClass, boolean debugLaunch)
+    throws ExecutionException {
+    List<HaxeDefine> defines = new ArrayList<>(HxmlFileParser.parse(effective).defines());
+    if (debugLaunch) {
+      defines.add(new HaxeDefine(HxmlFileParser.DEBUG_DEFINE_NAME, null));
+    }
+    if (!HxcppExecutables.buildsHostExecutable(defines)) throw unrunnableTarget(HaxeTarget.CPP);
+    return HxcppExecutables.fileName(mainClass, defines);
   }
 
   /** The hxnodejs hint for a js run whose build carries no node signal; null otherwise. */
   @Nullable
   private static String nodeHint(@NotNull HaxeTarget target, @NotNull HaxeBuildFileInfo info) {
-    if (target == HaxeTarget.JAVA_SCRIPT && !hasNodeSignal(info)) {
+    if (target == HaxeTarget.JAVA_SCRIPT && !info.hasNodeSignal()) {
       return HaxeBundle.message("haxe.test.config.hxnodejs.hint");
     }
     return null;
-  }
-
-  /** A tests build carrying hxnodejs or -D nodejs declares node-runnability (utest then reports to stdout and exits properly). */
-  private static boolean hasNodeSignal(@NotNull HaxeBuildFileInfo info) {
-    boolean hasLib = info.libraries().stream()
-      .anyMatch(library -> library.name().equalsIgnoreCase("hxnodejs"));
-    return hasLib || info.defines().stream().anyMatch(define -> define.name().equals("nodejs"));
   }
 
   /** The whole-build flash launch: {@link #adlCommand} behind the framework's flash-support gate. */

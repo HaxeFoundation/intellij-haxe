@@ -315,7 +315,7 @@ public class HaxeGenericResolver {
           SpecificHaxeClassReference classType = specific.getClassType();
           if(classType != null) {
               String className = classType.getClassName();
-              if(className != null && className.equals("Rest")) {
+              if (HaxeClassModel.isGenericBuildRestParam(className)) {
                   ResultHolder rest = null;
                   do {
                       rest = resolve(specific.getType(), index++);

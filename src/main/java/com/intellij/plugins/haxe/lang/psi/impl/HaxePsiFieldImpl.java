@@ -20,10 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.*;
@@ -32,7 +30,6 @@ import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -105,11 +102,8 @@ public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeF
   @Override
   public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
     HaxeFieldStub stub = getStub();
-    if(stub != null) {
-      Boolean stubValue = stub.hasMetadata(metadataType.getTypeName());
-      if(stubValue != null) return stubValue;
-    }
-    return super.hasMetadata(name, metadataType);
+    Boolean stubValue = stub == null ? null : stub.compileTimeMetadata(name, metadataType);
+    return stubValue != null ? stubValue : super.hasMetadata(name, metadataType);
   }
 
 
@@ -164,7 +158,7 @@ public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeF
 
   @Override
   public boolean isDeprecated() {
-    return false;
+    return hasCompileTimeMetadata(HaxeMeta.DEPRECATED);
   }
 
   @Override

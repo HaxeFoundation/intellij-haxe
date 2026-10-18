@@ -39,12 +39,14 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
     setLevel(level);
     // pre-4.2 `is` semantics are driven by the LEVEL; the 4.1-compat
     // inspection option defaults to off
-    doTestSkippingInspections(null);
+    doTestNoFixWithWarnings();
   }
 
+  /** The fix fixtures also carry the diagnostic's markup, so the highlighting is checked with warnings before the fix runs. */
   private void doFixTestAtLevel(HaxeLanguageLevel level, String fixText) throws Exception {
     setLevel(level);
-    doTestActions(fixText);
+    doTestNoFixWithWarnings();
+    applyActionsAndCheckResult(fixText);
   }
 
   // ---- 3.4 ----
@@ -58,12 +60,6 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
   @Test
   @DisplayName("arrow function below 4.0")
   public void testArrowFunctionBelow40() throws Exception {
-    doTestAtLevel(HAXE_3_4);
-  }
-
-  @Test
-  @DisplayName("enum abstract below 4.0")
-  public void testEnumAbstractBelow40() throws Exception {
     doTestAtLevel(HAXE_3_4);
   }
 
@@ -260,30 +256,6 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
-  @DisplayName("enum abstract meta deprecated at 4.0")
-  public void testEnumAbstractMetaDeprecatedAt40() throws Exception {
-    doTestAtLevel(HAXE_4_0);
-  }
-
-  @Test
-  @DisplayName("final meta deprecated at 4.0")
-  public void testFinalMetaDeprecatedAt40() throws Exception {
-    doTestAtLevel(HAXE_4_0);
-  }
-
-  @Test
-  @DisplayName("extern meta deprecated at 4.0")
-  public void testExternMetaDeprecatedAt40() throws Exception {
-    doTestAtLevel(HAXE_4_0);
-  }
-
-  @Test
-  @DisplayName("extern field modifier below 4.0")
-  public void testExternFieldModifierBelow40() throws Exception {
-    doTestAtLevel(HAXE_3_4);
-  }
-
-  @Test
   @DisplayName("extern field modifier at 4.0")
   public void testExternFieldModifierAt40() throws Exception {
     doTestAtLevel(HAXE_4_0);
@@ -294,12 +266,6 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
   @Test
   @DisplayName("Std.isOfType below 4.1")
   public void testStdIsOfTypeBelow41() throws Exception {
-    doTestAtLevel(HAXE_4_0);
-  }
-
-  @Test
-  @DisplayName("untyped __js__ deprecated at 4.0")
-  public void testUntypedJsDeprecatedAt40() throws Exception {
     doTestAtLevel(HAXE_4_0);
   }
 

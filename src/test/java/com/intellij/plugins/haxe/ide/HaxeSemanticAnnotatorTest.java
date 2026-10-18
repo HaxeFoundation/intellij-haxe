@@ -394,6 +394,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     public void testAbstractAssignmentFromToFunctions() throws Exception {
       doTestNoFixWithWarnings();
     }
+
+    @Test
+    @DisplayName("anonymous - to cast allows assignment to a structure")
+    public void testAbstractAssignmentFromToAnonymous() throws Exception {
+      doTestNoFixWithWarnings();
+    }
   }
 
   @Nested
@@ -581,6 +587,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("field immutability")
     public void testFieldImmutability() throws Exception {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
+    @DisplayName("assign value to final")
+    public void testAssignValueToFinal() throws Exception {
       doTestNoFixWithWarnings();
     }
   }
@@ -1158,6 +1170,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("type from constraints")
     public void testTypeFromConstraints() throws Throwable {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
+    @DisplayName("assign from type parameter constraints")
+    public void testAssignFromTypeParameterConstraints() throws Throwable {
       doTestNoFixWithWarnings();
     }
 

@@ -19,11 +19,14 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.haxelib.HaxelibSemVer;
 import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
@@ -81,10 +84,6 @@ public class HaxeConditionalExpression {
     if (startTokens != null) {
       tokens.addAll(startTokens);
     }
-  }
-
-  public boolean isTrue(Project context) {
-    return tokens.isEmpty() ? false : evaluate(context);
   }
 
   private void createToken(@NotNull CharSequence chars, @NotNull IElementType tokenType) {
@@ -185,6 +184,19 @@ public class HaxeConditionalExpression {
     return evalResult;
   }
 
+  /** Evaluates against an explicit define set (a file's own context, see {@link #definitionsFor}); cached per set. */
+  public boolean evaluate(@NotNull Map<String, String> definitions) {
+    if (this.definitions != definitions) {
+      this.definitions = definitions;
+      evaluated = false;
+    }
+    if (!evaluated) {
+      evalResult = reevaluate(null);
+      evaluated = true;
+    }
+    return evalResult;
+  }
+
   /**
    * The message the compiler would hard-error with for this condition, or
    * null when it evaluates cleanly. Comparisons run STRICT here (cross-type
@@ -192,8 +204,9 @@ public class HaxeConditionalExpression {
    * comparisons of undefined defines stay silent.
    */
   @Nullable
-  public String diagnose(@Nullable Project context) {
-    this.context = context;
+  public String diagnose(@NotNull Map<String, String> definitions) {
+    this.definitions = definitions;
+    this.context = null;
     if (!isComplete()) return null;
     strictComparisons = true;
     try {
@@ -370,6 +383,9 @@ public class HaxeConditionalExpression {
   /** Evaluation Context */
   @Nullable
   private Project context;
+  /** When set, these defines replace the project context's. */
+  @Nullable
+  private Map<String, String> definitions;
 
   private boolean reevaluate(Project context) {
     this.context = context;
@@ -666,12 +682,12 @@ public class HaxeConditionalExpression {
     if (identifier == null) {
       return NULL_VALUE;
     }
-    if (context == null) {
+    if (definitions == null && context == null) {
       return SDK_DEFINES.contains(identifier.getText()) ? identifierValue(FLAG_DEFINE_VALUE) : NULL_VALUE;
     }
     String name = identifier.getText();
 
-    Map<String, String> definitionMap = projectDefinitions(context);
+    Map<String, String> definitionMap = definitions != null ? definitions : projectDefinitions(context);
     if (definitionMap.containsKey(name)) {
       String value = definitionMap.get(name);
       if (null == value || value.isEmpty()) {
@@ -705,6 +721,58 @@ public class HaxeConditionalExpression {
       return userData != null ? userData : Map.of();
     }
     return HaxeDefineDetectionManager.getInstance(project).getAllDefinitions();
+  }
+
+  /**
+   * The defines a file is compiled with: those of its resolve context's build
+   * file ({@link HaxeDefineContextService#definesForSource}), else the
+   * project-wide set ({@link #projectDefinitions}). The {@link #DEFINES_KEY}
+   * test injection wins over both when set.
+   */
+  @NotNull
+  public static Map<String, String> definitionsFor(@NotNull Project project, @Nullable VirtualFile file) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      Map<String, String> userData = project.getUserData(DEFINES_KEY);
+      if (userData != null) return userData;
+    }
+    Map<String, String> own = file == null ? null : HaxeDefineContextService.getInstance(project).definesForSource(file);
+    return own != null ? own : projectDefinitions(project);
+  }
+
+  /** {@link #definitionsFor(Project, VirtualFile)} for a PSI file; a copy (completion) counts as its original, a light file has none. */
+  @NotNull
+  public static Map<String, String> definitionsFor(@NotNull Project project, @Nullable PsiFile file) {
+    return definitionsFor(project, HaxeDefineContextService.physicalFileOf(file));
+  }
+
+  /**
+   * {@link #definitionsFor(Project, VirtualFile)} for the lexer: the same
+   * defines, recorded as what the file is lexed under, so that a later change
+   * of them re-lexes it. Readers that only evaluate conditions (annotators,
+   * completion) use {@code definitionsFor}. If they recorded too, a
+   * highlighting pass between a build-file change and the define refresh
+   * would make the new defines look already lexed under, and the open file
+   * would never be re-lexed.
+   */
+  @NotNull
+  public static Map<String, String> definitionsForLexing(@NotNull Project project, @Nullable VirtualFile file) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      Map<String, String> userData = project.getUserData(DEFINES_KEY);
+      if (userData != null) return userData;
+    }
+    HaxeDefineContextService service = HaxeDefineContextService.getInstance(project);
+    Map<String, String> own = file == null ? null : service.definesForLexing(file);
+    if (own != null) return own;
+    // as projectDefinitions does, unit tests never read the active build's set
+    if (ApplicationManager.getApplication().isUnitTestMode()) return projectDefinitions(project);
+    Map<String, String> active = service.activeDefinesForLexing();
+    return active != null ? active : projectDefinitions(project);
+  }
+
+  /** {@link #definitionsForLexing(Project, VirtualFile)} for a PSI file. */
+  @NotNull
+  public static Map<String, String> definitionsForLexing(@NotNull Project project, @Nullable PsiFile file) {
+    return definitionsForLexing(project, HaxeDefineContextService.physicalFileOf(file));
   }
 
   // Parodies Haxe parser is_true function

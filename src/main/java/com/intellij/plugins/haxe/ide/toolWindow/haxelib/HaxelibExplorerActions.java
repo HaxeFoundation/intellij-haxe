@@ -13,12 +13,9 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -31,13 +28,13 @@ import com.intellij.plugins.haxe.haxelib.HaxelibSemVer;
 import com.intellij.plugins.haxe.ide.toolWindow.haxelib.HaxelibExplorerPanel.LibraryRow;
 import com.intellij.plugins.haxe.ide.toolWindow.haxelib.HaxelibExplorerPanel.VersionEntry;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCommandNotifications;
-import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxelibInstaller;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxelibMutations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,22 +121,10 @@ final class HaxelibExplorerActions {
       HaxeCommandNotifications.notify(panel.getProject(), title, message, NotificationType.WARNING);
     }
 
-    /** Runs the mutation in the background; on success refreshes the explorer (dropping the library's stale info) and the v2 library sync. */
+    /** Runs the mutation in the background; a success syncs the v2 libraries and then reloads the explorer (dropping the library's stale info). */
     void mutate(@NotNull String progressTitle, @NotNull String libraryName, @NotNull Supplier<@Nullable String> mutation) {
-      Project project = panel.getProject();
-      new Task.Backgroundable(project, progressTitle, true) {
-        @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-          String failure = mutation.get();
-          if (failure == null) {
-            HaxeLibrarySync.sync(project, () -> { });
-            ApplicationManager.getApplication().invokeLater(() -> panel.reloadAfterMutation(libraryName));
-          }
-          else {
-            HaxeCommandNotifications.notify(project, progressTitle, failure, NotificationType.ERROR);
-          }
-        }
-      }.queue();
+      Runnable reload = () -> panel.reloadAfterMutation(libraryName);
+      HaxelibMutations.queue(panel.getProject(), progressTitle, progressTitle, indicator -> mutation.get(), reload);
     }
   }
 

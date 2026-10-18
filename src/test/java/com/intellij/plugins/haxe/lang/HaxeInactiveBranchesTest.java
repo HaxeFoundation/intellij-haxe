@@ -1,5 +1,9 @@
 package com.intellij.plugins.haxe.lang;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiComment;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lexer.Lexer;
@@ -14,7 +18,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeInactiveBody;
 import com.intellij.plugins.haxe.util.HaxeTestDefines;
-import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.PsiFileImpl;
@@ -29,7 +32,6 @@ import org.junit.jupiter.params.provider.FieldSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -38,8 +40,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
  * Behavior of INACTIVE conditional branches. The parser lexes a dead region
  * as ONE PPBODY blob (lazily parsed into real PSI), the editor highlighter
  * keeps real token types there instead - and everything downstream builds on
- * that split: analysis exemption, dimmed colors, best-effort completion,
- * token-stream editing mechanics and incremental-relex restartability.
+ * that split: analysis exemption, dimmed colors, best-effort completion and
+ * token-stream editing mechanics. Incremental-relex restartability across
+ * conditionals lives in HaxeLexerRestartTest.
  */
 @DisplayName("Conditional compilation: inactive branches")
 public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
@@ -96,6 +99,37 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("code after a nested section stays inside the dead branch")
+  public void testCodeAfterANestedSectionStaysInsideTheDeadBranch() {
+    String source = """
+      package p;
+
+      #if (never && sys)
+      import a.A;
+      #if (lime && !macro)
+      import b.B;
+      #end
+      import c.C;
+
+      class File {}
+      #end
+      """;
+
+    List<String> bodies = ppBodyTokens(source);
+    assertEquals(1, bodies.size(), "the dead branch must stay ONE blob past the nested #end: " + bodies);
+    assertTrue(bodies.get(0).contains("import c.C") && bodies.get(0).contains("class File"), bodies.get(0));
+
+    PsiFile file = myFixture.configureByText("File.hx", source);
+    PsiElement afterNested = file.findElementAt(source.indexOf("c.C"));
+    assertNotNull(afterNested);
+    PsiComment enclosing = PsiTreeUtil.getParentOfType(afterNested, PsiComment.class);
+    assertInstanceOf(HaxeInactiveBody.class, enclosing, "the import after the nested #end sits inside the outer dead blob");
+    HaxeInactiveBody outer = PsiTreeUtil.getParentOfType(afterNested, HaxeInactiveBody.class, true, PsiFile.class);
+    assertNotNull(outer);
+    assertTrue(outer.getText().contains("import a.A"), "...the SAME blob that holds the branch's first lines");
+  }
+
+  @Test
   @DisplayName("branch holding a nested region parses as code")
   public void testBranchHoldingANestedRegionParsesAsCode() {
     HaxeInactiveBody body = inactiveBody(NESTED_REGION_SOURCE);
@@ -117,39 +151,6 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     \t}
     \t#end
     }""";
-
-  @Test
-  @DisplayName("dead branch is one comment leaf in the tree")
-  public void testDeadBranchIsOneCommentLeafInTheTree() {
-    PsiFile file = myFixture.configureByText("Foo.hx", """
-      class Foo {
-      \t#if never
-      \tfunction dead():Void {}
-      \t#end
-      }""");
-
-    List<PsiComment> ppBodies = PsiTreeUtil.findChildrenOfType(file, PsiComment.class).stream()
-      .filter(comment -> comment.getTokenType() == HaxeTokenTypeSets.PPBODY)
-      .toList();
-    assertEquals(1, ppBodies.size(), "the parser must see the merged blob as one comment leaf");
-    assertTrue(ppBodies.get(0).getText().contains("function dead"));
-  }
-
-  @Test
-  @DisplayName("class level branch parses as members")
-  public void testClassLevelBranchParsesAsMembers() {
-    HaxeInactiveBody body = inactiveBody("""
-      class Foo {
-      \t#if never
-      \tpublic static function dead(a:Int):Void {
-      \t\ttrace(a);
-      \t}
-      \t#end
-      }""");
-
-    assertNotNull(PsiTreeUtil.findChildOfType(body, HaxeMethodDeclaration.class),
-                  "the dead method must parse into real member PSI");
-  }
 
   @Test
   @DisplayName("statement level branch parses as statements")
@@ -232,6 +233,8 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
 
     var errors = myFixture.doHighlighting(HighlightSeverity.ERROR);
     assertTrue(errors.isEmpty(), "inactive branches are analysis-exempt: " + errors);
+    var warnings = markersInsideTheConditional(HighlightSeverity.WARNING, source);
+    assertTrue(warnings.isEmpty(), "dead code gets no warning markers either: " + warnings);
   }
 
   @Test
@@ -270,80 +273,8 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
       }""";
     myFixture.configureByText("Foo.hx", source);
 
-    var warnings = myFixture.doHighlighting(HighlightSeverity.WEAK_WARNING).stream()
-      .filter(info -> info.getStartOffset() >= source.indexOf("#if") && info.getEndOffset() <= source.indexOf("#end"))
-      .toList();
+    var warnings = markersInsideTheConditional(HighlightSeverity.WEAK_WARNING, source);
     assertTrue(warnings.isEmpty(), "dead fields get no unused markers and no usage searches: " + warnings);
-  }
-
-  // (name, source, whether top-level code after the conditional must be restartable)
-  static final List<Arguments> RESTART_SOURCES = List.of(
-    arguments("top-level dead branch", """
-      class A {}
-      #if never
-      class Dead { var x:Int; }
-      #else
-      class Live {}
-      #end
-      class B {}""", true),
-    arguments("nested conditionals", """
-      #if never
-      #if js
-      var a = 1;
-      #end
-      var b = 2;
-      #end
-      class After {}""", true),
-    arguments("elseif chain in class body", """
-      class C {
-      \t#if never
-      \tvar a:Int;
-      \t#elseif never_either
-      \tvar b:Int;
-      \t#else
-      \tvar c:Int;
-      \t#end
-      }
-      class D {}""", true),
-    arguments("strings and templates around a dead branch", """
-      class E {
-      \tfunction f():Void {
-      \t\tvar s = "before";
-      \t\t#if never
-      \t\tvar t = 'tmp ${1 + 1}';
-      \t\t#end
-      \t\tvar u = "after";
-      \t}
-      }""", true),
-    arguments("inline expression conditional", """
-      class F {
-      \tfunction f():Void {
-      \t\tvar mode = #if debug "d" #else "r" #end;
-      \t\tvar tail = 1;
-      \t}
-      }""", true),
-    arguments("cross branch operator soup", """
-      class G {
-      \tfunction f():Void {
-      \t\tvar x = 1 #if never < #else > #end 2;
-      \t}
-      }
-      class H {}""", true),
-    // an unterminated #if keeps the file in CC state to EOF - nothing to restart, but it must not diverge either
-    arguments("missing #end at eof", """
-      class I {}
-      #if never
-      var dead:Int;""", false),
-    arguments("stray #end without #if", """
-      class J {}
-      #end
-      class K {}""", true));
-
-  @ParameterizedTest(name = "{0}")
-  @FieldSource("RESTART_SOURCES")
-  @DisplayName("lexer restart at zero state boundaries reproduces the stream")
-  public void testLexerRestartAtZeroStateBoundariesReproducesTheStream(String name, String source, boolean expectRestartableTail) {
-    checkRestartAtEveryZeroStateBoundary(source, expectRestartableTail);
   }
 
   @Test
@@ -561,6 +492,9 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     arguments("hl_ver=1.11.0", "(hl_ver >= version(\"1.12.0\"))", false),
     arguments("haxe=4.3.7", "(haxe >= version(\"4.1.0\"))", true),
     arguments("haxe_ver=4.307", "(haxe_ver >= 4.1)", true),
+    // the compiler's numeric haxe_ver (4.3.7 is 4.307) compares at patch level
+    arguments("haxe_ver=4.307", "(haxe_ver >= 4.305)", true),
+    arguments("haxe_ver=4.307", "(haxe_ver >= 4.400)", false),
     arguments("v=1.2", "(v == 1.2)", true),
     arguments("", "(version(\"1.10.0\") > version(\"1.9.0\"))", true),
     arguments("", "(version(\"1.0.0-rc.1\") < version(\"1.0.0\"))", true),
@@ -579,7 +513,27 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     arguments("A=1,B=2", "(B > A)", true),
     // a '-' before a number is the number's sign, not an operation
     arguments("", "(-1)", true),
-    arguments("v=-1", "(v == -1)", true));
+    arguments("v=-1", "(v == -1)", true),
+    // a bare name is its define's value: only unset, 0 and "0" leave the branch inactive
+    arguments("cpp=true", "(cpp)", true),
+    arguments("cpp=\"2.1\"", "(cpp)", true),
+    arguments("cpp=1.2", "(cpp)", true),
+    arguments("cpp=\"0\"", "(cpp)", false),
+    arguments("cpp=0", "(cpp)", false),
+    arguments("", "(!cpp)", true),
+    // a valued define compares against a version string
+    arguments("myVersion=9.2.0", "(myVersion < \"9.0.0\")", false),
+    // either operand set, any value; a parenthesized condition may span lines
+    arguments("cpp", "(cpp || js)", true),
+    arguments("js", "(cpp || js)", true),
+    arguments("js,cpp", "(cpp || js)", true),
+    arguments("js=1,cpp=2.3", "(cpp || js)", true),
+    arguments("js=\"foo\"", "(cpp\n\t||\n\tjs)", true),
+    // one operand unset or false
+    arguments("cpp,js=false", "(cpp && js)", false),
+    arguments("cpp=false,js", "(cpp && js)", false),
+    arguments("cpp", "(cpp && js)", false),
+    arguments("js", "(cpp && js)", false));
 
   @ParameterizedTest(name = "{1} with [{0}]")
   @FieldSource("CONDITION_EVALUATIONS")
@@ -600,67 +554,6 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     finally {
       HaxeTestDefines.set(getProject(), null);
     }
-  }
-
-  @Test
-  @DisplayName("invalid version literal is flagged like the compiler")
-  public void testInvalidVersionLiteralIsFlaggedLikeTheCompiler() {
-    List<String> errors = conditionErrors("""
-      class Foo {
-      \t#if (version("banana") > version("1.0.0"))
-      \tvar marker:Int;
-      \t#end
-      }""");
-
-    assertEquals(1, errors.size(), "ONE problems entry per condition, not one per token: " + errors);
-    assertTrue(errors.get(0).contains("Should follow SemVer"), "the compiler hard-errors on this literal: " + errors);
-  }
-
-  @Test
-  @DisplayName("shortened version value suggests the full form")
-  public void testShortenedVersionValueSuggestsTheFullForm() {
-    HaxeTestDefines.set(getProject(), "hl_ver=1.13");
-    try {
-      List<String> errors = conditionErrors("""
-        class Foo {
-        \t#if (hl_ver >= version("1.12.0"))
-        \tvar marker:Int;
-        \t#end
-        }""");
-
-      assertEquals(1, errors.size(), "one entry for the condition: " + errors);
-      assertTrue(errors.get(0).contains("major.minor.patch") && errors.get(0).contains("\"1.13.0\""),
-                 "the message explains the missing part and suggests the fix: " + errors);
-    }
-    finally {
-      HaxeTestDefines.set(getProject(), null);
-    }
-  }
-
-  @Test
-  @DisplayName("unknown function is flagged like the compiler")
-  public void testUnknownFunctionIsFlaggedLikeTheCompiler() {
-    List<String> errors = conditionErrors("""
-      class Foo {
-      \t#if (foo("x"))
-      \tvar marker:Int;
-      \t#end
-      }""");
-
-    assertTrue(errors.contains("Invalid condition expression"), "unknown calls are compiler errors: " + errors);
-  }
-
-  @Test
-  @DisplayName("undefined define comparisons stay quiet")
-  public void testUndefinedDefineComparisonsStayQuiet() {
-    List<String> errors = conditionErrors("""
-      class Foo {
-      \t#if (undef_thing > 3)
-      \tvar marker:Int;
-      \t#end
-      }""");
-
-    assertTrue(errors.isEmpty(), "null-poisoned comparisons are legal: " + errors);
   }
 
   @Test
@@ -711,22 +604,6 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     assertTrue(flagged, "the compiler evaluates and rejects this condition: " + errors);
   }
 
-  @Test
-  @DisplayName("multi dot number condition stays quiet")
-  public void testMultiDotNumberConditionStaysQuiet() {
-    // the diagnostic scanner must decline a multi-dot number (no flex rule
-    // produces one as a single token) instead of accepting it and crashing
-    // on Float.valueOf during evaluation
-    List<String> errors = conditionErrors("""
-      class Foo {
-      \t#if (foo == 1.2.3)
-      \tvar marker:Int;
-      \t#end
-      }""");
-
-    assertTrue(errors.isEmpty(), "an unscannable condition reports nothing: " + errors);
-  }
-
   // (condition as written after #if, its PPEXPRESSION run, the start of the inactive body after it)
   static final List<Arguments> CONDITION_RUNS = List.of(
     arguments("(utest-abc)", "(utest-abc)", "\n\tvar marker"),
@@ -753,8 +630,9 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     assertTrue(bodies.get(0).startsWith(bodyStart), "the body starts right after the condition: " + bodies);
   }
 
-  // (defines, condition, the error the compiler reports for it - null when it compiles)
-  static final List<Arguments> OPERATOR_VERDICTS = List.of(
+  // (defines, condition, the ONE error the compiler reports for it - null when it compiles)
+  static final List<Arguments> CONDITION_DIAGNOSTICS = List.of(
+    // operators outside the condition grammar
     arguments("my-flag", "(my-flag)", "Unsupported operation: '-' is not allowed in a condition"),
     arguments("A=1,B=2", "(B-A)", "Unsupported operation: '-' is not allowed in a condition"),
     arguments("", "(a * b)", "Unsupported operation: '*' is not allowed in a condition"),
@@ -764,12 +642,24 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     arguments("A=1,B=2", "(B > A)", null),
     arguments("", "(a == -1)", null),
     // without parentheses '-flag' is body, and the condition 'my' is fine
-    arguments("my-flag", "my-flag", null));
+    arguments("my-flag", "my-flag", null),
+    // invalid version literal
+    arguments("", "(version(\"banana\") > version(\"1.0.0\"))", "Invalid version string \"banana\". Should follow SemVer."),
+    // shortened version value suggests the full form
+    arguments("hl_ver=1.13", "(hl_ver >= version(\"1.12.0\"))",
+              "Invalid version \"1.13\": a version comparison needs all three major.minor.patch parts - did you mean \"1.13.0\"?"),
+    // unknown function
+    arguments("", "(foo(\"x\"))", "Invalid condition expression"),
+    // undefined define comparisons stay quiet: a null-poisoned comparison is legal
+    arguments("", "(undef_thing > 3)", null),
+    // multi dot number stays quiet: no flex rule yields one token, so the
+    // scanner declines it instead of crashing on Float.valueOf
+    arguments("", "(foo == 1.2.3)", null));
 
   @ParameterizedTest(name = "{1} with [{0}]")
-  @FieldSource("OPERATOR_VERDICTS")
-  @DisplayName("operators outside the condition grammar are flagged like the compiler")
-  public void testOperatorsOutsideTheConditionGrammarAreFlaggedLikeTheCompiler(String defines, String condition, String expectedError) {
+  @FieldSource("CONDITION_DIAGNOSTICS")
+  @DisplayName("condition diagnostics match the compiler")
+  public void testConditionDiagnosticsMatchTheCompiler(String defines, String condition, String expectedError) {
     HaxeTestDefines.set(getProject(), defines);
     try {
       List<String> errors = conditionErrors("""
@@ -879,64 +769,12 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
       .toList();
   }
 
-  /**
-   * The editor's incremental highlighter restarts lexing only at boundaries
-   * whose saved state equals a fresh lexer's - so at every such boundary a
-   * cold start must reproduce the remaining stream exactly. A zero state
-   * inside a conditional would make a restart lex dead code as live; the
-   * CC_BLOCK lexer state exists to prevent that.
-   */
-  private void checkRestartAtEveryZeroStateBoundary(String source, boolean expectRestartableTail) {
-    checkRestartAtEveryZeroStateBoundary(source, expectRestartableTail, () -> new HaxeLexer(getProject()));
-    checkRestartAtEveryZeroStateBoundary(source, expectRestartableTail, () -> HaxeLexer.forHighlighting(getProject()));
+  /** The markers of at least the severity that lie inside the configured source's #if..#end region. */
+  private List<HighlightInfo> markersInsideTheConditional(HighlightSeverity minimumSeverity, String source) {
+    int regionStart = source.indexOf("#if");
+    int regionEnd = source.indexOf("#end");
+    return myFixture.doHighlighting(minimumSeverity).stream()
+      .filter(info -> info.getStartOffset() >= regionStart && info.getEndOffset() <= regionEnd)
+      .toList();
   }
-
-  private void checkRestartAtEveryZeroStateBoundary(String source, boolean expectRestartableTail, Supplier<Lexer> lexerFactory) {
-    Lexer lexer = lexerFactory.get();
-    lexer.start(source);
-    List<LexStep> full = new ArrayList<>();
-    while (lexer.getTokenType() != null) {
-      String type = lexer.getTokenType().toString();
-      int start = lexer.getTokenStart();
-      int end = lexer.getTokenEnd();
-      lexer.advance();
-      full.add(new LexStep(start, end, type, lexer.getState()));
-    }
-    assertFalse(full.isEmpty(), "the source must lex to something");
-
-    int restartableBoundaries = 0;
-    for (int i = 0; i < full.size() - 1; i++) {
-      if (full.get(i).stateAfter() != 0) continue;
-      restartableBoundaries++;
-
-      int offset = full.get(i).end();
-      List<LexStep> restarted = lexFrom(source, offset, lexerFactory);
-      List<LexStep> remainder = full.subList(i + 1, full.size());
-      assertEquals(remainder.size(), restarted.size(), "restart at " + offset + ": token count diverged");
-      for (int j = 0; j < remainder.size(); j++) {
-        LexStep expected = remainder.get(j);
-        LexStep actual = restarted.get(j);
-        boolean sameToken = expected.start() == actual.start()
-                            && expected.end() == actual.end()
-                            && expected.type().equals(actual.type());
-        assertTrue(sameToken, "restart at " + offset + " diverged: expected " + expected + " but got " + actual);
-      }
-    }
-    if (expectRestartableTail) {
-      assertTrue(restartableBoundaries > 0, "expected at least one restartable boundary - otherwise this source proves nothing");
-    }
-  }
-
-  private List<LexStep> lexFrom(String source, int offset, Supplier<Lexer> lexerFactory) {
-    Lexer lexer = lexerFactory.get();
-    lexer.start(source, offset, source.length(), 0);
-    List<LexStep> steps = new ArrayList<>();
-    while (lexer.getTokenType() != null) {
-      steps.add(new LexStep(lexer.getTokenStart(), lexer.getTokenEnd(), lexer.getTokenType().toString(), -1));
-      lexer.advance();
-    }
-    return steps;
-  }
-
-  private record LexStep(int start, int end, String type, int stateAfter) {}
 }

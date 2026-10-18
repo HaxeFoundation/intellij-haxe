@@ -6,41 +6,23 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
-import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
-import com.intellij.plugins.haxe.v2.buildtools.info.HaxeLimeProjectInfoService;
-import com.intellij.plugins.haxe.v2.buildtools.info.HaxeNmeProjectInfoService;
-import com.intellij.plugins.haxe.v2.display.HaxeCompilerCaches;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildCaches;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Tool window button that clears every cached value: the haxelib metadata
- * caches, the lime project evaluation cache and all compiler-derived caches
- * (with the PSI drop + daemon restart that makes editors recompute). The
- * tree refresh afterwards rebuilds the tool window from the emptied caches.
- */
+/** Tool window button that drops every cached value ({@link HaxeBuildCaches#purge}); the tree follows the clear. */
 public final class HaxePurgeCachesAction extends DumbAwareAction {
 
-  private final Runnable afterPurge;
-
-  public HaxePurgeCachesAction(@NotNull Runnable afterPurge) {
+  public HaxePurgeCachesAction() {
     super(HaxeBundle.message("haxe.toolwindow.purge.caches.text"),
           HaxeBundle.message("haxe.toolwindow.purge.caches.description"),
           AllIcons.Actions.GC);
-    this.afterPurge = afterPurge;
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) return;
-
-    HaxelibUtil.clearCache();
-    HaxelibCacheManager.getAllInstances().forEach(HaxelibCacheManager::reload);
-    HaxeLimeProjectInfoService.getInstance(project).clearCache();
-    HaxeNmeProjectInfoService.getInstance(project).clearCache();
-    HaxeCompilerCaches.clearAndRehighlight(project, "haxe: caches purged");
-    afterPurge.run();
+    HaxeBuildCaches.purge(project);
   }
 
   @Override

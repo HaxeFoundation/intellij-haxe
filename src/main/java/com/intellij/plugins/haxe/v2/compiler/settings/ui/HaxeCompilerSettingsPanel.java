@@ -4,15 +4,12 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompletionMode;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.FormBuilder;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,10 +25,13 @@ import java.util.function.Function;
 
 /**
  * Swing panel for the Haxe compiler settings page: the default language
- * level, the completion source, the compiler-diagnostics toggles and a
- * per-module level override table. It holds no reference to project
- * services, so tests can exercise it; the configurable feeds it data and
- * reads it back.
+ * level, the completion source, the connection mode, the compiler-backed IDE
+ * features with their per-feature toggles, the compiler-diagnostics toggles
+ * and a per-module level override table. The layout lives in the matching
+ * .form; the combos and the table panel are the form's custom-created
+ * components (see {@link #createUIComponents}). It holds no reference to
+ * project services, so tests can exercise it; the configurable feeds it data
+ * and reads it back.
  */
 public final class HaxeCompilerSettingsPanel {
 
@@ -59,68 +59,52 @@ public final class HaxeCompilerSettingsPanel {
     }
   }
 
-  private final ComboBox<LevelChoice> defaultLevelCombo = createLevelChoiceCombo(this::defaultChoiceText);
-  private final ComboBox<HaxeCompletionMode> completionModeCombo = new ComboBox<>(HaxeCompletionMode.values());
+  private JPanel mainPanel;
+  private ComboBox<LevelChoice> defaultLevelCombo;
+  private ComboBox<HaxeCompletionMode> completionModeCombo;
+  private ComboBox<HaxeDisplayConnectionMode> displayConnectionCombo;
+  private JCheckBox useLevelForConditionalsCheckBox;
+  private JCheckBox compilerIdeFeaturesCheckBox;
+  private JCheckBox featureInlaysCheckBox;
+  private JCheckBox featureFindUsagesCheckBox;
+  private JCheckBox featureNavigationCheckBox;
+  private JCheckBox featureGeneratedMemberPreviewCheckBox;
+  private JCheckBox featureCompletionCheckBox;
+  private JCheckBox compilerDiagnosticsCheckBox;
+  private JCheckBox diagnosticsErrorsCheckBox;
+  private JCheckBox diagnosticsUnusedImportsCheckBox;
+  private JCheckBox diagnosticsRemovableCodeCheckBox;
+  private JCheckBox diagnosticsOnlyCheckBox;
+  private JPanel tablePanel;
+  // created in createUIComponents: the form's setup runs before the field initializers
+  private ListTableModel<ModuleLevelRow> tableModel;
+  private TableView<ModuleLevelRow> table;
   /** Level resolved from the SDK, shown in the "use compiler level" labels; null when no SDK. */
   private @Nullable HaxeLanguageLevel compilerLevel;
-  private final JCheckBox useLevelForConditionalsCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.conditionals.language.level.checkbox"));
-  private final JCheckBox compilerIdeFeaturesCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.ide.features.checkbox"));
-  private final JBLabel compilerIdeFeaturesHint =
-    new JBLabel(HaxeBundle.message("haxe.compiler.ide.features.hint"), UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
-  private final JCheckBox compilerDiagnosticsCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.diagnostics.checkbox"));
-  private final JCheckBox diagnosticsErrorsCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.diagnostics.errors.checkbox"));
-  private final JCheckBox diagnosticsUnusedImportsCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.diagnostics.unused.imports.checkbox"));
-  private final JCheckBox diagnosticsRemovableCodeCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.diagnostics.removable.code.checkbox"));
-  private final JCheckBox diagnosticsOnlyCheckBox =
-    new JCheckBox(HaxeBundle.message("haxe.compiler.diagnostics.only.checkbox"));
-  private final ListTableModel<ModuleLevelRow> tableModel = new ListTableModel<>(new ModuleColumn(), new LevelColumn());
-  private final TableView<ModuleLevelRow> table = new TableView<>(tableModel);
-  private final JPanel mainPanel;
 
   public HaxeCompilerSettingsPanel() {
     // "Project default (x.y)" cells display the selected default, keep them in sync.
     defaultLevelCombo.addActionListener(e -> table.repaint());
-
-    compilerDiagnosticsCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.diagnostics.tooltip"));
-    diagnosticsErrorsCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.diagnostics.errors.tooltip"));
-    diagnosticsUnusedImportsCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.diagnostics.unused.imports.tooltip"));
-    diagnosticsRemovableCodeCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.diagnostics.removable.code.tooltip"));
-    diagnosticsOnlyCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.diagnostics.only.tooltip"));
-    for (JCheckBox child : diagnosticsChildren()) {
-      child.setBorder(JBUI.Borders.emptyLeft(24));
-    }
+    compilerIdeFeaturesCheckBox.addItemListener(e -> updateFeatureChildEnablement());
+    featureNavigationCheckBox.addItemListener(e -> updateFeatureChildEnablement());
+    featureCompletionCheckBox.addItemListener(e -> updateFeatureChildEnablement());
     compilerDiagnosticsCheckBox.addItemListener(e -> updateDiagnosticsChildEnablement());
+    updateFeatureChildEnablement();
     updateDiagnosticsChildEnablement();
+  }
+
+  private void createUIComponents() {
+    defaultLevelCombo = createLevelChoiceCombo(this::defaultChoiceText);
+    completionModeCombo = new ComboBox<>(HaxeCompletionMode.values());
     completionModeCombo.setRenderer(BuilderKt.textListCellRenderer("", HaxeCompletionMode::getPresentableText));
-    completionModeCombo.setToolTipText(HaxeBundle.message("haxe.compiler.completion.mode.tooltip"));
-    compilerIdeFeaturesCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.ide.features.tooltip"));
-    // the hint sits under the checkbox text, past its box
-    compilerIdeFeaturesHint.setBorder(JBUI.Borders.emptyLeft(24));
-
-    useLevelForConditionalsCheckBox.setToolTipText(HaxeBundle.message("haxe.compiler.conditionals.language.level.tooltip"));
-
+    displayConnectionCombo = new ComboBox<>(HaxeDisplayConnectionMode.values());
+    displayConnectionCombo.setRenderer(BuilderKt.textListCellRenderer("", HaxeDisplayConnectionMode::getPresentableText));
+    tableModel = new ListTableModel<>(new ModuleColumn(), new LevelColumn());
+    table = new TableView<>(tableModel);
     table.setShowGrid(false);
     table.setRowHeight(defaultLevelCombo.getPreferredSize().height);
-
-    mainPanel = FormBuilder.createFormBuilder()
-      .addLabeledComponent(HaxeBundle.message("haxe.compiler.default.language.level"), defaultLevelCombo)
-      .addComponent(useLevelForConditionalsCheckBox)
-      .addLabeledComponent(HaxeBundle.message("haxe.compiler.completion.mode"), completionModeCombo)
-      .addComponent(compilerIdeFeaturesCheckBox)
-      .addComponent(compilerIdeFeaturesHint)
-      .addComponent(compilerDiagnosticsCheckBox)
-      .addComponent(diagnosticsErrorsCheckBox)
-      .addComponent(diagnosticsUnusedImportsCheckBox)
-      .addComponent(diagnosticsRemovableCodeCheckBox)
-      .addComponent(diagnosticsOnlyCheckBox)
-      .addComponentFillVertically(new JBScrollPane(table), 8)
-      .getPanel();
+    tablePanel = new JPanel(new BorderLayout());
+    tablePanel.add(new JBScrollPane(table), BorderLayout.CENTER);
   }
 
   public boolean isUseLanguageLevelForConditionals() {
@@ -183,6 +167,21 @@ public final class HaxeCompilerSettingsPanel {
     }
   }
 
+  private List<JCheckBox> featureChildren() {
+    return List.of(featureInlaysCheckBox, featureFindUsagesCheckBox, featureNavigationCheckBox, featureCompletionCheckBox);
+  }
+
+  /// The per-feature toggles apply only under the master toggle; the generated-member preview and the completion
+  /// source only while navigation and completion are among them.
+  private void updateFeatureChildEnablement() {
+    boolean features = compilerIdeFeaturesCheckBox.isSelected();
+    for (JCheckBox child : featureChildren()) {
+      child.setEnabled(features);
+    }
+    featureGeneratedMemberPreviewCheckBox.setEnabled(features && featureNavigationCheckBox.isSelected());
+    completionModeCombo.setEnabled(features && featureCompletionCheckBox.isSelected());
+  }
+
   @NotNull
   public HaxeCompletionMode getCompletionMode() {
     HaxeCompletionMode selected = completionModeCombo.getItem();
@@ -193,12 +192,72 @@ public final class HaxeCompilerSettingsPanel {
     completionModeCombo.setSelectedItem(mode);
   }
 
+  @NotNull
+  public HaxeDisplayConnectionMode getDisplayConnectionMode() {
+    HaxeDisplayConnectionMode selected = displayConnectionCombo.getItem();
+    return selected != null ? selected : HaxeDisplayConnectionMode.SHARED_SERVER;
+  }
+
+  public void setDisplayConnectionMode(@NotNull HaxeDisplayConnectionMode mode) {
+    displayConnectionCombo.setSelectedItem(mode);
+  }
+
   public boolean isCompilerIdeFeaturesEnabled() {
     return compilerIdeFeaturesCheckBox.isSelected();
   }
 
   public void setCompilerIdeFeaturesEnabled(boolean enabled) {
     compilerIdeFeaturesCheckBox.setSelected(enabled);
+  }
+
+  public boolean isCompilerInlaysEnabled() {
+    return featureInlaysCheckBox.isSelected();
+  }
+
+  public void setCompilerInlaysEnabled(boolean enabled) {
+    featureInlaysCheckBox.setSelected(enabled);
+  }
+
+  public boolean isCompilerFindUsagesEnabled() {
+    return featureFindUsagesCheckBox.isSelected();
+  }
+
+  public void setCompilerFindUsagesEnabled(boolean enabled) {
+    featureFindUsagesCheckBox.setSelected(enabled);
+  }
+
+  public boolean isCompilerNavigationEnabled() {
+    return featureNavigationCheckBox.isSelected();
+  }
+
+  public void setCompilerNavigationEnabled(boolean enabled) {
+    featureNavigationCheckBox.setSelected(enabled);
+  }
+
+  public boolean isGeneratedMemberPreviewEnabled() {
+    return featureGeneratedMemberPreviewCheckBox.isSelected();
+  }
+
+  public void setGeneratedMemberPreviewEnabled(boolean enabled) {
+    featureGeneratedMemberPreviewCheckBox.setSelected(enabled);
+  }
+
+  public boolean isCompilerCompletionEnabled() {
+    return featureCompletionCheckBox.isSelected();
+  }
+
+  public void setCompilerCompletionEnabled(boolean enabled) {
+    featureCompletionCheckBox.setSelected(enabled);
+  }
+
+  /** Whether the completion source combo takes input: only while completion is a compiler feature. */
+  boolean isCompletionModeChoiceEnabled() {
+    return completionModeCombo.isEnabled();
+  }
+
+  /** Whether the generated-member preview toggle takes input: only while navigation is a compiler feature. */
+  boolean isGeneratedMemberPreviewChoiceEnabled() {
+    return featureGeneratedMemberPreviewCheckBox.isEnabled();
   }
 
   @NotNull

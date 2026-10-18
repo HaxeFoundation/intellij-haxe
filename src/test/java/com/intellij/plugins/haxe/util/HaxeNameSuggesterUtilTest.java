@@ -40,6 +40,7 @@ public class HaxeNameSuggesterUtilTest extends HaxeLightFixtureTestCase {
     class Main {
     	static function setColor(color:Int) {}
     	static function parse(text:String):Sprite return null;
+    	static function getLabel():String return "";
     	static function main() {
     		var sprite = new Sprite();
     		var items = [1, 2];
@@ -54,6 +55,8 @@ public class HaxeNameSuggesterUtilTest extends HaxeLightFixtureTestCase {
     // a getter call names the property, qualified by a variable receiver, then the type
     arguments("var v = <caret>sprite.getName();", List.of("name", "spriteName", "str")),
     arguments("var v = <caret>sprite.toString();", List.of("string", "spriteString", "str")),
+    // an unqualified getter has no receiver to qualify by
+    arguments("var v = <caret>getLabel();", List.of("label")),
     // any other call names its callee; parse is the method in scope, so the name gets a suffix
     arguments("var v = <caret>parse(\"x\");", List.of("parse1", "sprite1")),
     // an indexed array names one element

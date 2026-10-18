@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapBackend;
@@ -9,7 +10,9 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XSourcePosition;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -30,6 +33,8 @@ public class HxcppIntellijBackend implements DapBackend {
   /** Env vars read by the haxelib's Config.resolve (env beats defines beats defaults). */
   public static final String ENV_DEBUG_HOST = "HXCPP_DEBUG_HOST";
   public static final String ENV_DEBUG_PORT = "HXCPP_DEBUG_PORT";
+  /** Generous: the debuggee connects during process startup, typically instantly. */
+  public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 30_000;
 
   private final ServerSocket listener;
   private final int acceptTimeoutMillis;
@@ -67,6 +72,14 @@ public class HxcppIntellijBackend implements DapBackend {
   /** The ephemeral port this session listens on. */
   public int getPort() {
     return listener.getLocalPort();
+  }
+
+  /** Adds this backend's host and port to the debuggee's environment; its embedded server reads them and connects out during startup. */
+  @NotNull
+  public GeneralCommandLine withDebuggeeEnvironment(@NotNull GeneralCommandLine commandLine) {
+    return commandLine
+      .withEnvironment(ENV_DEBUG_HOST, getHost())
+      .withEnvironment(ENV_DEBUG_PORT, Integer.toString(getPort()));
   }
 
   @Override

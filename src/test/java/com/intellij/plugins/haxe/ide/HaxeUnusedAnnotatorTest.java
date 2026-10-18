@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedFieldInspection;
 import com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedFunctionInspection;
 import com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedLocalVarInspection;
@@ -11,21 +10,10 @@ import org.junit.jupiter.api.Test;
 
 
 @DisplayName("Annotation: unused annotator")
-public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
-    @Override
-    public void setUp() throws Exception {
-        useHaxeToolkit();
-        super.setUp();
-        setTestStyleSettings(2);
-    }
-
+public class HaxeUnusedAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Override
     protected String getBasePath() {
         return "/annotation.unused/";
-    }
-
-    private void doTest(String... additionalFiles) throws Exception {
-        doHighlightingTest(true, false, true, null, additionalFiles);
     }
 
     @Test
@@ -35,7 +23,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
                 HaxeUnusedFieldInspection.class,
                 HaxeUnusedLocalVarInspection.class
         );
-        doTest("UnusedFieldsTestOutside.hx");
+        doTestNoFixWithWeakWarnings("UnusedFieldsTestOutside.hx");
     }
 
     @Test
@@ -45,7 +33,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
                 HaxeUnusedFunctionInspection.class,
                 HaxeUnusedMethodInspection.class
         );
-        doTest("UnusedMethodsTestOutside.hx");
+        doTestNoFixWithWeakWarnings("UnusedMethodsTestOutside.hx");
     }
 
     @Test
@@ -55,7 +43,7 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
                 HaxeUnusedFunctionInspection.class,
                 HaxeUnusedMethodInspection.class
         );
-        doTest();
+        doTestNoFixWithWeakWarnings();
     }
 
     @Test
@@ -65,6 +53,6 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
                 HaxeUnusedFunctionInspection.class,
                 HaxeUnusedMethodInspection.class
         );
-        doTest();
+        doTestNoFixWithWeakWarnings();
     }
 }

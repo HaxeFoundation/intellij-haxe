@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.completion.JavaCompletionUtil;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
@@ -83,7 +82,7 @@ public class HaxeMacroLookupElement extends LookupElement implements HaxeLookupE
         icon = HaxeIcons.Field;
       }
       if (model != null) {
-        determineStriketrough();
+        strikeout = model.isDeprecated();
         evaluateTypeTextAndPriorityBoost();
       }
     }
@@ -133,13 +132,6 @@ public class HaxeMacroLookupElement extends LookupElement implements HaxeLookupE
       }
     }
     return "";
-  }
-
-
-  private void determineStriketrough() {
-    if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxeCompilerMetadata.DEPRECATED)) {
-          strikeout = true;
-        }
   }
 
   @Override

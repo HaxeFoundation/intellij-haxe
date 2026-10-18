@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.ide.quickfix.typedialog;
 
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsContexts;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,32 +77,6 @@ public class HaxeTypeCreator {
         }
 
         return "<" + String.join(",", name) + ">";
-    }
-
-    private void createHaxePackage(Project myProject, VirtualFile sourceRoot, String packageName) {
-        CommandProcessor.getInstance().runUndoTransparentAction(() -> {
-        WriteCommandAction.writeCommandAction(myProject)
-                .withName("create package(s)")
-                .withGlobalUndo()
-                .compute(() -> {
-                    try {
-                        String[] pathElements = packageName.split("\\.");
-                        VirtualFile path = sourceRoot;
-                        for (String pathElement : pathElements) {
-                            VirtualFile child = path.findChild(pathElement);
-                            if (child == null) {
-                                path = path.createChildDirectory(path, pathElement);
-                                CommandProcessor.getInstance().addAffectedFiles(myProject, path);
-                            } else {
-                                path = child;
-                            }
-                        }
-                        return path;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-        });
     }
 
     private PsiElement appendType(String typeName, String generics, @NonNls @NotNull String type, HaxeFile appendToFile) {

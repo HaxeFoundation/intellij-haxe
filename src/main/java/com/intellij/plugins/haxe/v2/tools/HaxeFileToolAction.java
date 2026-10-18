@@ -13,7 +13,6 @@ import com.intellij.plugins.haxe.v2.toolwindow.HaxeConsoleCommandRunner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -87,11 +86,10 @@ abstract class HaxeFileToolAction extends DumbAwareAction {
     String relative = VfsUtilCore.getRelativePath(file, configDirectory);
     String source = relative != null ? relative : file.getPath();
     String tool = toolHaxelib();
-    List<String> command = new ArrayList<>(List.of(haxelibFor(project, file), "run", tool));
-    command.addAll(flags);
-    command.addAll(List.of("-s", source));
+    List<String> command = HaxeToolConfigs.toolCommand(haxelibFor(project, file), tool, flags, List.of(source));
 
+    String containerId = HaxeContainers.containerIdFor(project, file);
     String presentableName = tool + " " + file.getName();
-    HaxeConsoleCommandRunner.run(project, presentableName, command, configDirectory.getPath(), onTerminated);
+    HaxeConsoleCommandRunner.run(project, containerId, presentableName, command, configDirectory.getPath(), onTerminated);
   }
 }

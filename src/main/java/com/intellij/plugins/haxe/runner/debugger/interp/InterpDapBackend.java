@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
  * this session).
  */
 public class InterpDapBackend implements DapBackend {
+  /** Generous: the eval VM connects during compiler startup, typically instantly. */
+  public static final long DEFAULT_VM_CONNECT_TIMEOUT_MILLIS = 30_000;
+
   private final EvalDebugAdapter adapter;
   private volatile ServerSocket loopback;
 
@@ -31,6 +35,12 @@ public class InterpDapBackend implements DapBackend {
   /** The port for the spawned haxe's {@code -D eval-debugger=127.0.0.1:<port>}. */
   public int getVmPort() {
     return adapter.getVmPort();
+  }
+
+  /** The compiler arguments that make the spawned haxe's eval VM connect to this backend before running main. */
+  @NotNull
+  public List<String> debuggeeArguments() {
+    return List.of("-D", "eval-debugger=127.0.0.1:" + getVmPort());
   }
 
   @Override

@@ -21,7 +21,7 @@ import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeCompileCommandDialog;
-import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeEnvironmentDialog;
+import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeIdeOverridesDialog;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.ListCellRenderer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * The settings edits tree rows offer: choosers, the custom-target prompt, the
@@ -125,41 +124,40 @@ public final class HaxeToolWindowEditors {
       .show(point);
   }
 
-  /** Edits the container's {@code --custom-target} name; an empty entry clears it. */
-  public static void editCustomTarget(@NotNull Project project, @NotNull EnvCustomTargetNode customTargetNode) {
+  /** Edits the build file's {@code --custom-target} name; an empty entry clears it. */
+  public static void editCustomTarget(@NotNull Project project, @NotNull IdeCustomTargetNode customTargetNode) {
     String entered = Messages.showInputDialog(project,
                                               HaxeBundle.message("haxe.toolwindow.custom.target.prompt"),
                                               HaxeBundle.message("haxe.toolwindow.custom.target.title"),
                                               null,
                                               customTargetNode.customTarget(),
-                                              HaxeEnvironmentDialog.CUSTOM_TARGET_VALIDATOR);
+                                              HaxeIdeOverridesDialog.CUSTOM_TARGET_VALIDATOR);
     if (entered == null) return;
-    HaxeEnvironmentStore.getInstance(project).setCustomTarget(customTargetNode.containerId(), entered);
+    String buildFilePath = customTargetNode.buildFile().file().getPath();
+    HaxeIdeOverridesStore.getInstance(project).setCustomTarget(buildFilePath, entered);
   }
 
-  /** Opens the compile command configuration dialog; OK applies the command. */
+  /** Opens the compile command configuration dialog; OK applies the command, the default or skipping the build. */
   public static void configureCompileCommand(@NotNull Project project, @NotNull EnvCompileCommandNode compileCommand) {
-    HaxeCompileCommandDialog dialog = new HaxeCompileCommandDialog(project, compileCommand.containerId(),
+    String containerId = compileCommand.containerId();
+    HaxeCompileCommandDialog dialog = new HaxeCompileCommandDialog(project, containerId,
                                                                    compileCommand.candidateFilePaths(),
-                                                                   compileCommand.actionNamesByFile());
-    if (dialog.showAndGet()) {
-      applyCompileCommand(project, compileCommand.containerId(), dialog.selectedCompileCommand());
+                                                                   compileCommand.actionNamesByFile(),
+                                                                   compileCommand.defaultFilePath());
+    if (!dialog.showAndGet()) return;
+    if (dialog.isSkipSelected()) {
+      HaxeEnvironmentStore.getInstance(project).skipBuild(containerId);
+    }
+    else {
+      applyCompileCommand(project, containerId, dialog.selectedCompileCommand());
     }
   }
 
-  /**
-   * Stores the container's compile command. A module that does not own the
-   * active build file takes its libraries from the command's file, so a file
-   * change re-syncs them.
-   */
+  /** Stores the container's compile command; the module's libraries are the union of its build files, so no re-sync follows. */
   public static void applyCompileCommand(@NotNull Project project,
                                          @NotNull String containerId,
                                          @Nullable CompileCommand command) {
-    HaxeEnvironmentStore store = HaxeEnvironmentStore.getInstance(project);
-    String previousFile = buildFilePath(store.getCompileCommand(containerId));
-    boolean fileChanged = !Objects.equals(previousFile, buildFilePath(command));
-    store.setCompileCommand(containerId, command);
-    if (fileChanged) HaxeLibrarySync.sync(project, null);
+    HaxeEnvironmentStore.getInstance(project).setCompileCommand(containerId, command);
   }
 
   /** Toggles the container's server participation; while disabled project-wide, opens the settings page instead. */
@@ -176,6 +174,21 @@ public final class HaxeToolWindowEditors {
     }
   }
 
+  /** Whether Delete and the toolbar's Remove act on the row: a build file, a define override, a module. */
+  public static boolean isRemovable(@Nullable Object node) {
+    return node instanceof BuildFileRow || node instanceof IdeDefineNode || node instanceof ModuleNode;
+  }
+
+  /** Removes the row after its confirmation - the one dispatch behind Delete and the toolbar's Remove; nothing for other rows. */
+  public static void confirmAndRemove(@NotNull Project project, @Nullable Object node) {
+    switch (node) {
+      case BuildFileRow row -> confirmAndRemoveBuildFile(project, row);
+      case IdeDefineNode define -> confirmAndRemoveDefine(project, define);
+      case ModuleNode module -> confirmAndRemoveModule(project, module);
+      case null, default -> { }
+    }
+  }
+
   public static void confirmAndRemoveBuildFile(@NotNull Project project, @NotNull BuildFileRow row) {
     String confirmKey = row.manual() ? "haxe.toolwindow.remove.build.file.confirm"
                                      : "haxe.toolwindow.hide.build.file.confirm";
@@ -188,13 +201,13 @@ public final class HaxeToolWindowEditors {
     HaxeBuildFilesStore.getInstance(project).removeFile(row.containerId(), row.buildFile().file().getPath());
   }
 
-  public static void confirmAndRemoveDefine(@NotNull Project project, @NotNull EnvDefineNode define) {
+  public static void confirmAndRemoveDefine(@NotNull Project project, @NotNull IdeDefineNode define) {
     int answer = Messages.showYesNoDialog(project,
                                           HaxeBundle.message("haxe.toolwindow.remove.define.confirm", define.name()),
                                           HaxeBundle.message("haxe.toolwindow.remove.define"),
                                           Messages.getQuestionIcon());
     if (answer != Messages.YES) return;
-    HaxeEnvironmentStore.getInstance(project).removeDefine(define.containerId(), define.name());
+    HaxeIdeOverridesStore.getInstance(project).removeDefine(define.buildFile().file().getPath(), define.name());
   }
 
   /** Module removal after confirmation. Files on disk are untouched - the folder folds back into the surrounding module. */
@@ -222,11 +235,6 @@ public final class HaxeToolWindowEditors {
     boolean changed = index != store.getSelectedSection(buildFile, sectionNode.ids());
     store.setSelectedSection(buildFile, sectionNode.ids().get(index));
     if (changed) HaxeLibrarySync.sync(project, null);
-  }
-
-  @Nullable
-  private static String buildFilePath(@Nullable CompileCommand command) {
-    return command == null ? null : command.buildFilePath();
   }
 
   /** Section label first, its target/output descriptor grayed - one glance tells the sections apart. */

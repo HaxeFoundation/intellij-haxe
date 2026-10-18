@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,27 +45,44 @@ public final class HaxeSyntaxMigrationFixes {
 
   /// Old API spelling -> its replacement (deprecated once the replacement exists).
   /// Deliberately text-based, like the annotator consuming it: the spellings
-  /// are stable and a shadowing local would false-positive either way.
+  /// are stable and a shadowing local would false-positive either way. The
+  /// compiler-diagnostics filter reads the same table.
   public static final Map<String, ApiMigration> DEPRECATED_APIS = Map.of(
     "Std.is", new ApiMigration(HaxeLanguageLevel.HAXE_4_1, "Std.isOfType"),
     "Std.instance", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "Std.downcast"),
     "__js__", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "js.Syntax.code"),
     "__php__", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "php.Syntax.code"));
 
+  /// Pre-4.0 metadata spelling -> the keyword form that replaced it.
+  public static final Map<String, ApiMigration> DEPRECATED_METADATA = Map.of(
+    "@:enum abstract", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "enum abstract"),
+    "@:final", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "final"),
+    "@:extern", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "extern"));
+
   /// Modern API spelling -> the pre-replacement form usable below its arrival
-  /// level. The Syntax.code downgrades prepend `untyped`: the magic
-  /// identifiers only exist in untyped context (a redundant repeated untyped
-  /// stays valid).
-  public static final Map<String, ApiMigration> MODERN_APIS = Map.of(
-    "Std.isOfType", new ApiMigration(HaxeLanguageLevel.HAXE_4_1, "Std.is"),
-    "Std.downcast", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "Std.instance"),
-    "js.Syntax.code", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "untyped __js__"),
-    "php.Syntax.code", new ApiMigration(HaxeLanguageLevel.HAXE_4_0, "untyped __php__"));
+  /// level: DEPRECATED_APIS inverted. The Syntax.code downgrades prepend
+  /// `untyped`: the magic identifiers only exist in untyped context (a
+  /// redundant repeated untyped stays valid).
+  public static final Map<String, ApiMigration> MODERN_APIS = invert(DEPRECATED_APIS);
 
   private record Edit(@NotNull TextRange range, @NotNull String replacement) {
   }
 
   private HaxeSyntaxMigrationFixes() {
+  }
+
+  private static Map<String, ApiMigration> invert(Map<String, ApiMigration> deprecated) {
+    Map<String, ApiMigration> modern = new HashMap<>();
+    for (Map.Entry<String, ApiMigration> entry : deprecated.entrySet()) {
+      ApiMigration migration = entry.getValue();
+      modern.put(migration.replacement(), new ApiMigration(migration.level(), downgradeSpelling(entry.getKey())));
+    }
+    return Map.copyOf(modern);
+  }
+
+  // the untyped target-syntax identifiers (__js__ ...) only exist in untyped context
+  private static String downgradeSpelling(String oldSpelling) {
+    return oldSpelling.startsWith("__") ? "untyped " + oldSpelling : oldSpelling;
   }
 
   // ---- forward: metadata form -> keyword form ----

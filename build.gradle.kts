@@ -129,12 +129,18 @@ dependencies {
         pluginComposedModule(implementation(project(":debuggers:hashlink-debug-adapter")))
         pluginComposedModule(implementation(project(":debuggers:vshaxe-hxcpp-debugger-adapter")))
         pluginComposedModule(implementation(project(":debuggers:eval-debugger")))
-        pluginComposedModule(implementation(project(":debuggers:browser-debugger")))
+        pluginComposedModule(implementation(project(":debuggers:javascript-debugger")))
         pluginComposedModule(implementation(project(":display-protocol")))
         pluginComposedModule(implementation(project(":profilers:core")))
 
     }
 
+}
+
+// No test here runs on JUnit 4. The platform's tests-bootstrap adds a vintage engine of its own
+// JUnit (6.x on 2026.3), which fails at discovery against the catalog's JUnit platform.
+configurations.configureEach {
+    exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -184,6 +190,11 @@ tasks {
         // instead of failing - the sanctioned way to regenerate test data after
         // an intended formatter/generator behavior change. Review the git diff!
         systemProperty("idea.tests.overwrite.data", System.getProperty("idea.tests.overwrite.data", "false"))
+
+        // The light test fixture installs no look and feel. With a display present the
+        // platform treats every HTML component created in a test as a missing global
+        // style sheet and logs it ("Missing global CSS sheet"); headless, it does not.
+        systemProperty("java.awt.headless", "true")
 
         // Compiler integration tests (`haxe --wait`) used in IDE services (catalog, resolve, completion).
         // Tests are opt-in as they depend on haxe being installed and might be sensitive to what version is installed.

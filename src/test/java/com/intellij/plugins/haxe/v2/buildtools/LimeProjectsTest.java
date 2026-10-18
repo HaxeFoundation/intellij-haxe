@@ -2,12 +2,15 @@ package com.intellij.plugins.haxe.v2.buildtools;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.LimeTarget;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,13 +19,43 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @DisplayName("Build tools: lime projects")
 public class LimeProjectsTest {
 
-  private static final String NEKO_LAUNCHER_SUFFIX = SystemInfo.isWindows ? ".exe" : "";
+  private static final String HOST_LAUNCHER_SUFFIX = SystemInfo.isWindows ? ".exe" : "";
   private static final String HOST_PLATFORM = LimeProjects.hostPlatformTarget();
   private static final String HOST_CPP_OUTPUT = switch (HOST_PLATFORM) {
     case "windows" -> "bin/windows/bin/MyApplication.exe";
     case "mac" -> "bin/macos/bin/MyApplication.app/Contents/MacOS/MyApplication";
     default -> "bin/linux/bin/MyApplication";
   };
+
+  /** Every target the settings offer compiles through the haxe target its enum names; Electron, a JavaScript target, is also checked by name. */
+  @Test
+  @DisplayName("every listed lime target compiles through its haxe target")
+  public void testEveryListedLimeTargetCompilesThroughItsHaxeTarget() {
+    for (LimeTarget target : LimeTarget.values()) {
+      assertEquals(target.getOutputTarget(), LimeProjects.targetFor(target.getTargetFlag()), target.getTargetFlag());
+    }
+    assertEquals(HaxeTarget.JAVA_SCRIPT, LimeProjects.targetFor("electron"));
+  }
+
+  /** (evaluated output under the project dir, target flag, launcher under the project dir); the evaluation honours an output-directory config, the launcher follows lime's bin layout. */
+  static final List<Arguments> EVALUATED_LAUNCHERS = List.of(
+    arguments("dist/bin/App.exe", "windows", "dist/bin/App.exe"),
+    arguments("bin/linux/bin/App", "linux", "bin/linux/bin/App"),
+    // an HL evaluation names the bytecode inside obj; the renamed runtime sits in bin beside it
+    arguments("dist/obj/ApplicationMain.hl", "hl", "dist/bin/App" + HOST_LAUNCHER_SUFFIX),
+    // an evaluation naming the obj directory itself
+    arguments("bin/windows/obj", "windows", "bin/windows/bin/App.exe"),
+    arguments("bin/macos/obj", "mac", "bin/macos/bin/App.app/Contents/MacOS/App"),
+    arguments("bin/html5/bin/App.js", "html5", null));
+
+  @ParameterizedTest(name = "{0} for {1}")
+  @FieldSource("EVALUATED_LAUNCHERS")
+  public void testPackagedBinaryBehindAnEvaluatedOutput(String evaluatedOutput, String targetFlag, String launcher) {
+    Path projectDir = Path.of("/work/game");
+    Path expected = launcher == null ? null : projectDir.resolve(launcher);
+
+    assertEquals(expected, LimeProjects.packagedBinary(projectDir.resolve(evaluatedOutput), targetFlag, "App"));
+  }
 
   @Test
   @DisplayName("app file is the declared one")
@@ -48,8 +81,8 @@ public class LimeProjectsTest {
 
   /** (target flag, app file as declared, expected output relative to the project file). */
   static final List<Arguments> OUTPUTS = List.of(
-    arguments("neko", "", "bin/neko/bin/MyApplication" + NEKO_LAUNCHER_SUFFIX),
-    arguments("neko", "Shapes", "bin/neko/bin/Shapes" + NEKO_LAUNCHER_SUFFIX),
+    arguments("neko", "", "bin/neko/bin/MyApplication" + HOST_LAUNCHER_SUFFIX),
+    arguments("neko", "Shapes", "bin/neko/bin/Shapes" + HOST_LAUNCHER_SUFFIX),
     arguments("windows", "", "bin/windows/bin/MyApplication.exe"),
     arguments("linux", "", "bin/linux/bin/MyApplication"),
     // lime exports the mac build into "macos" as a .app bundle; the executable inside it launches

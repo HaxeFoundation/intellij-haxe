@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.lang.parser.HaxeParser;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeInactiveBody;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.TokenType;
+import com.intellij.psi.impl.source.tree.SharedImplUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.ILazyParseableElementType;
 import com.intellij.psi.tree.TokenSet;
@@ -168,8 +169,9 @@ public class HaxeInactiveBodyElementType extends ILazyParseableElementType {
 
   @NotNull
   private static PsiBuilder newBuilder(@NotNull Project project, @NotNull ASTNode chameleon) {
+    HaxeLexer lexer = HaxeLexer.forFile(project, SharedImplUtil.getContainingFile(chameleon));
     return PsiBuilderFactory.getInstance()
-      .createBuilder(project, chameleon, new HaxeLexer(project), HaxeLanguage.INSTANCE, chameleon.getChars());
+      .createBuilder(project, chameleon, lexer, HaxeLanguage.INSTANCE, chameleon.getChars());
   }
 
   private static boolean containsErrors(@NotNull ASTNode node) {

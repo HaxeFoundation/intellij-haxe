@@ -339,9 +339,10 @@ IDENTIFIER_PART={IDENTIFIER_START}|{mDIGIT}
 
 IDENTIFIER_NO_DOLLAR={IDENTIFIER_START}{IDENTIFIER_PART}*
 IDENTIFIER_WITH__DOLLAR="$"{IDENTIFIER_START}{IDENTIFIER_PART}*
-// compiler-internal unbound identifier as printed by -D dump=pretty (`trace);
+// a compiler-internal name as -D dump=pretty prints it: an unbound identifier
+// (`trace) or a bare backtick, the name the compiler gives its own temporaries;
 // the backtick guarantees no collision with source identifiers
-UNBOUND_IDENTIFIER="`"{IDENTIFIER_NO_DOLLAR}
+UNBOUND_IDENTIFIER="`"{IDENTIFIER_NO_DOLLAR}?
 
 /*
     Haxe inline XML/markup literal tag names.

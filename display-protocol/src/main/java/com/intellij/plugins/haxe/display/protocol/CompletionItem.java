@@ -18,10 +18,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@code doc} is the doc comment of a field, type, metadata or define.</li>
  *   <li>{@code index} is the number a {@code display/completionItem/resolve}
  *   request names the item by.</li>
+ *   <li>{@code importStatus} is a type's import status at the position; null
+ *   for the other kinds.</li>
  * </ul>
  */
 public record CompletionItem(String kind, String name, @Nullable String detail, @Nullable String moduleTypeKind,
-                             @Nullable JsonTypeRef type, @Nullable String doc, int index) {
+                             @Nullable JsonTypeRef type, @Nullable String doc, int index, @Nullable ImportStatus importStatus) {
 
   /** Whether the item is a keyword or a literal such as {@code null} or {@code true}. */
   public boolean isKeywordOrLiteral() {
@@ -48,5 +50,19 @@ public record CompletionItem(String kind, String name, @Nullable String detail, 
 
   public boolean isPackageOrModule() {
     return "Package".equals(kind) || "Module".equals(kind);
+  }
+
+  /**
+   * The item's full dot path, which completion matches a dotted prefix such
+   * as {@code go.math.Ma} against: a type's qualified path, a package's path,
+   * a module's package plus its name. Null for the other kinds.
+   */
+  @Nullable
+  public String dotPath() {
+    return switch (kind) {
+      case "Type", "Package" -> detail;
+      case "Module" -> detail == null || detail.isEmpty() ? name : detail + "." + name;
+      default -> null;
+    };
   }
 }

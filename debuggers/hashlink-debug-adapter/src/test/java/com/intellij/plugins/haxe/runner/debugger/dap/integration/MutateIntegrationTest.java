@@ -76,15 +76,16 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("rejects allocating and mistyped writes with clear messages")
-  public void rejectsAllocatingAndMistypedWritesWithClearMessages() throws Exception {
+  @DisplayName("rejects mistyped writes with clear messages")
+  public void rejectsMistypedWritesWithClearMessages() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
     int locals = localsScopeReference(frameId);
 
-    // creating a new String needs allocation — not available in this session
+    // a String into an Int local is a type mismatch (the string itself is
+    // created fine, the slot cannot take it)
     Response newString = evaluateRaw(frameId, "n = \"hello\"");
-    assertFalse(newString.isSuccess(), "assigning a string literal is rejected");
+    assertFalse(newString.isSuccess(), "assigning a string literal to an int is rejected");
 
     // a boolean word into an int slot is a type error, reported clearly
     Response mistyped = request(setVariableRequest(locals, "n", "true"));

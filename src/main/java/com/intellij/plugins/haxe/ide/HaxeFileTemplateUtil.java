@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.SmartList;
+import com.intellij.util.TriConsumer;
 import com.intellij.util.containers.ContainerUtil;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,14 @@ public class HaxeFileTemplateUtil {
     applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance(project).getInternalTemplates(), filter));
     applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance(project).getAllTemplates(), filter));
     return applicableTemplates;
+  }
+
+  /** Offers each template as a kind: its short name, its icon and the template name the kind creates from. */
+  public static void addTemplateKinds(@NotNull List<FileTemplate> templates, @NotNull TriConsumer<String, Icon, String> addKind) {
+    for (FileTemplate fileTemplate : templates) {
+      String templateName = fileTemplate.getName();
+      addKind.accept(getTemplateShortName(templateName), getTemplateIcon(templateName), templateName);
+    }
   }
 
   public static String getTemplateShortName(String templateName) {

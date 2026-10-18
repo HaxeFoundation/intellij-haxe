@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.buildtools;
 
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.NMETarget;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,6 +36,17 @@ public class NmeProjectsTest {
     NmeProjects.TargetArtifact artifact = NmeProjects.targetArtifact(flag, app, root);
     assertEquals(target, artifact.target());
     assertEquals(output, artifact.relativeOutput());
+  }
+
+  /** Every target the settings offer compiles through the haxe target its enum names; cppia and the unlisted jsprime are also checked by name. */
+  @Test
+  @DisplayName("every listed nme target compiles through its haxe target")
+  public void testEveryListedNmeTargetCompilesThroughItsHaxeTarget() {
+    for (NMETarget target : NMETarget.values()) {
+      assertEquals(target.getOutputTarget(), NmeProjects.targetFor(target.getTargetFlag()), target.getTargetFlag());
+    }
+    assertEquals(HaxeTarget.CPPIA, NmeProjects.targetFor("cppia"));
+    assertEquals(HaxeTarget.JAVA_SCRIPT, NmeProjects.targetFor("jsprime"));
   }
 
   @Test

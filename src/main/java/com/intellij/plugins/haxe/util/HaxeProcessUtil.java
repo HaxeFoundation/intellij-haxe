@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -219,7 +220,8 @@ public class HaxeProcessUtil {
 
 
     if (null != sdkData) {
-      HaxeSdkUtilBase.patchEnvironment(line.getEnvironment(), sdkData);
+      // patched over the effective environment: the SDK folders go in front of the real PATH instead of replacing it
+      line.withEnvironment(HaxeSdkUtilBase.patchEnvironment(new HashMap<>(line.getEffectiveEnvironment()), sdkData));
     }
 
 

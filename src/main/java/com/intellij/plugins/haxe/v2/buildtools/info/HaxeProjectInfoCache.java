@@ -3,15 +3,18 @@ package com.intellij.plugins.haxe.v2.buildtools.info;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -19,10 +22,12 @@ import java.util.function.Supplier;
  * The caching/scheduling skeleton of the project info services
  * ({@link HaxeLimeProjectInfoService}, {@link HaxeNmeProjectInfoService}):
  * evaluations cached per (file, target, toolchain) key and run on a bounded
- * single-thread executor. Callers get the cached value (possibly stale,
- * possibly null on first ask) immediately and a callback once a refresh
- * lands. A value leaving the cache (replaced, invalidated, cleared) passes
- * through the evict hook.
+ * single-thread executor. Callers get the cached value at once (possibly
+ * stale, possibly null on the first ask). A landed refresh is announced as
+ * {@link HaxeBuildEventListener#evaluationLanded}; a caller that must react
+ * to its own request, such as the library sync's follow-up run, also passes
+ * a callback. A value leaving the cache (replaced, invalidated, cleared)
+ * passes through the evict hook.
  */
 final class HaxeProjectInfoCache<V> {
 
@@ -30,6 +35,9 @@ final class HaxeProjectInfoCache<V> {
   // the result is accepted as final - keeps transient tool failures from
   // sticking without allowing refresh loops
   private static final int MAX_ATTEMPTS = 3;
+
+  /** The callback of a caller that only follows the event; one shared instance, so a key registers it once. */
+  static final Runnable NO_CALLBACK = () -> { };
 
   record Key(@NotNull String filePath, @NotNull String targetFlag, @NotNull String haxelibPath) {
   }
@@ -47,8 +55,9 @@ final class HaxeProjectInfoCache<V> {
   private final Map<Key, CacheValue<V>> cache = new ConcurrentHashMap<>();
   private final Set<Key> inFlight = ConcurrentHashMap.newKeySet();
 
-  // callbacks waiting on an in-flight evaluation; a set, so a caller asking
-  // again before it lands is called back once, not once per ask
+  // callbacks waiting on an in-flight evaluation, held by identity: a caller
+  // re-asking with the SAME Runnable before it lands is called back once; a
+  // fresh lambda per ask is called back once per ask
   private final Map<Key, Set<Runnable>> pendingCallbacks = new ConcurrentHashMap<>();
   private final ExecutorService executor;
 
@@ -61,7 +70,8 @@ final class HaxeProjectInfoCache<V> {
   /**
    * The key's cached value, or null when not resolved (yet). Schedules the
    * evaluation on the executor when the cache is stale; {@code onUpdated}
-   * fires on the EDT after the run completes.
+   * fires on the EDT after the run completes - pass a long-lived instance,
+   * callbacks are kept by identity.
    */
   @Nullable
   V getCachedOrSchedule(@NotNull Key key,
@@ -102,6 +112,12 @@ final class HaxeProjectInfoCache<V> {
     clear();
   }
 
+  /** Blocks until the evaluations queued so far have run; the executor runs them one at a time, in order. */
+  @TestOnly
+  void awaitQueuedEvaluations(long timeoutMillis) throws Exception {
+    executor.submit(() -> { }).get(timeoutMillis, TimeUnit.MILLISECONDS);
+  }
+
   private void schedule(@NotNull Key key,
                         long stamp,
                         int previousAttempts,
@@ -129,6 +145,7 @@ final class HaxeProjectInfoCache<V> {
       Set<Runnable> toRun = callbacks != null ? callbacks : Set.of();
       ApplicationManager.getApplication().invokeLater(() -> {
         if (!project.isDisposed()) {
+          HaxeBuildEventListener.publisher(project).evaluationLanded(key.filePath());
           toRun.forEach(Runnable::run);
         }
       });

@@ -6,26 +6,16 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeInactiveBody;
 import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 /**
  * Flags conditional-compilation conditions the compiler would hard-error on:
@@ -52,8 +42,9 @@ public class HaxeConditionalDiagnosticAnnotator implements Annotator, DumbAware 
     if (comment.getTokenType() != HaxeTokenTypeSets.PPEXPRESSION) return;
     if (AnnotatorUtil.isStaticAnalysisSuppressed(comment)) return;
 
-    PsiElement runHead = runHead(comment);
-    String message = runVerdict(runHead, comment.getProject(), holder);
+    PsiElement runHead = HaxeConditionalRuns.runHead(comment);
+    Map<String, String> definitions = HaxeConditionalExpression.definitionsFor(comment.getProject(), comment.getContainingFile());
+    String message = runVerdict(runHead, definitions, holder);
     if (message.isEmpty()) return;
     if (comment == runHead) {
       // ONE real error per condition (a run is many leaves - per-leaf errors
@@ -71,7 +62,7 @@ public class HaxeConditionalDiagnosticAnnotator implements Annotator, DumbAware 
 
   /** The run's diagnostic ({@link #NO_ERROR} when clean), computed at most once per session. */
   @NotNull
-  private static String runVerdict(@NotNull PsiElement runHead, @NotNull Project project, @NotNull AnnotationHolder holder) {
+  private static String runVerdict(@NotNull PsiElement runHead, @NotNull Map<String, String> definitions, @NotNull AnnotationHolder holder) {
     AnnotationSession session = holder.getCurrentAnnotationSession();
     Map<PsiElement, String> verdicts = session.getUserData(RUN_VERDICTS);
     if (verdicts == null) {
@@ -79,110 +70,18 @@ public class HaxeConditionalDiagnosticAnnotator implements Annotator, DumbAware 
       verdicts = new ConcurrentHashMap<>();
       session.putUserData(RUN_VERDICTS, verdicts);
     }
-    return verdicts.computeIfAbsent(runHead, head -> computeVerdict(head, project));
+    return verdicts.computeIfAbsent(runHead, head -> computeVerdict(head, definitions));
   }
 
   @NotNull
-  private static String computeVerdict(@NotNull PsiElement runHead, @NotNull Project project) {
-    PsiElement directive = PsiTreeUtil.prevLeaf(runHead);
+  private static String computeVerdict(@NotNull PsiElement runHead, @NotNull Map<String, String> definitions) {
+    PsiElement directive = HaxeConditionalRuns.directiveOf(runHead);
     if (directive == null) return NO_ERROR;
-    IElementType directiveType = directive.getNode().getElementType();
-    if (directiveType != PPIF && directiveType != PPELSEIF) return NO_ERROR;
-    if (!wouldBeEvaluated(directive, directiveType, project)) return NO_ERROR;
+    if (!HaxeConditionalRuns.wouldBeEvaluated(directive, definitions)) return NO_ERROR;
 
-    HaxeConditionalExpression condition = HaxeConditionalExpression.fromCondition(runText(runHead));
+    HaxeConditionalExpression condition = HaxeConditionalExpression.fromCondition(HaxeConditionalRuns.runText(runHead));
     if (condition == null) return NO_ERROR;
-    String message = condition.diagnose(project);
+    String message = condition.diagnose(definitions);
     return message == null ? NO_ERROR : message;
-  }
-
-  /** The first PPEXPRESSION leaf of the run this leaf belongs to. */
-  @NotNull
-  private static PsiElement runHead(@NotNull PsiElement expression) {
-    PsiElement head = expression;
-    for (PsiElement leaf = PsiTreeUtil.prevLeaf(head); isConditionLeaf(leaf); leaf = PsiTreeUtil.prevLeaf(leaf)) {
-      head = leaf;
-    }
-    return head;
-  }
-
-  @NotNull
-  private static String runText(@NotNull PsiElement runHead) {
-    StringBuilder text = new StringBuilder(runHead.getText());
-    for (PsiElement leaf = PsiTreeUtil.nextLeaf(runHead); isConditionLeaf(leaf); leaf = PsiTreeUtil.nextLeaf(leaf)) {
-      text.append(leaf.getText());
-    }
-    return text.toString();
-  }
-
-  private static boolean isConditionLeaf(@Nullable PsiElement leaf) {
-    return leaf != null && leaf.getNode().getElementType() == HaxeTokenTypeSets.PPEXPRESSION;
-  }
-
-  private static boolean wouldBeEvaluated(@NotNull PsiElement directive, @NotNull IElementType directiveType, @NotNull Project project) {
-    if (directiveType == PPIF) {
-      return !inDeadRegion(directive);
-    }
-    return elseifWouldBeEvaluated(directive, project);
-  }
-
-  /**
-   * Walks leaves backward to the chain-opening #if (skipping nested sections
-   * by depth), collecting the earlier branches' conditions; the #elseif is
-   * evaluated only when the chain start sits in live code and none of those
-   * conditions holds.
-   */
-  private static boolean elseifWouldBeEvaluated(@NotNull PsiElement elseifDirective, @NotNull Project project) {
-    List<String> earlierConditions = new ArrayList<>();
-    StringBuilder pendingCondition = null;
-    int depth = 0;
-    for (PsiElement leaf = PsiTreeUtil.prevLeaf(elseifDirective); leaf != null; leaf = PsiTreeUtil.prevLeaf(leaf)) {
-      IElementType type = leaf.getNode().getElementType();
-      if (type == PPEND) {
-        depth++;
-      }
-      else if (type == HaxeTokenTypeSets.PPEXPRESSION && depth == 0) {
-        // condition leaves precede their directive in this walk - prepend
-        if (pendingCondition == null) pendingCondition = new StringBuilder();
-        pendingCondition.insert(0, leaf.getText());
-      }
-      else if (type == PPELSEIF && depth == 0) {
-        if (pendingCondition != null) earlierConditions.add(pendingCondition.toString());
-        pendingCondition = null;
-      }
-      else if (type == PPIF) {
-        if (depth > 0) {
-          depth--;
-          pendingCondition = null;
-          continue;
-        }
-        if (pendingCondition != null) earlierConditions.add(pendingCondition.toString());
-        if (inDeadRegion(leaf)) return false;
-        return noEarlierBranchTaken(earlierConditions, project);
-      }
-    }
-    return false;  // no opening #if found - malformed chain, stay silent
-  }
-
-  private static boolean noEarlierBranchTaken(@NotNull List<String> earlierConditions, @NotNull Project project) {
-    for (String conditionText : earlierConditions) {
-      HaxeConditionalExpression earlier = HaxeConditionalExpression.fromCondition(conditionText);
-      if (earlier == null) return false;           // cannot model the chain - stay silent
-      if (earlier.evaluate(project)) return false; // an earlier branch was taken
-    }
-    return true;
-  }
-
-  /**
-   * Whether the directive sits inside an INACTIVE outer region: the nearest
-   * preceding content is dead-branch material. Even a whitespace leaf counts
-   * when it lives inside the dead blob (a whitespace-only region is one).
-   */
-  private static boolean inDeadRegion(@NotNull PsiElement directive) {
-    for (PsiElement before = PsiTreeUtil.prevLeaf(directive); before != null; before = PsiTreeUtil.prevLeaf(before)) {
-      if (before instanceof HaxeInactiveBody || AnnotatorUtil.isInInactiveBranch(before)) return true;
-      if (!(before instanceof PsiWhiteSpace)) return false;
-    }
-    return false;
   }
 }

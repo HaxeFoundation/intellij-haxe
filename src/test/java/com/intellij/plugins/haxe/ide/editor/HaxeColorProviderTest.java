@@ -18,7 +18,7 @@ public class HaxeColorProviderTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
-    return "/editor/";
+    return "";
   }
 
   @Test

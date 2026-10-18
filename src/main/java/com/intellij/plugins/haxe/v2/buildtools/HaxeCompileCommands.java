@@ -3,19 +3,28 @@ package com.intellij.plugins.haxe.v2.buildtools;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeCustomActionsStore;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeCustomActionsStore.ActionReference;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeActiveBuildFileStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore.CompileCommand;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeLibDependency;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
+import com.intellij.plugins.haxe.v2.testing.HaxeTestFrameworks;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Resolves a container's configured build command into a runnable command line,
@@ -29,37 +38,108 @@ public final class HaxeCompileCommands {
                          @Nullable String workDirectory,
                          @NotNull String presentable,
                          boolean connectEligible) {
+
+    /** A custom action without a command: its run-before chain is the work, nothing runs as the action itself. */
+    public boolean chainOnly() {
+      return command.isEmpty();
+    }
   }
 
   private HaxeCompileCommands() {
   }
 
-  /** Resolves the container's build command; null when unset, the file is gone or the type has no build support. Call in a read action. */
+  /**
+   * Resolves the container's {@link #effectiveCommand build command}; null
+   * when it has none, the file is gone or the type has no build support. Call
+   * in a read action.
+   */
   @Nullable
   public static Resolved resolve(@NotNull Project project, @NotNull String containerId) {
-    HaxeEnvironmentStore.CompileCommand stored = HaxeEnvironmentStore.getInstance(project).getCompileCommand(containerId);
-    if (stored == null) return null;
+    CompileCommand compileCommand = effectiveCommand(project, containerId);
+    if (compileCommand == null) return null;
 
-    HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, stored.buildFilePath());
+    HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, compileCommand.buildFilePath());
     if (buildFile == null) return null;
 
     String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
-    ActionCommand action = stored.actionName() == null
+    ActionCommand action = compileCommand.actionName() == null
                            ? null
-                           : actionCommand(project, environmentSdk, containerId, buildFile, stored.actionName());
+                           : actionCommand(project, environmentSdk, containerId, buildFile, compileCommand.actionName());
     List<String> base = action != null
                         ? action.command()
                         : HaxeBuildSystem.of(buildFile.type()).defaultCommand(project, environmentSdk, buildFile);
+    // TODO: the Build command runs one command and never the action's run-before chain, so a chain-only action is unset here
     if (base.isEmpty()) return null;
 
     String workDirectory = action == null ? null : action.workDirectory();
-    return buildResolved(project, containerId, environmentSdk, buildFile.file(), base, stored.arguments(), workDirectory);
+    return buildResolved(project, containerId, environmentSdk, buildFile.file(), base, compileCommand.arguments(),
+                         workDirectory);
+  }
+
+  /**
+   * The build command the container runs: the one set for it, else its
+   * {@link #defaultCommand default}. Null when it skips building or has no
+   * build file to default to. Call in a read action.
+   */
+  @Nullable
+  public static CompileCommand effectiveCommand(@NotNull Project project, @NotNull String containerId) {
+    HaxeEnvironmentStore store = HaxeEnvironmentStore.getInstance(project);
+    if (store.isBuildSkipped(containerId)) return null;
+    CompileCommand stored = store.getCompileCommand(containerId);
+    if (stored != null) return stored;
+    Map<String, List<HaxeLibDependency>> librariesByPath = librariesByPath(project, containerId);
+    List<String> testsPaths = HaxeTestFrameworks.testsBuildPaths(project, containerId, librariesByPath);
+    return defaultCommand(project, List.copyOf(librariesByPath.keySet()), testsPaths);
+  }
+
+  /** The libraries of each of the container's build files, as its tests builds are told apart by. */
+  @NotNull
+  private static Map<String, List<HaxeLibDependency>> librariesByPath(@NotNull Project project, @NotNull String containerId) {
+    Map<String, List<HaxeLibDependency>> librariesByPath = new LinkedHashMap<>();
+    for (HaxeBuildFile buildFile : HaxeKnownBuildFiles.forContainer(project, containerId)) {
+      List<HaxeLibDependency> libraries = HaxeBuildSections.inspectSelected(project, buildFile).libraries();
+      librariesByPath.put(buildFile.file().getPath(), libraries);
+    }
+    return librariesByPath;
+  }
+
+  /**
+   * The build command of a container with none set, among its build files
+   * and the tests builds among them: the {@link #defaultBuildFilePath default
+   * build file} with its type's default build action and no extra arguments
+   * ({@code haxe build.hxml}, {@code lime build <selected target>}). Null
+   * when no build file qualifies.
+   */
+  @Nullable
+  public static CompileCommand defaultCommand(@NotNull Project project,
+                                              @NotNull List<String> buildFilePaths,
+                                              @NotNull List<String> testsPaths) {
+    String activePath = HaxeActiveBuildFileStore.getInstance(project).getActiveFilePath();
+    String defaultPath = defaultBuildFilePath(buildFilePaths, testsPaths, activePath);
+    return defaultPath == null ? null : new CompileCommand(defaultPath, null, "");
+  }
+
+  /**
+   * The build file a container builds without a build command: the project's
+   * active build file when it is one of the container's, else the container's
+   * only build file that is not a tests build. Null when neither picks one.
+   */
+  @Nullable
+  static String defaultBuildFilePath(@NotNull List<String> buildFilePaths,
+                                     @NotNull List<String> testsPaths,
+                                     @Nullable String activePath) {
+    if (activePath != null && buildFilePaths.contains(activePath)) return activePath;
+    List<String> builds = buildFilePaths.stream()
+      .filter(path -> !testsPaths.contains(path))
+      .toList();
+    return builds.size() == 1 ? builds.getFirst() : null;
   }
 
   /**
    * Resolves a specific action of a build file into a runnable command line (the
    * run configuration path - the container is derived from the file's module).
-   * Call in a read action.
+   * Null for an unknown action; a custom action without a command resolves
+   * {@link Resolved#chainOnly() chain-only}. Call in a read action.
    */
   @Nullable
   public static Resolved resolveAction(@NotNull Project project,
@@ -72,18 +152,59 @@ public final class HaxeCompileCommands {
     String containerId = HaxeContainers.containerIdFor(project, buildFile.file());
     String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
     ActionCommand action = actionCommand(project, environmentSdk, containerId, buildFile, actionName);
-    if (action == null || action.command().isEmpty()) return null;
+    if (action == null) return null;
+    if (action.command().isEmpty()) return chainOnly(containerId, action.workDirectory());
     return buildResolved(project, containerId, environmentSdk, buildFile.file(), action.command(), extraArguments,
                          action.workDirectory());
   }
 
-  /** Action names offered for a build file: the type's defaults plus its custom actions. */
+  /** The resolution of a custom action without a command: nothing to run, connect or extend with arguments. */
+  @NotNull
+  private static Resolved chainOnly(@NotNull String containerId, @Nullable String workDirectory) {
+    return new Resolved(containerId, List.of(), workDirectory, "", false);
+  }
+
+  /** An action of a chain, by the label it reads under, with its resolved command. */
+  public record NamedAction(@NotNull String name, @NotNull Resolved resolved) {
+  }
+
+  /** The actions an action runs before itself, resolved in order, or the problem stopping them. */
+  public record RunBefore(@NotNull List<NamedAction> actions, @Nullable String problem) {
+  }
+
+  /**
+   * Resolves the actions {@code actionName} runs before itself, in order. The
+   * problem names a reference that loops back, or one naming no action of the
+   * file (a built-in can disappear, as Clean does when the selected section
+   * stops building C++). Call in a read action.
+   */
+  @NotNull
+  public static RunBefore resolveRunBefore(@NotNull Project project, @NotNull String buildFilePath, @NotNull String actionName) {
+    List<ActionReference> chain = HaxeCustomActionsStore.getInstance(project).runBeforeChain(buildFilePath, actionName);
+    if (chain == null) {
+      return new RunBefore(List.of(), HaxeBundle.message("haxe.action.chain.cycle", actionName));
+    }
+    List<NamedAction> actions = new ArrayList<>();
+    for (ActionReference reference : chain) {
+      String label = HaxeActionReferences.label(project, buildFilePath, reference);
+      // each referenced action runs as its own file runs it: its SDK, work directory and variables
+      Resolved resolved = resolveAction(project, Objects.requireNonNull(reference.buildFile()), reference.action(), "");
+      if (resolved == null) {
+        return new RunBefore(List.of(), HaxeBundle.message("haxe.action.chain.missing", actionName, label));
+      }
+      // a chain-only member's own actions are already in the flattened chain; it runs nothing itself
+      if (!resolved.chainOnly()) actions.add(new NamedAction(label, resolved));
+    }
+    return new RunBefore(List.copyOf(actions), null);
+  }
+
+  /** Action names offered for a build file: its built-in actions plus its custom actions. */
   @NotNull
   public static List<String> availableActionNames(@NotNull Project project, @NotNull VirtualFile file) {
     HaxeBuildFileType type = HaxeBuildFileScanner.detectType(project, file);
     List<String> names = new ArrayList<>();
     if (type != null) {
-      names.addAll(HaxeBuildSystem.of(type).defaultActionNames());
+      names.addAll(HaxeBuildSystem.of(type).actionNames(project, new HaxeBuildFile(file, type)));
     }
     for (HaxeCustomActionsStore.CustomAction custom : HaxeCustomActionsStore.getInstance(project).getActions(file.getPath())) {
       if (!names.contains(custom.name())) {
@@ -190,20 +311,20 @@ public final class HaxeCompileCommands {
                                              @NotNull String containerId,
                                              @NotNull HaxeBuildFile buildFile,
                                              @NotNull String actionName) {
-    List<String> defaultAction = HaxeBuildSystem.of(buildFile.type()).actionCommand(project, environmentSdk, buildFile, actionName);
-    if (defaultAction != null) return new ActionCommand(defaultAction, null);
+    HaxeBuildSystem buildSystem = HaxeBuildSystem.of(buildFile.type());
+    List<String> defaultAction = buildSystem.actionCommand(project, environmentSdk, buildFile, actionName);
+    if (defaultAction != null) {
+      return new ActionCommand(defaultAction, buildSystem.actionWorkDirectory(project, buildFile, actionName));
+    }
 
     VirtualFile file = buildFile.file();
-    HaxeCustomActionsStore.CustomAction custom = HaxeCustomActionsStore.getInstance(project).getActions(file.getPath()).stream()
-      .filter(action -> action.name().equals(actionName))
-      .findFirst()
-      .orElse(null);
+    HaxeCustomActionsStore.CustomAction custom = HaxeCustomActionsStore.getInstance(project).findAction(file.getPath(), actionName);
     if (custom == null) return null;
 
     String moduleRoot = HaxeContainers.containerRootPath(project, containerId);
     String projectRoot = HaxeContainers.projectRootPath(project);
     String expanded = HaxeCustomCommands.expandTarget(project, file, buildFile.type(), custom.command());
-    List<String> command = HaxeCustomCommands.parse(HaxeCustomCommands.expandRoots(expanded, moduleRoot, projectRoot));
+    List<String> command = HaxeCustomCommands.commandLine(project, environmentSdk, expanded, moduleRoot, projectRoot);
     String workDirectory = HaxeCustomCommands.resolveWorkDirectory(custom.workDirectory(), null, moduleRoot, projectRoot);
     return new ActionCommand(command, workDirectory);
   }

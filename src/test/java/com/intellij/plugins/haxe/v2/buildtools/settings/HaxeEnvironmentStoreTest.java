@@ -1,11 +1,13 @@
 package com.intellij.plugins.haxe.v2.buildtools.settings;
 
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+import org.jdom.JDOMException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,7 +21,7 @@ public class HaxeEnvironmentStoreTest {
   public void defaultsAreEmpty() {
     HaxeEnvironmentStore store = new HaxeEnvironmentStore();
     assertNull(store.getSdkName(MODULE));
-    assertTrue(store.getDefines(MODULE).isEmpty());
+    assertFalse(store.hasUserOverrides(MODULE));
   }
 
   @Test
@@ -33,17 +35,12 @@ public class HaxeEnvironmentStoreTest {
     store.setSdkName("mod", null);
     assertFalse(store.hasUserOverrides("mod"));
 
-    store.putDefine("mod", "debug", "");
-    assertTrue(store.hasUserOverrides("mod"));
-    store.removeDefine("mod", "debug");
-    assertFalse(store.hasUserOverrides("mod"));
-
-    store.setCustomTarget("mod", "hl");
-    assertTrue(store.hasUserOverrides("mod"));
-    store.setCustomTarget("mod", null);
-    assertFalse(store.hasUserOverrides("mod"));
-
     store.setCompileCommand("mod", new HaxeEnvironmentStore.CompileCommand("build.hxml", null, ""));
+    assertTrue(store.hasUserOverrides("mod"));
+    store.setCompileCommand("mod", null);
+    assertFalse(store.hasUserOverrides("mod"));
+
+    store.skipBuild("mod");
     assertTrue(store.hasUserOverrides("mod"));
     store.setCompileCommand("mod", null);
     assertFalse(store.hasUserOverrides("mod"));
@@ -63,106 +60,6 @@ public class HaxeEnvironmentStoreTest {
 
     store.setSdkName(MODULE, null);
     assertNull(store.getSdkName(MODULE));
-  }
-
-  @Test
-  @DisplayName("put define adds and updates set entries")
-  public void putDefineAddsAndUpdatesSetEntries() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.putDefine(MODULE, "debug", "");
-    store.putDefine(MODULE, "level", "1");
-    store.putDefine(MODULE, "level", "2");
-
-    assertEquals(List.of(new EnvironmentDefine("debug", "", DefineEffect.SET),
-                         new EnvironmentDefine("level", "2", DefineEffect.SET)),
-                 store.getDefines(MODULE));
-  }
-
-  @Test
-  @DisplayName("put undefine adds a remove entry and replaces a same-named entry either way")
-  public void putUndefineAddsARemoveEntryAndReplacesASameNamedEntryEitherWay() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.putDefine(MODULE, "sys", "1");
-    store.putDefine(MODULE, "level", "2");
-
-    store.putUndefine(MODULE, "sys");
-    assertEquals(List.of(new EnvironmentDefine("level", "2", DefineEffect.SET),
-                         new EnvironmentDefine("sys", "", DefineEffect.REMOVE)),
-                 store.getDefines(MODULE));
-
-    store.putDefine(MODULE, "sys", "");
-    assertEquals(List.of(new EnvironmentDefine("level", "2", DefineEffect.SET),
-                         new EnvironmentDefine("sys", "", DefineEffect.SET)),
-                 store.getDefines(MODULE));
-  }
-
-  @Test
-  @DisplayName("remove define drops the entry")
-  public void removeDefineDropsTheEntry() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.putDefine(MODULE, "debug", "");
-    store.putDefine(MODULE, "level", "2");
-
-    store.removeDefine(MODULE, "debug");
-    assertEquals(List.of(new EnvironmentDefine("level", "2", DefineEffect.SET)), store.getDefines(MODULE));
-  }
-
-  @Test
-  @DisplayName("set defines replaces the whole list and drops blank names")
-  public void setDefinesReplacesTheWholeListAndDropsBlankNames() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.putDefine(MODULE, "old", "");
-
-    store.setDefines(MODULE, List.of(new EnvironmentDefine("html5", "", DefineEffect.SET),
-                                     new EnvironmentDefine("  ", "ignored", DefineEffect.SET),
-                                     new EnvironmentDefine("no-traces", "", DefineEffect.REMOVE)));
-
-    assertEquals(List.of(new EnvironmentDefine("html5", "", DefineEffect.SET),
-                         new EnvironmentDefine("no-traces", "", DefineEffect.REMOVE)),
-                 store.getDefines(MODULE));
-  }
-
-  @Test
-  @DisplayName("containers are independent")
-  public void containersAreIndependent() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.putDefine("app", "html5", "");
-    store.putDefine("lib", "hl", "");
-
-    assertEquals(List.of(new EnvironmentDefine("html5", "", DefineEffect.SET)), store.getDefines("app"));
-    assertEquals(List.of(new EnvironmentDefine("hl", "", DefineEffect.SET)), store.getDefines("lib"));
-  }
-
-  @Test
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  @DisplayName("legacy format entries are dropped instead of exploding later")
-  public void legacyFormatEntriesAreDroppedInsteadOfExplodingLater() {
-    // the old storage format (defines as a map) deserializes into the list as Strings
-    HaxeEnvironmentStore.ContainerEnvironment environment = new HaxeEnvironmentStore.ContainerEnvironment();
-    environment.containerId = MODULE;
-    ((List)environment.defines).add("legacy-map-entry");
-    HaxeEnvironmentStore.State state = new HaxeEnvironmentStore.State();
-    state.environments.add(environment);
-
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.loadState(state);
-
-    assertTrue(store.getDefines(MODULE).isEmpty());
-    store.putDefine(MODULE, "debug", "");
-    assertEquals(List.of(new EnvironmentDefine("debug", "", DefineEffect.SET)), store.getDefines(MODULE));
-  }
-
-  @Test
-  @DisplayName("custom target can be set trimmed and cleared")
-  public void customTargetCanBeSetTrimmedAndCleared() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    assertNull(store.getCustomTarget(MODULE));
-
-    store.setCustomTarget(MODULE, " go ");
-    assertEquals("go", store.getCustomTarget(MODULE));
-
-    store.setCustomTarget(MODULE, "   ");
-    assertNull(store.getCustomTarget(MODULE));
   }
 
   @Test
@@ -193,13 +90,24 @@ public class HaxeEnvironmentStoreTest {
   }
 
   @Test
+  @DisplayName("skipping the build clears the command until one is set")
+  public void skippingTheBuildClearsTheCommandUntilOneIsSet() {
+    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
+    store.setCompileCommand(MODULE, new HaxeEnvironmentStore.CompileCommand("/p/build.hxml", null, "-debug"));
+
+    store.skipBuild(MODULE);
+    assertTrue(store.isBuildSkipped(MODULE));
+    assertNull(store.getCompileCommand(MODULE), "a skipped container has no command");
+
+    store.setCompileCommand(MODULE, null);
+    assertFalse(store.isBuildSkipped(MODULE), "returning to the default builds again");
+  }
+
+  @Test
   @DisplayName("state survives xml serialization round trip")
   public void stateSurvivesXmlSerializationRoundTrip() {
     HaxeEnvironmentStore store = new HaxeEnvironmentStore();
     store.setSdkName(MODULE, "Haxe 4.3.7");
-    store.setDefines(MODULE, List.of(new EnvironmentDefine("analyzer-optimize", "", DefineEffect.SET),
-                                     new EnvironmentDefine("no-traces", "", DefineEffect.REMOVE)));
-    store.setCustomTarget(MODULE, "go");
     store.setCompileCommand(MODULE, new HaxeEnvironmentStore.CompileCommand("/p/build.hxml", "compile", "-debug"));
 
     Element serialized = XmlSerializer.serialize(store.getState());
@@ -209,10 +117,46 @@ public class HaxeEnvironmentStoreTest {
     reloaded.loadState(deserialized);
 
     assertEquals("Haxe 4.3.7", reloaded.getSdkName(MODULE));
-    assertEquals(List.of(new EnvironmentDefine("analyzer-optimize", "", DefineEffect.SET),
-                         new EnvironmentDefine("no-traces", "", DefineEffect.REMOVE)),
-                 reloaded.getDefines(MODULE));
-    assertEquals("go", reloaded.getCustomTarget(MODULE));
     assertEquals(new HaxeEnvironmentStore.CompileCommand("/p/build.hxml", "compile", "-debug"), reloaded.getCompileCommand(MODULE));
+  }
+
+  /** The layout before version 1: define entries and the custom target were per container. */
+  private static final String UNVERSIONED_STATE_XML = """
+    <State>
+      <option name="environments">
+        <list>
+          <ContainerEnvironment>
+            <option name="containerId" value="app" />
+            <option name="sdkName" value="Haxe 4.3.7" />
+            <option name="defines">
+              <list>
+                <DefineState>
+                  <option name="name" value="debug" />
+                </DefineState>
+              </list>
+            </option>
+            <option name="customTarget" value="go" />
+          </ContainerEnvironment>
+        </list>
+      </option>
+    </State>
+    """;
+
+  @Test
+  @DisplayName("an unversioned layout loads and drops the moved options on save")
+  public void testAnUnversionedLayoutLoadsAndDropsTheMovedOptionsOnSave() throws IOException, JDOMException {
+    Element stored = JDOMUtil.load(UNVERSIONED_STATE_XML);
+    HaxeEnvironmentStore.State loaded = XmlSerializer.deserialize(stored, HaxeEnvironmentStore.State.class);
+    int loadedVersion = loaded.version;
+    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
+    store.loadState(loaded);
+
+    String saved = JDOMUtil.writeElement(XmlSerializer.serialize(store.getState()));
+
+    assertEquals(0, loadedVersion, "a layout without the field reads as version 0");
+    assertEquals("Haxe 4.3.7", store.getSdkName(MODULE));
+    assertFalse(saved.contains("defines") || saved.contains("customTarget"), "the moved options are not written back, got: " + saved);
+    assertTrue(saved.contains("<option name=\"version\" value=\"" + HaxeEnvironmentStore.STATE_VERSION + "\""),
+               "the saved layout carries its version, got: " + saved);
   }
 }

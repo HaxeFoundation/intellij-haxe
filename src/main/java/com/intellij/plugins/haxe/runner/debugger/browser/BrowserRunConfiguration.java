@@ -29,6 +29,9 @@ import lombok.Getter;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterPin;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterStores;
+import com.intellij.plugins.haxe.runner.debugger.javascript.JsDebugAdapters;
 
 /**
  * Debug a haxe -js build in a browser (experimental): the vscode DAP debug
@@ -105,11 +108,9 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase implements 
     return family == BrowserFamily.CHROMIUM ? AdapterPin.JS_DEBUG : AdapterPin.FIREFOX;
   }
 
-  /** The user-facing adapter name ("Firefox DAP debugger" / "Chromium DAP debugger"). */
+  /** The user-facing name of the adapter driving the given family. */
   public static String adapterDisplayName(BrowserFamily family) {
-    return HaxeDebuggerBundle.message(family == BrowserFamily.CHROMIUM
-                                      ? "browser.runner.adapter.name.chromium"
-                                      : "browser.runner.adapter.name.firefox");
+    return JsDebugAdapters.displayName(adapterPinFor(family));
   }
 
   // --- validation ---
@@ -187,7 +188,7 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase implements 
     AdapterPin pin = adapterPinFor(family);
     if (!AdapterStores.open().isInstalled(pin)) {
       throw new RuntimeConfigurationError(HaxeDebuggerBundle.message(
-        "browser.runner.adapter.missing", adapterDisplayName(family) + " " + pin.version()));
+        "javascript.adapter.missing", adapterDisplayName(family) + " " + pin.version()));
     }
   }
 

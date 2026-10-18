@@ -137,8 +137,8 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
       throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("haxe.run.hl.output.missing", program.toString()));
     }
     if (useCustomHlBinary) {
-      Path custom = HashLinkRunConfigurations.resolveAgainstModule(module, customHlBinaryPath);
-      if (customHlBinaryPath.isBlank() || custom == null) {
+      Path custom = resolveCustomHlBinaryOrNull();
+      if (custom == null) {
         throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("hashlink.runner.custom.hl.not.set"));
       }
       if (!Files.isRegularFile(custom)) {
@@ -178,8 +178,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     Module module = requireModule();
     Path hlExecutable = resolveHlExecutable(module);
     Path hlProgram = resolveProgram(module);
-    Path workingDir = resolveWorkingDirectory(module);
-    Path workDir = workingDir != null ? workingDir : hlProgram.getParent();
+    Path workDir = effectiveWorkingDirectory(module);
 
     GeneralCommandLine commandLine = new GeneralCommandLine().withExePath(hlExecutable.toString());
     if (profilerSamples != null) {
@@ -189,15 +188,13 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     }
     return commandLine
       .withParameters(hlProgram.toString())
-      .withWorkDirectory(workDir != null ? workDir.toString() : null);
+      .withWorkDirectory(workDir.toString());
   }
 
   /** Where this run's dump will appear: hashlink writes it into the process working directory. */
   private Path expectedDumpPath() throws ExecutionException {
     Module module = requireModule();
-    Path workingDir = resolveWorkingDirectory(module);
-    Path base = workingDir != null ? workingDir : resolveProgram(module).getParent();
-    return base.resolve(PROFILER_DUMP_FILE_NAME);
+    return effectiveWorkingDirectory(module).resolve(PROFILER_DUMP_FILE_NAME);
   }
 
   /**
@@ -209,12 +206,16 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     if (!useCustomHlBinary) {
       return HashLinkRunConfigurations.resolveHlExecutable(module);
     }
-    Path custom = HashLinkRunConfigurations.resolveAgainstModule(module, customHlBinaryPath);
+    Path custom = resolveCustomHlBinaryOrNull();
     if (custom == null || !Files.isRegularFile(custom)) {
       throw new ExecutionException(
         HaxeDebuggerBundle.message("haxe.run.custom.hl.missing", custom != null ? custom.toString() : "<not set>"));
     }
     return custom;
+  }
+
+  private @Nullable Path resolveCustomHlBinaryOrNull() {
+    return customHlBinaryPath.isBlank() ? null : resolveAgainstModule(customHlBinaryPath);
   }
 
   // --- program resolution ---
@@ -231,18 +232,15 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
 
   private @Nullable Path resolveProgramOrNull(Module module) {
     if (!hlFilePath.isBlank()) {
-      return HashLinkRunConfigurations.resolveAgainstModule(module, hlFilePath);
+      return resolveAgainstModule(hlFilePath);
     }
     return HashLinkRunConfigurations.detectedOutput(module).orElse(null);
   }
 
-  /** The working directory: the explicit setting, else the program's directory. */
-  @Nullable Path resolveWorkingDirectory(Module module) {
-    if (!workingDirectory.isBlank()) {
-      return HashLinkRunConfigurations.resolveAgainstModule(module, workingDirectory);
-    }
-    Path program = resolveProgramOrNull(module);
-    return program != null ? program.getParent() : null;
+  /** The working directory of a launch: the explicit setting, else the directory of the program, which must resolve. */
+  @NotNull Path effectiveWorkingDirectory(Module module) throws ExecutionException {
+    Path program = resolveProgram(module);
+    return workingDirectory.isBlank() ? program.getParent() : resolveAgainstModule(workingDirectory);
   }
 
   // --- persistence ---

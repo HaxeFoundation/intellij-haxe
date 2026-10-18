@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.ide.actions;
 
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
 import com.intellij.ide.actions.CreateTemplateInPackageAction;
-import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
@@ -77,12 +76,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   @Override
   protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
     builder.setTitle(HaxeBundle.message("action.create.new.class"));
-    for (FileTemplate fileTemplate : HaxeFileTemplateUtil.getApplicableTemplates(project)) {
-      final String templateName = fileTemplate.getName();
-      final String shortName = HaxeFileTemplateUtil.getTemplateShortName(templateName);
-      final Icon icon = HaxeFileTemplateUtil.getTemplateIcon(templateName);
-      builder.addKind(shortName, icon, templateName);
-    }
+    HaxeFileTemplateUtil.addTemplateKinds(HaxeFileTemplateUtil.getApplicableTemplates(project), builder::addKind);
   }
 
   @Override

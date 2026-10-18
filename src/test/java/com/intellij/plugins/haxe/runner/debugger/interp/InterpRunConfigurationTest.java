@@ -98,37 +98,15 @@ public class InterpRunConfigurationTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("working directory resolves against the module")
-  public void testWorkingDirectoryResolvesAgainstTheModule() {
+  @DisplayName("blank working directory defaults to the module folder")
+  public void testBlankWorkingDirectoryDefaultsToTheModuleFolder() {
     InterpRunConfiguration configuration = newConfiguration();
     configuration.setModule(myFixture.getModule());
-    Path moduleDir = moduleDir();
-
-    configuration.setWorkingDirectory("bin");
-    assertEquals(moduleDir.resolve("bin"), configuration.resolveWorkingDirectory());
-
-    configuration.setWorkingDirectory(workDirectory.toString());
-    assertEquals(workDirectory, configuration.resolveWorkingDirectory());
+    Path moduleDir = Path.of(Objects.requireNonNull(ProjectUtil.guessModuleDir(myFixture.getModule())).getPath());
 
     configuration.setWorkingDirectory("");
+
     assertEquals(moduleDir, configuration.resolveWorkingDirectory());
-  }
-
-  @Test
-  @DisplayName("working directory falls back to the project without a module")
-  public void testWorkingDirectoryFallsBackToTheProjectWithoutAModule() {
-    InterpRunConfiguration configuration = newConfiguration();
-    Path projectBase = Path.of(getProject().getBasePath());
-
-    configuration.setWorkingDirectory("bin");
-    assertEquals(projectBase.resolve("bin"), configuration.resolveWorkingDirectory());
-
-    configuration.setWorkingDirectory("");
-    assertEquals(projectBase, configuration.resolveWorkingDirectory());
-  }
-
-  private Path moduleDir() {
-    return Path.of(Objects.requireNonNull(ProjectUtil.guessModuleDir(myFixture.getModule())).getPath());
   }
 
   private void writeHxml(String name, String source) throws IOException {

@@ -5,12 +5,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeIdeOverridesStore;
 import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowPanel;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Context menu on the IDE environment or Define overrides row: adds a REMOVE
+ * Context menu on a build file's IDE Overrides or Defines row: adds a REMOVE
  * entry, which hides a define the build file, target or libraries set.
  */
 public final class HaxeAddUndefineAction extends DumbAwareAction {
@@ -25,18 +25,18 @@ public final class HaxeAddUndefineAction extends DumbAwareAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    String containerId = HaxeAddDefineAction.selectedEnvironmentContainerId(panel);
-    if (project == null || containerId == null) return;
+    String buildFilePath = HaxeAddDefineAction.selectedOverridesBuildFilePath(panel);
+    if (project == null || buildFilePath == null) return;
 
     String name = DefinePrompt.showUndefineName(project);
     if (name != null) {
-      HaxeEnvironmentStore.getInstance(project).putUndefine(containerId, name);
+      HaxeIdeOverridesStore.getInstance(project).putUndefine(buildFilePath, name);
     }
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(HaxeAddDefineAction.selectedEnvironmentContainerId(panel) != null);
+    e.getPresentation().setEnabledAndVisible(HaxeAddDefineAction.selectedOverridesBuildFilePath(panel) != null);
   }
 
   @Override

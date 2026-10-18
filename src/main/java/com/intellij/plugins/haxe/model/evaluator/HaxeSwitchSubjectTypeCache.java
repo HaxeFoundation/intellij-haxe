@@ -13,10 +13,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The evaluated type of a switch statement's SUBJECT expression, computed
- * once per PSI modification and shared by everything that needs it while
- * resolving the switch's case patterns: enum member hints, extractor enum
- * resolution, extracted-value typing. Without it every pattern reference
+ * The type a switch statement's patterns MATCH, computed once per PSI
+ * modification and shared by everything that needs it while resolving the
+ * case patterns: enum member hints, extractor enum resolution,
+ * extracted-value typing. It is the subject expression's evaluated type,
+ * except for hxparse's stream DSL, where the patterns match the parser's
+ * token list ({@link HaxeStreamSwitch}). Without it every pattern reference
  * re-evaluates the subject; for a generic subject that is a full
  * constructor/type-parameter inference whose evaluation taints, so the
  * general caches cannot absorb the repetition.
@@ -30,7 +32,7 @@ public final class HaxeSwitchSubjectTypeCache {
   private HaxeSwitchSubjectTypeCache() {
   }
 
-  /** The subject's evaluated type; null when the switch has no subject expression. */
+  /** The type the patterns match; null when the switch has no subject expression. */
   @Nullable
   public static ResultHolder subjectType(@Nullable HaxeSwitchStatement switchStatement) {
     if (switchStatement == null) return null;
@@ -40,16 +42,24 @@ public final class HaxeSwitchSubjectTypeCache {
     ResultHolder shared = CachedValuesManager.getCachedValue(switchStatement, () ->
       CachedValueProvider.Result.create(computeShareableType(switchStatement), PsiModificationTracker.MODIFICATION_COUNT));
     if (shared != null) return shared;
-    return evaluateSubject(subject);
+    return matchedType(switchStatement, subject);
   }
 
   @Nullable
   private static ResultHolder computeShareableType(@NotNull HaxeSwitchStatement switchStatement) {
     HaxeExpression subject = unwrappedSubject(switchStatement);
     if (subject == null) return null;
-    ResultHolder type = evaluateSubject(subject);
+    ResultHolder type = matchedType(switchStatement, subject);
     boolean shareable = !type.isUnknown() && !type.containsUnknownOrUnresolvedTypes();
     return shareable ? type : null;
+  }
+
+  private static ResultHolder matchedType(@NotNull HaxeSwitchStatement switchStatement, @NotNull HaxeExpression subject) {
+    if (HaxeStreamSwitch.isStreamSwitch(switchStatement)) {
+      ResultHolder tokens = HaxeStreamSwitch.tokenListType(switchStatement);
+      if (tokens != null) return tokens;
+    }
+    return evaluateSubject(subject);
   }
 
   private static ResultHolder evaluateSubject(@NotNull HaxeExpression subject) {

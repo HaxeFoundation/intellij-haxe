@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.protocol.Diagnostic;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticSeverity;
 import com.intellij.plugins.haxe.display.protocol.FileDiagnostics;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerProblemMarks.Update;
 import com.intellij.problems.WolfTheProblemSolver;
@@ -73,12 +74,13 @@ public final class HaxeCompilerProblemMarker {
     }
   }
 
-  /** The files with error-severity entries, as system-independent paths. */
+  /** The files with error-severity entries, as system-independent paths; an entry naming no usable path is left out. */
   @NotNull
   private static Set<String> brokenPaths(@NotNull List<FileDiagnostics> results) {
     Set<String> broken = new HashSet<>();
     for (FileDiagnostics entry : results) {
-      if (hasErrorSeverity(entry)) broken.add(FileUtil.toSystemIndependentName(entry.file()));
+      if (!hasErrorSeverity(entry) || HaxeExternalPaths.absolutePathOf(entry.file()) == null) continue;
+      broken.add(FileUtil.toSystemIndependentName(entry.file()));
     }
     return broken;
   }

@@ -5,20 +5,22 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.XSourcePosition;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Maps a source path reported by the hxcpp-debug-server (the path as the
- * compiler saw it — usually project-relative like {@code src/Main.hx},
- * sometimes absolute) to an IDE source position.
+ * Maps a source path reported by a debug adapter (the path as the compiler
+ * saw it — usually project-relative like {@code src/Main.hx}, sometimes
+ * absolute) to an IDE source position, in two steps: {@link #findUnderRoots},
+ * then {@link #findByName}. A backend with a lookup of its own in between
+ * (HashLink's frame names) calls the two itself.
  */
 public final class DapSourceResolver {
   private DapSourceResolver() {
@@ -53,6 +55,16 @@ public final class DapSourceResolver {
   }
 
   private static @Nullable VirtualFile findFile(Project project, String normalized, List<String> sourceDirectories) {
+    VirtualFile underRoots = findUnderRoots(normalized, sourceDirectories);
+    return underRoots != null ? underRoots : findByName(project, normalized, sourceDirectories);
+  }
+
+  /**
+   * The path as written when absolute, else the relative name resolved
+   * directly against the build's own classpath roots: the fastest and most
+   * precise answer. Null when neither exists.
+   */
+  public static @Nullable VirtualFile findUnderRoots(String normalized, List<String> sourceDirectories) {
     LocalFileSystem localFs = LocalFileSystem.getInstance();
     if (isAbsolute(normalized)) {
       VirtualFile absolute = localFs.findFileByPath(normalized);
@@ -60,18 +72,22 @@ public final class DapSourceResolver {
         return absolute;
       }
     }
-
-    // the fastest and most precise answer: the relative name resolved
-    // directly against the build's own classpath roots
     for (String directory : sourceDirectories) {
       VirtualFile underRoot = localFs.findFileByPath(directory + "/" + normalized);
       if (underRoot != null) {
         return underRoot;
       }
     }
+    return null;
+  }
 
-    // relative (or stale absolute): find candidates by file name, prefer a
-    // full-path suffix match, and among equals one under the build's roots
+  /**
+   * A relative (or stale absolute) path by its file name: among the files
+   * sharing the name, a full-path suffix match, else any of them; either way
+   * one under the build's roots first. Null when no file carries the name.
+   * Call in a read action.
+   */
+  public static @Nullable VirtualFile findByName(Project project, String normalized, List<String> sourceDirectories) {
     String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
     if (fileName.isBlank()) {
       return null;
@@ -100,14 +116,10 @@ public final class DapSourceResolver {
     return suffixMatch != null ? suffixMatch : byName;
   }
 
-  // Path.of throws InvalidPathException on server-supplied strings that are
-  // not paths at all ("?" for native frames); anything unparseable is simply
-  // not absolute.
+  // server-supplied strings are not always paths ("?" for native frames); one
+  // naming no usable path is not absolute either
   private static boolean isAbsolute(String normalized) {
-    try {
-      return Path.of(normalized).isAbsolute();
-    } catch (InvalidPathException e) {
-      return false;
-    }
+    Path path = HaxeExternalPaths.pathOf(normalized);
+    return path != null && path.isAbsolute();
   }
 }

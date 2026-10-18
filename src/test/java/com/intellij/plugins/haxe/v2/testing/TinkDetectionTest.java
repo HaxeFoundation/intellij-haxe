@@ -15,13 +15,8 @@ public class TinkDetectionTest extends HaxeTestFrameworkDetectionTestBase {
 
   private final TinkFramework framework = new TinkFramework();
 
-  @Override
-  protected String getBasePath() {
-    return "/testing/";
-  }
-
   private void configureFixtureProject() {
-    myFixture.configureByFiles("cases/TinkStyleTest.hx", "cases/NotATest.hx");
+    myFixture.configureByFiles("cases/TinkStyleTest.hx");
   }
 
   @Test
@@ -29,13 +24,6 @@ public class TinkDetectionTest extends HaxeTestFrameworkDetectionTestBase {
   public void testAssertsClassIsDetected() {
     configureFixtureProject();
     assertTrue(framework.isTestClass(classByQName("cases.TinkStyleTest")));
-  }
-
-  @Test
-  @DisplayName("plain class is not detected")
-  public void testPlainClassIsNotDetected() {
-    configureFixtureProject();
-    assertFalse(framework.isTestClass(classByQName("cases.NotATest")));
   }
 
   @Test

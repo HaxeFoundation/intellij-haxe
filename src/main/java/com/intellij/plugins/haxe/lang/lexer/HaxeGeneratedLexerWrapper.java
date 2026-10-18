@@ -21,6 +21,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.tree.IElementType;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class exists solely to add hooks to the generated _HaxeLexer.  A better
@@ -34,8 +37,15 @@ public class HaxeGeneratedLexerWrapper extends _HaxeLexer {
   // before lexing each token - the pair must describe the same instant
   private boolean valueContextAtTokenStart;
 
-  public HaxeGeneratedLexerWrapper(Project project, boolean remapInactiveToPpbody) {
+  // the define set #if evaluates against, from the lexed file's own context; null = the project-wide set
+  @Nullable
+  private final Supplier<Map<String, String>> definitions;
+
+  public HaxeGeneratedLexerWrapper(Project project,
+                                   @Nullable Supplier<Map<String, String>> definitions,
+                                   boolean remapInactiveToPpbody) {
     super(project);
+    this.definitions = definitions;
     this.remapInactiveToPpbody = remapInactiveToPpbody;
   }
 
@@ -57,7 +67,7 @@ public class HaxeGeneratedLexerWrapper extends _HaxeLexer {
 
   public void reset(CharSequence buffer, int start, int end, int initialState) {
     super.reset(buffer, start, end, initialState & ~HaxeFlexLexer.VALUE_CONTEXT_STATE_FLAG);
-    super.ccsupport.reset(super.context);
+    super.ccsupport.reset(super.context, definitions);
     // ID stands in for whichever value-completing token preceded the restart
     // point - only set membership matters to isExpressionExpected()
     super.lastSignificantToken =

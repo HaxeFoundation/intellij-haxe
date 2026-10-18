@@ -27,7 +27,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,9 +48,9 @@ import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX
  * The root/std model resolution works against. MODULE-SCOPED when obtained
  * via {@link #fromElement}: each module resolves against its OWN SDK's std
  * and its own dependency roots, so modules on different haxe versions never
- * see each other's standard library. Elements outside any module (opened
- * library files, scratches) and {@link #fromProject} callers get the
- * project-wide union.
+ * see each other's standard library. A library or SDK file resolves under
+ * the module whose SDK or library holds it; elements outside any module
+ * (scratches) and {@link #fromProject} callers get the project-wide union.
  */
 public class HaxeProjectModel {
   private static final Key<HaxeProjectModel> HAXE_PROJECT_MODEL_KEY = new Key<>("HAXE_PROJECT_MODEL");
@@ -69,7 +72,7 @@ public class HaxeProjectModel {
   }
 
   public static HaxeProjectModel fromElement(PsiElement element) {
-    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    Module module = moduleOf(element);
     if (module == null) {
       return fromProject(element.getProject());
     }
@@ -79,6 +82,19 @@ public class HaxeProjectModel {
       module.putUserData(HAXE_MODULE_MODEL_KEY, model);
     }
     return model;
+  }
+
+  /**
+   * The module an element resolves under. The platform attributes a library
+   * or SDK file to the module whose SDK or library holds it only when asked
+   * about the FILE; for an element inside that file it answers null, which
+   * would send the element to the project-wide view and, with several SDKs,
+   * to another SDK's std.
+   */
+  @Nullable
+  public static Module moduleOf(@NotNull PsiElement element) {
+    PsiFile file = element.getContainingFile();
+    return ModuleUtilCore.findModuleForPsiElement(file != null ? file : element);
   }
 
   public static HaxeProjectModel fromProject(Project project) {
@@ -112,11 +128,6 @@ public class HaxeProjectModel {
   public HaxePackageModel getStdPackage() {
     return getRootsCache().stdPackageModel;
   }
-  @NotNull
-  public HaxeLogPackageModel getLogPackage() {
-    return getRootsCache().logPackageModel;
-  }
-
   @Nullable
   public List<HaxeModel> resolve(FullyQualifiedInfo info) {
     return resolve(info, null);
@@ -214,39 +225,43 @@ class RootsCache {
   final HaxeSourceRootModel sdkRoot;
   final HaxeStdPackageModel stdPackageModel;
 
-  final HaxeLogPackageModel logPackageModel;
-
   private RootsCache(List<HaxeSourceRootModel> roots, HaxeSourceRootModel sdkRoot) {
     this.roots = roots;
     this.sdkRoot = sdkRoot;
     this.stdPackageModel = new HaxeStdPackageModel(sdkRoot);
-    this.logPackageModel = new HaxeLogPackageModel(sdkRoot);
   }
 
   static RootsCache forProject(HaxeProjectModel model) {
     OrderEnumerator withoutSdk = OrderEnumerator.orderEntries(model.getProject()).withoutSdk();
     OrderEnumerator sdkOnly = OrderEnumerator.orderEntries(model.getProject()).sdkOnly();
     OrderEnumerator everything = OrderEnumerator.orderEntries(model.getProject());
-    return new RootsCache(collectRoots(model, withoutSdk), findStdRoot(model, sdkOnly, everything));
+    List<VirtualFile> externalClasspaths = HaxeExternalClasspathStore.getInstance(model.getProject()).allDirectories();
+    return new RootsCache(collectRoots(model, withoutSdk, externalClasspaths), findStdRoot(model, sdkOnly, everything));
   }
 
   /**
-   * The module's OWN view: its dependency roots and ITS SDK's std — never
-   * another module's. This is what keeps a Haxe 4 module and a Haxe 5 module
+   * The module's OWN view: its dependency roots, its external classpaths
+   * ({@link HaxeExternalClasspathStore}) and ITS SDK's std — never another
+   * module's. This is what keeps a Haxe 4 module and a Haxe 5 module
    * in one project resolving against their respective standard libraries.
    */
   static RootsCache forModule(HaxeProjectModel model, Module module) {
     OrderEnumerator withoutSdk = OrderEnumerator.orderEntries(module).recursively().withoutSdk();
     OrderEnumerator sdkOnly = OrderEnumerator.orderEntries(module).sdkOnly();
     OrderEnumerator everything = OrderEnumerator.orderEntries(module).recursively();
-    return new RootsCache(collectRoots(model, withoutSdk), findStdRoot(model, sdkOnly, everything));
+    List<VirtualFile> externalClasspaths = HaxeExternalClasspathStore.getInstance(model.getProject()).directoriesOf(module.getName());
+    return new RootsCache(collectRoots(model, withoutSdk, externalClasspaths), findStdRoot(model, sdkOnly, everything));
   }
 
-  private static List<HaxeSourceRootModel> collectRoots(HaxeProjectModel model, OrderEnumerator withoutSdk) {
-    return Stream.concat(
+  private static List<HaxeSourceRootModel> collectRoots(HaxeProjectModel model,
+                                                        OrderEnumerator withoutSdk,
+                                                        List<VirtualFile> externalClasspaths) {
+    return Stream.of(
         Arrays.stream(withoutSdk.getSourceRoots()),
-        Arrays.stream(withoutSdk.getClassesRoots())
+        Arrays.stream(withoutSdk.getClassesRoots()),
+        externalClasspaths.stream()
     )
+      .flatMap(Function.identity())
       .distinct()
       .map(root -> new HaxeSourceRootModel(model, root))
       .collect(Collectors.toList());

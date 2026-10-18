@@ -7,6 +7,7 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.protocol.DisplayMethods;
@@ -23,7 +24,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeResolveResult;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeModuleModel;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
@@ -54,9 +57,13 @@ import org.jetbrains.annotations.TestOnly;
  * all work on it: a generated {@code panel:ui.Panel} field makes
  * {@code panel.title} resolve statically against the real {@code Panel}.
  *
- * Active only when the completion mode uses the compiler (Settings |
- * Compiler | Haxe Compiler); in "IDE only" this service answers nothing. The
- * compiler-diagnostics toggle governs only problem highlighting.
+ * The resolve fallback is active only while "Use compiler for IDE features"
+ * is on and the compilation server is enabled (Settings | Compiler | Haxe
+ * Compiler); the blueprint lookups for completion follow the completion
+ * feature and mode. A failing reference asks on every resolve, because the resolve cache
+ * sits before this fallback, so a CLEAN answer is remembered per reference
+ * until the PSI, a display-context input or the blueprints change; an answer
+ * computed while a recursion guard tripped is not.
  */
 @Service(Service.Level.PROJECT)
 @CustomLog
@@ -98,6 +105,15 @@ public final class HaxeCompilerResolveService {
   private final Set<BlueprintKey> hydrating = ConcurrentHashMap.newKeySet();
   private final Map<BlueprintKey, Long> failedAt = new ConcurrentHashMap<>();
   private final Map<BlueprintKey, HaxeFile> blueprintFiles = new ConcurrentHashMap<>();
+  /** Bumped when a blueprint lands or the caches are cleared: a remembered answer may change then. */
+  private final SimpleModificationTracker blueprintChanges = new SimpleModificationTracker();
+
+  /** A fallback answer (null: none) and the {@link #answerInputsStamp} it was computed under. */
+  private record FallbackAnswer(long inputsStamp, @Nullable List<? extends PsiElement> elements) {
+  }
+
+  private final Map<HaxeReference, FallbackAnswer> answers = new ConcurrentHashMap<>();
+  private volatile long answersStamp;
 
   public HaxeCompilerResolveService(@NotNull Project project) {
     this.project = project;
@@ -121,8 +137,40 @@ public final class HaxeCompilerResolveService {
   @Nullable
   public List<? extends PsiElement> tryResolve(@NotNull HaxeReference reference) {
     if (!(reference instanceof HaxeReferenceExpression expression)) return null;
-    if (!HaxeCompilerSettings.getInstance(project).getCompletionMode().usesCompiler()) return null;
+    if (!HaxeCompilerSettings.getInstance(project).isCompilerIdeFeaturesEnabled()) return null;
+    if (!HaxeBuildToolSettings.getInstance(project).isCompilationServerEnabled()) return null;
     if (DumbService.isDumb(project)) return null;
+    if (inFallback.get()) return null;
+
+    long inputsStamp = answerInputsStamp();
+    FallbackAnswer known = answers.get(reference);
+    if (known != null && known.inputsStamp() == inputsStamp) return known.elements();
+
+    long taintMark = HaxeEvaluationTaint.mark();
+    List<? extends PsiElement> elements = lookUpGeneratedMember(expression);
+    if (!HaxeEvaluationTaint.taintedSince(taintMark)) {
+      remember(reference, new FallbackAnswer(inputsStamp, elements));
+    }
+    return elements;
+  }
+
+  /** Answers of an older stamp are dropped wholesale; a stale reference key would otherwise outlive its PSI. */
+  private void remember(@NotNull HaxeReference reference, @NotNull FallbackAnswer answer) {
+    if (answer.inputsStamp() != answersStamp) {
+      answers.clear();
+      answersStamp = answer.inputsStamp();
+    }
+    answers.put(reference, answer);
+  }
+
+  /** Moves whenever a fallback answer may change: a display-context input (PSI included) or a landed blueprint. */
+  private long answerInputsStamp() {
+    return HaxeCompilerDisplayService.getInstance(project).contextInputsStamp() + blueprintChanges.getModificationCount();
+  }
+
+  /** The generated member the reference names, from its class's blueprint; null when there is none (yet). */
+  @Nullable
+  private List<? extends PsiElement> lookUpGeneratedMember(@NotNull HaxeReferenceExpression expression) {
     String name = expression.getReferenceName();
     if (name == null || name.isEmpty()) return null;
 
@@ -133,7 +181,6 @@ public final class HaxeCompilerResolveService {
     if (contextFile == null) return null;
     if (HaxeCompilerDisplayService.getInstance(project).contextFor(contextFile) == null) return null;
 
-    if (inFallback.get()) return null;
     inFallback.set(true);
     try {
       HaxeClass targetClass = targetClassOf(expression);
@@ -170,7 +217,7 @@ public final class HaxeCompilerResolveService {
    */
   @Nullable
   public TypeBlueprint blueprintForType(@NotNull VirtualFile contextFile, @Nullable String dotPath) {
-    if (!HaxeCompilerSettings.getInstance(project).getCompletionMode().usesCompiler()) return null;
+    if (!HaxeCompilerSettings.getInstance(project).usesCompilerCompletion()) return null;
     if (DumbService.isDumb(project)) return null;
     BlueprintLookup lookup = blueprintLookup(contextFile, dotPath);
     return lookup != null ? lookup.blueprint() : null;
@@ -184,7 +231,7 @@ public final class HaxeCompilerResolveService {
    */
   @Nullable
   public HaxeClassModel blueprintClass(@NotNull HaxeCompilerDisplayService.DisplayContext context, @NotNull String dotPath) {
-    if (!HaxeCompilerSettings.getInstance(project).getCompletionMode().usesCompiler()) return null;
+    if (!HaxeCompilerSettings.getInstance(project).usesCompilerCompletion()) return null;
     BlueprintKey key = new BlueprintKey(HaxeCompilerDisplayService.contextKey(context), dotPath);
     TypeBlueprint blueprint = blueprints.get(key);
     if (blueprint == null) {
@@ -223,6 +270,8 @@ public final class HaxeCompilerResolveService {
     blueprints.clear();
     blueprintFiles.clear();
     failedAt.clear();
+    answers.clear();
+    blueprintChanges.incModificationCount();
   }
 
   // --- synthetic PSI ---
@@ -300,6 +349,7 @@ public final class HaxeCompilerResolveService {
     TypeBlueprint blueprint = hydrate(key, context);
     if (blueprint != null) {
       blueprints.put(key, blueprint);
+      blueprintChanges.incModificationCount();
     }
   }
 
@@ -315,9 +365,15 @@ public final class HaxeCompilerResolveService {
         TypeBlueprint blueprint = hydrate(key, context);
         if (blueprint != null) {
           blueprints.put(key, blueprint);
+          blueprintChanges.incModificationCount();
           failedAt.remove(key);
+          if (log.isDebugEnabled()) {
+            log.debug("blueprint hydrated for " + key.dotPath() + ": " + blueprint.fields().size() + " fields, "
+                      + blueprint.statics().size() + " statics");
+          }
           restartHighlighting();
         } else {
+          if (log.isDebugEnabled()) log.debug("no blueprint for " + key.dotPath() + "; next attempt after " + FAILURE_COOLDOWN_MS + " ms");
           failedAt.put(key, System.currentTimeMillis());
         }
       } catch (Throwable t) {
@@ -395,6 +451,9 @@ public final class HaxeCompilerResolveService {
         // the type does not live in this context - try the next
       }
     }
+    if (log.isDebugEnabled()) {
+      log.debug("server/type: no context answered for " + typeName + " in " + modulePath + " (" + candidates.size() + " candidates)");
+    }
     return null;
   }
 
@@ -409,11 +468,6 @@ public final class HaxeCompilerResolveService {
    * hydrated class per session.
    */
   private void restartHighlighting() {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      if (!project.isDisposed()) {
-        PsiManager.getInstance(project).dropPsiCaches();
-        DaemonCodeAnalyzer.getInstance(project).restart("haxe: compiler resolve results hydrated");
-      }
-    }, ModalityState.nonModal());
+    HaxeCompilerCaches.dropPsiCachesAndRestartLater(project, "haxe: compiler resolve results hydrated");
   }
 }

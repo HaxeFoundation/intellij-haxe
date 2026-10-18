@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
@@ -165,9 +164,9 @@ public class HaxeCallExpressionUtil {
     evaluation.isMacroMethod = methodModel.isMacro();
     evaluation.isStaticMethod = methodModel.isStatic();
     evaluation.isBindCall = isBindCall(callExpression);
-    evaluation.isInEnumValueMatchArgument = isEnumValueMatchCall(callExpression);
-    evaluation.isEnumValueMatchCallExpression = isEnumValueMatchCallExpression(callExpression);
-    evaluation.isEnumConstructor = isEnumConstructor(callExpression);
+    evaluation.isInEnumValueMatchArgument = isInEnumValueMatchArgument(callExpression);
+    evaluation.isEnumValueMatchCallExpression = EnumValueMatchUtil.isPatternMatcher(methodPsi);
+    evaluation.isEnumConstructor = methodPsi instanceof HaxeEnumValueDeclarationConstructor;
     evaluation.callie = callieType;
     evaluation.canCache = canCache;
 
@@ -175,33 +174,12 @@ public class HaxeCallExpressionUtil {
     return evaluation;
   }
 
-  private static boolean isEnumValueMatchCall(@NotNull HaxeCallExpression callExpression) {
+  /** The call sits, at any depth, inside an {@code EnumValue.match(...)} call, whose arguments may be enum-constructor patterns. */
+  private static boolean isInEnumValueMatchArgument(@NotNull HaxeCallExpression callExpression) {
     HaxeCallExpression parent = PsiTreeUtil.getParentOfType(callExpression, HaxeCallExpression.class);
-    while(parent != null) {
-      if(isEnumValueMatchCallExpression(parent)) {
-        return true;
-      }
+    while (parent != null) {
+      if (EnumValueMatchUtil.isPatternMatcherCall(parent)) return true;
       parent = PsiTreeUtil.getParentOfType(parent, HaxeCallExpression.class);
-    }
-    return false;
-  }
-  private static boolean isEnumValueMatchCallExpression(@NotNull HaxeCallExpression callExpression) {
-    if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
-      PsiElement resolve = referenceExpression.resolve();
-      if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
-        FullyQualifiedInfo qualifiedInfo = methodDeclaration.getModel().getQualifiedInfo();
-        boolean patternMatchingCall = qualifiedInfo != null && qualifiedInfo.toString().equalsIgnoreCase("EnumValue.EnumValue.match");
-        if (patternMatchingCall) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean isEnumConstructor(@NotNull HaxeCallExpression callExpression) {
-    if( callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
-        return referenceExpression.resolve() instanceof HaxeEnumValueDeclarationConstructor;
     }
     return false;
   }

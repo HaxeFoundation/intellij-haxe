@@ -321,7 +321,7 @@ public class HaxeExpressionUtil {
       return ConstantClass.FUNCTION;
     }
 
-    log.debug("Unexpected expression type being checked for constant-ness:" + expr);
+    if (log.isDebugEnabled()) log.debug("Unexpected expression type being checked for constant-ness:" + expr);
     return ConstantClass.NOT_CONSTANT;
   }
 

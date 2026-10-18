@@ -65,6 +65,22 @@ public class HxmlFileParserTest {
     assertEquals(target, HxmlFileParser.parse(line).target());
   }
 
+  /** (hxml content, whether it selects a target). */
+  static final List<Arguments> TARGET_SELECTIONS = List.of(
+    arguments("-js out.js", true),
+    arguments("--interp", true),
+    arguments("--custom-target go=export", true),
+    arguments("-cp src\n--run Main", true),
+    // a library's extraParams.hxml: classpaths, defines and macros, no target
+    arguments("-cp std\n-D hx2go\n--macro include('runtime', true)", false));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("TARGET_SELECTIONS")
+  @DisplayName("declares any target")
+  public void declaresAnyTarget(String content, boolean selectsTarget) {
+    assertEquals(selectsTarget, HxmlFileParser.declaresAnyTarget(content));
+  }
+
   @Test
   @DisplayName("first target flag wins")
   public void firstTargetFlagWins() {
@@ -94,6 +110,8 @@ public class HxmlFileParserTest {
     HaxeBuildFileInfo bare = HxmlFileParser.parse("--custom-target go");
     assertNull(bare.target());
     assertEquals(List.of(new HaxeDefine("custom_target", null), new HaxeDefine("target.name", "go")), bare.defines());
+    assertEquals("go", bare.customTargetName());
+    assertNull(HxmlFileParser.parse("-js out.js").customTargetName(), "a stock target is no custom target");
 
     // "name=path" carries the generator path, which the defines do not; first declaration wins
     HaxeBuildFileInfo withPath = HxmlFileParser.parse("""
@@ -140,50 +158,25 @@ public class HxmlFileParserTest {
     assertEquals(List.of("build.hxml", "cs.hxml", "cs.hxml#2"), ids);
   }
 
-  @Test
-  @DisplayName("section descriptors name each section by target")
-  public void sectionDescriptorsNameEachSectionByTarget() {
-    List<String> sections = List.of(
-      "-python bin/app.py",
-      "-php bin/php",
-      "--jvm bin/app.jar");
+  /** (section contents, their descriptors). */
+  static final List<Arguments> SECTION_DESCRIPTORS = List.of(
+    // section descriptors name each section by target
+    arguments(List.of("-python bin/app.py", "-php bin/php", "--jvm bin/app.jar"), List.of("Python", "PHP", "Java")),
+    // section descriptors extend colliding targets with their outputs
+    arguments(List.of("-js bin/app.js", "-js bin/worker.js", "-python bin/app.py"),
+              List.of("JavaScript · bin/app.js", "JavaScript · bin/worker.js", "Python")),
+    // section descriptors fall back to the main class when outputs do not differ:
+    // appending the shared output would separate nothing, so the main classes take over
+    arguments(List.of("-main app.Client\n-js bin/app.js", "-main app.Worker\n-js bin/app.js"),
+              List.of("JavaScript · Client", "JavaScript · Worker")),
+    // target less sections use the main class or stay blank
+    arguments(List.of("-main tools.Generate", "-cp src\n-D setup"), List.of("Generate", "")));
 
-    assertEquals(List.of("Python", "PHP", "Java"), HxmlFileParser.sectionDescriptors(sections));
-  }
-
-  @Test
-  @DisplayName("section descriptors extend colliding targets with their outputs")
-  public void sectionDescriptorsExtendCollidingTargetsWithTheirOutputs() {
-    List<String> sections = List.of(
-      "-js bin/app.js",
-      "-js bin/worker.js",
-      "-python bin/app.py");
-
-    assertEquals(List.of("JavaScript · bin/app.js", "JavaScript · bin/worker.js", "Python"),
-                 HxmlFileParser.sectionDescriptors(sections));
-  }
-
-  @Test
-  @DisplayName("section descriptors fall back to the main class when outputs do not differ")
-  public void sectionDescriptorsFallBackToTheMainClassWhenOutputsDoNotDiffer() {
-    // same target, same output: appending the shared output would separate
-    // nothing, so the main classes take over
-    List<String> sections = List.of(
-      "-main app.Client\n-js bin/app.js",
-      "-main app.Worker\n-js bin/app.js");
-
-    assertEquals(List.of("JavaScript · Client", "JavaScript · Worker"),
-                 HxmlFileParser.sectionDescriptors(sections));
-  }
-
-  @Test
-  @DisplayName("target less sections use the main class or stay blank")
-  public void targetLessSectionsUseTheMainClassOrStayBlank() {
-    List<String> sections = List.of(
-      "-main tools.Generate",
-      "-cp src\n-D setup");
-
-    assertEquals(List.of("Generate", ""), HxmlFileParser.sectionDescriptors(sections));
+  @ParameterizedTest(name = "{1}")
+  @FieldSource("SECTION_DESCRIPTORS")
+  @DisplayName("section descriptors name sections by target output or main class")
+  public void sectionDescriptorsNameSectionsByTargetOutputOrMainClass(List<String> sections, List<String> descriptors) {
+    assertEquals(descriptors, HxmlFileParser.sectionDescriptors(sections));
   }
 
   @Test
@@ -234,18 +227,20 @@ public class HxmlFileParserTest {
     assertTrue(info.libraries().isEmpty());
   }
 
-  @Test
-  @DisplayName("git library versions keep the full suffix")
-  public void gitLibraryVersionsKeepTheFullSuffix() {
-    HaxeBuildFileInfo info = HxmlFileParser.parse("-lib mylib:git:https://example.com/repo.git");
-    assertEquals(List.of(new HaxeLibDependency("mylib", "git:https://example.com/repo.git")), info.libraries());
-  }
+  /** (-lib argument, the dependency it declares). */
+  static final List<Arguments> LIBRARY_VERSIONS = List.of(
+    arguments("format", new HaxeLibDependency("format", null)),
+    arguments("openfl:9.2.0", new HaxeLibDependency("openfl", "9.2.0")),
+    // git library versions keep the full suffix
+    arguments("mylib:git:https://example.com/repo.git", new HaxeLibDependency("mylib", "git:https://example.com/repo.git")),
+    // git library versions keep the ref suffix: '#' only starts a comment at line START
+    arguments("mylib:git:https://example.com/repo.git#v1.2.0",
+              new HaxeLibDependency("mylib", "git:https://example.com/repo.git#v1.2.0")));
 
-  @Test
-  @DisplayName("git library versions keep the ref suffix")
-  public void gitLibraryVersionsKeepTheRefSuffix() {
-    // '#' only starts a comment at line START - a mid-line ref must survive
-    HaxeBuildFileInfo info = HxmlFileParser.parse("-lib mylib:git:https://example.com/repo.git#v1.2.0");
-    assertEquals(List.of(new HaxeLibDependency("mylib", "git:https://example.com/repo.git#v1.2.0")), info.libraries());
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("LIBRARY_VERSIONS")
+  @DisplayName("lib arguments keep their version suffix")
+  public void libArgumentsKeepTheirVersionSuffix(String libArgument, HaxeLibDependency dependency) {
+    assertEquals(List.of(dependency), HxmlFileParser.parse("-lib " + libArgument).libraries());
   }
 }

@@ -9,15 +9,17 @@ import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowEditors;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowPanel;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.BuildFileRow;
+import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.IdeDefineNode;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.ModuleNode;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Toolbar remove, acting on whatever row is selected: a module is removed
- * from the project model after confirmation (files on disk untouched - the
- * folder folds back into the surrounding module); a manually added build
- * file is removed; an auto-detected one is hidden (re-adding it via Add
- * Build File un-hides it).
+ * Toolbar remove, acting on whatever row is selected through the dispatch the
+ * Delete key shares: a module is removed from the project model after
+ * confirmation (files on disk untouched - the folder folds back into the
+ * surrounding module); a manually added build file is removed; an
+ * auto-detected one is hidden (re-adding it via Add Build File un-hides it);
+ * a define override is dropped.
  */
 public final class HaxeRemoveNodeAction extends DumbAwareAction {
 
@@ -34,12 +36,7 @@ public final class HaxeRemoveNodeAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) return;
-    switch (panel.getSelectedUserObject()) {
-      case ModuleNode moduleNode -> HaxeToolWindowEditors.confirmAndRemoveModule(project, moduleNode);
-      // the same confirmation the Delete key shows - the toolbar path must not skip it
-      case BuildFileRow row -> HaxeToolWindowEditors.confirmAndRemoveBuildFile(project, row);
-      case null, default -> { }
-    }
+    HaxeToolWindowEditors.confirmAndRemove(project, panel.getSelectedUserObject());
   }
 
   @Override
@@ -56,6 +53,11 @@ public final class HaxeRemoveNodeAction extends DumbAwareAction {
         e.getPresentation().setText(HaxeBundle.message(row.manual() ? "haxe.toolwindow.remove.build.file"
                                                                     : "haxe.toolwindow.hide.build.file"));
         e.getPresentation().setDescription(HaxeBundle.message("haxe.toolwindow.remove.build.file.description"));
+      }
+      case IdeDefineNode ignored -> {
+        e.getPresentation().setEnabled(true);
+        e.getPresentation().setText(HaxeBundle.message("haxe.toolwindow.remove.define"));
+        e.getPresentation().setDescription(HaxeBundle.message("haxe.toolwindow.remove.define.description"));
       }
       case null, default -> {
         e.getPresentation().setEnabled(false);

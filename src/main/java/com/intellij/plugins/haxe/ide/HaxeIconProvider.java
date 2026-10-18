@@ -20,11 +20,11 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.ide.IconProvider;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatConfigs;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolConfigs;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import icons.HaxeIcons;
@@ -44,7 +44,7 @@ public class HaxeIconProvider extends IconProvider {
       return getHaxeFileIcon((HaxeFile)element, flags);
     }
     // TODO: a dedicated hxformat.json icon (it shares haxelib.json's)
-    if (element instanceof PsiFile file && HxformatConfigs.HXFORMAT_FILE_NAME.equals(file.getName())) {
+    if (element instanceof PsiFile file && HaxeToolConfigs.FORMATTER_CONFIG_NAME.equals(file.getName())) {
       return HaxeIcons.HAXELIB_JSON;
     }
     return null;

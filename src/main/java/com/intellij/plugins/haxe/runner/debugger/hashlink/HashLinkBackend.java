@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
-import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.transport.AdapterProcess;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
@@ -37,7 +38,6 @@ import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStep
  */
 public class HashLinkBackend implements DapBackend {
   private static final int CONNECT_TIMEOUT_MILLIS = 15_000;
-  private static final long ADAPTER_KILL_WAIT_SECONDS = 2;
 
   private final Path hlExecutable;
   private final Path hlProgram;
@@ -67,6 +67,15 @@ public class HashLinkBackend implements DapBackend {
     return debugPort;
   }
 
+  /** The debuggee's command line: the HashLink VM runs the program with {@code --debug-wait}, holding it at its first instruction until the adapter attaches on the debug port. */
+  @NotNull
+  public GeneralCommandLine debuggeeCommandLine(@Nullable String workDirectory) {
+    return new GeneralCommandLine()
+      .withExePath(hlExecutable.toString())
+      .withParameters("--debug", Integer.toString(debugPort), "--debug-wait", hlProgram.toString())
+      .withWorkDirectory(workDirectory);
+  }
+
   @Override
   public void debuggeeSpawned(ColoredProcessHandler debuggeeHandler) {
     debuggeePid = debuggeeHandler.getProcess().pid();
@@ -74,14 +83,10 @@ public class HashLinkBackend implements DapBackend {
 
   @Override
   public DapClient connect() throws IOException {
-    try {
-      HashLinkAdapterLauncher.LaunchedAdapter launched = HashLinkAdapterLauncher.launch(hlExecutable);
-      adapterProcess = launched.process();
-      adapterStdout = launched.stdout();
-      return DapClient.connect("127.0.0.1", launched.port(), CONNECT_TIMEOUT_MILLIS);
-    } catch (ExecutionException e) {
-      throw new IOException(e.getMessage(), e);
-    }
+    AdapterProcess launched = HashLinkAdapterLauncher.launch(hlExecutable);
+    adapterProcess = launched.process();
+    adapterStdout = launched.stdout();
+    return DapClient.connect("127.0.0.1", launched.port(), CONNECT_TIMEOUT_MILLIS);
   }
 
   // Keeps the adapter's own stdout/stderr drained after the port announcement:
@@ -95,18 +100,7 @@ public class HashLinkBackend implements DapBackend {
     if (reader == null) {
       return;
     }
-    Thread gobbler = new Thread(() -> {
-      try (BufferedReader stdout = reader) {
-        String line;
-        while ((line = stdout.readLine()) != null) {
-          process.printSystem("[adapter] " + line + "\n");
-        }
-      } catch (IOException ignored) {
-        // adapter ended
-      }
-    }, "HashLink adapter output");
-    gobbler.setDaemon(true);
-    gobbler.start();
+    AdapterProcess.drainOutput(reader, line -> process.printSystem(line + "\n"));
   }
 
   @Override
@@ -142,7 +136,7 @@ public class HashLinkBackend implements DapBackend {
       // before the debuggee handler's own destroy runs, avoiding a race where
       // it TerminateProcess-es a still-attached debuggee
       try {
-        adapter.waitFor(ADAPTER_KILL_WAIT_SECONDS, TimeUnit.SECONDS);
+        adapter.waitFor(AdapterProcess.KILL_WAIT_SECONDS, TimeUnit.SECONDS);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }

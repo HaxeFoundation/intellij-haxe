@@ -416,11 +416,8 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   @Override
   public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
     HaxeClassStub stub = getStub();
-    if(stub != null) {
-      Boolean stubValue = stub.hasMetadata(metadataType.getTypeName());
-      if(stubValue != null) return stubValue;
-    }
-    return super.hasMetadata(name, metadataType);
+    Boolean stubValue = stub == null ? null : stub.compileTimeMetadata(name, metadataType);
+    return stubValue != null ? stubValue : super.hasMetadata(name, metadataType);
   }
 
   @Override
@@ -431,8 +428,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
 
   @Override
   public boolean isDeprecated() {
-    /* not applicable to Haxe language */
-    return false;
+    return hasCompileTimeMetadata(HaxeMeta.DEPRECATED);
   }
 
   @Override

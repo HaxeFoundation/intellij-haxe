@@ -14,7 +14,6 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
-import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,25 +25,31 @@ import java.util.List;
 /**
  * Configures a "Run Haxe action" before-launch step: the build file, the action to
  * run and extra arguments. The debug preview shows the additions of the owning
- * configuration's debugger. Applies to the task on OK.
+ * configuration's debugger. Applies to the task on OK. A test configuration's
+ * step is derived from its tests file and filter: the dialog then shows the
+ * step read-only and OK leaves it as computed.
  */
 final class HaxeActionBeforeRunDialog extends DialogWrapper {
 
   private final Project project;
   private final Task task;
   private final Debugger debugger;
-  private final TextFieldWithBrowseButton fileField = new TextFieldWithBrowseButton();
-  private final ComboBox<String> actionCombo = new ComboBox<>();
-  private final JBTextField argumentsField = new JBTextField();
-  private final JBCheckBox injectDebugCheckBox =
-    new JBCheckBox(HaxeDebuggerBundle.message("haxe.before.run.dialog.inject.debug"));
-  private final JBLabel injectDebugPreview = new JBLabel("", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
+  private final boolean derived;
 
-  HaxeActionBeforeRunDialog(@NotNull Project project, @NotNull Task task, @NotNull Debugger debugger) {
+  private JPanel panel;
+  private TextFieldWithBrowseButton fileField;
+  private ComboBox<String> actionCombo;
+  private JBTextField argumentsField;
+  private JBCheckBox injectDebugCheckBox;
+  private JBLabel injectDebugPreview;
+  private JBLabel derivedNote;
+
+  HaxeActionBeforeRunDialog(@NotNull Project project, @NotNull Task task, @NotNull Debugger debugger, boolean derived) {
     super(project);
     this.project = project;
     this.task = task;
     this.debugger = debugger;
+    this.derived = derived;
     setTitle(HaxeDebuggerBundle.message("haxe.before.run.dialog.title"));
 
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.singleFile()
@@ -70,28 +75,39 @@ final class HaxeActionBeforeRunDialog extends DialogWrapper {
     argumentsField.setText(task.getExtraArguments());
     injectDebugCheckBox.setSelected(task.isInjectDebugArguments());
     refreshDebugPreview();
+    derivedNote.setVisible(derived);
+    fileField.setEnabled(!derived);
+    actionCombo.setEnabled(!derived);
+    argumentsField.setEnabled(!derived);
     init();
+  }
+
+  /** The two styled labels; the form instantiates the rest. */
+  private void createUIComponents() {
+    injectDebugPreview = new JBLabel("", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
+    String derivedText = HaxeDebuggerBundle.message("haxe.before.run.dialog.derived");
+    derivedNote = new JBLabel(derivedText, UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
   }
 
   @Override
   protected @Nullable JComponent createCenterPanel() {
-    return FormBuilder.createFormBuilder()
-      .addLabeledComponent(HaxeDebuggerBundle.message("haxe.before.run.dialog.build.file"), fileField)
-      .addLabeledComponent(HaxeDebuggerBundle.message("haxe.before.run.dialog.action"), actionCombo)
-      .addLabeledComponent(HaxeDebuggerBundle.message("haxe.before.run.dialog.arguments"), argumentsField)
-      .addComponentToRightColumn(injectDebugCheckBox)
-      .addComponentToRightColumn(injectDebugPreview)
-      .getPanel();
+    return panel;
   }
 
   @Override
   protected void doOKAction() {
+    if (!derived) {
+      applyToTask();
+    }
+    super.doOKAction();
+  }
+
+  private void applyToTask() {
     task.setBuildFilePath(fileField.getText().trim());
     Object action = actionCombo.getEditor().getItem();
     task.setActionName(action == null ? "" : action.toString().trim());
     task.setExtraArguments(argumentsField.getText().trim());
     task.setInjectDebugArguments(injectDebugCheckBox.isSelected());
-    super.doOKAction();
   }
 
   /** The file's debug additions (from its type, selected target and the debugger), or null without a file. */
@@ -105,15 +121,15 @@ final class HaxeActionBeforeRunDialog extends DialogWrapper {
   private void refreshDebugPreview() {
     String path = fileField.getText().trim();
     List<String> additions = debugAdditionsFor(path);
-    if (additions == null || additions.isEmpty()) {
-      injectDebugPreview.setText(HaxeDebuggerBundle.message("haxe.before.run.dialog.inject.debug.none"));
-      injectDebugCheckBox.setEnabled(false);
-    }
-    else {
+    boolean hasAdditions = additions != null && !additions.isEmpty();
+    if (hasAdditions) {
       String preview = HaxeDebuggerBundle.message("haxe.before.run.dialog.inject.debug.preview", String.join(" ", additions));
       injectDebugPreview.setText(preview);
-      injectDebugCheckBox.setEnabled(true);
     }
+    else {
+      injectDebugPreview.setText(HaxeDebuggerBundle.message("haxe.before.run.dialog.inject.debug.none"));
+    }
+    injectDebugCheckBox.setEnabled(hasAdditions && !derived);
   }
 
   private void refillActionCombo(@Nullable String selectedAction) {

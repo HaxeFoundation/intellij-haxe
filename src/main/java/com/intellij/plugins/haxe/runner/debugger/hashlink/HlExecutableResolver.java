@@ -4,45 +4,24 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool.Environment;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HASHLINK;
-import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HASHLINKPATH;
-import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HASHLINK_BIN;
+import java.nio.file.Path;
+import java.util.Optional;
 
 /**
- * Locates the HashLink executable for the (experimental) HashLink run/debug
- * support, in order:
- * <ol>
- *   <li>the Build Tools | Haxe override ("HashLink executable" under Runtime
- *       Overrides) — when set it decides alone: resolved as the executable
- *       itself or a directory containing it, and an unresolvable value yields
- *       nothing (a typo fails visibly instead of silently running another hl)</li>
- *   <li>the path configured on the Haxe SDK ("HashLink executable")</li>
- *   <li>environment variables {@code HASHLINK_BIN}, {@code HASHLINK},
- *       {@code HASHLINKPATH} — each tried as the executable itself, then as a
- *       directory containing it</li>
- *   <li>directories on {@code PATH}</li>
- * </ol>
- * The environment is injectable so the precedence is unit-testable.
+ * The HashLink executable for the HashLink run/debug support, through
+ * {@link HaxeRuntimeTool#HASHLINK}: the Build Tools override decides alone
+ * (an unresolvable value yields nothing, so a typo fails visibly instead of
+ * silently running another hl), else the module's SDK path, the
+ * HASHLINK_BIN/HASHLINK/HASHLINKPATH variables, then PATH. The environment is
+ * injectable so the precedence is unit-testable.
  */
 public final class HlExecutableResolver {
-  private static final String[] ENV_VARIABLES = {HASHLINK_BIN, HASHLINK, HASHLINKPATH};
-  private static final String[] EXECUTABLE_NAMES = {"hl.exe", "hl"};
-
-  /** Environment lookup, replaceable in tests. */
-  @FunctionalInterface
-  public interface Environment {
-    @Nullable String get(String name);
-  }
 
   private HlExecutableResolver() {
   }
@@ -50,91 +29,25 @@ public final class HlExecutableResolver {
   /** Resolves with the project's Build Tools override first, then the module's SDK path (no module: no SDK path). */
   public static Optional<Path> resolve(@NotNull Project project, @Nullable Module module) {
     String buildToolsOverride = HaxeBuildToolSettings.getInstance(project).getHashlinkPath();
-    return resolve(buildToolsOverride, sdkHlBinPath(module), System::getenv);
+    return resolve(buildToolsOverride, sdkHlBinPath(module), HaxeRuntimeTool.PROCESS_ENVIRONMENT);
   }
 
   /** Testable core without a Build Tools override: SDK path, then environment, then PATH. */
-  public static Optional<Path> resolve(@Nullable String sdkHlBinPath, Environment env) {
+  public static Optional<Path> resolve(@Nullable String sdkHlBinPath, @NotNull Environment env) {
     return resolve(null, sdkHlBinPath, env);
   }
 
-  /** Testable core: a non-blank override decides alone; else SDK path, then environment, then PATH. */
-  public static Optional<Path> resolve(@Nullable String buildToolsOverride,
-                                       @Nullable String sdkHlBinPath,
-                                       Environment env) {
-    if (buildToolsOverride != null && !buildToolsOverride.isBlank()) {
-      return asExecutableOrContainingDirectory(buildToolsOverride);
-    }
-
-    if (sdkHlBinPath != null && !sdkHlBinPath.isBlank()) {
-      Optional<Path> fromSdk = asExecutableOrContainingDirectory(sdkHlBinPath);
-      if (fromSdk.isPresent()) {
-        return fromSdk;
-      }
-    }
-
-    for (String variable : ENV_VARIABLES) {
-      String value = env.get(variable);
-      if (value != null && !value.isBlank()) {
-        Optional<Path> fromEnv = asExecutableOrContainingDirectory(value);
-        if (fromEnv.isPresent()) {
-          return fromEnv;
-        }
-      }
-    }
-
-    String pathVariable = env.get("PATH");
-    if (pathVariable != null) {
-      for (String entry : pathVariable.split(File.pathSeparator)) {
-        if (entry.isBlank()) {
-          continue;
-        }
-        Optional<Path> fromPath = findInDirectory(entry);
-        if (fromPath.isPresent()) {
-          return fromPath;
-        }
-      }
-    }
-    return Optional.empty();
+  /** Testable core: a non-blank override decides alone; else SDK path (the executable or its directory), then environment, then PATH. */
+  public static Optional<Path> resolve(@Nullable String buildToolsOverride, @Nullable String sdkHlBinPath, @NotNull Environment env) {
+    String sdkExecutable = HaxeRuntimeTool.HASHLINK.executableOrInDirectory(sdkHlBinPath);
+    String resolved = HaxeRuntimeTool.HASHLINK.resolve(buildToolsOverride, sdkExecutable, env);
+    return Optional.ofNullable(resolved).map(Path::of);
   }
 
-  private static @Nullable String sdkHlBinPath(@Nullable Module module) {
-    if (module == null) {
-      return null;
-    }
+  @Nullable
+  private static String sdkHlBinPath(@Nullable Module module) {
+    if (module == null) return null;
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk != null && sdk.getSdkAdditionalData() instanceof HaxeSdkData data) {
-      return data.getHlBinPath();
-    }
-    return null;
-  }
-
-  private static Optional<Path> asExecutableOrContainingDirectory(String value) {
-    try {
-      Path path = Path.of(value);
-      if (Files.isRegularFile(path)) {
-        return Optional.of(path);
-      }
-      if (Files.isDirectory(path)) {
-        return findInDirectory(value);
-      }
-    } catch (InvalidPathException ignored) {
-      // malformed entry; keep looking
-    }
-    return Optional.empty();
-  }
-
-  private static Optional<Path> findInDirectory(String directory) {
-    try {
-      for (String name : EXECUTABLE_NAMES) {
-        Path candidate = Path.of(directory, name);
-        if (Files.isRegularFile(candidate)) {
-          return Optional.of(candidate);
-        }
-      }
-    } catch (InvalidPathException ignored) {
-      // malformed entry; keep looking
-    }
-    return Optional.empty();
+    return HaxeRuntimeTool.HASHLINK.sdkConfiguredPath(sdk);
   }
 }

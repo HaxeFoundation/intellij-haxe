@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.v2.buildtools.libraries;
 
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -41,10 +40,9 @@ public final class HaxeLibraryDefinesStore {
     return byContainer.getOrDefault(containerId, Map.of());
   }
 
-  /** Replaces every container's recorded defines with a sync's result; a changed set publishes a build-settings change so the define context refreshes. */
+  /** Replaces every container's recorded defines with a sync's result; the sync's end is announced by the sync, not here. */
   public void replaceAll(@NotNull Map<String, Map<String, Map<String, String>>> resolvedByContainer) {
     if (byContainer.equals(resolvedByContainer)) return;
     byContainer = Map.copyOf(resolvedByContainer);
-    HaxeBuildSettingsListener.publish(project);
   }
 }

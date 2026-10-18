@@ -55,19 +55,19 @@ public class HaxeSdkUtilBase {
   private static String getExecutablePathByFolderPath(String folderPath, String name) {
     if (!SystemInfo.isLinux) {
       final String candidatePath = folderPath + "/bin/" + getExecutableName(name);
-      LOG.debug("candidatePath: " + candidatePath);
+      if (LOG.isDebugEnabled()) LOG.debug("candidatePath: " + candidatePath);
       if (fileExists(candidatePath)) {
         return FileUtil.toSystemIndependentName(candidatePath);
       }
     }
 
     final String resultPath = folderPath + "/" + getExecutableName(name);
-    LOG.debug("resultPath: " + resultPath);
+    if (LOG.isDebugEnabled()) LOG.debug("resultPath: " + resultPath);
     if (fileExists(resultPath)) {
       return FileUtil.toSystemIndependentName(resultPath);
     }
 
-    LOG.debug(name + " path: null");
+    if (LOG.isDebugEnabled()) LOG.debug(name + " path: null");
     return null;
   }
 
@@ -114,7 +114,7 @@ public class HaxeSdkUtilBase {
       final String nekoBin = haxeSdkData.getNekoBinPath();
 
       if(sdkHome != null && !sdkHome.isEmpty()) {
-        result += sdkHome;
+        result += compilerFolder(sdkHome);
       }
       else if(haxelibBin != null && !haxelibBin.isEmpty()) {
         // fallback to haxelib path
@@ -145,21 +145,34 @@ public class HaxeSdkUtilBase {
     return processBuilder;
   }
 
+  /** The folder holding the SDK's compiler ({@code <home>/bin} in the layouts that have one), else the home itself. */
+  @NotNull
+  private static String compilerFolder(@NotNull String sdkHome) {
+    String compilerPath = getCompilerPathByFolderPath(sdkHome);
+    return compilerPath == null ? sdkHome : new File(compilerPath).getParent();
+  }
+
   /**
-   * Patch the PATH environment variable to include the Haxe SDK.  The original environment
-   * is modified in place.
-   *
-   * @param env list of environment variables.
-   * @param haxeSdkData SDK for which the environment is being modified.
-   * @return the environment that was passed in.  It is modified in place.
+   * Puts the SDK's folders in front of the PATH entry of {@code env}, which is
+   * modified in place and returned. The entry is found whatever its case
+   * (Windows spells it {@code Path}); without one the folders alone form it.
    */
   @NotNull
   public static Map<String,String> patchEnvironment(@NotNull Map<String,String> env, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
-    String pathvar = SystemInfo.isWindows ? "Path" : "PATH";
     if (haxeSdkData != null) {
-      final String path = getEnvironmentPathPatch(haxeSdkData) + env.get(pathvar);
-      env.put(pathvar, path);
+      String pathvar = pathVariableIn(env);
+      String current = env.get(pathvar);
+      env.put(pathvar, getEnvironmentPathPatch(haxeSdkData) + (current == null ? "" : current));
     }
     return env;
+  }
+
+  /** The PATH key as {@code env} spells it, else the platform's spelling. */
+  @NotNull
+  private static String pathVariableIn(@NotNull Map<String, String> env) {
+    for (String key : env.keySet()) {
+      if (key.equalsIgnoreCase("PATH")) return key;
+    }
+    return SystemInfo.isWindows ? "Path" : "PATH";
   }
 }

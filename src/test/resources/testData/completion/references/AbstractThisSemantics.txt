@@ -1,5 +1,0 @@
-:INCLUDE
-test:Int
-
-:EXCLUDE
-demo

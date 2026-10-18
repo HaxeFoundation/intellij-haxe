@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolConfigs;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -53,7 +54,6 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
     public String overrideConfigUrl;
   }
 
-  public static final String HXFORMAT_FILE_NAME = "hxformat.json";
   private static final Logger LOG = Logger.getInstance(HxformatConfigs.class);
   // a configured ObjectMapper is thread-safe, so one instance serves every parse
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -84,7 +84,7 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
       public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
         for (VFileEvent event : events) {
           // match the file NAME - a path ending in "myhxformat.json" is unrelated
-          if (!HXFORMAT_FILE_NAME.equals(PathUtil.getFileName(event.getPath()))) continue;
+          if (!HaxeToolConfigs.FORMATTER_CONFIG_NAME.equals(PathUtil.getFileName(event.getPath()))) continue;
           parsedByPath.clear();
           tracker.incModificationCount();
           CodeStyleSettingsManager.getInstance(project).notifyCodeStyleSettingsChanged();
@@ -106,7 +106,7 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
   public static VirtualFile findConfig(@NotNull Project project, @NotNull VirtualFile file) {
     VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
     for (VirtualFile dir = file.getParent(); dir != null; dir = dir.getParent()) {
-      VirtualFile config = dir.findChild(HXFORMAT_FILE_NAME);
+      VirtualFile config = dir.findChild(HaxeToolConfigs.FORMATTER_CONFIG_NAME);
       if (config != null && !config.isDirectory()) {
         return config;
       }
@@ -143,7 +143,7 @@ public final class HxformatConfigs implements PersistentStateComponent<HxformatC
   private boolean projectHasConfigFile() {
     GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
     try {
-      return !FilenameIndex.getVirtualFilesByName(HXFORMAT_FILE_NAME, scope).isEmpty();
+      return !FilenameIndex.getVirtualFilesByName(HaxeToolConfigs.FORMATTER_CONFIG_NAME, scope).isEmpty();
     }
     catch (IndexNotReadyException e) {
       // dumb mode: a config may exist, so the note stays rather than flickers

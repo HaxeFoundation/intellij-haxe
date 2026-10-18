@@ -18,6 +18,8 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -37,10 +39,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Utilities to run the haxelib command and capture its output.
@@ -48,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 @CustomLog
 public class HaxelibCommandUtils {
 
+  /** Long enough for a tool run such as {@code lime display}; the compiler's help probes finish in well under a second. */
+  private static final int PROBE_TIMEOUT_MS = 60_000;
 
   /**
    * Find the path to the 'haxelib' executable, using the module paths.
@@ -199,55 +202,35 @@ public class HaxelibCommandUtils {
 
 
   /**
-   * Run a shell command, capturing its standard output.
-   *
-   * @param commandLineArguments a command and its arguments, as a list of strings.
-   * @param dir                  directory in which to run the command.
-   * @return the output of the command, as a list of strings, one line per string.
+   * Runs a tool and returns its complete output, stdout and stderr merged,
+   * one line per entry. A tool that outlives the timeout is killed and the
+   * output it produced so far is returned.
    */
   @NotNull
   public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments,
                                               @Nullable File dir,
                                               @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
-    List<String> strings = new ArrayList<String>();
-
+    GeneralCommandLine commandLine = new GeneralCommandLine(commandLineArguments)
+      .withRedirectErrorStream(true)
+      .withCharset(StandardCharsets.UTF_8);
+    if (dir != null) {
+      commandLine.withWorkingDirectory(dir.toPath());
+    }
+    if (haxeSdkData != null) {
+      // patched over the effective environment: the SDK folders go in front of the real PATH instead of replacing it
+      Map<String, String> environment = new HashMap<>(commandLine.getEffectiveEnvironment());
+      commandLine.withEnvironment(HaxeSdkUtilBase.patchEnvironment(environment, haxeSdkData));
+    }
     try {
-      ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(commandLineArguments, dir, haxeSdkData);
-      builder.redirectErrorStream(true);
-      if (dir != null) {
-        builder = builder.directory(dir);
-      }
-      Process process = builder.start();
-      InputStreamReader reader = new InputStreamReader(process.getInputStream());
-      Scanner scanner = new Scanner(reader);
-      process.waitFor(100, TimeUnit.MILLISECONDS);
-
-      if (reader.ready()) {
-        while (scanner.hasNextLine()) {
-          String nextLine = scanner.nextLine();
-          strings.add(nextLine);
-        }
-      }
-
-      if (process.isAlive()) {
-        if (!process.waitFor(10, TimeUnit.MILLISECONDS)) {
-          process.destroy();
-        }
-      }
+      return new CapturingProcessHandler(commandLine).runProcess(PROBE_TIMEOUT_MS).getStdoutLines();
     }
-    catch (IOException | InterruptedException e) {
-      e.printStackTrace();
+    catch (com.intellij.execution.ExecutionException e) {
+      log.info("cannot run " + commandLineArguments.getFirst() + ": " + e.getMessage());
+      return List.of();
     }
-
-    return strings;
   }
 
-  /**
-   * Run a shell command in the (IDEA's) current directory, capturing its standard output.
-   *
-   * @param commandLineArguments a command and its arguments, as a list of strings.
-   * @return the output of the command, as a list of strings, one line per string.
-   */
+  /** {@link #getProcessStdout(ArrayList, File, HaxeSdkAdditionalDataBase)} in the IDE's current directory. */
   @NotNull
   public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments,
                                               @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {

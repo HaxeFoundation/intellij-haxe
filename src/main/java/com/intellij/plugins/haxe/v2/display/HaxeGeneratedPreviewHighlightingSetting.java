@@ -19,6 +19,6 @@ public class HaxeGeneratedPreviewHighlightingSetting extends DefaultHighlighting
   @Override
   @Nullable
   public FileHighlightingSetting getDefaultSetting(@NotNull Project project, @NotNull VirtualFile file) {
-    return file.getUserData(HaxeGeneratedCodePreview.PREVIEW_KEY) != null ? FileHighlightingSetting.SKIP_INSPECTION : null;
+    return HaxeGeneratedCodePreview.isPreview(file) ? FileHighlightingSetting.SKIP_INSPECTION : null;
   }
 }

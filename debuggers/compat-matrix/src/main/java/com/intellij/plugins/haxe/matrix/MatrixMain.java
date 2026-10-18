@@ -265,7 +265,7 @@ public final class MatrixMain {
    * One thread per gradle MODULE, not per lane: threads must be disjoint —
    * separate gradle build dirs, separate fixtures, separate debugger
    * binaries, each child build carrying its own environment. The firefox and
-   * chromium lanes both drive the browser-debugger module (one build dir,
+   * chromium lanes both drive the javascript-debugger module (one build dir,
    * ONE test-results dir), so they share a thread and run sequentially;
    * concurrent, the faster lane rewrites the shared results dir between the
    * slower lane's test run and its collection, and cells collect the OTHER
@@ -506,7 +506,7 @@ public final class MatrixMain {
   }
 
   /**
-   * One web-family lane: the browser-debugger module's live probe for that
+   * One web-family lane: the javascript-debugger module's live probe for that
    * family, per haxe toolchain (the probes compile their fixtures with the
    * lane's haxe) x per PROVISIONED node runtime (the adapters run on node;
    * the manifest pins the active LTS and the current release, hash-verified
@@ -518,7 +518,7 @@ public final class MatrixMain {
   private void webLane(String lane, String probeClass) throws IOException {
     log.line(lane.toUpperCase(Locale.ROOT) + " LANE (browser live probe)");
     Map<String, String> browserEnv = discoveredBrowserEnv(lane);
-    Path moduleResults = root.resolve("debuggers/browser-debugger/build/test-results/test");
+    Path moduleResults = root.resolve("debuggers/javascript-debugger/build/test-results/test");
 
     // no provisioned node (downloads failed?): one cell per haxe on the
     // probes' default node discovery rather than no coverage at all
@@ -542,7 +542,7 @@ public final class MatrixMain {
         }
         // the module's results dir is shared with the OTHER web lane: collect
         // only this lane's probe suite as evidence
-        SuiteRun run = runSuite(":debuggers:browser-debugger", extra,
+        SuiteRun run = runSuite(":debuggers:javascript-debugger", extra,
                                 env, out.resolve("logs/" + lane + "-" + cellName + ".log"), 1200,
                                 moduleResults, out.resolve("results/" + lane + "_" + cellName), probeClass);
         addCell(lane, haxe, node, run.status().name().toLowerCase(Locale.ROOT),

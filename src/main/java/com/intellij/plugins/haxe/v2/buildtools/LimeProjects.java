@@ -12,7 +12,10 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
+import com.intellij.plugins.haxe.config.FrameworkTarget;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.LimeTarget;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import com.intellij.plugins.haxe.v2.buildsystem.HxmlArguments;
@@ -47,6 +50,8 @@ public final class LimeProjects {
 
   /** The target flags whose packaged app is a host-launchable binary (see {@link #packagedBinary}). */
   public static final Set<String> HOST_LAUNCHABLE_TARGETS = Set.of("neko", "hl", "cpp", "windows", "linux", "mac");
+  /** The bytecode a lime HL package runs: the obj bytecode copied into bin under this name, beside the renamed hl runtime. */
+  public static final String HL_BOOT_FILE = "hlboot.dat";
 
   /** The target flags whose packaged artifact is a swf, hosted under adl for test runs. */
   public static final Set<String> FLASH_FAMILY_TARGETS = Set.of("flash", "air");
@@ -67,6 +72,15 @@ public final class LimeProjects {
 
   /** The lime flag overriding the project's {@code <app path>}, attached spelling like the define above. */
   private static final String APP_PATH_FLAG = "--app-path=";
+
+  /**
+   * lime's forwarding forms (lime 8.3.2): ATTACHED defines ({@code -Dname=value}:
+   * the two-word spelling trips a lime bug duplicating the value),
+   * {@code --source=} for classpaths and {@code --haxeflag=} for macros - lime
+   * turns each haxeflag value into one hxml line, so a macro call with spaces
+   * needs no quoting.
+   */
+  public static final HaxeToolFlagSpellings FLAG_SPELLINGS = new HaxeToolFlagSpellings("-D", "--source=", "--haxeflag=--macro ");
 
   private LimeProjects() {
   }
@@ -92,6 +106,16 @@ public final class LimeProjects {
   /** True for the types the lime tool can build; a plain hxp SCRIPT is not one of them. */
   public static boolean isLimeFamily(@Nullable HaxeBuildFileType type) {
     return type == HaxeBuildFileType.OPENFL || type == HaxeBuildFileType.LIME || type == HaxeBuildFileType.HXP_PROJECT;
+  }
+
+  /** The include file the build tool merges from the library in that folder as a nested project; null when the library ships none. */
+  @Nullable
+  public static VirtualFile libraryIncludeFile(@NotNull VirtualFile libraryRoot) {
+    for (String name : ProjectXmlVocabulary.LIBRARY_INCLUDE_FILE_NAMES) {
+      VirtualFile include = libraryRoot.findChild(name);
+      if (include != null && !include.isDirectory()) return include;
+    }
+    return null;
   }
 
   /** The CLI tool that builds the file: openfl projects go through the openfl wrapper, everything else through lime. */
@@ -191,7 +215,7 @@ public final class LimeProjects {
         LOG.warn(tool + " display produced no haxe arguments for " + fileName + " " + targetFlag);
         return null;
       }
-      List<String> withCwd = new ArrayList<>(List.of("--cwd", directory));
+      List<String> withCwd = new ArrayList<>(List.of(HxmlArguments.CWD_FLAG, directory));
       withCwd.addAll(arguments);
       return List.copyOf(withCwd);
     }
@@ -213,11 +237,11 @@ public final class LimeProjects {
    * writes nothing there.
    */
   @NotNull
-  static GeneralCommandLine displayCommandLine(@NotNull String haxelibExecutable,
-                                               @NotNull String tool,
-                                               @NotNull String directory,
-                                               @NotNull String fileName,
-                                               @NotNull String targetFlag) {
+  public static GeneralCommandLine displayCommandLine(@NotNull String haxelibExecutable,
+                                                      @NotNull String tool,
+                                                      @Nullable String directory,
+                                                      @NotNull String fileName,
+                                                      @NotNull String targetFlag) {
     String appPathArgument = APP_PATH_FLAG + displayAppPath();
     return new GeneralCommandLine()
       .withExePath(haxelibExecutable)
@@ -262,6 +286,10 @@ public final class LimeProjects {
     return "air".equals(targetFlag);
   }
 
+  public static boolean isElectronTarget(@Nullable String targetFlag) {
+    return "electron".equals(targetFlag);
+  }
+
   /**
    * The html5 build's packaged web root ({@code <app path>/html5/bin}, lime's
    * own index.html inside), or null for other targets or without an app path.
@@ -281,18 +309,20 @@ public final class LimeProjects {
       .normalize();
   }
 
-  /** The haxe compilation target behind a lime CLI target id, or null for an unknown id. */
+  /**
+   * The haxe compilation target behind a lime CLI target id: the mapping of
+   * {@link LimeTarget} (the targets the settings offer), plus the ids the
+   * tool accepts that the settings do not list. Null for an unknown id.
+   */
   @Nullable
   public static HaxeTarget targetFor(@NotNull String targetFlag) {
+    HaxeTarget listed = FrameworkTarget.outputTargetFor(LimeTarget.values(), targetFlag);
+    if (listed != null) return listed;
     return switch (targetFlag) {
-      case "hl" -> HaxeTarget.HL;
-      case "html5" -> HaxeTarget.JAVA_SCRIPT;
-      case "flash", "air" -> HaxeTarget.FLASH;
-      case "neko" -> HaxeTarget.NEKO;
-      case "java" -> HaxeTarget.JAVA;
+      case "cpp" -> HaxeTarget.CPP;
       case "cppia" -> HaxeTarget.CPPIA;
+      case "java" -> HaxeTarget.JAVA;
       case "cs" -> HaxeTarget.CSHARP;
-      case "cpp", "windows", "mac", "linux", "android", "ios" -> HaxeTarget.CPP;
       default -> null;
     };
   }
@@ -304,10 +334,9 @@ public final class LimeProjects {
    * build ships a renamed copy of the hl runtime beside its hlboot.dat — for
    * all host targets the packaged binary itself is what runs. A mac build
    * packages a {@code .app} bundle; the binary is the executable inside it.
-   * Null when the target is not host-launchable.
-   * TODO honour a {@code <platform>.output-directory} config value here as
-   *  {@link #relativeTargetOutput} does (the test lane reads the project xml
-   *  directly, without the parser tool's evaluation)
+   * Null when the target is not host-launchable. Reads the xml alone, so a
+   * {@code <platform>.output-directory} config value is invisible here; the
+   * overload taking the EVALUATED output honours it.
    */
   @Nullable
   public static Path packagedBinary(@NotNull VirtualFile projectFile, @NotNull String content, @NotNull String targetFlag) {
@@ -316,6 +345,34 @@ public final class LimeProjects {
     return exportBinDirectory(projectFile, content, targetDirectory(platformTarget))
       .resolve(packagedLauncher(platformTarget, appFile(content)))
       .normalize();
+  }
+
+  /**
+   * The launchable binary behind a host target's EVALUATED output (the path
+   * the parser tool reports, honouring the project's output-directory):
+   * desktop and neko evaluations name the launcher itself; an HL evaluation
+   * ({@code obj/ApplicationMain.hl}) and an output naming the obj directory
+   * itself mean the launcher in {@code bin} beside {@code obj}.
+   * Null when the target is not host-launchable.
+   */
+  @Nullable
+  public static Path packagedBinary(@NotNull Path evaluatedOutput, @NotNull String targetFlag, @NotNull String appFile) {
+    if (!HOST_LAUNCHABLE_TARGETS.contains(targetFlag)) return null;
+    Path binDir = binDirBesideObj(evaluatedOutput);
+    if (binDir == null) return evaluatedOutput;
+    return binDir.resolve(packagedLauncher(platformTarget(targetFlag), appFile)).normalize();
+  }
+
+  /** The bin directory beside obj when the evaluated output is the obj directory or a file directly in it; null otherwise. */
+  @Nullable
+  public static Path binDirBesideObj(@NotNull Path evaluatedOutput) {
+    Path objDir = isObjDirectory(evaluatedOutput) ? evaluatedOutput : evaluatedOutput.getParent();
+    if (objDir == null || !isObjDirectory(objDir)) return null;
+    return objDir.resolveSibling("bin");
+  }
+
+  private static boolean isObjDirectory(@NotNull Path path) {
+    return "obj".equals(String.valueOf(path.getFileName()));
   }
 
   /**
@@ -344,10 +401,20 @@ public final class LimeProjects {
     return platformTarget.equals("mac") ? "macos" : platformTarget;
   }
 
-  /** The launcher a desktop build leaves in its bin: the executable inside the .app bundle on mac, {@code <app file>[.exe]} elsewhere. */
+  /**
+   * The launcher a build leaves in its bin, named for the TARGET platform:
+   * {@code <app file>.exe} for windows, {@code <app file>} for linux, the
+   * executable inside the .app bundle for mac. Neko and HL package a renamed
+   * copy of the host runtime, so they take the host's executable suffix.
+   */
   @NotNull
   private static String packagedLauncher(@NotNull String platformTarget, @NotNull String appFile) {
-    return platformTarget.equals("mac") ? macBundleExecutable(appFile) : HaxeSdkUtilBase.getExecutableName(appFile);
+    return switch (platformTarget) {
+      case "windows" -> appFile + ".exe";
+      case "linux" -> appFile;
+      case "mac" -> macBundleExecutable(appFile);
+      default -> HaxeSdkUtilBase.getExecutableName(appFile);
+    };
   }
 
   /** The executable inside the {@code .app} bundle a mac build packages - the bundle itself is a directory, not a launchable file. */
@@ -393,12 +460,9 @@ public final class LimeProjects {
       // air: the descriptor (application.xml) sits at the target root with the content swf in bin beside it
       case "flash", "air" -> targetRoot + "/bin/" + appFile + ".swf";
       // desktop: lime copies the built executable into bin, named after
-      // <app file>, independent of -debug (unlike raw hxcpp's Main-debug.exe)
-      case "windows" -> targetRoot + "/bin/" + appFile + ".exe";
-      case "linux" -> targetRoot + "/bin/" + appFile;
-      case "mac" -> targetRoot + "/bin/" + macBundleExecutable(appFile);
-      // neko is wrapped in a launcher executable named after the app, host-suffixed
-      case "neko" -> targetRoot + "/bin/" + HaxeSdkUtilBase.getExecutableName(appFile);
+      // <app file>, independent of -debug (unlike raw hxcpp's Main-debug.exe);
+      // neko is wrapped in a launcher executable named after the app
+      case "windows", "linux", "mac", "neko" -> targetRoot + "/bin/" + packagedLauncher(platformTarget, appFile);
       default -> null;
     };
   }

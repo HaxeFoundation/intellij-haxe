@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.model.HaxeSourceRootModel;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerDisplayService;
+import com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewSpot;
 import com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewTarget;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -129,7 +130,7 @@ public class HaxeExternImplementationSearcher extends QueryExecutorBase<PsiEleme
                                           @Nullable String memberName,
                                           @NotNull Processor<? super PsiElement> consumer) {
     Project project = externClass.getProject();
-    if (!HaxeCompilerSettings.getInstance(project).getCompletionMode().usesCompiler()) return;
+    if (!HaxeCompilerSettings.getInstance(project).usesCompilerNavigation()) return;
     String dotPath = externClass.getQualifiedName();
     if (dotPath == null || dotPath.isEmpty()) return;
 
@@ -140,7 +141,8 @@ public class HaxeExternImplementationSearcher extends QueryExecutorBase<PsiEleme
     for (Module module : ModuleManager.getInstance(project).getSortedModules()) {
       HaxeCompilerDisplayService.DisplayContext context = displayService.contextFor(module);
       if (context != null) {
-        consumer.process(HaxeGeneratedPreviewTarget.createElement(externClass, context, dotPath, memberName));
+        HaxeGeneratedPreviewSpot spot = HaxeGeneratedPreviewSpot.ofType(dotPath, memberName);
+        consumer.process(HaxeGeneratedPreviewTarget.createElement(externClass, context, spot));
         return;
       }
     }

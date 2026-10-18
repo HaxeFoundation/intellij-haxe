@@ -50,6 +50,9 @@ class TestMain {
 		haxeVersionSeeds();
 		targetNamedEnvironmentVariablesAreDropped();
 		configValuesFlattenedToDotKeys();
+		invalidXmlIsAProblem();
+		missingIncludeIsAProblem();
+		unknownHaxelibIsAWarning();
 
 		if (failures > 0) {
 			Sys.stderr().writeString(failures + " assertion(s) failed\n");
@@ -535,6 +538,25 @@ class TestMain {
 		assertEquals("lin", result.config.get("linux.output-directory"), "matched if keeps the value");
 		assertTrue(!result.config.exists("linux.if"), "condition attributes are not values");
 		assertTrue(!result.config.exists("windows.output-directory"), "unmatched if excludes the config");
+	}
+
+	static function invalidXmlIsAProblem():Void {
+		var evaluator = evaluate('<project><haxelib name="openfl"></project>');
+		assertTrue(evaluator.problems.length == 1 && StringTools.contains(evaluator.problems[0], "invalid XML at line"),
+			"malformed XML is a problem naming its position: " + evaluator.problems);
+		assertTrue(!hasLib(evaluator, "openfl"), "nothing is read from a document that does not parse");
+	}
+
+	static function missingIncludeIsAProblem():Void {
+		var evaluator = evaluate('<project><include path="gone.xml"/></project>');
+		assertEquals("include not found: gone.xml", evaluator.problems[0], "a missing include is a problem, not a silent skip");
+	}
+
+	static function unknownHaxelibIsAWarning():Void {
+		var evaluator = evaluate('<project><haxelib name="nowhere"/></project>');
+		assertTrue(hasLib(evaluator, "nowhere"), "the library stays listed for the IDE to flag");
+		assertEquals("haxelib not installed: nowhere", evaluator.warnings[0], "and the run says so");
+		assertTrue(evaluator.problems.length == 0, "a missing library does not fail the evaluation");
 	}
 
 	static function hasLib(evaluator:ProjectXmlEvaluator, name:String):Bool {

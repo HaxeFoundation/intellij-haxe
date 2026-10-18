@@ -4,8 +4,9 @@ import com.intellij.plugins.haxe.display.protocol.Diagnostic;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticKind;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticSeverity;
 import com.intellij.plugins.haxe.display.protocol.InitializeResult;
+import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeSyntaxMigrationFixes;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,10 +25,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class HaxeDiagnosticMessageFilter {
 
-  /** A recognizable deprecation: a fragment of its message and the level that introduced its REPLACEMENT. */
-  private record DeprecationRule(String messageFragment, HaxeLanguageLevel replacementLevel) {
-  }
-
   /** haxe 5 deprecation codes share this prefix; specific ids extend it (WDeprecatedEnumAbstract). */
   private static final String DEPRECATION_CODE_PREFIX = "WDeprecated";
 
@@ -35,21 +32,22 @@ public final class HaxeDiagnosticMessageFilter {
   private static final Map<String, HaxeLanguageLevel> CODE_RULES = Map.of(
     "WDeprecatedEnumAbstract", HaxeLanguageLevel.HAXE_4_0);
 
-  // The level that introduced each replacement, per the language level
-  // reference (3.4 to 5.0). A warning is hidden only while the advised
-  // replacement cannot be used yet.
-  private static final List<DeprecationRule> DEPRECATION_RULES = List.of(
-    new DeprecationRule("`@:enum abstract`", HaxeLanguageLevel.HAXE_4_0),  // -> enum abstract keyword form
-    new DeprecationRule("@:final", HaxeLanguageLevel.HAXE_4_0),            // -> final keyword
-    new DeprecationRule("@:extern", HaxeLanguageLevel.HAXE_4_0),           // -> extern field modifier
-    new DeprecationRule("Std.is", HaxeLanguageLevel.HAXE_4_1),             // -> Std.isOfType
-    new DeprecationRule("Std.instance", HaxeLanguageLevel.HAXE_4_0),       // -> Std.downcast
-    new DeprecationRule("haxe.Utf8", HaxeLanguageLevel.HAXE_4_0),          // -> UnicodeString
-    new DeprecationRule("haxe.xml.Fast", HaxeLanguageLevel.HAXE_4_0),      // -> haxe.xml.Access
-    new DeprecationRule("__js__", HaxeLanguageLevel.HAXE_4_0),             // -> js.Syntax.code
-    new DeprecationRule("__php__", HaxeLanguageLevel.HAXE_4_0));           // -> php.Syntax.code
+  /// Message fragment -> the level that introduced the replacement: the API
+  /// and metadata migrations the static annotators fix, plus the std types
+  /// the compiler deprecated without a syntax change. A warning is hidden
+  /// only while the advised replacement cannot be used yet.
+  private static final Map<String, HaxeLanguageLevel> MESSAGE_RULES = messageRules();
 
   private HaxeDiagnosticMessageFilter() {
+  }
+
+  private static Map<String, HaxeLanguageLevel> messageRules() {
+    Map<String, HaxeLanguageLevel> rules = new HashMap<>();
+    HaxeSyntaxMigrationFixes.DEPRECATED_APIS.forEach((spelling, migration) -> rules.put(spelling, migration.level()));
+    HaxeSyntaxMigrationFixes.DEPRECATED_METADATA.forEach((spelling, migration) -> rules.put(spelling, migration.level()));
+    rules.put("haxe.Utf8", HaxeLanguageLevel.HAXE_4_0);      // -> UnicodeString
+    rules.put("haxe.xml.Fast", HaxeLanguageLevel.HAXE_4_0);  // -> haxe.xml.Access
+    return Map.copyOf(rules);
   }
 
   /** Whether to render the diagnostic for a module at {@code level}; anything unrecognized shows. */
@@ -71,9 +69,9 @@ public final class HaxeDiagnosticMessageFilter {
       if (byCode != null) return byCode;
     }
     String message = diagnostic.messageArg();
-    for (DeprecationRule rule : DEPRECATION_RULES) {
-      if (message.contains(rule.messageFragment())) {
-        return rule.replacementLevel();
+    for (Map.Entry<String, HaxeLanguageLevel> rule : MESSAGE_RULES.entrySet()) {
+      if (message.contains(rule.getKey())) {
+        return rule.getValue();
       }
     }
     return null;

@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentBindMethod
 import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentStringCode;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeModulesInPackageIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
@@ -358,10 +359,32 @@ public class HaxeReferenceSuggestionUtil {
 
     }
 
+    /**
+     * The package's modules, except those whose main type shares the module's
+     * name: the type completion already offers that type, and both rows would
+     * insert the same text. A module without such a type keeps its row, as its
+     * types are reachable only through it ({@code pack.Module.Type}).
+     */
     private static List<HaxeModuleLookupElement> createModuleLookups(PsiPackage psiPackage) {
         Project project = psiPackage.getProject();
-        Collection<HaxeComponentIndexData> moduleInfos = HaxeModulesInPackageIndex.getModulesInPackage(psiPackage.getQualifiedName(), project, GlobalSearchScope.allScope(project));
-        return HaxeModuleLookupElement.convert(moduleInfos);
+        GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+        Collection<HaxeComponentIndexData> moduleInfos = HaxeModulesInPackageIndex.getModulesInPackage(psiPackage.getQualifiedName(), project, scope);
+        List<HaxeComponentIndexData> withoutMainType = moduleInfos.stream()
+          .filter(module -> !hasMainType(module.getFqn(), project, scope))
+          .toList();
+        return HaxeModuleLookupElement.convert(withoutMainType);
+    }
+
+    /** Whether the module declares a type of its own name in its package. */
+    private static boolean hasMainType(@NotNull FullyQualifiedInfo module, @NotNull Project project, @NotNull GlobalSearchScope scope) {
+        String moduleName = module.getModuleName();
+        if (moduleName == null) return false;
+        return HaxeClassNameUnifiedIndex.getCompletionData(moduleName, project, scope).stream()
+          .map(type -> type.qualifiedInfo)
+          .anyMatch(type -> type != null
+                            && module.getPackageName().equals(type.getPackageName())
+                            && moduleName.equals(type.getModuleName())
+                            && moduleName.equals(type.getClassName()));
     }
 
     private static void addRootPackageSuggestions(List<HaxeLookupElement> variants, HaxeReference targetReference) {

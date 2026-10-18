@@ -29,7 +29,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.config.sdk.ui.HaxeAdditionalConfigurablePanel;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -155,14 +155,20 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
       .submit(AppExecutorUtil.getAppExecutorService());
   }
 
+  /** What the empty fields inherit: the haxelib bundled in the home, otherwise each runtime's own variables, then the PATH. */
   @NonNull
   private static InheritedDefaults computeInheritedDefaults(@Nullable String homePath) {
     String bundledHaxelib = homePath != null ? HaxeSdkUtilBase.getHaxelibPathByFolderPath(homePath) : null;
-    String haxelib = bundledHaxelib != null ? bundledHaxelib : HaxeToolPathResolver.pathDetectedExecutable("haxelib");
+    String haxelib = bundledHaxelib != null ? bundledHaxelib : environmentOrPathDefault(HaxeRuntimeTool.HAXELIB);
     return new InheritedDefaults(haxelib,
-                                 HaxeToolPathResolver.pathDetectedExecutable("neko"),
-                                 HaxeToolPathResolver.pathDetectedExecutable("hl"),
-                                 HaxeToolPathResolver.pathDetectedExecutable("node"));
+                                 environmentOrPathDefault(HaxeRuntimeTool.NEKO),
+                                 environmentOrPathDefault(HaxeRuntimeTool.HASHLINK),
+                                 environmentOrPathDefault(HaxeRuntimeTool.NODE));
+  }
+
+  @Nullable
+  private static String environmentOrPathDefault(HaxeRuntimeTool tool) {
+    return tool.fromEnvironmentOrPath(HaxeRuntimeTool.PROCESS_ENVIRONMENT);
   }
 
   private void applyInheritedDefaults(@NonNull InheritedDefaults defaults) {

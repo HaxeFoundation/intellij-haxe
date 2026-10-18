@@ -1,7 +1,11 @@
 package com.intellij.plugins.haxe.v2.display;
 
+import com.intellij.plugins.haxe.display.protocol.JsonTypeRef;
 import com.intellij.plugins.haxe.display.protocol.MissingFields;
+import com.intellij.plugins.haxe.ide.generation.HaxeMemberStubs;
+import com.intellij.plugins.haxe.model.HaxeAccessorType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,8 +13,8 @@ import java.util.List;
 
 /**
  * Source text for the members a MISSING_FIELDS entry asks for, with the
- * types the compiler reported. It writes method stubs that throw until
- * implemented (an empty body for Void), properties with their access pair,
+ * types the compiler reported. It writes method stubs with the body
+ * {@link HaxeMemberStubs} prescribes, properties with their access pair,
  * and plain variables. For a class whose final fields are never initialized,
  * it writes a constructor that takes and assigns each of them in declaration
  * order. An abstract parent's methods are implemented without
@@ -18,9 +22,6 @@ import java.util.List;
  * field.
  */
 final class HaxeMissingMemberSource {
-
-  private static final String STUB_BODY = "{\n\tthrow new haxe.exceptions.NotImplementedException();\n}";
-  private static final String EMPTY_BODY = "{\n}";
 
   private HaxeMissingMemberSource() {
   }
@@ -39,7 +40,8 @@ final class HaxeMissingMemberSource {
   @NotNull
   private static String methodText(@NotNull MissingFields.MissingField field) {
     String returnType = HaxeTypeSyntax.returnTypeText(field.type());
-    String body = "Void".equals(returnType) ? EMPTY_BODY : STUB_BODY;
+    JsonTypeRef wireReturnType = field.type() == null ? null : field.type().returnType();
+    String body = HaxeMemberStubs.body(wireReturnType == null || !wireReturnType.isVoid());
     String parameters = field.type() != null && field.type().isFunction() ? HaxeTypeSyntax.parameterListText(field.type()) : "";
     return modifiers(field) + "function " + field.name() + "(" + parameters + "):" + returnType + " " + body;
   }
@@ -71,18 +73,20 @@ final class HaxeMissingMemberSource {
   /** {@code (get, never)} for a property; nothing for a plain variable. */
   @NotNull
   private static String accessPair(@NotNull MissingFields.MissingField field) {
-    String read = accessText(field.readAccess(), "get");
-    String write = accessText(field.writeAccess(), "set");
+    String read = accessText(field.readAccess(), HaxeAccessorType.GET);
+    String write = accessText(field.writeAccess(), HaxeAccessorType.SET);
     if (read == null && write == null) return "";
-    return "(" + (read != null ? read : "default") + ", " + (write != null ? write : "default") + ")";
+    String plain = HaxeAccessorType.DEFAULT.text;
+    return "(" + (read != null ? read : plain) + ", " + (write != null ? write : plain) + ")";
   }
 
   /** The source spelling of an access kind the compiler reported; null for the plain access that needs no pair. */
-  private static String accessText(@NotNull String wireKind, @NotNull String accessor) {
+  @Nullable
+  private static String accessText(@NotNull String wireKind, @NotNull HaxeAccessorType accessor) {
     return switch (wireKind) {
-      case "AccCall" -> accessor;
-      case "AccNever" -> "never";
-      case "AccNo" -> "null";
+      case "AccCall" -> accessor.text;
+      case "AccNever" -> HaxeAccessorType.NEVER.text;
+      case "AccNo" -> HaxeAccessorType.NULL.text;
       default -> null;
     };
   }

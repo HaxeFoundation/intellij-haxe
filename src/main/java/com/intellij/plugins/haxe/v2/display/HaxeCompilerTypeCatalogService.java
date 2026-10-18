@@ -143,9 +143,9 @@ public final class HaxeCompilerTypeCatalogService {
     return HaxeCompilerResolveService.getInstance(project).blueprintClass(catalog.context(), entry.fqn());
   }
 
-  /** Whether the catalog answers at all, which the completion mode decides. An empty catalog also schedules its fill. */
+  /** Whether the catalog answers at all, which the completion feature and mode decide. An empty catalog also schedules its fill. */
   private boolean shouldAnswer() {
-    if (!HaxeCompilerSettings.getInstance(project).getCompletionMode().usesCompiler()) return false;
+    if (!HaxeCompilerSettings.getInstance(project).usesCompilerCompletion()) return false;
     if (catalogs.isEmpty()) scheduleFillAll();
     return true;
   }

@@ -19,10 +19,14 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.junit5.RunInEdt;
 import com.intellij.testFramework.utils.inlays.declarative.DeclarativeInlayHintsProviderTestCase;
+import com.intellij.testFramework.utils.inlays.declarative.DeclarativeInlayHintsProviderTestCase.ProviderTestMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -33,9 +37,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Jupiter front for the platform's JUnit3-style
  * {@link DeclarativeInlayHintsProviderTestCase}. The engine keeps the platform
  * comparison logic but swaps its light fixture for the same heavy Haxe module
- * fixture the other code-insight tests use. Lifecycle stays template-method
- * shaped so subclasses keep their {@code useHaxeToolkit(); super.setUp();}
- * ordering; everything runs on the EDT like the JUnit3-era dispatch.
+ * fixture the other code-insight tests use. Every test gets the latest Haxe
+ * toolkit on its source roots and a 2-space indent; everything runs on the EDT
+ * like the JUnit3-era dispatch.
  */
 @RunInEdt(writeIntent = true)
 public abstract class HaxeInlayTestBase {
@@ -76,9 +80,11 @@ public abstract class HaxeInlayTestBase {
     return null != myHaxeToolkit;
   }
 
-  public void setUp() throws Exception {
+  private void setUp() throws Exception {
+    useHaxeToolkit();
     engine.start();
     myFixture = engine.fixture();
+    setTestStyleSettings(2);
   }
 
   protected void tearDown() throws Exception {
@@ -125,11 +131,30 @@ public abstract class HaxeInlayTestBase {
 
   protected void doTest(InlayHintsProvider inlayHintsProvider) throws Exception {
     String name = getTestDataPath() + getTestName(false) + ".hx";
-    String data = Files.readString(Path.of(name));
-    //seems to be an issue with windows line endings and inlays so to avoid any issues we replace them here.
-    data = data.replaceAll("\\r\\n?", "\n");
+    String data = withLfLineEndings(Files.readString(Path.of(name)));
 
     engine.run(data, inlayHintsProvider);
+  }
+
+  /**
+   * Runs the provider over its shipped settings-page preview ({@code /inlayProviders/<providerId>/preview.hx})
+   * and expects that preview's own hint markers back.
+   */
+  protected void doTestPreview(String providerId, InlayHintsProvider inlayHintsProvider) throws IOException {
+    engine.runPreview(shippedPreview(providerId), inlayHintsProvider);
+  }
+
+  private static String shippedPreview(String providerId) throws IOException {
+    String path = "/inlayProviders/" + providerId + "/preview.hx";
+    try (InputStream preview = HaxeInlayTestBase.class.getResourceAsStream(path)) {
+      assertNotNull(preview, "no shipped preview at " + path);
+      return withLfLineEndings(new String(preview.readAllBytes(), StandardCharsets.UTF_8));
+    }
+  }
+
+  // CRLF or CR line ends; the document the hints are collected in holds LF, so the expected text must too
+  private static String withLfLineEndings(String text) {
+    return text.replaceAll("\\r\\n?", "\n");
   }
 
   private final class Engine extends DeclarativeInlayHintsProviderTestCase {
@@ -190,6 +215,12 @@ public abstract class HaxeInlayTestBase {
 
     void run(String data, InlayHintsProvider provider) {
       doTestProvider("testFile.hx", data, provider, Map.of(), null, true);
+    }
+
+    // SIMPLE: a shipped preview carries plain hint text, not the `|`-separated presentation parts.
+    // The platform's own doTestPreview is not usable: it dumps onto the marked text, so the markers double.
+    void runPreview(String data, InlayHintsProvider provider) {
+      doTestProvider("preview.hx", data, provider, Map.of(), null, true, ProviderTestMode.SIMPLE);
     }
   }
 }

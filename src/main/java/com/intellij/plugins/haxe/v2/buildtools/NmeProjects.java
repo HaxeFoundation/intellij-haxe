@@ -3,7 +3,10 @@ package com.intellij.plugins.haxe.v2.buildtools;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.config.FrameworkTarget;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetOptions;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetSelectionStore;
@@ -18,6 +21,14 @@ import java.util.List;
  * lime-family counterpart is {@link LimeProjects}.
  */
 public final class NmeProjects {
+
+  /**
+   * nme's forwarding forms (nme 7.0.64): the tool forwards ATTACHED defines and
+   * any double-dash token verbatim into its generated build.hxml; single-dash
+   * haxe flags like {@code -cp} are swallowed, so the classpath rides the
+   * {@code --class-path} spelling.
+   */
+  public static final HaxeToolFlagSpellings FLAG_SPELLINGS = new HaxeToolFlagSpellings("-D", "--class-path ", "--macro ");
 
   /**
    * The nme tool's core project actions (it accepts many more - installer,
@@ -84,31 +95,38 @@ public final class NmeProjects {
                                                      @NotNull VirtualFile file,
                                                      @NotNull HaxeBuildFileInfo raw) {
     String targetFlag = selectedTargetFlag(project, file);
-    TargetArtifact artifact = selectedArtifact(file, targetFlag);
+    String content = HaxeBuildFileInspector.loadText(file);
+    TargetArtifact artifact = content == null ? null : selectedArtifact(content, targetFlag);
     if (artifact == null) return raw.withTarget(targetFor(targetFlag), null);
     return raw.withTarget(artifact.target(), artifact.relativeOutput());
   }
 
+  /**
+   * The artifact the nmml's {@code <app file>} packages for the target under its
+   * {@code <app path>} (nme shares lime's default export root); null without an
+   * app file or for an unmapped target.
+   */
   @Nullable
-  private static TargetArtifact selectedArtifact(@NotNull VirtualFile file, @NotNull String targetFlag) {
-    String content = HaxeBuildFileInspector.loadText(file);
-    String appFile = content == null ? null : ProjectXmlParser.parseAppFile(content);
+  public static TargetArtifact selectedArtifact(@NotNull String content, @NotNull String targetFlag) {
+    String appFile = ProjectXmlParser.parseAppFile(content);
     if (appFile == null) return null;
-
-    // the nmml's <app path> overrides the tool's default "bin" output root
     String appPath = ProjectXmlParser.parseAppPath(content);
-    String outputRoot = appPath != null ? appPath : "bin";
-    return targetArtifact(targetFlag, appFile, outputRoot);
+    return targetArtifact(targetFlag, appFile, appPath != null ? appPath : LimeProjects.DEFAULT_APP_PATH);
   }
 
-  /** The haxe compilation target behind an nme CLI target id ("cpp" is nme's host-desktop word), or null for an unknown id. */
+  /**
+   * The haxe compilation target behind an nme CLI target id: the mapping of
+   * {@link NMETarget} (the targets the settings offer; "cpp" is nme's
+   * host-desktop word), plus the ids the tool accepts that the settings do
+   * not list. Null for an unknown id.
+   */
   @Nullable
   public static HaxeTarget targetFor(@NotNull String targetFlag) {
+    HaxeTarget listed = FrameworkTarget.outputTargetFor(NMETarget.values(), targetFlag);
+    if (listed != null) return listed;
     return switch (targetFlag) {
-      case "neko" -> HaxeTarget.NEKO;
-      case "cpp", "windows", "mac", "linux", "android", "ios" -> HaxeTarget.CPP;
-      case "flash", "air" -> HaxeTarget.FLASH;
-      case "html5", "js", "jsprime" -> HaxeTarget.JAVA_SCRIPT;
+      case "air" -> HaxeTarget.FLASH;
+      case "js", "jsprime" -> HaxeTarget.JAVA_SCRIPT;
       default -> null;
     };
   }
@@ -138,7 +156,7 @@ public final class NmeProjects {
   @NotNull
   private static TargetArtifact nekoArtifact(@NotNull String appFile, @NotNull String outputRoot) {
     String platformDir = nekoPlatformDirectory();
-    String launcher = SystemInfo.isWindows ? appFile + ".exe" : appFile;
+    String launcher = HaxeSdkUtilBase.getExecutableName(appFile);
     return new TargetArtifact(HaxeTarget.NEKO, outputRoot + "/" + platformDir + "/" + appFile + "/" + launcher);
   }
 

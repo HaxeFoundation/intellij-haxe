@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools.projectmodel
 
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -63,7 +63,7 @@ class HaxeModuleSdkApplier(private val project: Project, private val scope: Coro
       // UI showing derived state (the tool window's SDK row) refreshes on this
       withContext(Dispatchers.EDT) {
         if (!project.isDisposed) {
-          project.messageBus.syncPublisher(HaxeBuildConfigListener.TOPIC).buildConfigurationChanged()
+          HaxeBuildEventListener.publisher(project).workspaceApplied()
         }
       }
     }

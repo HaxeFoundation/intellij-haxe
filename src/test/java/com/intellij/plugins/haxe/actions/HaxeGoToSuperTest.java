@@ -34,6 +34,7 @@ public class HaxeGoToSuperTest extends HaxeLightFixtureTestCase {
     return "/gotoSuper/";
   }
 
+  // TODO: on the 2026.3 EAP the caret stays put after the handler runs (green on 2026.2); recheck once 2026.3 reaches beta
   private void doTest() throws Throwable {
     myFixture.configureByFile(getTestName(false) + ".hx");
     final CodeInsightActionHandler handler = CodeInsightActions.GOTO_SUPER.forLanguage(HaxeLanguage.INSTANCE);

@@ -15,12 +15,12 @@ class NullTypeReturnsTest {
         //TODO errors should probably just show constraint
 
         // should fail, C does not implement interface D
-        var <error descr="Incompatible type: Null<T:D> should be C">c:C = nullWrappedReturn()</error>;
-        var <error descr="Incompatible type: T:D should be C">c:C = normalReturn()</error>;
-        var <error descr="Incompatible type: Array<Null<T:D>> should be Array<C>">a:Array<C> =  nullWrappedTypeParameterReturn()</error><EOLError descr="Missing semicolon."></EOLError>
+        var c:C = <error descr="Incompatible type: Null<T:D> should be C">nullWrappedReturn()</error>;
+        var c:C = <error descr="Incompatible type: T:D should be C">normalReturn()</error>;
+        var a:Array<C> =  <error descr="Incompatible type: Array<Null<T:D>> should be Array<C>">nullWrappedTypeParameterReturn()</error>;
 
         // wrong does not match constraints
-        var <error descr="Incompatible type: T:D should be String">c:String = normalReturn()</error>;
+        var c:String = <error descr="Incompatible type: T:D should be String">normalReturn()</error>;
     }
     public function nullWrappedReturn<T:D>():Null<T> {return null;}
     public function normalReturn<T:D>():T {return null;}

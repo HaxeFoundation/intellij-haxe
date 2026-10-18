@@ -8,7 +8,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.protocol.DisplayMethods;
 import com.intellij.plugins.haxe.display.protocol.MetadataEntry;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * Answers from its cache only, so it is safe under the read lock. The
  * registry is hydrated once per server. It belongs to the compiler binary,
- * so it is keyed by the server's port.
+ * so it is keyed by the server's identity: the shared server's port, or the
+ * loopback port of a dedicated display process.
  */
 @Service(Service.Level.PROJECT)
 @CustomLog
@@ -39,8 +39,12 @@ public final class HaxeCompilerMetadataService {
   private record Registry(@NotNull List<MetadataEntry> entries, @NotNull Set<String> bareNames) {
   }
 
+  private static final long FAILURE_COOLDOWN_MS = 30_000;
+
   private final Project project;
   private final AtomicBoolean hydrating = new AtomicBoolean();
+  /** When the last hydration failed, whichever server: a server that cannot answer is asked again after a pause, not on every read. */
+  private volatile long failedAt;
   // modules with different SDKs run several servers, each with its own registry
   private final Map<Integer, Registry> registries = new ConcurrentHashMap<>();
 
@@ -72,31 +76,38 @@ public final class HaxeCompilerMetadataService {
 
   public void clearCache() {
     registries.clear();
+    failedAt = 0;
   }
 
   @Nullable
   private Registry lookup(@NotNull VirtualFile contextFile) {
     if (!HaxeCompilerSettings.getInstance(project).isCompilerDiagnosticsEnabled()) return null;
     if (DumbService.isDumb(project)) return null;
-    HaxeCompilerDisplayService.DisplayContext context = HaxeCompilerDisplayService.getInstance(project).contextFor(contextFile);
+    HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(project);
+    HaxeCompilerDisplayService.DisplayContext context = displayService.contextFor(contextFile);
     if (context == null) return null;
     // only the registry of this SDK's running server applies
-    int currentPort = HaxeCompilationServerManager.getInstance(project).runningPortForSdk(context.sdkName());
-    Registry known = currentPort > 0 ? registries.get(currentPort) : null;
+    int endpointId = displayService.runningEndpointIdFor(context.sdkName());
+    Registry known = endpointId > 0 ? registries.get(endpointId) : null;
     if (known != null) {
       return known;
     }
+    if (System.currentTimeMillis() - failedAt < FAILURE_COOLDOWN_MS) return null;
     scheduleHydration(context);
     return null;
   }
 
   private void scheduleHydration(@NotNull HaxeCompilerDisplayService.DisplayContext context) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) return;
     if (!hydrating.compareAndSet(false, true)) return;
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
         HaxeCompilerDisplayService.Connected connected =
           HaxeCompilerDisplayService.getInstance(project).connectFor(context, DisplayMethods.METADATA);
-        if (connected == null) return;
+        if (connected == null) {
+          failedAt = System.currentTimeMillis();
+          return;
+        }
         List<MetadataEntry> entries = connected.client().metadata(connected.args());
         Set<String> bareNames = entries.stream()
           .map(MetadataEntry::bareName)
@@ -106,6 +117,7 @@ public final class HaxeCompilerMetadataService {
         HaxeCompilerCaches.restartHighlightingLater(project, "haxe: compiler metadata updated");
       } catch (DisplayRequestException e) {
         log.info("display/metadata failed: " + e.getMessage());
+        failedAt = System.currentTimeMillis();
       } finally {
         hydrating.set(false);
       }

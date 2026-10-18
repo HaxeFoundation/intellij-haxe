@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterPin;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterStores;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,7 +81,7 @@ public class BrowserRunConfigurationValidationTest extends HaxeCodeInsightFixtur
                                                    () -> configuration.checkRunnerSettings(new BrowserDebugRunner(), null, null));
 
     String adapterName = BrowserRunConfiguration.adapterDisplayName(BrowserFamily.CHROMIUM) + " " + AdapterPin.JS_DEBUG.version();
-    assertEquals(HaxeDebuggerBundle.message("browser.runner.adapter.missing", adapterName), error.getMessage());
+    assertEquals(HaxeDebuggerBundle.message("javascript.adapter.missing", adapterName), error.getMessage());
   }
 
   @Test

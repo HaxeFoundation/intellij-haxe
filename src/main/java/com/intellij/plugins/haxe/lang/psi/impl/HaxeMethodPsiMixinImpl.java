@@ -26,7 +26,6 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.HaxeEnumValueConstructorModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
@@ -109,14 +108,9 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
 
   @Override
   public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
-    if (metadataType == HaxeMetadataCompileTimeMeta.class) {
-      HaxeMethodStub stub = getStub();
-      if (stub != null) {
-        Boolean stubValue = stub.hasMetadata(name.asCompileTimeText());
-        if (stubValue != null) return stubValue;
-      }
-    }
-    return super.hasMetadata(name, metadataType);
+    HaxeMethodStub stub = getStub();
+    Boolean stubValue = stub == null ? null : stub.compileTimeMetadata(name, metadataType);
+    return stubValue != null ? stubValue : super.hasMetadata(name, metadataType);
   }
 
   @Nullable
@@ -267,7 +261,7 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
 
   @Override
   public boolean isDeprecated() {
-    return false;
+    return hasCompileTimeMetadata(HaxeMeta.DEPRECATED);
   }
 
   @Override

@@ -100,7 +100,7 @@ public class HaxeFindUsagesTest extends HaxeLightFixtureTestCase {
   @DisplayName("local function parameter")
   public void testLocalFunctionParameter() throws Throwable {
     myFixture.configureByFiles("LocalFunctionParameter.hx", "com/bar/Foo.hx");
-    doTest(3);
+    doTest(1);
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools;
 
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -45,11 +46,13 @@ public final class HaxeBuildClasspaths {
 
   /**
    * The entry resolved to an existing DIRECTORY - absolute entries directly,
-   * relative ones against the anchor - or null.
+   * relative ones against the anchor - or null, also for an entry naming no
+   * usable path.
    */
   @Nullable
   static VirtualFile resolveClasspathEntry(@NotNull VirtualFile anchor, @NotNull String entry) {
     String normalized = normalizeEntry(entry);
+    if (HaxeExternalPaths.pathOf(normalized) == null) return null;
     VirtualFile resolved = OSAgnosticPathUtil.isAbsolute(normalized)
                            ? LocalFileSystem.getInstance().findFileByPath(normalized)
                            : anchor.findFileByRelativePath(normalized);
@@ -77,11 +80,8 @@ public final class HaxeBuildClasspaths {
     if (buildFile.type() == HaxeBuildFileType.HXML) {
       directories.add(anchor.getPath());
     }
-    for (String classpath : classpaths) {
-      VirtualFile resolved = resolveClasspathEntry(anchor, classpath);
-      if (resolved != null) {
-        directories.add(resolved.getPath());
-      }
+    for (VirtualFile directory : resolvedDirectories(anchor, classpaths)) {
+      directories.add(directory.getPath());
     }
 
     // -lib sources live outside the -cp entries; the sync'd managed module
@@ -91,6 +91,31 @@ public final class HaxeBuildClasspaths {
     Module module = ModuleUtilCore.findModuleForFile(buildFile.file(), project);
     if (module != null) {
       collectManagedLibraryRoots(module, directories);
+    }
+    return directories;
+  }
+
+  /**
+   * The build's own classpath entries (its selected section) as existing
+   * directories: without the implicit work directory and the library roots
+   * {@link #sourceDirectories} adds. Call in a read action.
+   */
+  @NotNull
+  public static List<VirtualFile> declaredDirectories(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    VirtualFile anchor = HaxeBuildWorkDirectories.anchor(project, buildFile.file());
+    if (anchor == null) return List.of();
+    List<String> classpaths = HaxeBuildSections.inspectSelected(project, buildFile).classpaths();
+    return resolvedDirectories(anchor, classpaths);
+  }
+
+  @NotNull
+  static List<VirtualFile> resolvedDirectories(@NotNull VirtualFile anchor, @NotNull List<String> classpaths) {
+    List<VirtualFile> directories = new ArrayList<>();
+    for (String classpath : classpaths) {
+      VirtualFile resolved = resolveClasspathEntry(anchor, classpath);
+      if (resolved != null) {
+        directories.add(resolved);
+      }
     }
     return directories;
   }

@@ -49,7 +49,21 @@ public class HaxeToolsEditorGroupTest extends HaxeLightFixtureTestCase {
 
     AnActionEvent nextOpening = TestActionEvent.createTestEvent(group, editorContextOn(file));
     group.update(nextOpening);
-    assertFalse(nextOpening.getPresentation().isVisible());
+    assertFalse(nextOpening.getPresentation().isVisible(), "searched and found nothing: the group stays hidden");
+  }
+
+  @Test
+  @DisplayName("shows for a checkstyle config alone")
+  public void testShowsForACheckstyleConfigAlone() throws Exception {
+    myFixture.addFileToProject("checkstyle.json", "{}");
+    VirtualFile file = myFixture.addFileToProject("pack/Main.hx", "class Main {}").getVirtualFile();
+    HaxeToolsEditorGroup group = new HaxeToolsEditorGroup();
+    group.update(TestActionEvent.createTestEvent(group, editorContextOn(file)));
+    HaxeToolConfigDetector.getInstance(getProject()).awaitSearchesForTests();
+
+    AnActionEvent nextOpening = TestActionEvent.createTestEvent(group, editorContextOn(file));
+    group.update(nextOpening);
+    assertTrue(nextOpening.getPresentation().isVisible(), "a checkstyle config shows the group without a formatter config");
   }
 
   private DataContext editorContextOn(VirtualFile file) {

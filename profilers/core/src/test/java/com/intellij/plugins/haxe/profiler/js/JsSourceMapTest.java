@@ -37,8 +37,8 @@ public class JsSourceMapTest {
   }
 
   @Test
-  @DisplayName("file urls and relative sources both become plain paths")
-  public void testFileUrlsAndRelativeSourcesBothBecomePlainPaths(@TempDir Path directory) throws IOException {
+  @DisplayName("file url sources become plain paths")
+  public void testFileUrlSourcesBecomePlainPaths(@TempDir Path directory) throws IOException {
     JsSourceMap map = parsed(directory, """
       {"version": 3, "sources": ["file:///C:/proj/src/Main.hx"], "names": [], "mappings": "AAAA"}""");
 

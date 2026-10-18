@@ -20,6 +20,10 @@ import javax.swing.Icon;
 import java.util.List;
 import java.util.Set;
 
+import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.CLASSPATH_ONLY_PROJECT_SOURCE;
+import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.MAVEN_POM_SOURCE;
+import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.NME_SAMPLE_PROJECT_SOURCE;
+import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.SECTIONED_LIME_PROJECT_SOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -43,27 +47,6 @@ public class ProjectXmlFileDescriptionTest extends HaxeCodeInsightFixtureTestCas
     </project>
     """;
 
-  static final String CLASSPATH_ONLY_PROJECT_SOURCE = """
-    <project>
-      <app main="Main"/>
-      <classpath path="src"/>
-    </project>
-    """;
-
-  static final String NME_SAMPLE_PROJECT_SOURCE = """
-    <project>
-      <app main="Main" file="Sample"/>
-      <window width="800" height="600"/>
-    </project>
-    """;
-
-  static final String MAVEN_POM_SOURCE = """
-    <project>
-      <modelVersion>4.0.0</modelVersion>
-      <artifactId>shapes</artifactId>
-    </project>
-    """;
-
   /** (file name, source text, the description claiming the file - null for none, its file icon). */
   static final List<Arguments> CLAIMS = List.of(
     arguments("lime-project.xml", LIME_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
@@ -73,6 +56,8 @@ public class ProjectXmlFileDescriptionTest extends HaxeCodeInsightFixtureTestCas
     arguments("openfl-project.lime", OPENFL_PROJECT_SOURCE, OpenflXmlFileDescription.class, HaxeIcons.OPENFL_LOGO),
     // <classpath> is lime's alias of <source>
     arguments("classpath-only.xml", CLASSPATH_ONLY_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
+    // the recognised elements may sit inside a <section>
+    arguments("sectioned.xml", SECTIONED_LIME_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
     arguments("sample.nmml", NME_SAMPLE_PROJECT_SOURCE, NMMLFileDescription.class, HaxeIcons.NMML_LOGO),
     // the extension picks NME even when the project declares openfl
     arguments("openfl-project.nmml", OPENFL_PROJECT_SOURCE, NMMLFileDescription.class, HaxeIcons.NMML_LOGO),

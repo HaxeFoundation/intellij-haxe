@@ -25,6 +25,8 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.roots.PackageIndex;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
@@ -49,6 +51,9 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.PACKAGE_STATEM
 
 public class HaxeFile extends PsiFileBase
   implements HaxeModifierListOwner, PsiClassOwner {
+
+  /** The file whose imports apply to every module in its folder and below; its package follows its path, so it needs no package statement. */
+  public static final String IMPORT_HX_NAME = "import.hx";
 
   private HaxeFileModel haxeFileModel;
 
@@ -126,6 +131,17 @@ public class HaxeFile extends PsiFileBase
 
     ASTNode node = calcTreeElement().findChildByType(PACKAGE_STATEMENT);
     return node != null ? (PsiPackageStatement)node.getPsi() : null;
+  }
+
+  public static boolean isImportHx(@NotNull String fileName) {
+    return IMPORT_HX_NAME.equals(fileName);
+  }
+
+  /** The package an import.hx belongs to: the one its folder maps to; null when the folder is under no source root. */
+  @Nullable
+  public static String importHxPackage(@NotNull PsiFile file) {
+    VirtualFile virtualFile = file.getVirtualFile();
+    return virtualFile == null ? null : PackageIndex.getInstance(file.getProject()).getPackageName(virtualFile);
   }
 
   @Override

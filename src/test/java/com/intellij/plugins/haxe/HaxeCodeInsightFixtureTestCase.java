@@ -34,6 +34,7 @@ import com.intellij.plugins.haxe.ide.HaxeInspectionTestTools;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
@@ -62,6 +63,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -234,6 +236,17 @@ abstract public class HaxeCodeInsightFixtureTestCase {
   }
 
   /**
+   * Waits until the library syncs requested so far have landed. Opening the
+   * project starts one; a test that records sync results itself waits first,
+   * or that sync replaces them with its own.
+   */
+  protected void awaitLibrarySync() {
+    AtomicBoolean synced = new AtomicBoolean();
+    HaxeLibrarySync.sync(getProject(), () -> synced.set(true));
+    PlatformTestUtil.waitWithEventsDispatching("the library sync must land", synced::get, 30);
+  }
+
+  /**
    * Use reflection to load an annotator inspection class.
    * Specific to annotation tests, but placed here just to avoid adding yet another single-function base class.
    * <p>
@@ -249,11 +262,6 @@ abstract public class HaxeCodeInsightFixtureTestCase {
     return inspection;
   }
 
-  /** Fixture prefix inside the base path; suites whose fixtures sit in a subfolder override. */
-  protected String fixturePrefix() {
-    return "";
-  }
-
   /**
    * Highlighting over the test-named fixture: the annotator-based inspection
    * plus the semantic-inspection block, minus {@code unsetInspections}.
@@ -261,9 +269,25 @@ abstract public class HaxeCodeInsightFixtureTestCase {
   protected void doHighlightingTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
                                     @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
                                     String... additionalFiles) throws Exception {
-    myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{fixturePrefix() + getTestName(false) + ".hx"}, additionalFiles));
+    String[] files = ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles);
+    doHighlightingTestOn(files, checkWarnings, checkInfos, checkWeakWarnings, unsetInspections);
+  }
+
+  /**
+   * Highlighting over explicitly named files, the first being the one under
+   * test. {@code extraTools} are pre-configured inspection INSTANCES (e.g.
+   * with an option flipped); list their classes in {@code unsetInspections}
+   * so the default instance does not register alongside.
+   */
+  protected void doHighlightingTestOn(String[] files, boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
+                                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
+                                      InspectionProfileEntry... extraTools) throws Exception {
+    myFixture.configureByFiles(files);
     myFixture.enableInspections(getAnnotatorBasedInspection());
     myFixture.enableInspections(HaxeInspectionTestTools.semanticInspections(unsetInspections));
+    if (extraTools.length > 0) {
+      myFixture.enableInspections(extraTools);
+    }
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
 

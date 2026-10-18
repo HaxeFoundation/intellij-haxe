@@ -70,14 +70,22 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
    * The given path: absolute as it is, relative against {@link #baseDirectory()};
    * null when unparseable.
    */
-  // TODO: HashLinkRunConfigurations.resolveAgainstModule applies the same rule; fold it in once fix/hl-override is merged
   protected @Nullable Path resolveAgainstModule(String value) {
+    return resolveAgainstModule(getConfigurationModule().getModule(), getProject(), value);
+  }
+
+  /**
+   * The module-relative path rule for callers that hold a module without a
+   * configuration (build sniffing): absolute as it is, relative against
+   * {@link #baseDirectory(Module, Project)}; null when unparseable.
+   */
+  public static @Nullable Path resolveAgainstModule(@Nullable Module module, Project project, String value) {
     try {
       Path path = Path.of(value);
       if (path.isAbsolute()) {
         return path;
       }
-      Path base = baseDirectory();
+      Path base = baseDirectory(module, project);
       return base != null ? base.resolve(path) : path;
     } catch (InvalidPathException e) {
       return null;
@@ -90,12 +98,15 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
    * selected; null for a project without one.
    */
   protected @Nullable Path baseDirectory() {
-    Module module = getConfigurationModule().getModule();
+    return baseDirectory(getConfigurationModule().getModule(), getProject());
+  }
+
+  public static @Nullable Path baseDirectory(@Nullable Module module, Project project) {
     VirtualFile moduleDir = module != null ? ProjectUtil.guessModuleDir(module) : null;
     if (moduleDir != null) {
       return Path.of(moduleDir.getPath());
     }
-    String basePath = getProject().getBasePath();
+    String basePath = project.getBasePath();
     return basePath != null ? Path.of(basePath) : null;
   }
 }

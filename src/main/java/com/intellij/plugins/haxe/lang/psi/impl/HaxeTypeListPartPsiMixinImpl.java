@@ -103,7 +103,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxeContainerStubPsiElementBas
           } else if (HaxeTokenTypes.ANONYMOUS_TYPE.equals(targetType)){
             myChildClass = (HaxeAnonymousType) target;
           } else {
-            log.debug("Target: " + target.toString());
+            if (log.isDebugEnabled()) log.debug("Target: " + target.toString());
             log.assertTrue(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
             myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
           }

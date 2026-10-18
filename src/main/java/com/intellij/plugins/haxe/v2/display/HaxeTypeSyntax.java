@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.v2.display;
 import com.intellij.plugins.haxe.display.protocol.JsonTypeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,17 +16,20 @@ import java.util.stream.Collectors;
  */
 final class HaxeTypeSyntax {
 
+  // a Haxe identifier - the compiler can emit odd parameter names for closures
+  private static final String IDENTIFIER = "[A-Za-z_]\\w*";
+  // a plain dot path of identifiers - privates/natives can carry other shapes
+  private static final String DOT_PATH = "[A-Za-z_][\\w.]*";
+
   private HaxeTypeSyntax() {
   }
 
   @NotNull
   static String safeTypeText(@Nullable JsonTypeRef type) {
     if (type == null) return "Dynamic";
-    return switch (type.kind()) {
-      case "TInst", "TEnum", "TType", "TAbstract" -> classTypeText(type);
-      case "TFun" -> functionTypeText(type);
-      default -> "Dynamic";
-    };
+    if (type.isNamedType()) return classTypeText(type);
+    if (type.isFunction()) return functionTypeText(type);
+    return "Dynamic";
   }
 
   /** The parameter list of a TFun as a declaration writes it: {@code ?name:Type, ...}. */
@@ -35,14 +37,12 @@ final class HaxeTypeSyntax {
   static String parameterListText(@NotNull JsonTypeRef functionType) {
     List<String> parameters = new ArrayList<>();
     int index = 0;
-    for (JsonNode argument : functionType.args().path("args")) {
-      String name = argument.path("name").asString("");
-      // parameter names must be identifiers - the compiler can emit odd ones for closures
-      if (!name.matches("[A-Za-z_]\\w*")) {
+    for (JsonTypeRef.Argument argument : functionType.functionArguments()) {
+      String name = argument.name();
+      if (name == null || !name.matches(IDENTIFIER)) {
         name = "arg" + index;
       }
-      boolean optional = argument.path("opt").asBoolean(false);
-      parameters.add((optional ? "?" : "") + name + ":" + safeTypeText(JsonTypeRef.of(argument.path("t"))));
+      parameters.add((argument.optional() ? "?" : "") + name + ":" + safeTypeText(argument.type()));
       index++;
     }
     return String.join(", ", parameters);
@@ -51,26 +51,24 @@ final class HaxeTypeSyntax {
   /** The return type of a TFun; {@code Dynamic} for anything else. */
   @NotNull
   static String returnTypeText(@Nullable JsonTypeRef functionType) {
-    if (functionType == null || !functionType.isFunction()) return "Dynamic";
-    return safeTypeText(JsonTypeRef.of(functionType.args().path("ret")));
+    return safeTypeText(functionType == null ? null : functionType.returnType());
   }
 
   @NotNull
   private static String classTypeText(@NotNull JsonTypeRef type) {
     String dotPath = type.dotPath();
-    // a plain dot path of identifiers - privates/natives can carry other shapes
-    if (dotPath == null || !dotPath.matches("[A-Za-z_][\\w.]*")) return "Dynamic";
+    if (dotPath == null || !dotPath.matches(DOT_PATH)) return "Dynamic";
     List<String> parameters = new ArrayList<>();
-    for (JsonNode param : type.args().path("params")) {
-      parameters.add(safeTypeText(JsonTypeRef.of(param)));
+    for (JsonTypeRef parameter : type.typeParameters()) {
+      parameters.add(safeTypeText(parameter));
     }
     return parameters.isEmpty() ? dotPath : dotPath + "<" + String.join(", ", parameters) + ">";
   }
 
   @NotNull
   private static String functionTypeText(@NotNull JsonTypeRef type) {
-    String arguments = type.args().path("args").valueStream()
-      .map(argument -> safeTypeText(JsonTypeRef.of(argument.path("t"))))
+    String arguments = type.functionArguments().stream()
+      .map(argument -> safeTypeText(argument.type()))
       .collect(Collectors.joining(", "));
     return "(" + arguments + ") -> " + returnTypeText(type);
   }

@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.io.OSAgnosticPathUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -31,9 +32,6 @@ import java.util.Set;
  * nothing else.
  */
 public final class HaxeBuildFileIncludes {
-
-  /** A folder include's project file candidates, in lime's probing order. */
-  private static final List<String> FOLDER_INCLUDE_NAMES = List.of("include.lime", "include.nmml", "include.xml");
 
   private HaxeBuildFileIncludes() {
   }
@@ -93,8 +91,8 @@ public final class HaxeBuildFileIncludes {
     if (content == null || folder == null) return;
     for (String path : ProjectXmlParser.parseIncludePaths(content)) {
       // TODO: a ${...} path needs lime's variable substitution (haxelib paths, defines); such includes are not watched
-      if (path.contains("${")) continue;
-      VirtualFile included = resolveIncludeFile(folder, path);
+      if (ProjectXmlVocabulary.isToolExpanded(path)) continue;
+      VirtualFile included = includeFile(folder, path);
       if (included == null || !fileIndex.isInContent(included)) continue;
       if (visited.add(included.getPath())) {
         includes.add(included.getPath());
@@ -103,17 +101,29 @@ public final class HaxeBuildFileIncludes {
     }
   }
 
-  /** The include's project file: the path itself, or a folder's first existing include.lime / include.nmml / include.xml. */
+  /**
+   * The project file an {@code <include>} path names, resolved against the
+   * including file's {@code folder}: the path itself, or a folder's first
+   * existing include.lime / include.nmml / include.xml; null when nothing
+   * exists.
+   */
   @Nullable
-  private static VirtualFile resolveIncludeFile(@NotNull VirtualFile folder, @NotNull String path) {
-    VirtualFile target = OSAgnosticPathUtil.isAbsolute(path)
-                         ? folder.getFileSystem().findFileByPath(path)
-                         : folder.findFileByRelativePath(path);
+  public static VirtualFile includeFile(@NotNull VirtualFile folder, @NotNull String path) {
+    VirtualFile target = fileOrFolder(folder, path);
     if (target == null || !target.isDirectory()) return target;
-    for (String name : FOLDER_INCLUDE_NAMES) {
+    for (String name : ProjectXmlVocabulary.FOLDER_INCLUDE_FILE_NAMES) {
       VirtualFile candidate = target.findChild(name);
       if (candidate != null && !candidate.isDirectory()) return candidate;
     }
     return null;
+  }
+
+  /** The file or folder a project-file path names, resolved against the including file's {@code folder}; null when nothing exists or the path is unusable. */
+  @Nullable
+  public static VirtualFile fileOrFolder(@NotNull VirtualFile folder, @NotNull String path) {
+    if (HaxeExternalPaths.pathOf(path) == null) return null;
+    return OSAgnosticPathUtil.isAbsolute(path)
+           ? folder.getFileSystem().findFileByPath(path)
+           : folder.findFileByRelativePath(path);
   }
 }

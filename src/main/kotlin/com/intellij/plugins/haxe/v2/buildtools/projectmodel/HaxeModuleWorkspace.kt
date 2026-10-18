@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.v2.buildtools.projectmodel
 
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -78,7 +78,7 @@ class HaxeModuleWorkspace(private val project: Project, private val scope: Corou
   private suspend fun fireChanged() {
     withContext(Dispatchers.EDT) {
       if (!project.isDisposed) {
-        project.messageBus.syncPublisher(HaxeBuildConfigListener.TOPIC).buildConfigurationChanged()
+        HaxeBuildEventListener.publisher(project).workspaceApplied()
       }
     }
   }

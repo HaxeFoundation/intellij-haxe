@@ -300,24 +300,6 @@ public class HaxeFormatterComparisonTest extends HaxeLightFixtureTestCase {
     }
 
     @Test
-    @DisplayName("array literal wrap")
-    public void testArrayLiteralWrap() throws Exception {
-      doParityTest("array-literal-wrap");
-    }
-
-    @Test
-    @DisplayName("map literal wrap")
-    public void testMapLiteralWrap() throws Exception {
-      doParityTest("map-literal-wrap");
-    }
-
-    @Test
-    @DisplayName("object literal wrap")
-    public void testObjectLiteralWrap() throws Exception {
-      doParityTest("object-literal-wrap");
-    }
-
-    @Test
     @DisplayName("method chain wrap")
     public void testMethodChainWrap() throws Exception {
       doParityTest("method-chain-wrap");
@@ -458,20 +440,13 @@ public class HaxeFormatterComparisonTest extends HaxeLightFixtureTestCase {
     }
 
     @Test
-    @DisplayName("array item rules")
-    public void testArrayItemRules() throws Exception {
-      // wrapping.arrayWrap on the items (each with its ", "): up to 80 in
-      // total stay on one line whatever was written; 10+ items of up to 10
-      // fill after a leading break; an item of 30+, 4+ items, or an item
-      // written over several lines go one per line
-      doParityTest("array-item-rules");
-    }
-
-    @Test
     @DisplayName("array wrap checks")
     public void testArrayWrapChecks() throws Exception {
-      // one sample for wrapping.arrayWrap: every rule once, hand-broken
-      // twins re-joined or re-broken, the margin overflow, and a nested literal
+      // one sample for wrapping.arrayWrap on the items (each with its ", "):
+      // up to 80 in total stay on one line whatever was written; 10+ items of
+      // up to 10 fill after a leading break; an item of 30+, 4+ items, or an
+      // item written over several lines go one per line; hand-broken twins
+      // re-joined or re-broken, the margin overflow, and a nested literal
       // judged on its own
       doParityTest("array-wrap-checks");
     }

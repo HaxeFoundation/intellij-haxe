@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools.info;
 
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildtools.LimeProjects;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
@@ -10,7 +11,6 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -23,9 +23,11 @@ import com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.Key;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.Outcome;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.util.HaxePluginPaths;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -35,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.firstErrorLine;
 
@@ -57,17 +60,35 @@ import static com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.
 public final class HaxeLimeProjectInfoService implements Disposable {
 
   private static final int DISPLAY_TIMEOUT_MS = 60_000;
+  /** The bundled tool as the build-tool failure names it. */
+  private static final String PARSER_TOOL_NAME = "LimeProjectParser";
   private static final String PARSER_RELATIVE_PATH = "tools/LimeProjectParser.jar";
   // unknown members ignored so a newer bundled tool may add output fields freely
   private static final ObjectMapper PARSER_OUTPUT_MAPPER = JsonMapper.builder()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .build();
+  private static final long DISPLAY_FAILURE_COOLDOWN_MS = 30_000;
+
+  /** One display run's outcome per project file: the arguments, or the time the run failed. */
+  private record CachedDisplayArguments(long fileStamp, @NotNull String targetFlag, @Nullable List<String> arguments, long failedAtMs) {
+
+    boolean matches(long stamp, @NotNull String target) {
+      return fileStamp == stamp && targetFlag.equals(target);
+    }
+
+    boolean failureWithinCooldown(long nowMs) {
+      return arguments == null && nowMs - failedAtMs < DISPLAY_FAILURE_COOLDOWN_MS;
+    }
+  }
 
   private final Project project;
   private final HaxeProjectInfoCache<HaxeBuildFileInfo> cache;
+  private final HaxeBuildToolFailures failures;
+  private final Map<String, CachedDisplayArguments> displayArguments = new ConcurrentHashMap<>();
 
   public HaxeLimeProjectInfoService(@NotNull Project project) {
     this.project = project;
+    this.failures = HaxeBuildToolFailures.getInstance(project);
     this.cache = new HaxeProjectInfoCache<>(project, "Haxe lime display", null);
   }
 
@@ -78,8 +99,22 @@ public final class HaxeLimeProjectInfoService implements Disposable {
 
   /**
    * The file's effective configuration for the target, or null when not resolved
-   * (yet). Schedules a background run when the cache is stale; {@code onUpdated}
-   * fires on the EDT after the run completes. Safe to call from read actions.
+   * (yet). Schedules a background run when the cache is stale; the landing is
+   * announced as {@link HaxeBuildEventListener#evaluationLanded}. Safe to call
+   * from read actions.
+   */
+  @Nullable
+  public HaxeBuildFileInfo getCachedOrSchedule(@NotNull HaxeBuildFile buildFile,
+                                               @NotNull String targetFlag,
+                                               @Nullable String preferredSdkName) {
+    return getCachedOrSchedule(buildFile, targetFlag, preferredSdkName, HaxeProjectInfoCache.NO_CALLBACK);
+  }
+
+  /**
+   * {@link #getCachedOrSchedule(HaxeBuildFile, String, String)} for a caller
+   * that must react to the evaluation this call starts: {@code onUpdated}
+   * runs on the EDT when it lands. Kept by identity, so pass one long-lived
+   * instance.
    */
   @Nullable
   public HaxeBuildFileInfo getCachedOrSchedule(@NotNull HaxeBuildFile buildFile,
@@ -109,11 +144,55 @@ public final class HaxeLimeProjectInfoService implements Disposable {
 
   public void clearCache() {
     cache.clear();
+    displayArguments.clear();
   }
 
-  /** Drops every cached evaluation of one build file (all targets/toolchains), forcing a re-run on the next ask. */
+  /** Blocks until the evaluations queued so far have run; their tool runs in the project file's folder. */
+  @TestOnly
+  public void awaitEvaluationsForTests() throws Exception {
+    // one evaluation runs the parser tool, then lime display, each bounded by the timeout
+    cache.awaitQueuedEvaluations(2L * DISPLAY_TIMEOUT_MS);
+  }
+
+  /** Drops every cached evaluation of one build file (all targets/toolchains) and its display arguments, forcing a re-run on the next ask. */
   public void invalidate(@NotNull String filePath) {
     cache.invalidate(filePath);
+    displayArguments.remove(filePath);
+  }
+
+  /** Drops the compiler services' display arguments of every file. */
+  public void clearDisplayArguments() {
+    displayArguments.clear();
+  }
+
+  /**
+   * The file's effective haxe arguments for the compiler services, {@code --cwd}
+   * first, from one {@code lime display} run per (file stamp, target); a failed
+   * run is kept for a cooldown, so a broken tool is not re-run on every request.
+   * Null while the project is untrusted or the tool fails. Spawns a process -
+   * never call under the read lock.
+   */
+  // TODO: keyed on the project file's stamp only - an edited library include.xml
+  //  takes effect on Reload Haxe Project or Purge Caches, not by itself
+  @Nullable
+  public List<String> displayArguments(@NotNull String directory,
+                                       @NotNull String fileName,
+                                       @NotNull String tool,
+                                       @NotNull String targetFlag,
+                                       long fileStamp,
+                                       @Nullable String sdkName) {
+    if (!HaxeProjectTrust.checkForBackgroundEvaluation(project)) return null;
+    String cacheKey = directory + "/" + fileName;
+    long now = System.currentTimeMillis();
+    CachedDisplayArguments cached = displayArguments.get(cacheKey);
+    if (cached != null && cached.matches(fileStamp, targetFlag)) {
+      if (cached.arguments() != null) return cached.arguments();
+      if (cached.failureWithinCooldown(now)) return null;
+    }
+    String haxelib = HaxeToolPathResolver.resolveHaxelibExecutable(project, sdkName);
+    List<String> arguments = LimeProjects.displayArguments(haxelib, tool, directory, fileName, targetFlag, DISPLAY_TIMEOUT_MS);
+    displayArguments.put(cacheKey, new CachedDisplayArguments(fileStamp, targetFlag, arguments, arguments == null ? now : 0));
+    return arguments;
   }
 
   /** {@code settled} = the parser tool succeeded, or no tool is bundled (legacy is the best available). */
@@ -133,8 +212,12 @@ public final class HaxeLimeProjectInfoService implements Disposable {
     }
 
     if (info == null) {
-      // resilience over purity: a tool failure falls back to lime display
-      info = runDisplay(key, tool, fileName, workDirectory);
+      // resilience over purity: a tool failure falls back to lime display, whose own failure counts only without a tool
+      info = runDisplay(key, tool, fileName, workDirectory, parserJar == null);
+    }
+    // a display result after a tool failure keeps the tool's problem on the row
+    if (info != null && settled) {
+      failures.record(key.filePath(), null);
     }
 
     return new Outcome<>(info, settled);
@@ -161,6 +244,7 @@ public final class HaxeLimeProjectInfoService implements Disposable {
       ProcessOutput output = new CapturingProcessHandler(commandLine).runProcess(DISPLAY_TIMEOUT_MS);
       if (output.isTimeout() || output.getExitCode() != 0) {
         log.warn("LimeProjectParser failed for " + key.filePath() + " (" + key.targetFlag() + "): " + firstErrorLine(output));
+        failures.record(key.filePath(), HaxeBuildToolFailures.failureOf(PARSER_TOOL_NAME, output));
         return null;
       }
 
@@ -168,6 +252,7 @@ public final class HaxeLimeProjectInfoService implements Disposable {
     }
     catch (ExecutionException e) {
       log.warn("LimeProjectParser could not run for " + key.filePath() + ": " + e.getMessage());
+      failures.record(key.filePath(), HaxeBuildToolFailures.failureOf(PARSER_TOOL_NAME, e));
       return null;
     }
   }
@@ -198,7 +283,7 @@ public final class HaxeLimeProjectInfoService implements Disposable {
 
   @NotNull
   private static String javaExecutable() {
-    return Path.of(System.getProperty("java.home"), "bin", SystemInfo.isWindows ? "java.exe" : "java").toString();
+    return Path.of(System.getProperty("java.home"), "bin", HaxeSdkUtilBase.getExecutableName("java")).toString();
   }
 
   /** The evaluator jar shipped inside the plugin directory, or null when absent (fallback applies). */
@@ -209,26 +294,26 @@ public final class HaxeLimeProjectInfoService implements Disposable {
 
   // --- legacy lime display fallback ---
 
-  // TODO: point the display at an export root no build uses (LimeProjects.displayCommandLine) - lime prints the
-  //  cached <app path>/<target>/haxe/<build type>.hxml whenever it is newer than the project file
+  /** {@code recordFailure}: without a bundled tool the display run is the only evaluation, so its failure is the one shown. */
   @Nullable
   private HaxeBuildFileInfo runDisplay(@NotNull Key key,
                                        @NotNull String tool,
                                        @NotNull String fileName,
-                                       @Nullable String workDirectory) {
-    GeneralCommandLine commandLine =
-      new GeneralCommandLine(key.haxelibPath(), "run", tool, "display", fileName, key.targetFlag())
-        .withWorkDirectory(workDirectory);
+                                       @Nullable String workDirectory,
+                                       boolean recordFailure) {
+    GeneralCommandLine commandLine = LimeProjects.displayCommandLine(key.haxelibPath(), tool, workDirectory, fileName, key.targetFlag());
     try {
       ProcessOutput output = new CapturingProcessHandler(commandLine).runProcess(DISPLAY_TIMEOUT_MS);
       if (output.isTimeout() || output.getExitCode() != 0) {
         log.warn(tool + " display failed for " + fileName + " (" + key.targetFlag() + "): " + firstErrorLine(output));
+        if (recordFailure) failures.record(key.filePath(), HaxeBuildToolFailures.failureOf(tool + " display", output));
         return null;
       }
       return parseDisplayOutput(output.getStdout(), key.targetFlag(), projectFileContent(key.filePath()));
     }
     catch (ExecutionException e) {
       log.warn(tool + " display could not run for " + fileName + ": " + e.getMessage());
+      if (recordFailure) failures.record(key.filePath(), HaxeBuildToolFailures.failureOf(tool + " display", e));
       return null;
     }
   }

@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
@@ -17,8 +18,12 @@ import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.stubs.StubIndexKey;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Tests for Haxe PSI stub indexes.
@@ -40,167 +45,75 @@ public class HaxeStubIndexTest extends HaxeLightFixtureTestCase {
 
   // ── HaxeClassNameStubIndex ────────────────────────────────────────────
 
-  @Test
-  @DisplayName("class name index simple class")
-  public void testClassNameIndex_simpleClass() throws Throwable {
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeClass> results = getByName("SimpleClass");
-    assertFalse(results.isEmpty(), "Expected at least one result for 'SimpleClass'");
-    assertEquals("SimpleClass", results.iterator().next().getName());
-  }
+  // (fixture files, class name) - every kind of type is indexed by its simple name
+  static final List<Arguments> CLASS_NAME_LOOKUPS = List.of(
+    // simple class
+    arguments(List.of("SimpleClass.hx"), "SimpleClass"),
+    // interface
+    arguments(List.of("IBase.hx"), "IBase"),
+    // extended interface
+    arguments(List.of("IExtended.hx", "IBase.hx"), "IExtended"),
+    // enum
+    arguments(List.of("Color.hx"), "Color"),
+    // abstract
+    arguments(List.of("MyAbstract.hx"), "MyAbstract"),
+    // typedef
+    arguments(List.of("MyTypedef.hx", "SimpleClass.hx"), "MyTypedef"),
+    // extern class
+    arguments(List.of("ExternClass.hx"), "ExternClass"),
+    // child class
+    arguments(List.of("ChildClass.hx", "SimpleClass.hx", "IBase.hx", "IExtended.hx"), "ChildClass"),
+    // private class: the ancillary private class of PrivateClassModule.hx is still indexed by simple name
+    arguments(List.of("PrivateClassModule.hx"), "PrivateClass"),
+    // module class
+    arguments(List.of("ModuleClass.hx"), "ModuleClass"),
+    // deep package class
+    arguments(List.of("DeepClass.hx"), "DeepClass"),
+    arguments(List.of("AnotherClass.hx", "DeepClass.hx"), "AnotherClass"));
 
-  @Test
-  @DisplayName("class name index interface")
-  public void testClassNameIndex_interface() throws Throwable {
-    myFixture.configureByFiles("IBase.hx");
-    Collection<HaxeClass> results = getByName("IBase");
-    assertFalse(results.isEmpty(), "Expected result for 'IBase'");
-    assertEquals("IBase", results.iterator().next().getName());
-  }
+  @ParameterizedTest(name = "{1}")
+  @FieldSource("CLASS_NAME_LOOKUPS")
+  @DisplayName("class name index")
+  public void testClassNameIndex(List<String> files, String name) {
+    myFixture.configureByFiles(files.toArray(String[]::new));
 
-  @Test
-  @DisplayName("class name index extended interface")
-  public void testClassNameIndex_extendedInterface() throws Throwable {
-    myFixture.configureByFiles("IExtended.hx", "IBase.hx");
-    Collection<HaxeClass> results = getByName("IExtended");
-    assertFalse(results.isEmpty(), "Expected result for 'IExtended'");
-  }
-
-  @Test
-  @DisplayName("class name index enum")
-  public void testClassNameIndex_enum() throws Throwable {
-    myFixture.configureByFiles("Color.hx");
-    Collection<HaxeClass> results = getByName("Color");
-    assertFalse(results.isEmpty(), "Expected result for 'Color'");
-  }
-
-  @Test
-  @DisplayName("class name index abstract")
-  public void testClassNameIndex_abstract() throws Throwable {
-    myFixture.configureByFiles("MyAbstract.hx");
-    Collection<HaxeClass> results = getByName("MyAbstract");
-    assertFalse(results.isEmpty(), "Expected result for 'MyAbstract'");
-  }
-
-  @Test
-  @DisplayName("class name index typedef")
-  public void testClassNameIndex_typedef() throws Throwable {
-    myFixture.configureByFiles("MyTypedef.hx", "SimpleClass.hx");
-    Collection<HaxeClass> results = getByName("MyTypedef");
-    assertFalse(results.isEmpty(), "Expected result for 'MyTypedef'");
-  }
-
-  @Test
-  @DisplayName("class name index extern class")
-  public void testClassNameIndex_externClass() throws Throwable {
-    myFixture.configureByFiles("ExternClass.hx");
-    Collection<HaxeClass> results = getByName("ExternClass");
-    assertFalse(results.isEmpty(), "Expected result for 'ExternClass'");
-  }
-
-  @Test
-  @DisplayName("class name index child class")
-  public void testClassNameIndex_childClass() throws Throwable {
-    myFixture.configureByFiles("ChildClass.hx", "SimpleClass.hx", "IBase.hx", "IExtended.hx");
-    Collection<HaxeClass> results = getByName("ChildClass");
-    assertFalse(results.isEmpty(), "Expected result for 'ChildClass'");
-  }
-
-  @Test
-  @DisplayName("class name index private class")
-  public void testClassNameIndex_privateClass() throws Throwable {
-    // PrivateClassModule.hx contains both PrivateClassModule (primary) and private PrivateClass
-    myFixture.configureByFiles("PrivateClassModule.hx");
-    // Private classes are still indexed by simple name
-    Collection<HaxeClass> results = getByName("PrivateClass");
-    assertFalse(results.isEmpty(), "Expected result for 'PrivateClass'");
-  }
-
-  @Test
-  @DisplayName("class name index module class")
-  public void testClassNameIndex_moduleClass() throws Throwable {
-    myFixture.configureByFiles("ModuleClass.hx");
-    Collection<HaxeClass> results = getByName("ModuleClass");
-    assertFalse(results.isEmpty(), "Expected result for 'ModuleClass'");
-  }
-
-  @Test
-  @DisplayName("class name index deep package class")
-  public void testClassNameIndex_deepPackageClass() throws Throwable {
-    myFixture.configureByFiles("DeepClass.hx");
-    Collection<HaxeClass> results = getByName("DeepClass");
-    assertFalse(results.isEmpty(), "Expected result for 'DeepClass'");
+    Collection<HaxeClass> results = getByName(name);
+    assertFalse(results.isEmpty(), "Expected result for '" + name + "'");
+    assertEquals(name, results.iterator().next().getName());
   }
 
   // ── HaxeFullyQualifiedNameStubIndex ──────────────────────────────────
-  // Each fixture file is named after its primary class, so FQN = "package.ClassName"
-  // with no additional module segment (file name == class name → not ancillary).
 
-  @Test
-  @DisplayName("fqn index simple class")
-  public void testFqnIndex_simpleClass() throws Throwable {
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.SimpleClass");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.SimpleClass'");
-    assertEquals("SimpleClass", results.iterator().next().getName());
-  }
+  // (fixture files, fully qualified name) - the file name equals the primary class name, so
+  // the FQN carries no module segment; an ancillary class carries its module's
+  static final List<Arguments> FQN_LOOKUPS = List.of(
+    // simple class
+    arguments(List.of("SimpleClass.hx"), "com.example.SimpleClass"),
+    // interface
+    arguments(List.of("IBase.hx"), "com.example.IBase"),
+    // enum
+    arguments(List.of("Color.hx"), "com.example.Color"),
+    // abstract
+    arguments(List.of("MyAbstract.hx"), "com.example.MyAbstract"),
+    // typedef
+    arguments(List.of("MyTypedef.hx", "SimpleClass.hx"), "com.example.MyTypedef"),
+    // deep package
+    arguments(List.of("DeepClass.hx"), "com.example.deep.pkg.DeepClass"),
+    // module class
+    arguments(List.of("ModuleClass.hx"), "com.example.module.ModuleClass"),
+    // ancillary class
+    arguments(List.of("PrivateClassModule.hx"), "com.example.PrivateClassModule.PrivateClass"));
 
-  @Test
-  @DisplayName("fqn index interface")
-  public void testFqnIndex_interface() throws Throwable {
-    myFixture.configureByFiles("IBase.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.IBase");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.IBase'");
-  }
+  @ParameterizedTest(name = "{1}")
+  @FieldSource("FQN_LOOKUPS")
+  @DisplayName("fqn index")
+  public void testFqnIndex(List<String> files, String fqn) {
+    myFixture.configureByFiles(files.toArray(String[]::new));
 
-  @Test
-  @DisplayName("fqn index enum")
-  public void testFqnIndex_enum() throws Throwable {
-    myFixture.configureByFiles("Color.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.Color");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.Color'");
-  }
-
-  @Test
-  @DisplayName("fqn index abstract")
-  public void testFqnIndex_abstract() throws Throwable {
-    myFixture.configureByFiles("MyAbstract.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.MyAbstract");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.MyAbstract'");
-  }
-
-  @Test
-  @DisplayName("fqn index typedef")
-  public void testFqnIndex_typedef() throws Throwable {
-    myFixture.configureByFiles("MyTypedef.hx", "SimpleClass.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.MyTypedef");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.MyTypedef'");
-  }
-
-  @Test
-  @DisplayName("fqn index deep package")
-  public void testFqnIndex_deepPackage() throws Throwable {
-    myFixture.configureByFiles("DeepClass.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.deep.pkg.DeepClass");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.deep.pkg.DeepClass'");
-  }
-
-  @Test
-  @DisplayName("fqn index module class")
-  public void testFqnIndex_moduleClass() throws Throwable {
-    myFixture.configureByFiles("ModuleClass.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.module.ModuleClass");
-    assertFalse(results.isEmpty(), "Expected result for FQN 'com.example.module.ModuleClass'");
-  }
-
-  @Test
-  @DisplayName("fqn index ancillary class")
-  public void testFqnIndex_ancillaryClass() throws Throwable {
-    // PrivateClass is ancillary inside PrivateClassModule.hx:
-    // FQN = com.example.PrivateClassModule.PrivateClass
-    myFixture.configureByFiles("PrivateClassModule.hx");
-    Collection<HaxeClass> results = getByFqn("com.example.PrivateClassModule.PrivateClass");
-    assertFalse(results.isEmpty(), "Expected FQN index entry for ancillary 'PrivateClass'");
+    Collection<HaxeClass> results = getByFqn(fqn);
+    assertFalse(results.isEmpty(), "Expected result for FQN '" + fqn + "'");
+    String simpleName = fqn.substring(fqn.lastIndexOf('.') + 1);
+    assertEquals(simpleName, results.iterator().next().getName());
   }
 
   // ── HaxeSuperClassStubIndex ───────────────────────────────────────────
@@ -247,88 +160,49 @@ public class HaxeStubIndexTest extends HaxeLightFixtureTestCase {
 
   // ── HaxeMethodNameStubIndex ───────────────────────────────────────────
 
-  @Test
-  @DisplayName("method name index constructor")
-  public void testMethodNameIndex_constructor() throws Throwable {
-    // Constructors are named "new" in Haxe
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("com.example.SimpleClass", HaxeConstructorStubIndex.KEY);
-    assertFalse(methods.isEmpty(), "Expected at least one constructor ('new') in index");
-  }
+  // (fixture file, method index, index key) - a constructor ("new") is keyed by its class's FQN
+  static final List<Arguments> METHOD_LOOKUPS = List.of(
+    // constructor
+    arguments("SimpleClass.hx", HaxeConstructorStubIndex.KEY, "com.example.SimpleClass"),
+    // instance method
+    arguments("SimpleClass.hx", HaxeClassMethodNameStubIndex.KEY, "method"),
+    // static method
+    arguments("SimpleClass.hx", HaxeStaticMethodNameStubIndex.KEY, "staticMethod"),
+    // module function
+    arguments("ModuleClass.hx", HaxeModuleMethodNameStubIndex.KEY, "moduleFunction"));
 
-  @Test
-  @DisplayName("method name index instance method")
-  public void testMethodNameIndex_instanceMethod() throws Throwable {
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("method", HaxeClassMethodNameStubIndex.KEY);
-    assertFalse(methods.isEmpty(), "Expected result for method named 'method'");
-  }
+  @ParameterizedTest(name = "{1}: {2}")
+  @FieldSource("METHOD_LOOKUPS")
+  @DisplayName("method name index")
+  public void testMethodNameIndex(String file, StubIndexKey<String, HaxeMethod> key, String name) {
+    myFixture.configureByFiles(file);
 
-  @Test
-  @DisplayName("method name index static method")
-  public void testMethodNameIndex_staticMethod() throws Throwable {
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("staticMethod", HaxeStaticMethodNameStubIndex.KEY);
-    assertFalse(methods.isEmpty(), "Expected result for static method 'staticMethod'");
-  }
-
-  @Test
-  @DisplayName("method name index module function")
-  public void testMethodNameIndex_moduleFunction() throws Throwable {
-    myFixture.configureByFiles("ModuleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("moduleFunction", HaxeModuleMethodNameStubIndex.KEY);
-    assertFalse(methods.isEmpty(), "Expected result for module-level function 'moduleFunction'");
+    Collection<HaxeMethod> methods = getMethods(name, key);
+    assertFalse(methods.isEmpty(), "Expected result for '" + name + "' in " + key);
   }
 
   // ── HaxeFieldNameStubIndex ────────────────────────────────────────────
 
-  @Test
-  @DisplayName("field name index instance field")
-  public void testFieldNameIndex_instanceField() throws Throwable {
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxePsiField> fields = getFields("field", HaxeClassFieldNameStubIndex.KEY);
-    assertFalse(fields.isEmpty(), "Expected result for field named 'field'");
-  }
+  // (fixture file, field index, field name)
+  static final List<Arguments> FIELD_LOOKUPS = List.of(
+    // instance field
+    arguments("SimpleClass.hx", HaxeClassFieldNameStubIndex.KEY, "field"),
+    // static field
+    arguments("SimpleClass.hx", HaxeStaticFieldNameStubIndex.KEY, "staticField"),
+    // module var
+    arguments("ModuleClass.hx", HaxeModuleFieldNameStubIndex.KEY, "moduleVar"));
 
-  @Test
-  @DisplayName("field name index static field")
-  public void testFieldNameIndex_staticField() throws Throwable {
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxePsiField> fields = getFields("staticField", HaxeStaticFieldNameStubIndex.KEY);
-    assertFalse(fields.isEmpty(), "Expected result for static field 'staticField'");
-  }
+  @ParameterizedTest(name = "{1}: {2}")
+  @FieldSource("FIELD_LOOKUPS")
+  @DisplayName("field name index")
+  public void testFieldNameIndex(String file, StubIndexKey<String, HaxePsiField> key, String name) {
+    myFixture.configureByFiles(file);
 
-  @Test
-  @DisplayName("field name index module var")
-  public void testFieldNameIndex_moduleVar() throws Throwable {
-    myFixture.configureByFiles("ModuleClass.hx");
-    Collection<HaxePsiField> fields = getFields("moduleVar", HaxeModuleFieldNameStubIndex.KEY);
-    assertFalse(fields.isEmpty(), "Expected result for module-level var 'moduleVar'");
+    Collection<HaxePsiField> fields = getFields(name, key);
+    assertFalse(fields.isEmpty(), "Expected result for '" + name + "' in " + key);
   }
 
   // ── Multiple files ─────────────────────────────────────────────────────
-
-  @Test
-  @DisplayName("multiple files all classes indexed")
-  public void testMultipleFiles_allClassesIndexed() throws Throwable {
-    myFixture.configureByFiles(
-      "SimpleClass.hx", "IBase.hx", "IExtended.hx", "ChildClass.hx",
-      "Color.hx", "MyAbstract.hx", "MyTypedef.hx", "ExternClass.hx",
-      "ModuleClass.hx", "DeepClass.hx", "AnotherClass.hx"
-    );
-
-    assertFalse(getByName("SimpleClass").isEmpty());
-    assertFalse(getByName("IBase").isEmpty());
-    assertFalse(getByName("IExtended").isEmpty());
-    assertFalse(getByName("ChildClass").isEmpty());
-    assertFalse(getByName("Color").isEmpty());
-    assertFalse(getByName("MyAbstract").isEmpty());
-    assertFalse(getByName("MyTypedef").isEmpty());
-    assertFalse(getByName("ExternClass").isEmpty());
-    assertFalse(getByName("ModuleClass").isEmpty());
-    assertFalse(getByName("DeepClass").isEmpty());
-    assertFalse(getByName("AnotherClass").isEmpty());
-  }
 
   @Test
   @DisplayName("multiple files fqn unique")

@@ -48,6 +48,16 @@ final class NmeBuildSystem implements HaxeBuildSystem {
     return NmeProjects.targetFor(selectedTargetFlag(project, buildFile));
   }
 
+  @Override
+  public @NotNull List<String> forwardedArguments(@NotNull List<String> haxeArguments) {
+    return NmeProjects.FLAG_SPELLINGS.respell(haxeArguments);
+  }
+
+  @Override
+  public boolean mergesLibraryIncludeFiles() {
+    return true;
+  }
+
   /**
    * nme has no lime-style --haxelib override: a single-token
    * {@code --library <lib>} haxeflag becomes one line of the generated

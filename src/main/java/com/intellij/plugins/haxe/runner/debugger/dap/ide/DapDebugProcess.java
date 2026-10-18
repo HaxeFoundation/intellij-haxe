@@ -452,10 +452,11 @@ public class DapDebugProcess extends XDebugProcess {
 
   private void handleOutput(OutputEvent output) {
     String text = output.getBody().getOutput();
-    if (text == null) {
+    String category = output.getBody().getCategory();
+    if (text == null || !DapOutputEvents.shownToUser(category, backend.echoesProgramOutput())) {
       return;
     }
-    boolean stderr = "stderr".equals(output.getBody().getCategory());
+    boolean stderr = "stderr".equals(category);
     if (backend.programOutputViaAdapter()) {
       // the debuggee's real output rides the debug connection (a browser
       // page's console): replaying it through the process handler lets the

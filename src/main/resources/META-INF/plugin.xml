@@ -36,6 +36,7 @@
   <depends optional="true" config-file="haxe-grazie.xml">tanvd.grazi</depends>
   <!-- IU-only: the Profiler tool window integration (snapshot parsers, jump-to-source) -->
   <depends optional="true" config-file="haxe-profiler-support.xml">com.intellij.modules.profiler</depends>
+  <depends optional="true" config-file="haxe-diagram-support.xml">com.intellij.diagram</depends>
 
   <!-- Leave the '999' at the start of unreleased version numbers so that it's always newer than any released version. -->
   <version>DEV @plugin.dev.version@ for @plugin.compatibility.description@</version>
@@ -43,6 +44,8 @@
 
   <extensionPoints>
     <extensionPoint dynamic="true" name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
+    <extensionPoint dynamic="true" name="libraryDiagramOpener"
+                    interface="com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibraryDiagramOpener"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="JavaScript">
@@ -51,6 +54,9 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <!-- experiment: compiler types in place of the IDE evaluator -->
+    <registryKey key="haxe.compiler.types.redirect.evaluator" defaultValue="false"
+                 description="Haxe: the expression evaluator asks the compilation server (display/hover) for the type of a parameter, variable, field or extracted value before evaluating it itself"/>
 
     <iconMapper mappingFile="HaxeIconMappings.json"/>
       <!-- NOTE: Looks like intellij-platform-gradle-plugin 2.7.0 prefixes all extra jars with rootProject.name-->
@@ -60,9 +66,10 @@
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
     <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationProxy"/>
-    <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewGotoHandler"/>
     <psi.referenceContributor language="Haxe" implementation="com.intellij.plugins.haxe.ide.references.HaxeStringLiteralReferenceContributor"/>
+    <psi.referenceContributor language="XML" implementation="com.intellij.plugins.haxe.ide.references.HaxeProjectXmlPathReferenceContributor"/>
     <defaultHighlightingSettingProvider implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewHighlightingSetting"/>
+    <highlightErrorFilter implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewErrorFilter"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <!-- HAXE_MODULE stays registered so legacy projects still open; the v1
@@ -70,6 +77,10 @@
          window) is the only configuration surface -->
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
+    <editorNotificationProvider implementation="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureNotificationProvider"/>
+    <editorNotificationProvider implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewStaleNotificationProvider"/>
+    <statusBarWidgetFactory id="HaxeResolveContext" implementation="com.intellij.plugins.haxe.v2.editor.HaxeResolveContextWidgetFactory"
+                            order="after encodingWidget"/>
     <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
@@ -156,6 +167,8 @@
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.neko.NekoRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.nodejs.NodeRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.nodejs.NodeDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.FlashRunner"/>
@@ -182,13 +195,6 @@
                     schemeClass="com.intellij.psi.codeStyle.CodeStyleScheme"
                     implementationClass="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatSchemeImporter"/>
     <lang.ast.factory language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
-
-    <!-- Enable the following stanza to use the HaxePsiBuilder when parsing.  Beware! It overrides any other
-         PsiBuilder; every language will use the HaxePsiBuilder. -->
-    <!--
-    <applicationService overrides="true" serviceInterface="com.intellij.lang.PsiBuilderFactory"
-                        serviceImplementation="com.intellij.plugins.haxe.lang.parser.HaxePsiBuilderFactoryImpl"/>
-    -->
 
     <lang.syntaxHighlighterFactory language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
 
@@ -306,6 +312,14 @@
                                           bundle="messages.HaxeHintBundle"
                                           nameKey="haxe.untyped.parameter.hint.name"
                                           descriptionKey="haxe.untyped.parameter.hint.description"/>
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerTypeInlayProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.compiler.types"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.compiler.types.hint.name"
+                                          descriptionKey="haxe.compiler.types.hint.description"/>
 
 
 
@@ -557,6 +571,7 @@
     <annotator language="Haxe" id="docMarkup" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeDocMarkupAnnotator" order="after fastColor"/>
     <annotator language="Haxe" id="inactiveDim" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator" order="after fastColor"/>
     <annotator language="Haxe" id="conditionalDiagnostic" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeConditionalDiagnosticAnnotator"/>
+    <annotator language="Haxe" id="staleConditionalBranch" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeStaleConditionalBranchAnnotator"/>
     <!-- metadata is its own PSI language; without this registration dead @:meta
          stays uncolored (its lexer-layer yellow only exists in active code) -->
     <annotator language="HaxeMetadata" id="inactiveDimMeta" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator"/>
@@ -580,7 +595,6 @@
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxePackageAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeDefaultTypeParameterAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeNullCoalescingAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeLanguageFeatureAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAccessAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeReturnStatementAnnotator"/>
@@ -825,6 +839,14 @@
                      key="haxe.inspections.dashed.define.name"
                      groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeDashedDefineNameInspection"/>
+    <localInspection shortName="HaxeMissingLibrary" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.missing.library.name"
+                     groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeMissingLibraryInspection"/>
+    <localInspection shortName="HaxeMissingIncludeFile" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.missing.include.name"
+                     groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeMissingIncludeFileInspection"/>
 
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
     <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
@@ -939,6 +961,11 @@
     <!-- V2 build system: Build Project / Build Module delegates to configured build commands -->
     <projectTaskRunner implementation="com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTaskRunner"/>
 
+    <!-- V2 build system: build-file classpaths outside a module join its resolve and use scopes; folders outside every module are indexed -->
+    <resolveScopeEnlarger implementation="com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathResolveScopeEnlarger"/>
+    <useScopeEnlarger implementation="com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathUseScopeEnlarger"/>
+    <additionalLibraryRootsProvider implementation="com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathLibraryProvider"/>
+
     <!-- V2 build system: "Run Haxe action" before-launch step (compiles before run/debug) -->
     <stepsBeforeRunProvider implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider"/>
 
@@ -949,6 +976,7 @@
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibProjectStartActivity"/>
     <postStartupActivity implementation="com.intellij.plugins.haxe.v2.HaxeV2ProjectActivity"/>
     <postStartupActivity implementation="com.intellij.plugins.haxe.v2.migration.HaxeV1MigrationStartup"/>
+    <postStartupActivity implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkFormatUpgrade"/>
 
     <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
     <notificationGroup id="haxe.command" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.command.notification.group"/>
@@ -969,14 +997,28 @@
   </applicationListeners>
 
   <projectListeners>
-    <listener class="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheChangeListener"
+    <listener class="com.intellij.plugins.haxe.model.HaxeResolveCachePsiChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
     <listener class="com.intellij.plugins.haxe.v2.display.HaxeDisplayCacheInvalidator"
               topic="com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener"/>
     <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
-              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener"/>
+              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
     <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
               topic="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureBannerRefresh"
+              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewStaleRefresh"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.runconfig.HaxeRunConfigurationBuildFileTracker"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildFileChangeListener"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.editor.HaxeResolveContextFollower"
+              topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+    <listener class="com.intellij.plugins.haxe.model.HaxeResolveCacheRootsListener"
+              topic="com.intellij.openapi.roots.ModuleRootListener"/>
 
   </projectListeners>
 
@@ -1033,6 +1075,10 @@
 
   <actions resource-bundle="messages.HaxeProjectBundle">
     <action id="Haxe.ConvertV1Modules" class="com.intellij.plugins.haxe.v2.migration.HaxeConvertV1ModulesAction">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
+    <action id="Haxe.ShowPostMacroFile" class="com.intellij.plugins.haxe.v2.display.HaxeShowPostMacroFileAction">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
     </action>
   </actions>

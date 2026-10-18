@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.display.protocol.Diagnostic;
 import com.intellij.plugins.haxe.display.protocol.FileDiagnostics;
 import com.intellij.plugins.haxe.display.protocol.Position;
@@ -29,12 +30,13 @@ import org.jetbrains.annotations.Nullable;
  * imports, removable code) collects through {@link #collect} and fetches
  * through {@link #fetch}.
  *
- * The cache keeps the LAST KNOWN diagnostics per file. Within its time to
- * live, one highlighting pass sends one request however many annotators use
- * the result. Its main job, though, is to survive transient fetch failures,
- * such as a restarting server or a refused socket. A re-highlight then still
- * shows the last known diagnostics instead of clearing them until the next
- * edit.
+ * The cache keeps the LAST KNOWN diagnostics per file, with the document
+ * state they describe. Within its time to live, one highlighting pass sends
+ * one request however many annotators use the result. It also survives
+ * transient fetch failures, such as a restarting server or a refused socket:
+ * a re-highlight of the same text still shows the last known diagnostics.
+ * After an edit they are not reused, since their line and column positions
+ * would land on the wrong text.
  */
 @CustomLog
 final class HaxeDiagnosticsFetcher {
@@ -43,10 +45,11 @@ final class HaxeDiagnosticsFetcher {
   record Request(@NotNull HaxeCompilerDisplayService.DisplayContext context,
                  @NotNull HaxeCompilerDisplayService service,
                  @NotNull String filePath,
-                 @Nullable String contents) {
+                 @Nullable String contents,
+                 long documentStamp) {
   }
 
-  private record CacheEntry(int contentsHash, long timestampMillis, List<Diagnostic> diagnostics) {
+  private record CacheEntry(long documentStamp, long timestampMillis, List<Diagnostic> diagnostics) {
   }
 
   /**
@@ -97,20 +100,21 @@ final class HaxeDiagnosticsFetcher {
     // no request while the text does not parse: the compiler would fail on
     // the same syntax, and the parser's own error highlighting covers it
     if (!HaxeCompilerDisplayService.isSyntaxClean(file.getProject(), virtualFile)) {
-      log.debug("no display/diagnostics for " + virtualFile.getPath() + ": the file has parse errors");
+      if (log.isDebugEnabled()) {
+        log.debug("no display/diagnostics for " + virtualFile.getPath() + ": the file has parse errors");
+      }
       return null;
     }
 
     HaxeCompilerDisplayService service = HaxeCompilerDisplayService.getInstance(file.getProject());
     HaxeCompilerDisplayService.DisplayContext context = service.contextFor(virtualFile);
     if (context == null) {
-      log.debug("no display/diagnostics for " + virtualFile.getPath() + ": no build context");
+      if (log.isDebugEnabled()) log.debug("no display/diagnostics for " + virtualFile.getPath() + ": no build context");
       return null;
     }
 
-    boolean diverged = FileDocumentManager.getInstance().isDocumentUnsaved(document);
-    String contents = diverged ? document.getText() : null;
-    return new Request(context, service, virtualFile.getPath(), contents);
+    String contents = HaxeCompilerDisplayService.unsavedContents(virtualFile);
+    return new Request(context, service, virtualFile.getPath(), contents, document.getModificationStamp());
   }
 
   /**
@@ -123,10 +127,9 @@ final class HaxeDiagnosticsFetcher {
   static List<Diagnostic> fetch(@NotNull Request request) {
     Map<String, CacheEntry> cache = Cache.getInstance(request.service().getProject()).entries;
     String key = request.filePath();
-    int contentsHash = request.contents() != null ? request.contents().hashCode() : 0;
     CacheEntry cached = cache.get(key);
-    boolean fresh = cached != null && cached.contentsHash() == contentsHash
-                    && System.currentTimeMillis() - cached.timestampMillis() < CACHE_TTL_MILLIS;
+    boolean sameText = cached != null && cached.documentStamp() == request.documentStamp();
+    boolean fresh = sameText && System.currentTimeMillis() - cached.timestampMillis() < CACHE_TTL_MILLIS;
     if (fresh) {
       return cached.diagnostics();
     }
@@ -134,12 +137,10 @@ final class HaxeDiagnosticsFetcher {
     List<FileDiagnostics> results =
       request.service().diagnostics(request.context(), request.filePath(), request.contents());
     if (results == null) {
-      // a transient failure (server restarting, a refused socket): keep
-      // showing the last known diagnostics instead of clearing the
-      // highlights. toTextRange drops ranges that no longer fit, and the
-      // quick fixes check the captured text again before changing the
-      // document.
-      return cached != null ? cached.diagnostics() : null;
+      // a transient failure (server restarting, a refused socket): the same
+      // text keeps its last known diagnostics instead of losing the
+      // highlights; edited text gets none until a request succeeds
+      return sameText ? cached.diagnostics() : null;
     }
 
     // only the whole-project request reports errors in OTHER files (the
@@ -153,12 +154,14 @@ final class HaxeDiagnosticsFetcher {
       .filter(entry -> FileUtil.pathsEqual(entry.file(), request.filePath()))
       .flatMap(entry -> entry.diagnostics().stream())
       .toList();
-    log.debug("display/diagnostics for " + key + ": " + diagnostics.size() + " of " + countOf(results)
-              + " diagnostics belong to the file");
+    if (log.isDebugEnabled()) {
+      log.debug("display/diagnostics for " + key + ": " + diagnostics.size() + " of " + countOf(results)
+                + " diagnostics belong to the file");
+    }
     if (cache.size() >= CACHE_MAX_FILES) {
       evictOldest(cache);
     }
-    cache.put(key, new CacheEntry(contentsHash, System.currentTimeMillis(), diagnostics));
+    cache.put(key, new CacheEntry(request.documentStamp(), System.currentTimeMillis(), diagnostics));
     return diagnostics;
   }
 
@@ -174,6 +177,22 @@ final class HaxeDiagnosticsFetcher {
     cache.entrySet().stream()
       .min(Map.Entry.comparingByValue(Comparator.comparingLong(CacheEntry::timestampMillis)))
       .ifPresent(oldest -> cache.remove(oldest.getKey()));
+  }
+
+  /** The text a diagnostic is shown with: the compiler's message where it sends one, else a message for its kind. */
+  @NotNull
+  static String messageOf(@NotNull Diagnostic diagnostic) {
+    return switch (diagnostic.kind()) {
+      case UNRESOLVED_IDENTIFIER -> HaxeBundle.message("haxe.diagnostics.unresolved.identifier");
+      case COMPILER_ERROR, PARSER_ERROR, DEPRECATION_WARNING -> orGeneric(diagnostic.messageArg());
+      case MISSING_FIELDS -> HaxeBundle.message("haxe.diagnostics.missing.fields");
+      default -> HaxeBundle.message("haxe.diagnostics.generic");
+    };
+  }
+
+  @NotNull
+  private static String orGeneric(@NotNull String message) {
+    return message.isBlank() ? HaxeBundle.message("haxe.diagnostics.generic") : message;
   }
 
   @NotNull

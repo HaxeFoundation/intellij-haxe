@@ -4,6 +4,7 @@ import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -29,7 +30,7 @@ public class HaxeIntroduceVariableIntention
 
   @Override
   public @IntentionName @NotNull String getText() {
-    return "Create local variable '" + expressionText + "'";
+    return HaxeBundle.message("haxe.intention.create.local.variable", expressionText);
   }
 
 

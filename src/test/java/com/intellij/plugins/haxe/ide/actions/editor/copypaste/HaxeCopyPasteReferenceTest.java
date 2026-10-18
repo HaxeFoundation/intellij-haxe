@@ -5,11 +5,6 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -123,30 +118,6 @@ public class HaxeCopyPasteReferenceTest extends HaxeLightFixtureTestCase {
       """);
 
     assertTrue(pasted.contains("import pack.Util.helper;"), pasted);
-  }
-
-  @Test
-  @DisplayName("the candidate filter keeps a using-exposed callee that resolves to its static method")
-  public void testTheCandidateFilterKeepsAUsingExposedCalleeThatResolvesToItsStaticMethod() {
-    myFixture.configureByText("Main.hx", """
-      import pack.Holder;
-      using pack.Util;
-      class Main {
-        function run() {
-          var h = new Holder();
-          h.hel<caret>per();
-        }
-      }
-      """);
-    PsiElement atCaret = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    HaxeReferenceExpression callee = PsiTreeUtil.getParentOfType(atCaret, HaxeReferenceExpression.class);
-    HaxeImportCandidates candidates = HaxeImportCandidates.of((HaxeFile)myFixture.getFile());
-
-    assertTrue(candidates.mayNeedImport(callee), "a using-exposed callee is an import candidate");
-
-    PsiElement resolved = callee.resolve();
-    boolean staticMethod = resolved instanceof HaxeMethod method && method.isStatic();
-    assertTrue(staticMethod, "resolved to " + resolved);
   }
 
   @Test

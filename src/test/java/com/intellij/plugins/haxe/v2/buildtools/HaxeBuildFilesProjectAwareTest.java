@@ -55,7 +55,7 @@ public class HaxeBuildFilesProjectAwareTest extends HaxeCodeInsightFixtureTestCa
     CountingListener listener = new CountingListener();
     projectAware.subscribe(listener, getTestRootDisposable());
 
-    getProject().getMessageBus().syncPublisher(HaxeBuildConfigListener.TOPIC).buildConfigurationChanged();
+    HaxeBuildEventListener.publisher(getProject()).librariesSynced();
     assertEquals(1, listener.settingsFilesListChanges, "a finished sync may have changed what the build files import");
 
     HaxeBuildFilesStore.getInstance(getProject()).addFile("module", "/elsewhere/build.hxml");

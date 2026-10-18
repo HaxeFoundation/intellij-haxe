@@ -14,11 +14,12 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.util.HaxeModuleDetection;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurations;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -115,15 +116,18 @@ public final class HaxeBuildToolsConfigurable implements SearchableConfigurable 
       || panel.getServerPort() != settings.getCompilationServerPort()
       || !panel.getServerArguments().equals(settings.getCompilationServerArguments());
 
+    boolean haxelibChanged = !panel.getHaxelibPath().equals(settings.getHaxelibPath());
     settings.setSdkName(panel.getSelectedSdkName());
     if (sdkChanged) {
       // the default SDK is only real once it reaches the module entities -
       // resolution reads the project model, not this settings page
       applyDefaultSdkToModules();
-      // library classpaths come from the SDK's haxelib
-      HaxeLibrarySync.sync(project, null);
     }
     settings.setHaxelibPath(panel.getHaxelibPath());
+    if (sdkChanged || haxelibChanged) {
+      // library classpaths come from the haxelib the SDK and the override resolve to
+      HaxeLibrarySync.sync(project, null);
+    }
     settings.setNekoPath(panel.getNekoPath());
     settings.setHashlinkPath(panel.getHashlinkPath());
     settings.setNodePath(panel.getNodePath());
@@ -146,10 +150,11 @@ public final class HaxeBuildToolsConfigurable implements SearchableConfigurable 
     if (serverConfigChanged) {
       // these settings invalidate the running server; the next connected compile
       // restarts it. Unrelated edits (haxelib/neko/hashlink paths) keep the warm caches.
-      HaxeCompilationServerManager.getInstance(project).stop();
+      HaxeCompilationServerManager.getInstance(project).stopAll();
+      HaxeDisplayProcessManager.getInstance(project).stopAll();
     }
     // the tool window's rows and the define context derive from these settings
-    project.getMessageBus().syncPublisher(HaxeBuildConfigListener.TOPIC).buildConfigurationChanged();
+    HaxeBuildSettingsListener.publisher(project).compilerSettingsChanged();
   }
 
   /** Haxe modules without an Environment override follow the default SDK. */

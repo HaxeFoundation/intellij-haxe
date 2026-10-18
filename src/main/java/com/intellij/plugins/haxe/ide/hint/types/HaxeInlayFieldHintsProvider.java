@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerInlayService;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +20,7 @@ public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
   @Nullable
   @Override
   public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
+    if (HaxeCompilerInlayService.isActive(file.getProject())) return null;
     return new TypeCollector();
   }
 
@@ -45,18 +47,7 @@ public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
           HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
           ResultHolder type = HaxeTypeResolver.getPsiElementType(element,  resolver);
 
-          if (!type.isUnknown() && !type.getType().isInvalid()) {
-            int offset;
-            if (fieldDeclaration.getPropertyDeclaration() != null) {
-              offset = fieldDeclaration.getPropertyDeclaration().getTextRange().getEndOffset();
-            }
-            else {
-              offset = field.getPsiField().getComponentName().getTextRange().getEndOffset();
-            }
-            InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-            sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(type)
-            );
-          }
+          addTypeHint(fieldDeclaration, sink, type);
         }
       }
     }

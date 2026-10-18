@@ -72,6 +72,7 @@ public abstract class HaxeMultiFileTestBase {
   }
 
   protected void tearDown() throws Exception {
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     engine.stop();
   }
 

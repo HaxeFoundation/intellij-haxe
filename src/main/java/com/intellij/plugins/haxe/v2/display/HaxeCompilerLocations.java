@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -38,9 +39,10 @@ final class HaxeCompilerLocations {
   private HaxeCompilerLocations() {
   }
 
-  /** The file a location names, or null when it is gone. */
+  /** The file a location names, or null when it is gone or the location names no usable path. */
   @Nullable
   static VirtualFile fileOf(@NotNull Location location) {
+    if (HaxeExternalPaths.absolutePathOf(location.file()) == null) return null;
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(location.file());
     return file != null && file.isValid() ? file : null;
   }
@@ -109,7 +111,10 @@ final class HaxeCompilerLocations {
 
   /**
    * The declaration the range marks: the named component whose name sits
-   * there, else the bare element at the range start.
+   * there, else the bare element at the range start. A range that starts
+   * inside an expression marks no declaration: a macro gives a declaration
+   * it generates the position of the source expression it was built from,
+   * and the element there is not it.
    */
   @Nullable
   static PsiElement declarationIn(@NotNull PsiFile file, @NotNull Range range) {
@@ -119,7 +124,8 @@ final class HaxeCompilerLocations {
     if (element == null) return null;
     HaxeComponentName name = PsiTreeUtil.getParentOfType(element, HaxeComponentName.class, false);
     HaxeNamedComponent named = name == null ? null : PsiTreeUtil.getParentOfType(name, HaxeNamedComponent.class);
-    return named != null ? named : element;
+    if (named != null) return named;
+    return PsiTreeUtil.getParentOfType(element, HaxeExpression.class) != null ? null : element;
   }
 
   @Nullable

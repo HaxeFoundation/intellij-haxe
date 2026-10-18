@@ -10,6 +10,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.profiler.model.StackFrame;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
+import com.intellij.plugins.haxe.util.HaxeQnameResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.pom.Navigatable;
@@ -22,11 +24,11 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.OpenSourceUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -87,7 +89,7 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
       .inSmartMode(project)
       .coalesceBy(element)
       .finishOnUiThread(ModalityState.defaultModalityState(), descriptor -> {
-        if (descriptor != null) descriptor.navigate(true);
+        if (descriptor != null) OpenSourceUtil.navigate(true, descriptor);
       })
       .submit(AppExecutorUtil.getAppExecutorService());
   }
@@ -123,7 +125,7 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
     String[] segments = symbol.split("\\.");
     for (int memberIndex = segments.length - 1; memberIndex >= 1; memberIndex--) {
       String className = String.join(".", List.of(segments).subList(0, memberIndex));
-      HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(className, psiManager, scope);
+      HaxeClass haxeClass = runtimeClass(project, className, psiManager, scope);
       if (haxeClass == null) continue;
       NavigatablePsiElement member = findMember(haxeClass, segments[memberIndex]);
       return member != null ? member : haxeClass;
@@ -145,24 +147,29 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
     return enclosing != null ? enclosing : psiFile;
   }
 
-  /** An absolute path opens directly; a collector-relative one matches the project file whose path ends with it. */
+  /** An absolute path opens directly; a collector-relative one matches the project file whose path ends with it; null for one naming no usable path. */
   @Nullable
   private VirtualFile findVirtualFile(Project project) {
     String normalized = file.replace('\\', '/');
-    try {
-      Path path = Path.of(normalized);
-      if (path.isAbsolute()) {
-        return LocalFileSystem.getInstance().findFileByNioFile(path);
-      }
-    }
-    catch (InvalidPathException notAPath) {
-      return null;
+    Path path = HaxeExternalPaths.pathOf(normalized);
+    if (path == null) return null;
+    if (path.isAbsolute()) {
+      return LocalFileSystem.getInstance().findFileByNioFile(path);
     }
     String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
     for (VirtualFile candidate : FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project))) {
       if (candidate.getPath().endsWith("/" + normalized)) return candidate;
     }
     return null;
+  }
+
+  /** The class a profiler symbol's prefix names: by its runtime name (no module segment), else by its source spelling. */
+  @Nullable
+  private static HaxeClass runtimeClass(@NotNull Project project, @NotNull String className,
+                                        @NotNull PsiManager psiManager, @NotNull GlobalSearchScope scope) {
+    List<HaxeClass> byRuntimeName = HaxeQnameResolveUtil.findClassesByRuntimeName(className, project);
+    if (!byRuntimeName.isEmpty()) return byRuntimeName.getFirst();
+    return HaxeResolveUtil.findClassByQName(className, psiManager, scope);
   }
 
   @Nullable

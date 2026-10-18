@@ -1,26 +1,18 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSupportUtils;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInTarget;
 import com.intellij.psi.PsiElement;
 import com.intellij.xdebugger.XSourcePosition;
-import com.intellij.xdebugger.frame.XSuspendContext;
-import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
-import com.intellij.xdebugger.stepping.XSmartStepIntoVariant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.concurrency.AsyncPromise;
-import org.jetbrains.concurrency.Promise;
 
 /**
  * One of two smart-step flavours: smart step into for adapters that answer
@@ -54,30 +46,14 @@ import org.jetbrains.concurrency.Promise;
  * statement on the next line restores the chooser. Pinned by
  * JsDebugAdapterLiveTest.stepInTargetsKnownLimitationOnLastStatementOfFunction.
  */
-public class AdapterTargetsSmartStepHandler extends XSmartStepIntoHandler<AdapterTargetsSmartStepHandler.Variant> {
-  private final DapDebugProcess process;
+public class AdapterTargetsSmartStepHandler extends DapSmartStepHandlerBase<AdapterTargetsSmartStepHandler.Variant> {
 
   public AdapterTargetsSmartStepHandler(DapDebugProcess process) {
-    this.process = process;
-  }
-
-  // The platform drives this async entry point; compute on the DAP request
-  // thread — the sync computeSmartStepVariants must never block the EDT.
-  @Override
-  public @NotNull Promise<List<Variant>> computeSmartStepVariantsAsync(@NotNull XSourcePosition position) {
-    AsyncPromise<List<Variant>> promise = new AsyncPromise<>();
-    process.onRequestThread(() -> {
-      try {
-        promise.setResult(computeSmartStepVariants(position));
-      } catch (Throwable t) {
-        promise.setError(t);
-      }
-    }, () -> promise.setError("Debug session is shutting down"));
-    return promise;
+    super(process);
   }
 
   // The single implementation, reached only through the async entry points
-  // above (on the request thread, where the blocking DAP round-trip belongs).
+  // of the base (on the request thread, where the blocking DAP round-trip belongs).
   @Override
   public @NotNull List<Variant> computeSmartStepVariants(@NotNull XSourcePosition position) {
     List<StepInTarget> targets = process.requestStepInTargets();
@@ -92,16 +68,6 @@ public class AdapterTargetsSmartStepHandler extends XSmartStepIntoHandler<Adapte
       variants.add(new Variant(targets.get(i), ranges.get(i)));
     }
     return variants;
-  }
-
-  // The PLAIN Step Into action (F7) consults this — the base implementation
-  // returns a rejected promise, meaning "no variants, just step". Returning the
-  // variants makes F7 behave like the Java debugger: with more than one call on
-  // the line the same highlight/Tab chooser appears; with zero or one the
-  // platform performs an ordinary step into.
-  @Override
-  public @NotNull Promise<List<Variant>> computeStepIntoVariants(@NotNull XSourcePosition position) {
-    return computeSmartStepVariantsAsync(position);
   }
 
   // For each adapter target, the text range of the matching call's NAME
@@ -159,46 +125,22 @@ public class AdapterTargetsSmartStepHandler extends XSmartStepIntoHandler<Adapte
     return names;
   }
 
-  // The base implementation throws AbstractMethodError, and the frontend/backend
-  // debugger split calls this eagerly while creating the session DTO — an
-  // unimplemented title breaks session initialization, not just the popup.
-  @Override
-  public String getPopupTitle() {
-    return HaxeDebuggerBundle.message("dap.debugger.smart.step.into.title");
-  }
-
   @Override
   public void startStepInto(@NotNull Variant variant) {
     process.stepIntoTarget(variant.target.getId());
   }
 
-  @Override
-  public void startStepInto(@NotNull Variant variant, XSuspendContext context) {
-    startStepInto(variant);
-  }
-
-  static final class Variant extends XSmartStepIntoVariant {
+  static final class Variant extends DapSmartStepHandlerBase.Variant {
     private final StepInTarget target;
-    private final @Nullable TextRange highlightRange;
 
     Variant(StepInTarget target, @Nullable TextRange highlightRange) {
+      super(highlightRange);
       this.target = target;
-      this.highlightRange = highlightRange;
     }
 
     @Override
     public String getText() {
       return target.getLabel();
-    }
-
-    @Override
-    public Icon getIcon() {
-      return AllIcons.Nodes.Method;
-    }
-
-    @Override
-    public @Nullable TextRange getHighlightRange() {
-      return highlightRange;
     }
   }
 }

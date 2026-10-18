@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.plugins.haxe.util.HaxeModuleVariants.CustomTargetProblem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -46,12 +47,32 @@ public class HaxeModuleVariantsTest {
     arguments("Go", false),
     arguments("go-x", false),
     arguments("go x", false),
-    arguments("", false));
+    arguments("", false),
+    // only ASCII letters: the compiler's own rule
+    arguments("gö", false));
 
   @ParameterizedTest(name = "\"{0}\"")
   @FieldSource("TARGET_NAME_SHAPES")
   @DisplayName("target name shape is a lowercase start identifier")
   public void targetNameShapeIsALowercaseStartIdentifier(String name, boolean targetName) {
     assertEquals(targetName, HaxeModuleVariants.isTargetName(name));
+  }
+
+  /** (candidate --custom-target name, the problem the compiler or the variant lookup has with it). */
+  static final List<Arguments> CUSTOM_TARGET_NAMES = List.of(
+    arguments("mytarget", null),
+    arguments("exactly16chars_x", null),
+    // the compiler's own targets are reserved
+    arguments("js", CustomTargetProblem.RESERVED),
+    arguments("hl", CustomTargetProblem.RESERVED),
+    arguments("a_very_long_target_name", CustomTargetProblem.TOO_LONG),
+    arguments("Go", CustomTargetProblem.NOT_A_TARGET_NAME),
+    arguments("go-x", CustomTargetProblem.NOT_A_TARGET_NAME));
+
+  @ParameterizedTest(name = "\"{0}\"")
+  @FieldSource("CUSTOM_TARGET_NAMES")
+  @DisplayName("custom target names follow the compiler's rules")
+  public void customTargetNamesFollowTheCompilersRules(String name, CustomTargetProblem problem) {
+    assertEquals(problem, HaxeModuleVariants.customTargetProblem(name));
   }
 }

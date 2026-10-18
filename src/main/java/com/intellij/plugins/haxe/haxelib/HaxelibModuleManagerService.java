@@ -48,7 +48,7 @@ public final class HaxelibModuleManagerService implements ProjectManagerListener
   //For project open see HaxelibProjectStartActivity
   @Override
   public void projectClosed(@NotNull Project project) {
-    log.debug("Project closed event for  " + project.getName());
+    if (log.isDebugEnabled()) log.debug("Project closed event for  " + project.getName());
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       HaxelibProjectUpdater.getInstance().closeProject(project);
@@ -62,7 +62,7 @@ public final class HaxelibModuleManagerService implements ProjectManagerListener
   public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
     if (HaxelibProjectUpdater.getInstance().findProjectTracker(project) == null) return;
     for (Module module : modules) {
-      log.debug("Module added event for " + module.getName());
+      if (log.isDebugEnabled()) log.debug("Module added event for " + module.getName());
       ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
     }
   }

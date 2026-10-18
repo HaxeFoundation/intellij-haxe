@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.display.client;
 
 import com.intellij.plugins.haxe.display.protocol.*;
 import com.intellij.plugins.haxe.display.protocol.server.*;
+import com.intellij.plugins.haxe.display.transport.DisplayChannel;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import com.intellij.plugins.haxe.display.transport.MalformedPayloadException;
 import com.intellij.plugins.haxe.display.transport.DisplayResponse;
@@ -12,8 +13,9 @@ import java.util.List;
 import java.util.Map;
 import tools.jackson.databind.JsonNode;
 
-/// Typed requests against one `haxe --wait <port>` server. Every call is one
-/// connect-request-close exchange.
+/// Typed requests against one haxe server, over a [DisplayChannel]: a
+/// `--wait <port>` server reached with one connection per request, or a
+/// `--server-connect` process on its persistent framed connection.
 ///
 /// `baseArgs` is the build's normal argument list. The display request is
 /// appended to it, and the arguments select the cache context the server
@@ -23,19 +25,25 @@ import tools.jackson.databind.JsonNode;
 /// for a module it has already cached until that file is passed to
 /// [#invalidate].
 ///
-/// An instance holds no connection, only the server address and an optional
-/// observer, so creating one per request is fine.
+/// An instance holds the channel and an optional observer; over the
+/// per-request channel, creating one per request is fine.
 public class HaxeDisplayClient {
 
-  /** Notified after every request. The IDE records per-server metrics from it. */
+  /** Notified around every request. The IDE records per-server metrics from it. */
   public interface RequestObserver {
+    /** The request is about to be sent; it may still wait for the channel. */
+    default void beforeRequest(String method) {
+    }
+
     void afterRequest(String method, long millis, boolean success);
   }
 
+  /** The method name a plain compiler run ({@link #exchange}) reports to the observer, which has no display method. */
+  public static final String EXCHANGE_METHOD = "compile";
+
   private static final int DEFAULT_READ_TIMEOUT_MS = 30_000;
 
-  private final String host;
-  private final int port;
+  private final DisplayChannel channel;
   private final int readTimeoutMs;
   private RequestObserver observer;
 
@@ -44,13 +52,30 @@ public class HaxeDisplayClient {
   }
 
   public HaxeDisplayClient(String host, int port, int readTimeoutMs) {
-    this.host = host;
-    this.port = port;
+    this(HaxeDisplayTransport.socketPerRequest(host, port), readTimeoutMs);
+  }
+
+  public HaxeDisplayClient(DisplayChannel channel) {
+    this(channel, DEFAULT_READ_TIMEOUT_MS);
+  }
+
+  public HaxeDisplayClient(DisplayChannel channel, int readTimeoutMs) {
+    this.channel = channel;
     this.readTimeoutMs = readTimeoutMs;
+  }
+
+  /** A plain compiler run through the channel (a compile, a dump): the raw response. The observer counts it as {@link #EXCHANGE_METHOD}. */
+  public DisplayResponse exchange(List<String> args, int timeoutMs) throws DisplayRequestException {
+    return observed(EXCHANGE_METHOD, () -> channel.request(args, timeoutMs));
   }
 
   public void setObserver(RequestObserver observer) {
     this.observer = observer;
+  }
+
+  /** Whether the channel behind this client is closed for good; further requests fail without reaching a server. */
+  public boolean isChannelBroken() {
+    return channel.isBroken();
   }
 
   // --- lifecycle / capability ---
@@ -79,7 +104,12 @@ public class HaxeDisplayClient {
    * about it.
    */
   public List<FileDiagnostics> projectDiagnostics(List<String> baseArgs) throws DisplayRequestException {
-    return DisplayJson.decodeDiagnostics(call(baseArgs, DisplayMethods.DIAGNOSTICS, Map.of()));
+    return projectDiagnostics(baseArgs, readTimeoutMs);
+  }
+
+  /** Like {@link #projectDiagnostics(List)} with its own read timeout: type-checking a whole context on a cold server takes longer than one display answer. */
+  public List<FileDiagnostics> projectDiagnostics(List<String> baseArgs, int timeoutMs) throws DisplayRequestException {
+    return DisplayJson.decodeDiagnostics(call(baseArgs, DisplayMethods.DIAGNOSTICS, Map.of(), timeoutMs));
   }
 
   public HoverInfo hover(List<String> baseArgs, String file, int offset, String contents)
@@ -164,6 +194,20 @@ public class HaxeDisplayClient {
     return DisplayJson.decodeTypeBlueprint(typeName, data);
   }
 
+  /**
+   * Every type of a compile with the arguments, as blueprints whose members
+   * carry their positions: the whole program in one answer. It is a compile,
+   * so it reads the files on disk; pass {@code --no-output} in the arguments.
+   */
+  public List<TypeBlueprint> compiledTypes(List<String> baseArgs) throws DisplayRequestException {
+    return compiledTypes(baseArgs, readTimeoutMs);
+  }
+
+  /** Like {@link #compiledTypes(List)} with its own read timeout; it is a whole compile, see {@link #projectDiagnostics(List, int)}. */
+  public List<TypeBlueprint> compiledTypes(List<String> baseArgs, int timeoutMs) throws DisplayRequestException {
+    return DisplayJson.decodeCompiledTypes(call(baseArgs, DisplayMethods.COMPILED_TYPES, Map.of(), timeoutMs));
+  }
+
   public void invalidate(List<String> baseArgs, String file) throws DisplayRequestException {
     call(baseArgs, DisplayMethods.SERVER_INVALIDATE, Map.of("file", file));
   }
@@ -183,17 +227,35 @@ public class HaxeDisplayClient {
   /** Sends one display request and returns its result data. The observer hears of failed requests too. */
   private JsonNode call(List<String> baseArgs, String method, Map<String, Object> params)
     throws DisplayRequestException {
+    return call(baseArgs, method, params, readTimeoutMs);
+  }
+
+  private JsonNode call(List<String> baseArgs, String method, Map<String, Object> params, int timeoutMs)
+    throws DisplayRequestException {
+    List<String> args = new ArrayList<>(baseArgs);
+    args.add("--display");
+    args.add(DisplayJson.encodeRequest(method, params));
+    return observed(method, () -> sendDisplayRequest(args, method, timeoutMs));
+  }
+
+  private JsonNode sendDisplayRequest(List<String> args, String method, int timeoutMs) throws DisplayRequestException {
+    DisplayResponse response = channel.request(args, timeoutMs);
+    if (response.payload().isEmpty()) {
+      String message = "Display request '" + method + "' got no result: " + failureDetail(response);
+      throw new DisplayRequestException(message, response.hasError(), isUnexplained(response));
+    }
+    return unwrapClassified(method, response);
+  }
+
+  /** One exchange as the observer sees it: announced before it is sent, timed and judged after. */
+  private <T> T observed(String method, Exchange<T> exchange) throws DisplayRequestException {
+    if (observer != null) {
+      observer.beforeRequest(method);
+    }
     long start = System.nanoTime();
     boolean success = false;
     try {
-      List<String> args = new ArrayList<>(baseArgs);
-      args.add("--display");
-      args.add(DisplayJson.encodeRequest(method, params));
-      DisplayResponse response = HaxeDisplayTransport.request(host, port, args, readTimeoutMs);
-      if (response.payload().isEmpty()) {
-        throw new DisplayRequestException("Display request '" + method + "' got no result: " + failureDetail(response));
-      }
-      JsonNode result = unwrapClassified(method, response);
+      T result = exchange.send();
       success = true;
       return result;
     }
@@ -202,6 +264,11 @@ public class HaxeDisplayClient {
         observer.afterRequest(method, (System.nanoTime() - start) / 1_000_000, success);
       }
     }
+  }
+
+  @FunctionalInterface
+  private interface Exchange<T> {
+    T send() throws DisplayRequestException;
   }
 
   /**
@@ -214,8 +281,13 @@ public class HaxeDisplayClient {
       return DisplayJson.unwrap(response.payload());
     } catch (MalformedPayloadException e) {
       if (!response.hasError()) throw e;
-      throw new DisplayRequestException("Display request '" + method + "' failed: " + failureDetail(response), e);
+      throw new DisplayRequestException("Display request '" + method + "' failed: " + failureDetail(response), true, e);
     }
+  }
+
+  /** Whether the response explains nothing: no error marker and no log line. */
+  private static boolean isUnexplained(DisplayResponse response) {
+    return !response.hasError() && response.logs().stream().allMatch(String::isBlank);
   }
 
   /**

@@ -2,93 +2,48 @@ package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.NlsSafe;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeSyntheticDeclarations;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isInReferenceChain;
 import static com.intellij.plugins.haxe.ide.lookup.HaxeMemberLookupElement.createSynteticMember;
 
+/** Completes the identifiers the compiler accepts without a declaration: {@code trace} and the untyped target-syntax calls. */
 public class HaxeSyntheticMemberCompletionContributor extends CompletionContributor {
 
-    private static Map<String, String>   targetSpecificSyntaxData = Map.of(
-            "__js__", "js.Syntax.code",
-            "__php__", "php.Syntax.code",
-            "__python__", "python.Syntax.code",
-            "__cpp__", "cpp.Syntax.code",
-            "__cs__", "cs.Syntax.code",
-            "__java__", "java.Syntax.code",
-            "__lua__", "lua.Syntax.code"
-    );
+  private static final PsiElementPattern.Capture<PsiElement> ELEMENT_CAPTURE = psiElement()
+    .inside(HaxeIdentifier.class)
+    .andNot(psiElement().inside(HaxeType.class))
+    // current = ID token
+    // parent 1: HaxeIdentifier
+    // parent 2: HaxeReference
+    .and(psiElement().withSuperParent(2, HaxeReferenceExpression.class));
 
-    private static final PsiElementPattern.Capture<PsiElement> ELEMENT_CAPTURE = psiElement()
-            .inside(HaxeIdentifier.class)
-            .andNot(psiElement().inside(HaxeType.class))
-            // current = ID token
-            // parent 1: HaxeIdentifier
-            // parent 2: HaxeReference
-            .and(psiElement().withSuperParent(2, HaxeReferenceExpression.class));
-
-
-    public HaxeSyntheticMemberCompletionContributor() {
-    extend(CompletionType.BASIC, ELEMENT_CAPTURE,
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               final PsiFile file = parameters.getOriginalFile();
-               var position = parameters.getOriginalPosition();
-               boolean newExpression = identifierInNewExpression.accepts(position);
-               boolean inChain = isInReferenceChain(parameters.getPosition());
-               if(!newExpression && !inChain) {
-                 position = position != null ? position : parameters.getPosition();
-                 addVariantsFromIndex(result, file,position, position.getText());
-               }
-             }
-           });
-  }
-
-    private static void addVariantsFromIndex(final CompletionResultSet resultSet,
-                                           final PsiFile targetFile,
-                                           PsiElement position,
-                                           @NlsSafe String filterText) {
-    final Project project = targetFile.getProject();
-    final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-    final PrefixMatcher matcher = resultSet.getPrefixMatcher();
-
-      addTrace(resultSet, position, project);
-
-      addTargetSpecificSyntax(resultSet, position);
-  }
-
-    private static void addTargetSpecificSyntax(CompletionResultSet resultSet, PsiElement position) {
-        HaxeReference reference = position instanceof HaxeReference haxeReference
-                ? haxeReference
-                : PsiTreeUtil.getParentOfType(position, HaxeReference.class);
-
-        if (reference != null) {
-            for (Map.Entry<String, String> data : targetSpecificSyntaxData.entrySet()) {
-                HaxeMethod method = HaxeSyntheticPsiUtil.createSyntheticForTargetSpecificSyntax(data.getKey(), data.getValue(), reference);
-                resultSet.addAllElements(createSynteticMember(method.getComponentName()));
-            }
+  public HaxeSyntheticMemberCompletionContributor() {
+    extend(CompletionType.BASIC, ELEMENT_CAPTURE, new CompletionProvider<>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    @NotNull ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+        boolean newExpression = identifierInNewExpression.accepts(parameters.getOriginalPosition());
+        boolean inChain = isInReferenceChain(parameters.getPosition());
+        if (!newExpression && !inChain) {
+          addSyntheticMembers(result, parameters.getOriginalFile().getProject());
         }
-    }
+      }
+    });
+  }
 
-    private static void addTrace(CompletionResultSet resultSet, PsiElement position, Project project) {
-        HaxeIdentifier identifier = PsiTreeUtil.getParentOfType(position, HaxeIdentifier.class);
-        HaxeMethod method = HaxeSyntheticPsiUtil.createSyntheticForTrace(project);
-        resultSet.addAllElements(createSynteticMember(method.getComponentName()));
+  private static void addSyntheticMembers(@NotNull CompletionResultSet result, @NotNull Project project) {
+    result.addAllElements(createSynteticMember(HaxeSyntheticDeclarations.traceMethod(project).getComponentName()));
+    for (HaxeMethod method : HaxeSyntheticDeclarations.targetSyntaxMethods(project)) {
+      result.addAllElements(createSynteticMember(method.getComponentName()));
     }
+  }
 }

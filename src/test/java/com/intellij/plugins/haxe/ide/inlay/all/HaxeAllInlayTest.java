@@ -15,13 +15,6 @@ public class HaxeAllInlayTest extends HaxeInlayTestBase {
         return "/inlay/all/";
     }
 
-    @Override
-    public void setUp() throws Exception {
-        useHaxeToolkit();
-        super.setUp();
-        setTestStyleSettings(2);
-    }
-
     @Test
     @DisplayName("parameter monomorph")
     public void testParameterMonomorph() throws Exception {

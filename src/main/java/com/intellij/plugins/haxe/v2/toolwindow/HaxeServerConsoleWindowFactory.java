@@ -10,6 +10,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -21,11 +22,15 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager.ServerInfo;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager.ServerOutputListener;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerMetricsListener;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerProcesses;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerProcesses.ServerInfo;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerProcesses.ServerOutputListener;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeBuildToolsConfigurable;
@@ -38,6 +43,10 @@ import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -57,6 +66,8 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
   private static final String TOOLBAR_PLACE = "HaxeServerConsoleToolbar";
   /** Marks a tab with the server-instance id it renders; absent on the placeholder tab. */
   private static final Key<String> SERVER_ID = Key.create("haxe.server.console.server.id");
+  /** The manager owning the tab's process: the shared servers' or the display processes'. */
+  private static final Key<HaxeServerProcesses> MANAGER = Key.create("haxe.server.console.manager");
   /** The tab's status half, refreshed when context health or server state changes. */
   private static final Key<HaxeServerStatusPanel> STATUS_PANEL = Key.create("haxe.server.console.status.panel");
 
@@ -66,10 +77,30 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
       .connect(toolWindow.getDisposable())
       .subscribe(HaxeCompilationServerListener.TOPIC, () -> syncTabs(project, toolWindow));
 
-    // context-health transitions arrive on background threads
+    // context-health transitions arrive on background threads; the server
+    // settings and a container's environment decide which server a context uses
     project.getMessageBus()
       .connect(toolWindow.getDisposable())
-      .subscribe(HaxeBuildConfigListener.TOPIC, () -> updateStatusesLater(project, toolWindow));
+      .subscribe(HaxeBuildEventListener.TOPIC, HaxeBuildEventListener.onAny(() -> updateStatusesLater(project, toolWindow)));
+    project.getMessageBus()
+      .connect(toolWindow.getDisposable())
+      .subscribe(HaxeBuildSettingsListener.TOPIC, new HaxeBuildSettingsListener() {
+        @Override
+        public void compilerSettingsChanged() {
+          updateStatusesLater(project, toolWindow);
+        }
+
+        @Override
+        public void environmentChanged(@NotNull String containerId, @NotNull EnvironmentAspect aspect) {
+          updateStatusesLater(project, toolWindow);
+        }
+      });
+
+    // the request counters move with every request; one refresh per interval keeps the EDT calm
+    ThrottledRefresh statsRefresh = new ThrottledRefresh(() -> updateRequestStats(project, toolWindow));
+    project.getMessageBus()
+      .connect(toolWindow.getDisposable())
+      .subscribe(HaxeServerMetricsListener.TOPIC, statsRefresh::request);
 
     // closing a tab means "done with that SDK's server": stop the process and
     // forget the instance (on project close the manager kills everything anyway,
@@ -78,8 +109,9 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
       @Override
       public void contentRemoved(@NotNull ContentManagerEvent event) {
         String serverId = event.getContent().getUserData(SERVER_ID);
-        if (serverId != null) {
-          HaxeCompilationServerManager.getInstance(project).removeServer(serverId);
+        HaxeServerProcesses manager = event.getContent().getUserData(MANAGER);
+        if (serverId != null && manager != null) {
+          manager.removeServer(serverId);
         }
       }
     });
@@ -99,21 +131,30 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
     });
   }
 
-  /** Mirrors the manager's instance list into tabs; runs on the EDT (the topic delivers there). */
+  /** The shared compilation servers, then the dedicated display processes. */
+  @NotNull
+  private static List<HaxeServerProcesses> managers(@NotNull Project project) {
+    return List.of(HaxeCompilationServerManager.getInstance(project), HaxeDisplayProcessManager.getInstance(project));
+  }
+
+  /** Mirrors the managers' instance lists into tabs; runs on the EDT (the topic delivers there). */
   private static void syncTabs(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     ContentManager contentManager = toolWindow.getContentManager();
-    var serverInfos = HaxeCompilationServerManager.getInstance(project).getServers();
-    if (serverInfos.isEmpty()) {
+    boolean anyServer = false;
+    for (HaxeServerProcesses manager : managers(project)) {
+      for (ServerInfo info : manager.getServers()) {
+        anyServer = true;
+        removePlaceholder(contentManager);
+        if (findTab(contentManager, info.id()) == null) {
+          contentManager.addContent(createServerTab(project, manager, info));
+        }
+      }
+    }
+    if (!anyServer) {
       if (contentManager.getContentCount() == 0) {
         contentManager.addContent(createPlaceholderTab(project));
       }
       return;
-    }
-    removePlaceholder(contentManager);
-    for (ServerInfo info : serverInfos) {
-      if (findTab(contentManager, info.id()) == null) {
-        contentManager.addContent(createServerTab(project, info));
-      }
     }
     updateStatuses(project, toolWindow);
   }
@@ -125,17 +166,28 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
   /** Refreshes every tab's status view and its red/green tab icon. */
   private static void updateStatuses(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     if (project.isDisposed()) return;
-    HaxeCompilationServerManager manager = HaxeCompilationServerManager.getInstance(project);
     for (Content content : toolWindow.getContentManager().getContents()) {
       String serverId = content.getUserData(SERVER_ID);
+      HaxeServerProcesses manager = content.getUserData(MANAGER);
       HaxeServerStatusPanel status = content.getUserData(STATUS_PANEL);
-      if (serverId == null || status == null) continue;
+      if (serverId == null || manager == null || status == null) continue;
       boolean running = manager.isRunning(serverId);
       if (!running) {
         status.clearFetchedStats();
       }
-      status.update(project, serverId);
+      status.update(project, manager, serverId);
       content.setIcon(statusIcon(status.hasFailures(), running));
+    }
+  }
+
+  /** Refreshes only the request counters of every tab. */
+  private static void updateRequestStats(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+    if (project.isDisposed() || toolWindow.isDisposed()) return;
+    for (Content content : toolWindow.getContentManager().getContents()) {
+      HaxeServerStatusPanel status = content.getUserData(STATUS_PANEL);
+      if (status != null) {
+        status.updateRequestStats();
+      }
     }
   }
 
@@ -164,19 +216,19 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
   }
 
   @NotNull
-  private static Content createServerTab(@NotNull Project project, @NotNull ServerInfo info) {
+  private static Content createServerTab(@NotNull Project project, @NotNull HaxeServerProcesses manager, @NotNull ServerInfo info) {
     ConsoleView console = TextConsoleBuilderFactory.getInstance()
       .createBuilder(project)
       .getConsole();
-    HaxeCompilationServerManager manager = HaxeCompilationServerManager.getInstance(project);
     ServerOutputListener listener =
       (text, outputType) -> console.print(text, ConsoleViewContentType.getConsoleViewType(outputType));
     manager.addOutputListener(info.id(), listener);
 
+    ActionLabels labels = ActionLabels.of(manager);
     DefaultActionGroup toolbarGroup = new DefaultActionGroup();
-    toolbarGroup.add(new StartTabServerAction(project, info.id(), false));
-    toolbarGroup.add(new StartTabServerAction(project, info.id(), true));
-    toolbarGroup.add(new StopTabServerAction(project, info.id()));
+    toolbarGroup.add(new StartTabServerAction(project, manager, info.id(), labels, false));
+    toolbarGroup.add(new StartTabServerAction(project, manager, info.id(), labels, true));
+    toolbarGroup.add(new StopTabServerAction(manager, info.id(), labels));
 
     // console left, status view right - failures need selectable text, not tooltips
     HaxeServerStatusPanel status = new HaxeServerStatusPanel();
@@ -187,6 +239,7 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
     Content content = ContentFactory.getInstance()
       .createContent(wrapWithToolbar(splitter, toolbarGroup), info.displayName(), false);
     content.putUserData(SERVER_ID, info.id());
+    content.putUserData(MANAGER, manager);
     content.putUserData(STATUS_PANEL, status);
     content.setCloseable(true);
     content.setDisposer(() -> {
@@ -226,6 +279,31 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
     return panel;
   }
 
+  /** Turns a burst of change notifications from any thread into one EDT refresh per {@value #DELAY_MS} ms. */
+  private static final class ThrottledRefresh {
+    private static final int DELAY_MS = 300;
+
+    private final Runnable refresh;
+    private final AtomicBoolean scheduled = new AtomicBoolean();
+
+    ThrottledRefresh(@NotNull Runnable refresh) {
+      this.refresh = refresh;
+    }
+
+    void request() {
+      if (!scheduled.compareAndSet(false, true)) return;
+      AppExecutorUtil.getAppScheduledExecutorService().schedule(this::refreshOnEdt, DELAY_MS, TimeUnit.MILLISECONDS);
+    }
+
+    private void refreshOnEdt() {
+      // a plain label update, so any modality will do
+      ApplicationManager.getApplication().invokeLater(() -> {
+        scheduled.set(false);
+        refresh.run();
+      }, ModalityState.any());
+    }
+  }
+
   private static final class StartDefaultServerAction extends DumbAwareAction {
     private final Project project;
 
@@ -260,20 +338,35 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
     }
   }
 
+  /** The toolbar texts of a tab, by the kind of process it shows. */
+  private record ActionLabels(@NotNull String start, @NotNull String restart, @NotNull String stop) {
+    static ActionLabels of(@NotNull HaxeServerProcesses manager) {
+      if (manager instanceof HaxeDisplayProcessManager) {
+        return new ActionLabels(HaxeBundle.message("haxe.server.console.display.start"),
+                                HaxeBundle.message("haxe.server.console.display.restart"),
+                                HaxeBundle.message("haxe.server.console.display.stop"));
+      }
+      return new ActionLabels(HaxeBundle.message("haxe.server.console.start"),
+                              HaxeBundle.message("haxe.server.console.restart"),
+                              HaxeBundle.message("haxe.server.console.stop"));
+    }
+  }
+
   /**
-   * Start (enabled while the server is stopped) and Restart (while it runs):
-   * restartServer on a dead instance is a plain start.
+   * Start (enabled while the process is stopped) and Restart (while it runs):
+   * restartServer on a dead entry is a plain start.
    */
   private static final class StartTabServerAction extends DumbAwareAction {
     private final Project project;
+    private final HaxeServerProcesses manager;
     private final String serverId;
     private final boolean restart;
 
-    StartTabServerAction(@NotNull Project project, @NotNull String serverId, boolean restart) {
-      super(HaxeBundle.message(restart ? "haxe.server.console.restart" : "haxe.server.console.start"),
-            null,
-            restart ? AllIcons.Actions.Restart : AllIcons.Actions.Execute);
+    StartTabServerAction(@NotNull Project project, @NotNull HaxeServerProcesses manager, @NotNull String serverId,
+                         @NotNull ActionLabels labels, boolean restart) {
+      super(restart ? labels.restart() : labels.start(), null, restart ? AllIcons.Actions.Restart : AllIcons.Actions.Execute);
       this.project = project;
+      this.manager = manager;
       this.serverId = serverId;
       this.restart = restart;
     }
@@ -284,14 +377,12 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
         return;
       }
       // process creation must stay off the EDT
-      AppExecutorUtil.getAppExecutorService()
-        .execute(() -> HaxeCompilationServerManager.getInstance(project).restartServer(serverId));
+      AppExecutorUtil.getAppExecutorService().execute(() -> manager.restartServer(serverId));
     }
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      boolean running = HaxeCompilationServerManager.getInstance(project).isRunning(serverId);
-      e.getPresentation().setEnabled(running == restart);
+      e.getPresentation().setEnabled(manager.isRunning(serverId) == restart);
     }
 
     @Override
@@ -301,23 +392,23 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
   }
 
   private static final class StopTabServerAction extends DumbAwareAction {
-    private final Project project;
+    private final HaxeServerProcesses manager;
     private final String serverId;
 
-    StopTabServerAction(@NotNull Project project, @NotNull String serverId) {
-      super(HaxeBundle.message("haxe.server.console.stop"), null, AllIcons.Actions.Suspend);
-      this.project = project;
+    StopTabServerAction(@NotNull HaxeServerProcesses manager, @NotNull String serverId, @NotNull ActionLabels labels) {
+      super(labels.stop(), null, AllIcons.Actions.Suspend);
+      this.manager = manager;
       this.serverId = serverId;
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      HaxeCompilationServerManager.getInstance(project).stopServer(serverId);
+      manager.stopServer(serverId);
     }
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      e.getPresentation().setEnabled(HaxeCompilationServerManager.getInstance(project).isRunning(serverId));
+      e.getPresentation().setEnabled(manager.isRunning(serverId));
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeHighlightingLexer;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.psi.tree.IElementType;
@@ -40,10 +41,18 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
  */
 public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<IElementType, TextAttributesKey>();
-  private Project myProject;
+  private final Project myProject;
+  // the file being highlighted; null for the color settings page
+  @Nullable
+  private final VirtualFile myFile;
 
   public HaxeSyntaxHighlighter(Project project) {
+    this(project, null);
+  }
+
+  public HaxeSyntaxHighlighter(Project project, @Nullable VirtualFile file) {
     myProject = project;
+    myFile = file;
   }
 
   static {
@@ -120,7 +129,7 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
 
   @NotNull
   public Lexer getHighlightingLexer() {
-    return new HaxeHighlightingLexer(myProject);
+    return new HaxeHighlightingLexer(myProject, myFile);
   }
 
   @NotNull

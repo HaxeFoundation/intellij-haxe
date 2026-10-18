@@ -1,22 +1,17 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
 import com.intellij.application.options.ModulesComboBox;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.HelpTooltipKt;
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.browsers.BrowserSelector;
 import com.intellij.ide.browsers.WebBrowser;
 import com.intellij.ide.browsers.WebBrowserManager;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.runner.debugger.javascript.DapAdapterStatusRow;
 import com.intellij.plugins.haxe.util.ui.HaxePathFieldChoosers;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration.BrowserFamily;
 import com.intellij.ui.components.ActionLink;
@@ -32,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterPin;
 
 /**
  * Settings UI for the browser debug configuration: module, the browser
@@ -57,6 +53,7 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
   private ActionLink downloadLink;
   /** Icon-only link revealing the adapter store directory in the system file manager. */
   private ActionLink openStoreLink;
+  private final DapAdapterStatusRow adapterStatus;
   private JBCheckBox serveContentCheckBox;
   private TextFieldWithBrowseButton contentRootField;
   private JBTextField urlField;
@@ -82,16 +79,11 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
     buildBrowserSelector();
 
     // secondary information, styled like the platform's context help text
-    adapterStatusLabel.setForeground(UIUtil.getContextHelpForeground());
     hintArea.setForeground(UIUtil.getContextHelpForeground());
     hintArea.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     hintArea.setBorder(null);
 
-    downloadLink.setText(HaxeDebuggerBundle.message("browser.runner.adapter.download"));
-    downloadLink.addActionListener(e -> downloadAdapter());
-    openStoreLink.setIcon(AllIcons.General.OpenDisk);
-    openStoreLink.addActionListener(e -> revealAdapterDirectory());
-    HelpTooltipKt.setToolTipText(openStoreLink, HtmlChunk.text(RevealFileAction.getActionName()));
+    adapterStatus = new DapAdapterStatusRow(adapterStatusLabel, downloadLink, openStoreLink, this::selectedPin, this::fireEditorStateChanged);
   }
 
   // The IDE's own browser combobox (Settings | Web Browsers entries). The
@@ -141,67 +133,17 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
   }
 
   private void updateAdapterStatus() {
-    BrowserFamily family = selectedFamily();
-    if (family == null) {
+    if (selectedFamily() == null) {
       // no browser, or a family (Safari, IE, ...) no adapter can drive
       adapterStatusLabel.setText(noAdapterStatusText(browserSelector.getSelected()));
-      openStoreLink.setVisible(false);
-      downloadLink.setVisible(false);
-      return;
     }
-    AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    String name = BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version();
-    boolean installed = AdapterStores.open().isInstalled(pin);
-    adapterStatusLabel.setText(adapterStatusText(installed, name));
-    openStoreLink.setVisible(installed);
-    downloadLink.setVisible(!installed);
-    downloadLink.setEnabled(true);
+    adapterStatus.update();
   }
 
-  private void revealAdapterDirectory() {
+  /** The pinned adapter for the selected browser's family; null when no adapter can drive it. */
+  private @Nullable AdapterPin selectedPin() {
     BrowserFamily family = selectedFamily();
-    if (family == null) {
-      return;
-    }
-    AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    RevealFileAction.openDirectory(AdapterStores.root().resolve(pin.id()).resolve(pin.version()).toFile());
-  }
-
-  private void downloadAdapter() {
-    BrowserFamily family = selectedFamily();
-    if (family == null) {
-      return;
-    }
-    AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    downloadLink.setVisible(false);
-    adapterStatusLabel.setText(HaxeDebuggerBundle.message(
-      "browser.runner.adapter.downloading",
-      BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version()));
-
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      String failure;
-      try {
-        AdapterStores.open().resolveEntry(pin);
-        failure = null;
-      } catch (Exception e) {
-        failure = e.getMessage();
-      }
-      String failureText = failure;
-      // the editor lives in a MODAL dialog: without its modality state the
-      // runnable would only run after the dialog closes and the status text
-      // would never appear to update
-      ApplicationManager.getApplication().invokeLater(() -> {
-        if (failureText != null) {
-          adapterStatusLabel.setText(HaxeDebuggerBundle.message("browser.runner.adapter.failed", failureText));
-          downloadLink.setVisible(true);
-        } else {
-          updateAdapterStatus();
-          // the dialog's "adapter is not downloaded" validation error must
-          // clear now, not on the next manual edit - nudge a re-validation
-          fireEditorStateChanged();
-        }
-      }, ModalityState.stateForComponent(adapterStatusLabel));
-    });
+    return family == null ? null : BrowserRunConfiguration.adapterPinFor(family);
   }
 
   @Override
@@ -240,11 +182,6 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
   private static String noAdapterStatusText(@Nullable WebBrowser browser) {
     if (browser == null) return HaxeDebuggerBundle.message("browser.runner.adapter.no.browser");
     return HaxeDebuggerBundle.message("browser.runner.adapter.unsupported", browser.getName());
-  }
-
-  private static String adapterStatusText(boolean installed, String name) {
-    if (installed) return HaxeDebuggerBundle.message("browser.runner.adapter.downloaded", name);
-    return name + " —";
   }
 
   @Override

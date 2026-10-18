@@ -15,19 +15,6 @@ public class HaxeUntypedParameterInlayTest extends HaxeInlayTestBase {
     return "/inlay/haxe.untyped.parameter.type/";
   }
 
-  @Override
-  public void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
-    setTestStyleSettings(2);
-  }
-
-  // test to generate preview used in inlay settings example
-  @Test
-  @DisplayName("preview")
-  public void testPreview() throws Exception {
-    doTest(hintsProvider);
-  }
   @Test
   @DisplayName("untyped with generics")
   public void testUntypedWithGenerics() throws Exception {

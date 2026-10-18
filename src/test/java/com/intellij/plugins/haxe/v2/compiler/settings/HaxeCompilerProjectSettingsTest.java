@@ -62,6 +62,22 @@ public class HaxeCompilerProjectSettingsTest {
   }
 
   @Test
+  @DisplayName("display connection mode defaults to the shared server and survives xml round trip")
+  public void displayConnectionModeDefaultsToTheSharedServerAndSurvivesXmlRoundTrip() {
+    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
+    assertEquals(HaxeDisplayConnectionMode.SHARED_SERVER, settings.getDisplayConnectionMode());
+    settings.setDisplayConnectionMode(HaxeDisplayConnectionMode.DEDICATED_PROCESS);
+
+    Element serialized = XmlSerializer.serialize(settings.getState());
+    HaxeCompilerProjectSettings.State deserialized =
+      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
+    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
+    reloaded.loadState(deserialized);
+
+    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, reloaded.getDisplayConnectionMode());
+  }
+
+  @Test
   @DisplayName("use compiler level survives xml serialization round trip")
   public void useCompilerLevelSurvivesXmlSerializationRoundTrip() {
     HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
@@ -91,6 +107,64 @@ public class HaxeCompilerProjectSettingsTest {
     reloaded.loadState(deserialized);
 
     assertEquals(HaxeCompletionMode.IDE_ONLY, reloaded.getCompletionMode());
+  }
+
+  @Test
+  @DisplayName("compiler features default on and count only under the master switch")
+  public void compilerFeaturesDefaultOnAndCountOnlyUnderTheMasterSwitch() {
+    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
+    assertTrue(settings.isCompilerInlaysEnabled());
+    assertTrue(settings.isCompilerFindUsagesEnabled());
+    assertTrue(settings.isCompilerNavigationEnabled());
+    assertTrue(settings.isCompilerCompletionEnabled());
+    assertFalse(settings.usesCompilerInlays(), "the master switch is off by default");
+    assertEquals(HaxeCompletionMode.IDE_ONLY, settings.getEffectiveCompletionMode());
+
+    settings.setCompilerIdeFeaturesEnabled(true);
+    settings.setCompilerNavigationEnabled(false);
+
+    assertTrue(settings.usesCompilerInlays());
+    assertTrue(settings.usesCompilerFindUsages());
+    assertFalse(settings.usesCompilerNavigation());
+    assertEquals(HaxeCompletionMode.IDE_AND_COMPILER, settings.getEffectiveCompletionMode());
+    settings.setCompilerCompletionEnabled(false);
+    assertEquals(HaxeCompletionMode.IDE_ONLY, settings.getEffectiveCompletionMode(), "the stored mode stays, the effective one is IDE only");
+    assertEquals(HaxeCompletionMode.IDE_AND_COMPILER, settings.getCompletionMode());
+  }
+
+  @Test
+  @DisplayName("compiler feature toggles survive xml round trip")
+  public void compilerFeatureTogglesSurviveXmlRoundTrip() {
+    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
+    settings.setCompilerInlaysEnabled(false);
+    settings.setCompilerFindUsagesEnabled(false);
+    settings.setGeneratedMemberPreviewEnabled(false);
+
+    Element serialized = XmlSerializer.serialize(settings.getState());
+    HaxeCompilerProjectSettings.State deserialized =
+      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
+    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
+    reloaded.loadState(deserialized);
+
+    assertFalse(reloaded.isCompilerInlaysEnabled());
+    assertFalse(reloaded.isCompilerFindUsagesEnabled());
+    assertTrue(reloaded.isCompilerNavigationEnabled());
+    assertFalse(reloaded.isGeneratedMemberPreviewEnabled());
+    assertTrue(reloaded.isCompilerCompletionEnabled());
+  }
+
+  @Test
+  @DisplayName("generated member preview defaults on and counts only under compiler navigation")
+  public void generatedMemberPreviewDefaultsOnAndCountsOnlyUnderCompilerNavigation() {
+    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
+    assertTrue(settings.isGeneratedMemberPreviewEnabled());
+    assertFalse(settings.usesGeneratedMemberPreview(), "the master switch is off by default");
+
+    settings.setCompilerIdeFeaturesEnabled(true);
+    assertTrue(settings.usesGeneratedMemberPreview());
+
+    settings.setCompilerNavigationEnabled(false);
+    assertFalse(settings.usesGeneratedMemberPreview(), "the preview is part of compiler navigation");
   }
 
   @Test

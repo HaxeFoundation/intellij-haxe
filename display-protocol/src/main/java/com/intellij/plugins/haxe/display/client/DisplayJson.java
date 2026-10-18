@@ -54,9 +54,22 @@ public final class DisplayJson {
     if (!error.isMissingNode()) {
       String errorMessage = error.path("message").asString("unknown error");
       int errorCode = error.path("code").asInt(-1);
-      throw new DisplayRequestException("Display request failed: " + errorMessage + " (code " + errorCode + ")");
+      String detail = firstErrorDetail(error.path("data"));
+      String suffix = detail.isEmpty() ? "" : ": " + abbreviate(detail);
+      throw new DisplayRequestException("Display request failed: " + errorMessage + " (code " + errorCode + ")" + suffix, true);
     }
     return root.path("result").path("result");
+  }
+
+  /**
+   * The first item of an error's {@code data}: a compiler error carries a list
+   * of diagnostics ({@code {message, location}}) or of plain strings.
+   */
+  private static String firstErrorDetail(JsonNode data) {
+    JsonNode first = data.isArray() ? data.path(0) : data;
+    if (first.isMissingNode() || first.isNull()) return "";
+    if (first.isObject()) return first.path("message").asString("");
+    return first.asString("");
   }
 
   private static String abbreviate(String text) {
@@ -169,17 +182,23 @@ public final class DisplayJson {
     int index = entry.path("index").asInt(position);
     return switch (kind) {
       case "Local", "Literal", "Keyword", "Metadata", "Define", "TypeParameter" ->
-        new CompletionItem(kind, args.path("name").asString(""), null, null, type, doc, index);
+        new CompletionItem(kind, args.path("name").asString(""), null, null, type, doc, index, null);
       case "ClassField", "EnumAbstractField", "EnumField" ->
-        new CompletionItem(kind, args.path("field").path("name").asString(""), null, null, type, doc, index);
-      case "Type" -> new CompletionItem(kind, args.path("path").path("typeName").asString(""),
-                                        JsonTypeRef.qualifiedNameOf(args.path("path")), args.path("kind").asString(""), type, doc, index);
+        new CompletionItem(kind, args.path("field").path("name").asString(""), null, null, type, doc, index, null);
+      case "Type" -> typeItem(kind, args.path("path"), args.path("kind").asString(""), type, doc, index);
       case "Package" -> new CompletionItem(kind, lastSegment(args.path("path").path("pack")), dotPath(args.path("path").path("pack")),
-                                           null, type, doc, index);
+                                           null, type, doc, index, null);
       case "Module" -> new CompletionItem(kind, args.path("path").path("moduleName").asString(""),
-                                          dotPath(args.path("path").path("pack")), null, type, doc, index);
+                                          dotPath(args.path("path").path("pack")), null, type, doc, index, null);
       default -> null;
     };
+  }
+
+  /** A type item: its name, qualified path and declaration kind, and its import status at the position. */
+  private static CompletionItem typeItem(String kind, JsonNode path, String moduleTypeKind, JsonTypeRef type, String doc, int index) {
+    String name = path.path("typeName").asString("");
+    ImportStatus importStatus = ImportStatus.fromWire(path.path("importStatus").asInt(-1));
+    return new CompletionItem(kind, name, JsonTypeRef.qualifiedNameOf(path), moduleTypeKind, type, doc, index, importStatus);
   }
 
   /** The item-level type. When that is absent, a local carries its type in its args and a field in its field args. */
@@ -277,6 +296,15 @@ public final class DisplayJson {
     return List.copyOf(paths);
   }
 
+  /** The {@code typer/compiledTypes} answer: every type of the compile as a blueprint, members with positions. */
+  public static List<TypeBlueprint> decodeCompiledTypes(JsonNode data) {
+    List<TypeBlueprint> types = new ArrayList<>();
+    for (JsonNode type : data) {
+      types.add(decodeTypeBlueprint(type.path("name").asString(""), type));
+    }
+    return List.copyOf(types);
+  }
+
   public static TypeBlueprint decodeTypeBlueprint(String typeName, JsonNode data) {
     JsonNode args = data.path("args");
     return new TypeBlueprint(
@@ -292,7 +320,8 @@ public final class DisplayJson {
       members.add(new TypeBlueprint.Member(
         field.path("name").asString(""),
         JsonTypeRef.of(field.path("type")),
-        field.path("kind").path("kind").asString("")));
+        field.path("kind").path("kind").asString(""),
+        JsonPos.of(field.path("pos"))));
     }
     return List.copyOf(members);
   }

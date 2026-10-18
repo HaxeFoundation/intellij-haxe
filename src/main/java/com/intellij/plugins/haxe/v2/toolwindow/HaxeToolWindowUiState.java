@@ -26,9 +26,13 @@ import java.util.Set;
 @State(name = "HaxeToolWindowUiState", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public final class HaxeToolWindowUiState implements PersistentStateComponent<HaxeToolWindowUiState.State> {
 
+  /** The kinds of empty row the toolbar filter can hide. */
+  public enum EmptyRows { MODULES, NODES }
+
   public static final class State {
     public List<String> expandedKeys = new ArrayList<>();
     public boolean hideEmptyModules;
+    public boolean hideEmptyNodes;
   }
 
   private State state = new State();
@@ -51,12 +55,18 @@ public final class HaxeToolWindowUiState implements PersistentStateComponent<Hax
     this.state = state;
   }
 
-  public boolean isHideEmptyModules() {
-    return state.hideEmptyModules;
+  public boolean isHiding(@NotNull EmptyRows rows) {
+    return switch (rows) {
+      case MODULES -> state.hideEmptyModules;
+      case NODES -> state.hideEmptyNodes;
+    };
   }
 
-  public void setHideEmptyModules(boolean hide) {
-    state.hideEmptyModules = hide;
+  public void setHiding(@NotNull EmptyRows rows, boolean hide) {
+    switch (rows) {
+      case MODULES -> state.hideEmptyModules = hide;
+      case NODES -> state.hideEmptyNodes = hide;
+    }
   }
 
   /** Empty when nothing was saved yet — the panel then applies its default expansion. */

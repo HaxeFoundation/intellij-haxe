@@ -1,75 +1,51 @@
 package com.intellij.plugins.haxe.buildsystem.lime;
 
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectFileDetectionUtil;
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 @UtilityClass
 public class LimeOpenFlUtil {
-    public boolean isOpenfl(XmlTag rootTag) {
-        return Arrays.stream(rootTag.findSubTags("haxelib"))
-          .map(xmlTag -> xmlTag.getAttribute("name"))
-          .filter(Objects::nonNull)
-          .anyMatch(attribute -> "openfl".equalsIgnoreCase(attribute.getValue()));
-    }
-    // TODO: one recognition rule with HaxeProjectFileDetectionUtil, whose scanner parses bytes instead of PSI
-    public boolean looksLikeALimeProjectFile(XmlTag rootTag) {
-        if (!rootTag.getName().equalsIgnoreCase("project")) return false;
-        // <classpath> is lime's alias of <source>
-        boolean hasSources = hasSubTag(rootTag, "source") || hasSubTag(rootTag, "classpath");
 
-        int tagKindsFound = 0;
-        if (hasSubTag(rootTag, "haxelib")) tagKindsFound++;
-        if (hasSources) tagKindsFound++;
-        if (hasSubTag(rootTag, "app")) tagKindsFound++;
-        if (hasSubTag(rootTag, "meta")) tagKindsFound++;
-        // two kinds of lime/openfl elements: a maven pom also starts with <project>
-        return tagKindsFound >= 2;
-    }
+  /** Whether the file is a Lime or OpenFL project file: under a Lime extension with the lime-family shape. */
+  public boolean isLimeFamilyFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    return shape != null && shape.isLimeFamily();
+  }
 
-    private boolean hasSubTag(XmlTag tag, String name) {
-        return tag.findSubTags(name).length > 0;
-    }
+  /**
+   * Whether the file is a library's include file in the Lime dialect: named as
+   * lime looks for it in a library's folder, with a root lime reads, or rooted
+   * in {@code <extension>} with a library or a source path declared.
+   */
+  public boolean isLibraryIncludeFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    if (shape == null) return false;
+    return ProjectXmlVocabulary.isLibraryIncludeFileName(file.getName())
+           ? shape.hasToolRoot()
+           : shape.isExtensionInclude();
+  }
 
-    public boolean isOpenFlFile(@NotNull XmlFile file) {
-        if(!hasProjectFileExtension(file)) return false;
+  public boolean isOpenFlFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    return shape != null && shape.isOpenfl();
+  }
 
-        XmlDocument document = file.getDocument();
-        if(document == null) return false;
+  public boolean isLimeFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    return shape != null && shape.isLime();
+  }
 
-        XmlTag rootTag = document.getRootTag();
-        if(rootTag == null) return false;
-
-        if (!looksLikeALimeProjectFile(rootTag)) return false;
-
-        return LimeOpenFlUtil.isOpenfl(rootTag);
-    }
-
-    public boolean isLimeFile(@NotNull XmlFile file) {
-        if(!hasProjectFileExtension(file)) return false;
-
-        XmlDocument document = file.getDocument();
-        if (document == null) return false;
-
-        XmlTag rootTag = document.getRootTag();
-        if (rootTag == null) return false;
-
-        if (!looksLikeALimeProjectFile(rootTag)) return false;
-
-        return !LimeOpenFlUtil.isOpenfl(rootTag);
-    }
-
-    private boolean hasProjectFileExtension(@NotNull XmlFile file) {
-        String extension = FileUtilRt.getExtension(file.getName()).toLowerCase(Locale.ROOT);
-        return HaxeProjectFileDetectionUtil.LIME_XML_EXTENSIONS.contains(extension);
-    }
-
+  /** The file's shape, or null when its extension or its document rules it out. */
+  @Nullable
+  private LimeProjectShape shapeOf(@NotNull XmlFile file) {
+    if (!LimeProjectShape.hasFileExtension(file.getName())) return null;
+    XmlDocument document = file.getDocument();
+    XmlTag rootTag = document == null ? null : document.getRootTag();
+    return rootTag == null ? null : LimeProjectShape.of(rootTag);
+  }
 }

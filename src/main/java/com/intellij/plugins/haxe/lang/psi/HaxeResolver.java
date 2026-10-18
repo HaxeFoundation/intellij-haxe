@@ -131,7 +131,7 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
          else {
            int dumb = isDumb ? dumbRequests.incrementAndGet() : dumbRequests.get();
            int requestCount = isDumb ? requests.get() : requests.incrementAndGet();
-           if ((dumb + requestCount) % REPORT_FREQUENCY == 0) {
+           if ((dumb + requestCount) % REPORT_FREQUENCY == 0 && log.isDebugEnabled()) {
              int res = resolves.get();
              Formatter formatter = new Formatter();
              formatter.format("Resolve requests: %d; cache misses: %d; (%2.2f%% effective); Dumb requests: %d",

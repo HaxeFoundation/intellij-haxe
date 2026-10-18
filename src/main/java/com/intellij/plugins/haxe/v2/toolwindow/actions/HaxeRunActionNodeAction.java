@@ -13,7 +13,9 @@ import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.ToolNode
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tree context menu on an action row: runs it (same as double-click).
+ * Tree context menu on a plain action row or a tool row: runs it (same as
+ * double-click). A launching action row gets Run and Debug from
+ * {@link HaxeRunProgramAction} instead.
  */
 public final class HaxeRunActionNodeAction extends DumbAwareAction {
 
@@ -38,7 +40,8 @@ public final class HaxeRunActionNodeAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Object selected = panel.getSelectedUserObject();
-    e.getPresentation().setEnabledAndVisible(selected instanceof ActionNode || selected instanceof ToolNode);
+    boolean plainAction = selected instanceof ActionNode actionNode && actionNode.launch() == null;
+    e.getPresentation().setEnabledAndVisible(plainAction || selected instanceof ToolNode);
   }
 
   @Override

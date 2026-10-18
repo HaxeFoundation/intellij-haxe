@@ -30,7 +30,8 @@ import java.util.List;
  * so compile errors and long-running processes are fully visible (the console picks
  * up the plugin's error filters, giving clickable file:line links). Must be called
  * on the EDT. Used by the tool window's execute button, compile command and tool
- * rows, and the file tool actions.
+ * rows, and the file tool actions. The command runs with its container's SDK
+ * folders on PATH.
  */
 public final class HaxeConsoleCommandRunner {
 
@@ -38,14 +39,16 @@ public final class HaxeConsoleCommandRunner {
   }
 
   public static void run(@NotNull Project project,
+                         @NotNull String containerId,
                          @NotNull String presentableName,
                          @NotNull List<String> command,
                          @Nullable String workDirectory) {
-    run(project, presentableName, command, workDirectory, null);
+    run(project, containerId, presentableName, command, workDirectory, null);
   }
 
-  /** Like {@link #run(Project, String, List, String)}; {@code onTerminated} runs after process exit (any thread). */
+  /** Like {@link #run(Project, String, String, List, String)}; {@code onTerminated} runs after process exit (any thread). */
   public static void run(@NotNull Project project,
+                         @NotNull String containerId,
                          @NotNull String presentableName,
                          @NotNull List<String> command,
                          @Nullable String workDirectory,
@@ -56,7 +59,7 @@ public final class HaxeConsoleCommandRunner {
     }
     HaxeUnsavedDocuments.saveAll();
     String effectiveWorkDirectory = workDirectory != null ? workDirectory : project.getBasePath();
-    GeneralCommandLine commandLine = HaxeToolCommandLines.interactive(command, effectiveWorkDirectory);
+    GeneralCommandLine commandLine = HaxeToolCommandLines.interactive(project, containerId, command, effectiveWorkDirectory);
     try {
       KillableColoredProcessHandler processHandler = new KillableColoredProcessHandler(commandLine);
       ProcessTerminatedListener.attach(processHandler);

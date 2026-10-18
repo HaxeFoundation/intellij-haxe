@@ -31,15 +31,13 @@ public final class HaxelibLocalDocs {
     if (HaxelibSemVer.DEV.equals(version)) {
       return devDirectory(libraryRoot);
     }
-    Path directory = HaxelibSemVer.GIT_SCM.equals(version)
-                     ? libraryRoot.resolve(HaxelibSemVer.GIT_SCM)
-                     : libraryRoot.resolve(version.replace('.', ','));
+    Path directory = libraryRoot.resolve(HaxelibRepositoryLayout.versionDirName(version));
     return Files.isDirectory(directory) ? directory : null;
   }
 
   @Nullable
   private static Path devDirectory(@NotNull Path libraryRoot) {
-    Path pointer = libraryRoot.resolve(".dev");
+    Path pointer = libraryRoot.resolve(HaxelibRepositoryLayout.DEV_POINTER_FILE_NAME);
     try {
       String target = Files.readString(pointer).trim();
       Path directory = Path.of(target);
