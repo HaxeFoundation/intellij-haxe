@@ -31,10 +31,21 @@ public final class HaxeKnownBuildFiles {
   private HaxeKnownBuildFiles() {
   }
 
-  /** A module's known build files (detected + manual − hidden). Call inside a read action. */
+  /** A module's known build files (detected + manual − hidden); none for a disposed module. Call inside a read action. */
   @NotNull
   public static List<HaxeBuildFile> forModule(@NotNull Project project, @NotNull Module module) {
+    if (module.isDisposed()) return List.of();
     return mergeWithStore(project, module.getName(), HaxeBuildFileScanner.scan(module));
+  }
+
+  /** A container's known build files: a module's, or the project root's. Call inside a read action. */
+  @NotNull
+  public static List<HaxeBuildFile> forContainer(@NotNull Project project, @NotNull String containerId) {
+    if (HaxeContainers.PROJECT_ROOT_CONTAINER.equals(containerId)) {
+      return mergeWithStore(project, containerId, HaxeBuildFileScanner.scanProjectRoot(project));
+    }
+    Module module = ModuleManager.getInstance(project).findModuleByName(containerId);
+    return module == null ? List.of() : forModule(project, module);
   }
 
   /** Every known build file in the project: all module containers plus the project root. Call inside a read action. */
@@ -46,8 +57,7 @@ public final class HaxeKnownBuildFiles {
         byPath.putIfAbsent(buildFile.file().getPath(), buildFile);
       }
     }
-    List<HaxeBuildFile> projectRootFiles =
-      mergeWithStore(project, HaxeContainers.PROJECT_ROOT_CONTAINER, HaxeBuildFileScanner.scanProjectRoot(project));
+    List<HaxeBuildFile> projectRootFiles = forContainer(project, HaxeContainers.PROJECT_ROOT_CONTAINER);
     for (HaxeBuildFile buildFile : projectRootFiles) {
       byPath.putIfAbsent(buildFile.file().getPath(), buildFile);
     }
@@ -55,18 +65,25 @@ public final class HaxeKnownBuildFiles {
   }
 
   /**
-   * The project's EFFECTIVE active build file: the stored choice, or the sole
-   * known build file when none is stored (the rule behind the tree's (Active)
-   * badge). A stored choice is a plain store read; the unstored case runs the
+   * The project's EFFECTIVE active build file: the stored choice while it is
+   * a known build file (a deleted or hidden one no longer is), else the sole
+   * known build file (the rule behind the tree's (Active) badge). Runs the
    * full known-files sweep (module scans, VFS lookups) — call inside a read
    * action, and never from a per-candidate hot path.
    */
   @Nullable
   public static String effectiveActivePath(@NotNull Project project) {
-    String stored = HaxeActiveBuildFileStore.getInstance(project).getActiveFilePath();
-    if (stored != null) return stored;
-    List<HaxeBuildFile> known = all(project);
-    return known.size() == 1 ? known.getFirst().file().getPath() : null;
+    return HaxeActiveBuildFileStore.getInstance(project).resolveActivePath(knownPaths(project));
+  }
+
+  /** Whether the path names a known build file of any container. Call inside a read action. */
+  public static boolean isKnown(@NotNull Project project, @NotNull String path) {
+    return knownPaths(project).contains(path);
+  }
+
+  @NotNull
+  private static List<String> knownPaths(@NotNull Project project) {
+    return all(project).stream().map(buildFile -> buildFile.file().getPath()).toList();
   }
 
   /**

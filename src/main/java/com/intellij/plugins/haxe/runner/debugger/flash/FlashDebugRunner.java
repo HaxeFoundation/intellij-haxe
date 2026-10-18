@@ -9,7 +9,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.module.Module;
-import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.flash.HaxeFlashDebuggingUtil;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import java.util.List;
@@ -44,11 +43,7 @@ public class FlashDebugRunner extends GenericProgramRunner<RunnerSettings> {
     FlashRunConfiguration configuration = (FlashRunConfiguration)environment.getRunProfile();
     Module module = configuration.requireModule();
 
-    FlexPluginGate.requireFlexPlugin();
-    String flexSdkName = configuration.effectiveFlexSdkName();
-    if (flexSdkName.isBlank()) {
-      throw new ExecutionException(HaxeDebuggerBundle.message("flash.runner.no.flex.sdk"));
-    }
+    String flexSdkName = FlexPluginGate.requireFlexSdkName(configuration.getProject(), configuration.getFlexSdkName());
 
     String swfPath = configuration.resolveSwf().toString();
     String playerPath = configuration.effectiveFlashPlayerPath();

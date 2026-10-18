@@ -235,7 +235,7 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
       icon = HaxeIcons.Field;
     }
     if (model != null) {
-      determineStrikethrough();
+      strikeout = model.isDeprecated();
       determineBold();
 
       // no-resolve versions; the expensive renderer refines them
@@ -347,12 +347,6 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
         bold = true;
       }
     }
-  }
-
-  private void determineStrikethrough() {
-    if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxeCompilerMetadata.DEPRECATED)) {
-          strikeout = true;
-        }
   }
 
   @Override

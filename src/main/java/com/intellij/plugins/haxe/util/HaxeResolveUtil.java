@@ -22,7 +22,6 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
@@ -45,7 +44,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.evaluator.HaxeSwitchSubjectTypeCache;
+import com.intellij.plugins.haxe.model.evaluator.HaxePatternMatchedType;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -259,7 +258,7 @@ public class HaxeResolveUtil {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return GlobalSearchScope.allScope(project);
     }
-    final Module module = ModuleUtilCore.findModuleForPsiElement(context);
+    final Module module = HaxeProjectModel.moduleOf(context);
     return module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.allScope(project);
   }
 
@@ -1631,19 +1630,13 @@ public class HaxeResolveUtil {
     return outClasses;
   }
 
-  public static SpecificHaxeClassReference resolveExtractorEnum(HaxeEnumArgumentExtractor extractor) {
-    HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractor, HaxeSwitchStatement.class);
-    ResultHolder switchExpressionResult = HaxeSwitchSubjectTypeCache.subjectType(switchStatement);
-    if (switchExpressionResult != null) {
-      if (!switchExpressionResult.isUnknown() && switchExpressionResult.getClassType() != null) {
-        switchExpressionResult = switchExpressionResult.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference().createHolder();
-      }
-
-      if (switchExpressionResult.isEnum() && switchExpressionResult.getClassType() != null) {
-        return switchExpressionResult.getClassType();
-      }
-    }
-    return null;
+  /** The enum an extractor's constructor belongs to: the enum matched at the extractor's position in the pattern; null for no extractor. */
+  @Nullable
+  public static SpecificHaxeClassReference resolveExtractorEnum(@Nullable HaxeEnumArgumentExtractor extractor) {
+    ResultHolder matched = extractor == null ? null : HaxePatternMatchedType.at(extractor);
+    if (matched == null || matched.getClassType() == null) return null;
+    ResultHolder resolved = matched.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference().createHolder();
+    return resolved.isEnum() ? resolved.getClassType() : null;
   }
 
   public static PsiElement resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {

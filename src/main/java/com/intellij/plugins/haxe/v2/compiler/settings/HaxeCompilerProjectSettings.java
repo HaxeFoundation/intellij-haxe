@@ -35,6 +35,12 @@ public final class HaxeCompilerProjectSettings implements HaxeCompilerSettings, 
     public boolean useLanguageLevelForConditionals = true;
     public String completionMode = HaxeCompletionMode.IDE_AND_COMPILER.getId();
     public boolean compilerIdeFeatures = false;
+    public boolean compilerFeatureInlays = true;
+    public boolean compilerFeatureFindUsages = true;
+    public boolean compilerFeatureNavigation = true;
+    public boolean compilerFeatureGeneratedMemberPreview = true;
+    public boolean compilerFeatureCompletion = true;
+    public String displayConnectionMode = HaxeDisplayConnectionMode.SHARED_SERVER.getId();
   }
 
   private final @Nullable Project project;
@@ -206,5 +212,65 @@ public final class HaxeCompilerProjectSettings implements HaxeCompilerSettings, 
   @Override
   public void setCompilerIdeFeaturesEnabled(boolean enabled) {
     state.compilerIdeFeatures = enabled;
+  }
+
+  @Override
+  public boolean isCompilerInlaysEnabled() {
+    return state.compilerFeatureInlays;
+  }
+
+  @Override
+  public void setCompilerInlaysEnabled(boolean enabled) {
+    state.compilerFeatureInlays = enabled;
+  }
+
+  @Override
+  public boolean isCompilerFindUsagesEnabled() {
+    return state.compilerFeatureFindUsages;
+  }
+
+  @Override
+  public void setCompilerFindUsagesEnabled(boolean enabled) {
+    state.compilerFeatureFindUsages = enabled;
+  }
+
+  @Override
+  public boolean isCompilerNavigationEnabled() {
+    return state.compilerFeatureNavigation;
+  }
+
+  @Override
+  public void setCompilerNavigationEnabled(boolean enabled) {
+    state.compilerFeatureNavigation = enabled;
+  }
+
+  @Override
+  public boolean isGeneratedMemberPreviewEnabled() {
+    return state.compilerFeatureGeneratedMemberPreview;
+  }
+
+  @Override
+  public void setGeneratedMemberPreviewEnabled(boolean enabled) {
+    state.compilerFeatureGeneratedMemberPreview = enabled;
+  }
+
+  @Override
+  public boolean isCompilerCompletionEnabled() {
+    return state.compilerFeatureCompletion;
+  }
+
+  @Override
+  public void setCompilerCompletionEnabled(boolean enabled) {
+    state.compilerFeatureCompletion = enabled;
+  }
+
+  @Override
+  public @NotNull HaxeDisplayConnectionMode getDisplayConnectionMode() {
+    return HaxeDisplayConnectionMode.fromId(state.displayConnectionMode);
+  }
+
+  @Override
+  public void setDisplayConnectionMode(@NotNull HaxeDisplayConnectionMode mode) {
+    state.displayConnectionMode = mode.getId();
   }
 }

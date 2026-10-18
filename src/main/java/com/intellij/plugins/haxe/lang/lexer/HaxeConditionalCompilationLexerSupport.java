@@ -23,7 +23,10 @@ import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
 
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
+import java.util.Map;
+import java.util.function.Supplier;
 import lombok.CustomLog;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -189,7 +192,7 @@ public class HaxeConditionalCompilationLexerSupport {
         } else if (condition != null) {  // IF or ELSEIF
           // No blocks ahead of this one are myActive, so calculate the condition
           // If the condition is incomplete, then the block is inactive.
-          block.setActive(condition.evaluate(projectContext) ? Block.ActiveState.ACTIVE : Block.ActiveState.INACTIVE);
+          block.setActive(evaluate(condition) ? Block.ActiveState.ACTIVE : Block.ActiveState.INACTIVE);
         } else {
           if (block.getType() == Block.Type.END) {
             block.setActive(Block.ActiveState.INACTIVE);
@@ -234,7 +237,7 @@ public class HaxeConditionalCompilationLexerSupport {
     @Override
     public Block startBlock(IElementType type) {
       if (type == PPIF) {
-        log.debug("Root Section requested to start an invalid block type:" + type.toString());
+        if (log.isDebugEnabled()) log.debug("Root Section requested to start an invalid block type:" + type.toString());
       }
       return super.startBlock(null);
     }
@@ -245,6 +248,14 @@ public class HaxeConditionalCompilationLexerSupport {
   private RootSection rootSection;
   private Section currentContext;
   private Project projectContext;
+  // the define set conditions evaluate against, resolved on the first #if
+  // after a reset (a file without conditionals never asks); null = the
+  // project context's
+  @Nullable
+  private Supplier<Map<String, String>> definitionsSource;
+  @Nullable
+  private Map<String, String> definitions;
+  private boolean definitionsResolved;
 
   public HaxeConditionalCompilationLexerSupport(Project context) {
     reset(context);
@@ -259,9 +270,31 @@ public class HaxeConditionalCompilationLexerSupport {
    * @param context  Project to use for looking up Conditional Compilation variables.
    */
   public void reset(Project context) {
+    reset(context, null);
+  }
+
+  /** As {@link #reset(Project)}, with the define set of the file being lexed; null falls back to the project's. */
+  public void reset(Project context, @Nullable Supplier<Map<String, String>> definitionsSource) {
     rootSection = new RootSection();
     currentContext =  rootSection;
     projectContext = context;
+    this.definitionsSource = definitionsSource;
+    definitions = null;
+    definitionsResolved = false;
+  }
+
+  private boolean evaluate(@NotNull HaxeConditionalExpression condition) {
+    Map<String, String> defines = definitions();
+    return defines != null ? condition.evaluate(defines) : condition.evaluate(projectContext);
+  }
+
+  @Nullable
+  private Map<String, String> definitions() {
+    if (!definitionsResolved) {
+      definitions = definitionsSource != null ? definitionsSource.get() : null;
+      definitionsResolved = true;
+    }
+    return definitions;
   }
 
   /**
@@ -286,11 +319,6 @@ public class HaxeConditionalCompilationLexerSupport {
   }
 
   /**
-   * Manipulates the conditional Section/Block stack based upon the CC token.
-   * @param chars Characters that comprise the token.
-   * @param type Detected token type.
-   */
-  /**
    * Whether the directive about to be processed belongs to a swallowed
    * section: a {@code #if} opening inside an inactive branch, or any other
    * directive of a section opened that way. Asked BEFORE
@@ -304,6 +332,11 @@ public class HaxeConditionalCompilationLexerSupport {
     return currentContext.isSwallowed();
   }
 
+  /**
+   * Updates the section/block stack for a conditional-compilation token.
+   * @param chars the token's characters
+   * @param type the token's type
+   */
   public void processConditional(CharSequence chars, IElementType type) {
     if (PPIF.equals(type)) {
       // Start a new section...
@@ -335,7 +368,7 @@ public class HaxeConditionalCompilationLexerSupport {
   public void conditionEnd() {
     HaxeConditionalExpression condition = getCurrentBlock().getCondition();
     if (null != condition && !condition.isComplete()) {
-       log.debug("Ending condition before it is complete: '" + condition.toString() + "'");
+       if (log.isDebugEnabled()) log.debug("Ending condition before it is complete: '" + condition.toString() + "'");
     }
   }
 

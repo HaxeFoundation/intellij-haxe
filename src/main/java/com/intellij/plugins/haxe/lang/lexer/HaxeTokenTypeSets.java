@@ -27,7 +27,7 @@ import com.intellij.psi.tree.TokenSet;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public interface HaxeTokenTypeSets {
-  IFileElementType HAXE_FILE = new IFileElementType("HAXEFILE", HaxeLanguage.INSTANCE);
+  IFileElementType HAXE_FILE = new HaxeFileElementType();
 
   IElementType CONDITIONAL_ERROR = new HaxeElementType("CONDITIONAL_ERROR");
 

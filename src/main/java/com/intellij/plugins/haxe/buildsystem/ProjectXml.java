@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.buildsystem;
 
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.annotations.NonNls;
 
 /**
  * The DOM model of Lime, OpenFL and NME project files. Each kind registers its
@@ -10,6 +9,4 @@ import org.jetbrains.annotations.NonNls;
  * by that name, so descriptions sharing one class get mixed up.
  */
 public interface ProjectXml extends DomElement {
-    @NonNls String TAG_NAME = "project";
-
 }

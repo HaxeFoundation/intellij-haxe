@@ -296,7 +296,9 @@ public class HaxeTestRunConfiguration extends LocatableConfigurationBase<RunProf
   }
 
   @Override
-  public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) {
+  public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment)
+    throws ExecutionException {
+    HaxeProjectTrust.requireTrustForRun(getProject());
     return new TestCommandLineState(environment);
   }
 

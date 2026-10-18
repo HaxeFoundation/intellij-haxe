@@ -9,27 +9,21 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tool window "sync" button: runs the v2 sync pipeline (library sync, cache
- * refresh, config broadcast) and refreshes the tool window tree afterwards.
+ * Tool window "sync" button: runs the v2 sync pipeline (cache refresh,
+ * library sync); the tree follows the sync's end.
  */
 public final class HaxeSyncProjectAction extends DumbAwareAction {
 
-  private final Runnable afterSync;
-
-  public HaxeSyncProjectAction(@NotNull Runnable afterSync) {
+  public HaxeSyncProjectAction() {
     super(HaxeBundle.message("haxe.toolwindow.sync.text"),
           HaxeBundle.message("haxe.toolwindow.sync.description"),
           AllIcons.Actions.Refresh);
-    this.afterSync = afterSync;
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     if (e.getProject() != null) {
-      HaxeProjectSync.sync(e.getProject(), afterSync);
-    }
-    else {
-      afterSync.run();
+      HaxeProjectSync.sync(e.getProject(), null);
     }
   }
 

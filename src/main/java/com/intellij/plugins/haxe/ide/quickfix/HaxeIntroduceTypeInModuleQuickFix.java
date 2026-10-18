@@ -5,33 +5,25 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
-import com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil;
 import com.intellij.plugins.haxe.ide.quickfix.typedialog.HaxeCreateTypeDialogBuilder;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.model.HaxeFileModel;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.*;
+import com.intellij.plugins.haxe.util.HaxeModuleVariants;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.List;
 
-import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.*;
-import static com.intellij.plugins.haxe.ide.quickfix.HaxeIntroduceTypeUtil.countGenerics;
-import static com.intellij.plugins.haxe.ide.quickfix.HaxeIntroduceTypeUtil.requireImport;
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.CLASS_TEMPLATE;
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.TYPE_TEMPLATE_NAMES;
 import static com.intellij.psi.SmartPointerManager.createPointer;
 
+/** Creates the unresolved type inside the identifier's own module (only the type templates apply: a module holds types, not files). */
 public class HaxeIntroduceTypeInModuleQuickFix implements LocalQuickFix {
 
     protected final @NotNull SmartPsiElementPointer<HaxeIdentifier> myPsiTargetPointer;
@@ -42,86 +34,36 @@ public class HaxeIntroduceTypeInModuleQuickFix implements LocalQuickFix {
 
     @Override
     public @IntentionFamilyName @NotNull String getFamilyName() {
-        return "Create Haxe Type (in module)";
+        return HaxeBundle.message("haxe.quickfix.create.type.in.module");
     }
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
         CommandProcessor.getInstance().allowMergeGlobalCommands(() -> {
-            VirtualFile virtualFile = myPsiTargetPointer.getVirtualFile();
-            Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(virtualFile);
-            VirtualFile sourceRoot = ProjectRootManager.getInstance(module.getProject()).getFileIndex().getSourceRootForFile(virtualFile);
-
-            HaxeCreateTypeDialogBuilder builder = HaxeCreateTypeDialogBuilder.createDialog(module, sourceRoot);
-
-            builder.setTitle(HaxeBundle.message("action.create.new.type"));
-
-            List<FileTemplate> typeTemplates = HaxeFileTemplateUtil.getApplicableTemplates(project).stream()
-              .filter(fileTemplate -> TYPE_TEMPLATE_NAMES.contains(fileTemplate.getName()))
-              .toList();
-
-            for (FileTemplate fileTemplate : typeTemplates) {
-                final String templateName = fileTemplate.getName();
-                final String shortName = HaxeFileTemplateUtil.getTemplateShortName(templateName);
-                final Icon icon = HaxeFileTemplateUtil.getTemplateIcon(templateName);
-                builder.addKind(shortName, icon, templateName);
-            }
-
+            HaxeCreateTypeDialogBuilder builder = HaxeIntroduceTypeUtil.createTypeDialog(project, myPsiTargetPointer);
+            List<FileTemplate> typeTemplates =
+              HaxeFileTemplateUtil.getApplicableTemplates(project, fileTemplate -> TYPE_TEMPLATE_NAMES.contains(fileTemplate.getName()));
+            HaxeFileTemplateUtil.addTemplateKinds(typeTemplates, builder::addKind);
             builder.setDefaultText(createDefaultModuleQname());
-            builder.setGenericsCount(countGenerics(myPsiTargetPointer.getElement()));
-            builder.show("Unable to create haxe type", CLASS_TEMPLATE, this::updateElement);
+            builder.show(HaxeBundle.message("haxe.quickfix.create.type.failed"), CLASS_TEMPLATE, this::updateElement);
         });
     }
 
+    private void updateElement(PsiElement created, String qname) {
+        HaxeIntroduceTypeUtil.updateElement(myPsiTargetPointer, qname);
+    }
 
+    /** {@code pack.Module.TypeName}: the identifier as a new type of its own module. */
     private String createDefaultModuleQname() {
         String typeName = myPsiTargetPointer.getElement().getText();
         if (myPsiTargetPointer.getContainingFile() instanceof HaxeFile haxeFile) {
             HaxeFileModel model = haxeFile.getModel();
             if (model != null) {
-                String packageName = model.getPackageName();
-                String fileName = model.getFileName();
-                String moduleName = fileName.replace(".hx", "");
-                return packageName + "." + moduleName + "." + typeName;
+                String moduleName = HaxeModuleVariants.moduleNameOf(model.getFileName());
+                return model.getPackageName() + "." + moduleName + "." + typeName;
             }
         }
         return typeName;
-    }
-
-    private void updateElement(PsiElement psiElement, String qname) {
-        Pair<String, String> splitQName = HaxeResolveUtil.splitQName(qname);
-        String packageName = splitQName.first;
-        String typeName = splitQName.second;
-
-        HaxeIdentifier orgElement = myPsiTargetPointer.getElement();
-        PsiFile containingFile = myPsiTargetPointer.getContainingFile();
-        TextRange range = orgElement.getTextRange();
-        // update  identifier if type name changed
-        if (!orgElement.textMatches(typeName)) {
-            CommandProcessor.getInstance().runUndoTransparentAction(() -> {
-                WriteCommandAction.writeCommandAction(containingFile)
-                        .withName("Rename Identifier")
-                        .withGlobalUndo()
-                        .run(() -> {
-                            Document fileDocument = containingFile.getFileDocument();
-                            fileDocument.replaceString(range.getStartOffset(), range.getEndOffset(), typeName);
-                            HaxeCompletionUtil.flushChanges(orgElement.getProject(), fileDocument);
-                        });
-            });
-        }
-
-        if (requireImport(orgElement, packageName)) {
-            if (containingFile instanceof HaxeFile haxeFile) {
-                CommandProcessor.getInstance().runUndoTransparentAction(() -> {
-                    WriteCommandAction.writeCommandAction(containingFile)
-                            .withName("Add Import")
-                            .withGlobalUndo()
-                            .run(() -> {
-                                haxeFile.getModel().addImport(qname);
-                            });
-                });
-            }
-        }
     }
 }

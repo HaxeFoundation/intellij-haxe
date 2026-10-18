@@ -1,8 +1,5 @@
 package com.intellij.plugins.haxe.v2.toolwindow.actions;
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -20,21 +17,21 @@ import org.jetbrains.annotations.NotNull;
  * relative paths usually follow); the override serves files whose paths are
  * relative to some other folder.
  */
-public final class HaxeSetWorkDirectoryAction extends DumbAwareAction {
-
-  private final HaxeToolWindowPanel panel;
+public final class HaxeSetWorkDirectoryAction extends HaxeSelectedNodeAction<BuildFileRow> {
 
   public HaxeSetWorkDirectoryAction(@NotNull HaxeToolWindowPanel panel) {
-    super(HaxeBundle.message("haxe.toolwindow.set.work.directory"));
-    this.panel = panel;
+    super(panel, BuildFileRow.class, HaxeBundle.message("haxe.toolwindow.set.work.directory"));
+  }
+
+  // TODO: offer for the xml-family types once their commands embed anchored file arguments
+  @Override
+  protected boolean applies(@NotNull BuildFileRow row) {
+    return row.buildFile().type() == HaxeBuildFileType.HXML;
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project == null || !(panel.getSelectedUserObject() instanceof BuildFileRow row)) return;
+  protected void perform(@NotNull Project project, @NotNull BuildFileRow row) {
     VirtualFile file = row.buildFile().file();
-
     HaxeWorkDirectoryStore store = HaxeWorkDirectoryStore.getInstance(project);
     String currentOverride = store.getWorkDirectory(file.getPath());
     VirtualFile defaultAnchor = HaxeBuildWorkDirectories.defaultAnchor(project, file);
@@ -44,18 +41,5 @@ public final class HaxeSetWorkDirectoryAction extends DumbAwareAction {
     if (dialog.showAndGet()) {
       store.setWorkDirectory(file.getPath(), dialog.getWorkDirectory());
     }
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent e) {
-    // TODO: offer for the xml-family types once their commands embed anchored file arguments
-    boolean onHxmlRow = panel.getSelectedUserObject() instanceof BuildFileRow row
-                        && row.buildFile().type() == HaxeBuildFileType.HXML;
-    e.getPresentation().setEnabledAndVisible(onHxmlRow);
-  }
-
-  @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.EDT;
   }
 }

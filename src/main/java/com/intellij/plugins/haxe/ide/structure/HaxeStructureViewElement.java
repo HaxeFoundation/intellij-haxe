@@ -31,6 +31,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtil;
+import com.intellij.util.OpenSourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,8 +55,8 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
 
   @Override
   public void navigate(boolean requestFocus) {
-    if (myElement instanceof NavigationItem) {
-      ((NavigationItem)myElement).navigate(requestFocus);
+    if (myElement instanceof NavigationItem item) {
+      OpenSourceUtil.navigate(requestFocus, item);
     }
   }
 

@@ -50,7 +50,7 @@ public class HaxelibSemVer implements Comparable<HaxelibSemVer> {
 
   /** The git pseudo-version name — also haxelib's on-disk directory for the checkout. */
   public static final String GIT_SCM = "git";
-  private static final String MERCURIAL_SCM = "hg";
+  public static final String MERCURIAL_SCM = "hg";
   /** The dev pseudo-version name (the {@code .dev} pointer file's target). */
   public static final String DEV = "dev";
 
@@ -225,10 +225,10 @@ public class HaxelibSemVer implements Comparable<HaxelibSemVer> {
     return left.compareTo(right);
   }
 
-  /** Haxelib's on-disk directory name for this version: every dot becomes a comma ({@code 1,0,0-rc,1}). */
+  /** The repository folder this version installs into (see {@link HaxelibRepositoryLayout#versionDirName}). */
   @NotNull
   public String toDirString() {
-    return toString().replace('.', ',');
+    return HaxelibRepositoryLayout.versionDirName(toString());
   }
 
   @Override

@@ -25,11 +25,12 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-
 import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,7 +88,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       }
       final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
       haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
-      haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
+      haxeSdkData.setNekoBinPath(suggestNekoBinPath());
       return haxeSdkData;
     }
     catch (Exception e) {
@@ -134,36 +134,10 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     return file != null && file.isDirectory() ? file : null;
   }
 
-  /**
-   * The Neko install folder (NEKO_INSTPATH) first, then every NEKOPATH entry - Neko's own search
-   * path, which on Homebrew names {@code <prefix>/lib/neko}, a folder without the executable -
-   * then the PATH.
-   */
+  /** The neko a new SDK starts with: the one Neko's own variables name, else the PATH's. */
   @Nullable
-  private static String suggestNekoBinPath(@NotNull String path) {
-    List<String> folders = new ArrayList<>();
-    String installFolder = HaxeEnvironmentVariables.value(NEKO_INSTPATH);
-    if (installFolder != null) folders.add(installFolder);
-    folders.addAll(HaxeEnvironmentVariables.pathList(NEKOPATH));
-
-    String result = findExecutableIn(folders, "neko");
-    if (result == null) {
-      result = locateExecutable("neko");
-    }
-
-    log.debug("returning neko path: " + String.valueOf(result));
-    return result;
-  }
-
-  /** The first {@code <folder>/<executable>} that is a regular file, in list order. */
-  @Nullable
-  private static String findExecutableIn(@NotNull List<String> folders, @NotNull String executable) {
-    String executableName = getExecutableName(executable);
-    for (String folder : folders) {
-      File file = new File(folder, executableName);
-      if (file.isFile()) return file.getPath();
-    }
-    return null;
+  private static String suggestNekoBinPath() {
+    return HaxeRuntimeTool.NEKO.fromEnvironmentOrPath(HaxeRuntimeTool.PROCESS_ENVIRONMENT);
   }
 
   @Nullable
@@ -181,7 +155,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     }
 
     //Try to locate SDK path relative to the compiler executable.
-    String compilerPath = locateExecutable("haxe");
+    String compilerPath = canonicalCompilerOnPath();
     if(compilerPath != null) {
       return new File(compilerPath).getParent();
     }
@@ -189,16 +163,10 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     return null;
   }
 
-  /**
-   * Look for specified program in directories which are listed in the PATH environment variable.
-   * @return Canonical path (absolute, symlinks resolved) to `executable` if found. `null` otherwise.
-   */
+  /** The compiler a PATH lookup finds, canonical (symlinks resolved) so the SDK home derived from it is the real install; null when absent. */
   @Nullable
-  private static String locateExecutable(String executable) {
-    String pathEnv = System.getenv("PATH");
-    if (pathEnv == null) return null;
-    List<String> folders = Arrays.asList(pathEnv.split(File.pathSeparator));
-    String found = findExecutableIn(folders, executable);
+  private static String canonicalCompilerOnPath() {
+    String found = HaxeToolPathResolver.pathDetectedExecutable("haxe");
     if (found == null) return null;
     try {
       return new File(found).getCanonicalPath();

@@ -95,6 +95,9 @@ public abstract class DapIntegrationTestBase {
   protected static final int FIXTURE_CLOSURE_BODY_LINE = 39; // Holder.grab(): first body line
   protected static final int FIXTURE_CLOSURE_BODY_LINE2 = 40; // Holder.grab(): second body line
 
+  protected static final String FIXTURE_DEEP = "pkg/Deep.hx";
+  protected static final int FIXTURE_DEEP_INSTANCE_LINE = 21; // pkg.Deep.readMarker(): an instance frame of a packaged class
+
   protected Process adapterProcess;
   protected DapClient client;
   protected Path fixtureHl;

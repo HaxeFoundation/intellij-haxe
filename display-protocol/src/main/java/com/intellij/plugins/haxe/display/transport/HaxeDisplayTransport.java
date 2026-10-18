@@ -25,6 +25,23 @@ public final class HaxeDisplayTransport {
   private HaxeDisplayTransport() {
   }
 
+  /** The {@code --wait} server at the address as a channel: every request its own connection. */
+  public static DisplayChannel socketPerRequest(String host, int port) {
+    return new SocketPerRequest(host, port);
+  }
+
+  private record SocketPerRequest(String host, int port) implements DisplayChannel {
+    @Override
+    public DisplayResponse request(List<String> args, int readTimeoutMs) throws DisplayRequestException {
+      return HaxeDisplayTransport.request(host, port, args, readTimeoutMs);
+    }
+
+    @Override
+    public String describe() {
+      return "haxe server at " + host + ":" + port;
+    }
+  }
+
   public static DisplayResponse request(String host, int port, List<String> args, int readTimeoutMs)
     throws DisplayRequestException {
     byte[] raw = exchange(host, port, encode(args), readTimeoutMs);

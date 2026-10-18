@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger;
 
+import com.intellij.plugins.haxe.util.HaxeQnameResolveUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -97,7 +98,7 @@ public class HaxeVariableSourceNavigatorTest extends HaxeLightFixtureTestCase {
     // the premise of the runtime-name comparison: PSI's qualified name is NOT
     // what the debugger reports (pack.Secondary)
     assertEquals("pack.Module.Secondary", secondary.getFullyQualifiedName());
-    assertEquals("pack.Secondary", HaxeDebuggerSupportUtils.runtimeClassName(secondary));
+    assertEquals("pack.Secondary", HaxeQnameResolveUtil.runtimeClassName(secondary));
   }
 
   @Test

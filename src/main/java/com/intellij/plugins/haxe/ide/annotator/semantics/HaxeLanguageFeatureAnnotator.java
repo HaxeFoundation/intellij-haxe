@@ -37,6 +37,8 @@ public class HaxeLanguageFeatureAnnotator implements Annotator, DumbAware {
     }
 
     switch (element) {
+      case HaxeCoalescingExpression coalescing ->
+        requireLevel(holder, coalescing, HaxeLanguageLevel.HAXE_4_3, "haxe.feature.null.coalescing");
       case HaxeCoalescingAssignOperator operator ->
         requireLevel(holder, operator, HaxeLanguageLevel.HAXE_4_3, "haxe.feature.null.coalescing");
       // before HaxeLocalVarDeclaration: capture vars are a subtype of it

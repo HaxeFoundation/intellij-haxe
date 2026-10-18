@@ -1,5 +1,5 @@
 class FixStdIsToIsOfType {
   function f(o:Dynamic):Bool {
-    return Std.i<caret>s(o, String);
+    return <warning descr="Std.is is deprecated since Haxe 4.1; use Std.isOfType">Std.i<caret>s</warning>(o, String);
   }
 }

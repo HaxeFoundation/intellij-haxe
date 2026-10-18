@@ -9,7 +9,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.task.ModuleBuildTask;
 import com.intellij.task.ProjectTask;
 import com.intellij.task.ProjectTaskContext;
@@ -26,9 +26,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Makes the IDE's Build Project / Build Module actions run the modules' configured
- * build commands (Compilation | Build command in the Haxe tool window). Modules
- * without a build command are left to the platform's default runner. Commands run
+ * Makes the IDE's Build Project / Build Module actions run the modules' build
+ * commands (Compilation | Build command in the Haxe tool window, else the
+ * module's default build file). Modules set to skip building, or without a
+ * build file to default to, are left to the platform's default runner. Commands run
  * sequentially in one "Haxe Build" console, streaming while they run; the first
  * failure aborts the build, and so does the tab's Stop.
  */
@@ -39,7 +40,8 @@ public final class HaxeProjectTaskRunner extends ProjectTaskRunner {
     if (!(projectTask instanceof ModuleBuildTask moduleTask)) return false;
     Module module = moduleTask.getModule();
     if (module.isDisposed()) return false;
-    return HaxeEnvironmentStore.getInstance(project).getCompileCommand(module.getName()) != null;
+    String containerId = module.getName();
+    return HaxeReadActions.compute(() -> HaxeCompileCommands.effectiveCommand(project, containerId)) != null;
   }
 
   @Override

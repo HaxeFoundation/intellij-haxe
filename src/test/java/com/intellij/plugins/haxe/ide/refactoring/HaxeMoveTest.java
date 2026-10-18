@@ -24,7 +24,6 @@ import com.intellij.plugins.haxe.HaxeMultiFileTestBase;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeModule;
-import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.file.PsiDirectoryImpl;
@@ -49,12 +48,6 @@ import java.util.Collection;
  */
 @DisplayName("Refactoring: move")
 public class HaxeMoveTest extends HaxeMultiFileTestBase {
-
-  @Override
-  protected void tearDown() throws Exception {
-    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
-    super.tearDown();
-  }
 
   @Override
   protected String getTestRoot() {

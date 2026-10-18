@@ -26,4 +26,18 @@ public record CompletionList(List<CompletionItem> items,
                              @Nullable JsonTypeRef expectedType,
                              @Nullable Range replaceRange,
                              boolean incomplete) {
+
+  private static final int FIELD_MODE = 0;
+  private static final int IMPORT_MODE = 8;
+  private static final int USING_MODE = 9;
+
+  /**
+   * Whether the text at the position already qualifies an inserted type: a
+   * type completed after a package ({@code haxe.ds.}), or in an
+   * {@code import} or {@code using} path, needs neither an import nor its
+   * qualified path.
+   */
+  public boolean qualifiesInsertedTypes() {
+    return modeKind == FIELD_MODE || modeKind == IMPORT_MODE || modeKind == USING_MODE;
+  }
 }

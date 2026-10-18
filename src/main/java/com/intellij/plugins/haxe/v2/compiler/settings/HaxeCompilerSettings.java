@@ -120,11 +120,75 @@ public interface HaxeCompilerSettings {
   void setCompletionMode(@NotNull HaxeCompletionMode mode);
 
   /**
-   * Whether Find Usages and go-to-declaration ask the compilation server
-   * ({@code display/references}, {@code display/definition}) instead of the
-   * plugin's static resolution. Rename and Safe Delete stay static.
+   * The master toggle for the compiler-backed IDE features: the per-feature
+   * toggles below count only while this one is on, and references the IDE
+   * cannot resolve are looked up among the members that exist only after
+   * macros. Rename and Safe Delete stay static regardless.
    */
   boolean isCompilerIdeFeaturesEnabled();
 
   void setCompilerIdeFeaturesEnabled(boolean enabled);
+
+  /** Type inlays from the compilation server only, in place of the IDE's own type hints. */
+  boolean isCompilerInlaysEnabled();
+
+  void setCompilerInlaysEnabled(boolean enabled);
+
+  /** Find Usages through {@code display/references}; identifier highlighting stays static. */
+  boolean isCompilerFindUsagesEnabled();
+
+  void setCompilerFindUsagesEnabled(boolean enabled);
+
+  /** Go to declaration and implementation through the compilation server, generated members included. */
+  boolean isCompilerNavigationEnabled();
+
+  void setCompilerNavigationEnabled(boolean enabled);
+
+  /**
+   * Whether go-to-declaration on a macro-generated member opens the
+   * post-macro preview, where the member exists, instead of the source
+   * position the macro gave it. Counts only under compiler navigation.
+   */
+  boolean isGeneratedMemberPreviewEnabled();
+
+  void setGeneratedMemberPreviewEnabled(boolean enabled);
+
+  /** Whether completion may use the compiler at all; {@link #getCompletionMode()} then says how. */
+  boolean isCompilerCompletionEnabled();
+
+  void setCompilerCompletionEnabled(boolean enabled);
+
+  default boolean usesCompilerInlays() {
+    return isCompilerIdeFeaturesEnabled() && isCompilerInlaysEnabled();
+  }
+
+  default boolean usesCompilerFindUsages() {
+    return isCompilerIdeFeaturesEnabled() && isCompilerFindUsagesEnabled();
+  }
+
+  default boolean usesCompilerNavigation() {
+    return isCompilerIdeFeaturesEnabled() && isCompilerNavigationEnabled();
+  }
+
+  default boolean usesGeneratedMemberPreview() {
+    return usesCompilerNavigation() && isGeneratedMemberPreviewEnabled();
+  }
+
+  /** The completion mode in force: the chosen one while the master and the completion toggles are on, else IDE only. */
+  @NotNull
+  default HaxeCompletionMode getEffectiveCompletionMode() {
+    boolean enabled = isCompilerIdeFeaturesEnabled() && isCompilerCompletionEnabled();
+    return enabled ? getCompletionMode() : HaxeCompletionMode.IDE_ONLY;
+  }
+
+  /** Whether completion, and the generated symbols it draws on, come from the compiler in any form. */
+  default boolean usesCompilerCompletion() {
+    return getEffectiveCompletionMode().usesCompiler();
+  }
+
+  /** How display requests reach the compiler; see {@link HaxeDisplayConnectionMode}. */
+  @NotNull
+  HaxeDisplayConnectionMode getDisplayConnectionMode();
+
+  void setDisplayConnectionMode(@NotNull HaxeDisplayConnectionMode mode);
 }

@@ -70,7 +70,7 @@ public class HaxeCompilerDiagnosticsAnnotator extends HaxeCompilerDiagnosticsAnn
   protected void annotate(@NotNull AnnotationHolder holder, @NotNull PsiFile file, @NotNull Document document,
                           @NotNull Diagnostic diagnostic, @NotNull TextRange range) {
     AnnotationBuilder builder =
-      holder.newAnnotation(HaxeDiagnosticsFetcher.severityOf(diagnostic), messageOf(diagnostic)).range(range);
+      holder.newAnnotation(HaxeDiagnosticsFetcher.severityOf(diagnostic), HaxeDiagnosticsFetcher.messageOf(diagnostic)).range(range);
     switch (diagnostic.kind()) {
       case UNRESOLVED_IDENTIFIER -> builder = builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL);
       case DEPRECATION_WARNING -> builder = builder.highlightType(ProblemHighlightType.LIKE_DEPRECATED);
@@ -152,18 +152,4 @@ public class HaxeCompilerDiagnosticsAnnotator extends HaxeCompilerDiagnosticsAnn
     return context == null ? null : displayService.connectedHaxeVersion(context.sdkName());
   }
 
-  @NotNull
-  private static String messageOf(@NotNull Diagnostic diagnostic) {
-    return switch (diagnostic.kind()) {
-      case UNRESOLVED_IDENTIFIER -> HaxeBundle.message("haxe.diagnostics.unresolved.identifier");
-      case COMPILER_ERROR, PARSER_ERROR, DEPRECATION_WARNING -> orGeneric(diagnostic.messageArg());
-      case MISSING_FIELDS -> HaxeBundle.message("haxe.diagnostics.missing.fields");
-      default -> HaxeBundle.message("haxe.diagnostics.generic");
-    };
-  }
-
-  @NotNull
-  private static String orGeneric(@NotNull String message) {
-    return message.isBlank() ? HaxeBundle.message("haxe.diagnostics.generic") : message;
-  }
 }

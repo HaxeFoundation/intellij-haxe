@@ -13,6 +13,7 @@ import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallE
 
 public class EnumValueMatchUtil {
 
+    private static final String MATCH_METHOD_NAME = "match";
 
     public static @NotNull HaxeCallExpressionEvaluation evaluateMatchCall(HaxeCallExpressionContext context, HaxeCallExpressionEvaluation evaluation, boolean trackErrors) {
         checkPatternArguments(context, evaluation, trackErrors);
@@ -57,20 +58,26 @@ public class EnumValueMatchUtil {
     }
 
     public static boolean isInsidePatternMatcher(@NotNull PsiElement reference) {
-        HaxeCallExpression parentOfType = PsiTreeUtil.getParentOfType(reference.getParent(), HaxeCallExpression.class);
-        if(parentOfType != null && parentOfType.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
-            if(referenceExpression.resolve() instanceof HaxeMethod method) {
-                return isPatternMatcher(method);
-            }
-        }
-        return false;
+        HaxeCallExpression parentCall = PsiTreeUtil.getParentOfType(reference.getParent(), HaxeCallExpression.class);
+        return parentCall != null && isPatternMatcherCall(parentCall);
+    }
+
+    /**
+     * The call invokes {@code EnumValue.match}. Resolving the callee of an ENCLOSING call re-enters
+     * that callee's own resolve whenever this call is its receiver ({@code a.f().g()}: resolving
+     * {@code g} evaluates {@code a.f()}), so only a callee named {@code match} is resolved.
+     */
+    public static boolean isPatternMatcherCall(@NotNull HaxeCallExpression callExpression) {
+        if (!(callExpression.getExpression() instanceof HaxeReferenceExpression callee)) return false;
+        if (!MATCH_METHOD_NAME.equals(callee.getReferenceName())) return false;
+        return callee.resolve() instanceof HaxeMethod method && isPatternMatcher(method);
     }
 
     public static boolean isPatternMatcher(HaxeMethod method) {
         if(method == null) return false;
         FullyQualifiedInfo info = method.getModel().getQualifiedInfo();
         return info != null
-                && Objects.equals(info.memberName, "match")
+                && Objects.equals(info.memberName, MATCH_METHOD_NAME)
                 && Objects.equals(info.className, "EnumValue")
                 && Objects.equals(info.moduleName, "EnumValue")
                 && Objects.equals(info.packageName, "");

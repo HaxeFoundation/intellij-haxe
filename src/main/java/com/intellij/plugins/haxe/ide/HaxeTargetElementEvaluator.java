@@ -22,6 +22,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewTarget;
+import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -57,5 +59,18 @@ public class HaxeTargetElementEvaluator extends TargetElementEvaluatorEx2 {
   @Override
   public PsiElement getElementByReference(@NotNull PsiReference ref, int flags) {
     return ref.resolve();
+  }
+
+  /**
+   * Go-to-declaration navigates to a target's navigation element itself and
+   * never calls its navigate(); a generated-code preview wrapper stays the
+   * target, or the caret would land on the previewed declaration instead of
+   * the preview opening.
+   */
+  @Nullable
+  @Override
+  public PsiElement getGotoDeclarationTarget(@NotNull PsiElement element, @Nullable PsiElement navElement) {
+    boolean previewWrapper = element instanceof PomTargetPsiElement wrapper && wrapper.getTarget() instanceof HaxeGeneratedPreviewTarget;
+    return previewWrapper ? element : super.getGotoDeclarationTarget(element, navElement);
   }
 }

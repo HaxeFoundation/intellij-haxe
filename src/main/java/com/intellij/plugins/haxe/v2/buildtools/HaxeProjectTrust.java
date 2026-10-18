@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildtools;
 
+import com.intellij.execution.ExecutionException;
 import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.ide.trustedProjects.TrustedProjectsListener;
 import com.intellij.notification.Notification;
@@ -70,6 +71,22 @@ public final class HaxeProjectTrust {
       TrustedProjects.setProjectTrusted(project, true);
     }
     return trusted;
+  }
+
+  /**
+   * The gate for a run configuration start, called from {@code getState}. The
+   * platform does not block run configurations in an untrusted project. On the
+   * EDT, where the platform starts configurations, the user is asked; on any
+   * other thread only the trust state is checked. A refusal ends the launch
+   * with the exception's message.
+   */
+  public static void requireTrustForRun(@NotNull Project project) throws ExecutionException {
+    boolean trusted = ApplicationManager.getApplication().isDispatchThread()
+                      ? confirmForAction(project, HaxeBundle.message("haxe.trust.action.run.configuration"))
+                      : isTrusted(project);
+    if (!trusted) {
+      throw new ExecutionException(HaxeBundle.message("haxe.trust.run.refused"));
+    }
   }
 
   /** Runs {@code onTrusted} when THIS project becomes trusted; the subscription lives until project close. */

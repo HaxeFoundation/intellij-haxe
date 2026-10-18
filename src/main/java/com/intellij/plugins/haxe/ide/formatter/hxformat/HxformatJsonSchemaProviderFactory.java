@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.formatter.hxformat;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeStyleBundle;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolConfigs;
 import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider;
 import com.jetbrains.jsonSchema.extension.JsonSchemaProviderFactory;
 import com.jetbrains.jsonSchema.extension.SchemaType;
@@ -29,7 +30,7 @@ public class HxformatJsonSchemaProviderFactory implements JsonSchemaProviderFact
   private static class HxformatSchemaProvider implements JsonSchemaFileProvider {
     @Override
     public boolean isAvailable(@NotNull VirtualFile file) {
-      return HxformatConfigs.HXFORMAT_FILE_NAME.equals(file.getName());
+      return HaxeToolConfigs.FORMATTER_CONFIG_NAME.equals(file.getName());
     }
 
     @Override

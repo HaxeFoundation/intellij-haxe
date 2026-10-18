@@ -16,7 +16,7 @@ public class HaxelibProjectStartActivity implements ProjectActivity {
   @Nullable
   @Override
   public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
-    log.debug("Project opened event  for " + project);
+    if (log.isDebugEnabled()) log.debug("Project opened event  for " + project);
 
     if (!ApplicationManager.getApplication().isUnitTestMode() && hasLegacyHaxeModules(project)) {
       HaxelibProjectUpdater.getInstance().openProject(project);

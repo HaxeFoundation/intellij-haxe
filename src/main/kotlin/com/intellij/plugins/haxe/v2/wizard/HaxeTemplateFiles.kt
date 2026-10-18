@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.v2.wizard
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.openapi.project.Project
 import com.intellij.plugins.haxe.HaxeWizardBundle
+import com.intellij.plugins.haxe.v2.buildsystem.HxmlFileParser
 
 /**
  * Renders the project-generator files from the platform file templates in
@@ -37,7 +38,7 @@ object HaxeTemplateFiles {
     PYTHON("haxe.wizard.hxml.target.python", "--python", "out/app.py"),
     LUA("haxe.wizard.hxml.target.lua", "--lua", "out/app.lua"),
     FLASH("haxe.wizard.hxml.target.flash", "--swf", "out/app.swf"),
-    INTERP("haxe.wizard.hxml.target.interp", "--interp", "");
+    INTERP("haxe.wizard.hxml.target.interp", HxmlFileParser.INTERP_FLAG, "");
 
     /** Whether the target writes anything — the interpreter runs the program instead. */
     val hasOutput: Boolean get() = defaultOutput.isNotEmpty()

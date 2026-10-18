@@ -15,16 +15,21 @@
  */
 package com.intellij.plugins.haxe.compiler;
 
-import com.intellij.execution.Platform;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
+import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * Created by ebishton on 10/29/16.
@@ -32,170 +37,101 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @DisplayName("Compiler: message")
 public class HaxeCompilerMessageTest {
 
-  private void doTest(String output, Category cat, String msg, String path, int line, int col) throws Throwable {
-    HaxeCompilerMessage e = HaxeCompilerMessage.create("", output);
-    assertEquals(cat, e.getCategory());
-    assertEquals(msg, e.getMessage());
-    assertEquals(path, e.getPath());
-    assertEquals(line, e.getLine());
-    assertEquals(col, e.getColumn());
+  /** hxcpp 3.3 progress lines, reported verbatim (spaces and trailing newline included) as information. */
+  static final List<String> INFORMATION_LINES = List.of(
+    // link message
+    " -  - Link : ApplicationMain: xcrun",
+    // link message 2 - with trailing newline
+    " - Link : ApplicationMain: xcrun\n",
+    // compile message
+    " - Compile : src/ApplicationMain.hx",
+    // compiling message
+    " - Compiling src/ApplicationMain.hx : <some_message>",
+    // generating message
+    "Generating out/ApplicationMain.cpp : <some_message>");
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("INFORMATION_LINES")
+  @DisplayName("information line is reported verbatim")
+  public void testInformationLineIsReportedVerbatim(String output) {
+    assertMessage(HaxeCompilerMessage.create("", output), Category.INFORMATION, output, null, -1, -1);
   }
 
-  /** The rooted form the build window uses: relative source paths join the project root. */
-  private void doRootedTest(String rootPath, String output, Category cat, String msg, String path, int line, int col) {
-    HaxeCompilerMessage e = HaxeCompilerMessage.create(rootPath, output, false);
-    assertNotNull(e);
-    assertEquals(cat, e.getCategory());
-    assertEquals(msg, e.getMessage());
-    assertEquals(path, e.getPath());
-    assertEquals(line, e.getLine());
-    assertEquals(col, e.getColumn());
+  /** (compiler output, error text) for errors naming no file. */
+  static final List<Arguments> UNLOCATED_ERRORS = List.of(
+    // library not installed
+    arguments("Error: Library Flixel is not installed. Please run haxelib...",
+              "Library Flixel is not installed. Please run haxelib..."),
+    // library not installed hxcpp (hxcpp 3.3)
+    arguments("Library hxcpp is not installed", "Library hxcpp is not installed"),
+    // generic error
+    arguments("Unknown Error : This is an error message.", " (Unknown Error) This is an error message."),
+    // hxcpp build failure
+    arguments("Error: Build failed", "Build failed"));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("UNLOCATED_ERRORS")
+  @DisplayName("unlocated error keeps its text")
+  public void testUnlocatedErrorKeepsItsText(String output, String message) {
+    assertMessage(HaxeCompilerMessage.create("", output), Category.ERROR, message, null, -1, -1);
   }
 
-  private void doInfoTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, Category.INFORMATION, compilerOutput, null, -1, -1);
+  /** (compiler output, error text, path, line, column); an empty root with the existence check on marks the file missing. */
+  static final List<Arguments> LOCATED_ERRORS = List.of(
+    // lines error
+    arguments("Test.hx:4: lines 4-10 : Invalid -main : Test does not have static function main",
+              "Invalid -main : Test does not have static function main", "Missing file: /Test.hx", 4, -1),
+    // unexpected character
+    arguments("Test.hx:4: characters 6-7 : Unexpected %", "Unexpected %", "Missing file: /Test.hx", 4, 6));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("LOCATED_ERRORS")
+  @DisplayName("located error carries file line and column")
+  public void testLocatedErrorCarriesFileLineAndColumn(String output, String message, String path, int line, int column) {
+    assertMessage(HaxeCompilerMessage.create("", output), Category.ERROR, message, path, line, column);
   }
 
-  private void doWarningTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, Category.WARNING, compilerOutput.trim(), null, -1, -1);
-  }
+  /** (project root, compiler output, category, message, path, line, column): the build window's rooted form, where relative source paths join the root. */
+  static final List<Arguments> ROOTED_MESSAGES = List.of(
+    // rooted error with windows root
+    arguments("C:/Users/username/workspace/project",
+              "src/Main.hx:5: characters 0-21 : Class not found : StringTools212",
+              Category.ERROR, "Class not found : StringTools212",
+              "C:/Users/username/workspace/project/src/Main.hx", 5, 0),
+    // rooted error with dot relative path
+    arguments("/trees/test",
+              "./HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener",
+              Category.ERROR, "Unknown identifier : addEvetListener",
+              "/trees/test/./HelloWorld.hx", 12, 1),
+    // rooted error without a column
+    arguments("/trees/test",
+              "hello/HelloWorld.hx:18: lines 18-24 : Interfaces cannot implement another interface (use extends instead)",
+              Category.ERROR, "Interfaces cannot implement another interface (use extends instead)",
+              "/trees/test/hello/HelloWorld.hx", 18, -1),
+    // rooted warning
+    arguments("/trees/test",
+              "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!",
+              Category.WARNING, "Danger, Will Robinson!",
+              "/trees/test/hello/HelloWorld.hx", 18, -1));
 
-  private void doErrorTest(String compilerOutput, String expected) throws Throwable {
-    doTest(compilerOutput, Category.ERROR, expected, null, -1, -1);
-  }
-
-  // hxcpp 3.3 link message
-  @Test
-  @DisplayName("link message")
-  public void testLinkMessage() throws Throwable {
-    doInfoTest(" -  - Link : ApplicationMain: xcrun");
-  }
-
-  @Test
-  @DisplayName("link message 2 - with trailing newline")
-  public void testLinkMessage2() throws Throwable {
-    doInfoTest(" - Link : ApplicationMain: xcrun\n");
-  }
-
-  // hxcpp 3.3 compile message.
-  @Test
-  @DisplayName("compile message")
-  public void testCompileMessage() throws Throwable {
-    doInfoTest(" - Compile : src/ApplicationMain.hx");
-  }
-
-  @Test
-  @DisplayName("compiling message")
-  public void testCompilingMessage() throws Throwable {
-    doInfoTest(" - Compiling src/ApplicationMain.hx : <some_message>");
-  }
-
-  @Test
-  @DisplayName("generating message")
-  public void testGeneratingMessage() throws Throwable {
-    doInfoTest("Generating out/ApplicationMain.cpp : <some_message>");
-  }
-
-  @Test
-  @DisplayName("library not installed")
-  public void testLibraryNotInstalled() throws Throwable {
-    String compilerOutput = "Error: Library Flixel is not installed. Please run haxelib...";
-    doTest(compilerOutput, Category.ERROR, "Library Flixel is not installed. Please run haxelib...", null, -1, -1);
-  }
-
-  // Hxcpp 3.3
-  @Test
-  @DisplayName("library not installed hxcpp")
-  public void testLibraryNotInstalledHxcpp() throws Throwable {
-    String compilerOutput = "Library hxcpp is not installed";
-    doErrorTest(compilerOutput, compilerOutput);
-  }
-
-  @Test
-  @DisplayName("generic error")
-  public void testGenericError() throws Throwable {
-    String compilerOutput = "Unknown Error : This is an error message.";
-    String expected = " (Unknown Error) This is an error message.";
-    doErrorTest(compilerOutput, expected);
-  }
-
-  @Test
-  @DisplayName("lines error")
-  public void testLinesError() throws Throwable {
-    String compilerOutput = "Test.hx:4: lines 4-10 : Invalid -main : Test does not have static function main";
-    doTest(compilerOutput, Category.ERROR, "Invalid -main : Test does not have static function main",
-           "Missing file: /Test.hx", 4, -1);
-  }
-
-  @Test
-  @DisplayName("hxcpp build failure")
-  public void testHxcppBuildFailure() throws Throwable {
-    String compilerOutput = "Error: Build failed";
-    String expected = "Build failed";
-    doErrorTest(compilerOutput, expected);
-  }
-
-  @Test
-  @DisplayName("unexpected character")
-  public void testUnexpectedCharacter() throws Throwable {
-    String compilerOutput = "Test.hx:4: characters 6-7 : Unexpected %";
-    String expected = "Unexpected %";
-    doTest(compilerOutput, Category.ERROR, expected, "Missing file: /Test.hx", 4, 6);
-  }
-
-  // --- rooted messages: relative paths join the project root ---
-
-  @Test
-  @DisplayName("rooted error with windows root")
-  public void testRootedErrorWithWindowsRoot() {
-    doRootedTest("C:/Users/username/workspace/project",
-                 "src/Main.hx:5: characters 0-21 : Class not found : StringTools212",
-                 Category.ERROR, "Class not found : StringTools212",
-                 "C:/Users/username/workspace/project/src/Main.hx", 5, 0);
-  }
-
-  @Test
-  @DisplayName("rooted error with dot relative path")
-  public void testRootedErrorWithDotRelativePath() {
-    doRootedTest("/trees/test",
-                 "./HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener",
-                 Category.ERROR, "Unknown identifier : addEvetListener",
-                 "/trees/test/./HelloWorld.hx", 12, 1);
-  }
-
-  @Test
-  @DisplayName("rooted error without a column")
-  public void testRootedErrorWithoutAColumn() {
-    doRootedTest("/trees/test",
-                 "hello/HelloWorld.hx:18: lines 18-24 : Interfaces cannot implement another interface (use extends instead)",
-                 Category.ERROR, "Interfaces cannot implement another interface (use extends instead)",
-                 "/trees/test/hello/HelloWorld.hx", 18, -1);
-  }
-
-  @Test
-  @DisplayName("rooted warning")
-  public void testRootedWarning() {
-    doRootedTest("/trees/test",
-                 "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!",
-                 Category.WARNING, "Danger, Will Robinson!",
-                 "/trees/test/hello/HelloWorld.hx", 18, -1);
+  @ParameterizedTest(name = "{1}")
+  @FieldSource("ROOTED_MESSAGES")
+  @DisplayName("rooted message joins the project root")
+  public void testRootedMessageJoinsTheProjectRoot(String rootPath, String output, Category category, String message,
+                                                   String path, int line, int column) {
+    assertMessage(HaxeCompilerMessage.create(rootPath, output, false), category, message, path, line, column);
   }
 
   @Test
   @DisplayName("absolute path ignores the root")
-  public void testAbsolutePathIgnoresTheRoot() {
-    String error = "/an/absolute/path/HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener";
+  public void testAbsolutePathIgnoresTheRoot(@TempDir Path hostDirectory) {
+    // only the host's own absolute form is recognizable as absolute
+    String file = hostDirectory.resolve("HelloWorld.hx").toString().replace('\\', '/');
+    String error = file + ":12: characters 1-16 : Unknown identifier : addEvetListener";
+
     HaxeCompilerMessage message = HaxeCompilerMessage.create("/trees/test", error, false);
 
-    assertNotNull(message);
-    assertEquals(Category.ERROR, message.getCategory());
-    // a unix absolute path is only recognizable as absolute on a unix host
-    if (Platform.current() == Platform.UNIX) {
-      assertEquals("/an/absolute/path/HelloWorld.hx", message.getPath());
-    }
-    assertEquals("Unknown identifier : addEvetListener", message.getMessage());
-    assertEquals(12, message.getLine());
-    assertEquals(1, message.getColumn());
+    assertMessage(message, Category.ERROR, "Unknown identifier : addEvetListener", file, 12, 1);
   }
 
   /**
@@ -212,5 +148,14 @@ public class HaxeCompilerMessageTest {
     HaxeCompilerMessage message = HaxeCompilerMessage.create("/trees/test", output, false);
     assertNotNull(message);
     assertEquals(Category.WARNING, message.getCategory());
+  }
+
+  private static void assertMessage(HaxeCompilerMessage message, Category category, String text, String path, int line, int column) {
+    assertNotNull(message);
+    assertEquals(category, message.getCategory());
+    assertEquals(text, message.getMessage());
+    assertEquals(path, message.getPath());
+    assertEquals(line, message.getLine());
+    assertEquals(column, message.getColumn());
   }
 }

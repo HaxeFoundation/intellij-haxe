@@ -49,6 +49,16 @@ final class LimeBuildSystem implements HaxeBuildSystem {
     return LimeProjects.targetFor(selectedTargetFlag(project, buildFile));
   }
 
+  @Override
+  public @NotNull List<String> forwardedArguments(@NotNull List<String> haxeArguments) {
+    return LimeProjects.FLAG_SPELLINGS.respell(haxeArguments);
+  }
+
+  @Override
+  public boolean mergesLibraryIncludeFiles() {
+    return true;
+  }
+
   /**
    * The lime tool takes -debug itself and forwards it into the haxe build it
    * generates, so one flag covers every lime target. hxcpp debugging also

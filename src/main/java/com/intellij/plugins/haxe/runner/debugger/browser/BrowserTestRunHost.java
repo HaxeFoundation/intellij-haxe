@@ -7,14 +7,13 @@ import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.HostedTestRunSentinel;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.InitializedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.OutputEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.TerminatedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ConfigurationDoneRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequest;
 import java.io.IOException;
 import java.io.OutputStream;
+import com.intellij.plugins.haxe.runner.debugger.javascript.JsDebugHandshake;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -58,12 +57,7 @@ public final class BrowserTestRunHost extends ProcessHandler {
       DapEndpoint endpoint = backend.connect();
       backend.startBackgroundOutput(line -> notifyTextAvailable(line + "\n", ProcessOutputTypes.SYSTEM));
 
-      InitializeRequest initialize = InitializeRequest.standard("chrome", true);
-      initialize.getArguments().setClientName("IntelliJ Haxe");
-      Response initialized = endpoint.sendRequest(initialize, REQUEST_TIMEOUT_MILLIS);
-      if (!initialized.isSuccess()) {
-        throw new IOException("the adapter rejected initialize: " + initialized.getMessage());
-      }
+      JsDebugHandshake.initialize(endpoint, "chrome", REQUEST_TIMEOUT_MILLIS);
       // js-debug answers launch only after configurationDone - fire and forget
       endpoint.sendRequestNoWait(backend.launchRequest());
       pumpEvents(endpoint);

@@ -21,8 +21,9 @@ Haxe File
           BLOCK_STATEMENT
             HaxePsiToken:{('{')
             CALL_EXPRESSION
-              UNBOUND_IDENTIFIER_EXPRESSION
-                HaxePsiToken:UNBOUND_ID('`trace')
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:UNBOUND_ID('`trace')
               HaxePsiToken:(('(')
               CALL_EXPRESSION_LIST
                 STRING_LITERAL_EXPRESSION
@@ -61,8 +62,9 @@ Haxe File
                     HaxePsiToken:ID('handler')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  UNBOUND_IDENTIFIER_EXPRESSION
-                    HaxePsiToken:UNBOUND_ID('`trace')
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:UNBOUND_ID('`trace')
               HaxePsiToken:;(';')
             IF_STATEMENT
               GUARD
@@ -81,8 +83,9 @@ Haxe File
                 HaxePsiToken:)(')')
               GUARDED_STATEMENT
                 CALL_EXPRESSION
-                  UNBOUND_IDENTIFIER_EXPRESSION
-                    HaxePsiToken:UNBOUND_ID('`trace')
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:UNBOUND_ID('`trace')
                   HaxePsiToken:(('(')
                   CALL_EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
@@ -93,8 +96,9 @@ Haxe File
               ELSE_STATEMENT
                 HaxePsiToken:else('else')
                 CALL_EXPRESSION
-                  UNBOUND_IDENTIFIER_EXPRESSION
-                    HaxePsiToken:UNBOUND_ID('`trace')
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:UNBOUND_ID('`trace')
                   HaxePsiToken:(('(')
                   CALL_EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION

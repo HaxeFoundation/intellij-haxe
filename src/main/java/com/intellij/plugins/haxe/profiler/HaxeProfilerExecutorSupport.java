@@ -32,12 +32,12 @@ public interface HaxeProfilerExecutorSupport {
   /**
    * The compile additions an hxcpp profiling build must carry (profiler
    * defines plus the injected start/stop bootstrap writing {@code dumpPath}),
-   * or null when the executor is not the hxcpp profiler one.
-   * {@code limeFamily} picks the tool spelling — lime's {@code --haxeflag=}
-   * wrappers against plain haxe flags.
+   * or null when the executor is not the hxcpp profiler one. Like all
+   * additions this interface returns, it is in plain haxe spelling; the build
+   * system respells it for its tool.
    */
   @Nullable
-  List<String> hxcppProfilingAdditionsFor(@NotNull Executor executor, boolean limeFamily, @NotNull Path dumpPath);
+  List<String> hxcppProfilingAdditionsFor(@NotNull Executor executor, @NotNull Path dumpPath);
 
   /**
    * The compile additions an hxcpp TRACY launch must add to its build (the
@@ -45,7 +45,7 @@ public interface HaxeProfilerExecutorSupport {
    * itself), or null when the executor is not the hxcpp tracy one.
    */
   @Nullable
-  List<String> hxcppTracyAdditionsFor(@NotNull Executor executor, boolean limeFamily);
+  List<String> hxcppTracyAdditionsFor(@NotNull Executor executor);
 
   /**
    * True when an hxcpp TRACY launch under this executor should start the
@@ -62,7 +62,7 @@ public interface HaxeProfilerExecutorSupport {
    * executor is not the flash profiler one.
    */
   @Nullable
-  List<String> flashProfilingAdditionsFor(@NotNull Executor executor, boolean limeFamily);
+  List<String> flashProfilingAdditionsFor(@NotNull Executor executor);
 
   /**
    * Compile additions for a HashLink-profiling launch (the {@code hl_profile}
@@ -70,7 +70,7 @@ public interface HaxeProfilerExecutorSupport {
    * launch is not a HashLink-profiling one.
    */
   @Nullable
-  List<String> hlProfilingAdditionsFor(@NotNull Executor executor, boolean limeFamily);
+  List<String> hlProfilingAdditionsFor(@NotNull Executor executor);
 
   /**
    * Compile additions for a JS-profiling launch (source-map emission, so
@@ -78,7 +78,7 @@ public interface HaxeProfilerExecutorSupport {
    * is not a JS-profiling one.
    */
   @Nullable
-  List<String> jsProfilingAdditionsFor(@NotNull Executor executor, boolean limeFamily);
+  List<String> jsProfilingAdditionsFor(@NotNull Executor executor);
 
   /**
    * V8's sampling interval (microseconds) a browser launch under this
@@ -110,16 +110,16 @@ public interface HaxeProfilerExecutorSupport {
 
   /** Null-safe form of {@link #hxcppProfilingAdditionsFor}. */
   @Nullable
-  static List<String> hxcppProfilingAdditions(@NotNull Executor executor, boolean limeFamily, @NotNull Path dumpPath) {
+  static List<String> hxcppProfilingAdditions(@NotNull Executor executor, @NotNull Path dumpPath) {
     HaxeProfilerExecutorSupport support = getInstance();
-    return support == null ? null : support.hxcppProfilingAdditionsFor(executor, limeFamily, dumpPath);
+    return support == null ? null : support.hxcppProfilingAdditionsFor(executor, dumpPath);
   }
 
   /** Null-safe form of {@link #hxcppTracyAdditionsFor}. */
   @Nullable
-  static List<String> hxcppTracyAdditions(@NotNull Executor executor, boolean limeFamily) {
+  static List<String> hxcppTracyAdditions(@NotNull Executor executor) {
     HaxeProfilerExecutorSupport support = getInstance();
-    return support == null ? null : support.hxcppTracyAdditionsFor(executor, limeFamily);
+    return support == null ? null : support.hxcppTracyAdditionsFor(executor);
   }
 
   /** Null-safe form of {@link #hxcppTracyElevatedFor}. */
@@ -130,16 +130,16 @@ public interface HaxeProfilerExecutorSupport {
 
   /** Null-safe form of {@link #flashProfilingAdditionsFor}. */
   @Nullable
-  static List<String> flashProfilingAdditions(@NotNull Executor executor, boolean limeFamily) {
+  static List<String> flashProfilingAdditions(@NotNull Executor executor) {
     HaxeProfilerExecutorSupport support = getInstance();
-    return support == null ? null : support.flashProfilingAdditionsFor(executor, limeFamily);
+    return support == null ? null : support.flashProfilingAdditionsFor(executor);
   }
 
   /** Null-safe form of {@link #hlProfilingAdditionsFor}. */
   @Nullable
-  static List<String> hlProfilingAdditions(@NotNull Executor executor, boolean limeFamily) {
+  static List<String> hlProfilingAdditions(@NotNull Executor executor) {
     HaxeProfilerExecutorSupport support = getInstance();
-    return support == null ? null : support.hlProfilingAdditionsFor(executor, limeFamily);
+    return support == null ? null : support.hlProfilingAdditionsFor(executor);
   }
 
   /** Null-safe form of {@link #jsSamplingIntervalUsFor}. */
@@ -151,9 +151,9 @@ public interface HaxeProfilerExecutorSupport {
 
   /** Null-safe form of {@link #jsProfilingAdditionsFor}. */
   @Nullable
-  static List<String> jsProfilingAdditions(@NotNull Executor executor, boolean limeFamily) {
+  static List<String> jsProfilingAdditions(@NotNull Executor executor) {
     HaxeProfilerExecutorSupport support = getInstance();
-    return support == null ? null : support.jsProfilingAdditionsFor(executor, limeFamily);
+    return support == null ? null : support.jsProfilingAdditionsFor(executor);
   }
 
   /** Null-safe form of {@link #profilerExecutorsFor}: empty without the profiler module too. */

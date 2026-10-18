@@ -5,7 +5,10 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerProjectSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.application.options.CodeStyle;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerNotifications;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -22,8 +25,9 @@ import java.util.function.Consumer;
  * is reused for consecutive tests with an equal descriptor, skipping the
  * per-test project open and index wait of the heavy base. The fixture
  * surface is identical and per-test files roll back, but project-level
- * state (settings, inspection profile, trust) survives between tests - a
- * class that mutates it must reset it. The bare Haxe module (in-memory
+ * state (settings, inspection profile, trust) survives between tests: the
+ * teardown restores the code style and the compiler settings, a class that
+ * mutates anything else must reset it. The bare Haxe module (in-memory
  * source root only) is the default; a suite that needs the toolkit std
  * extends {@link HaxeToolkitLightFixtureTestCase}.
  */
@@ -61,16 +65,31 @@ public abstract class HaxeLightFixtureTestCase extends HaxeCodeInsightFixtureTes
   protected void tearDown() throws Exception {
     try {
       dropTemporaryCodeStyleSettings();
+      restoreCompilerSettingsDefaults();
+      rearmCompilerNotifications();
     }
     finally {
       super.tearDown();
     }
   }
 
+  /** The once-per-project "no compilation server" notice stays fired on the shared project otherwise. */
+  private void rearmCompilerNotifications() {
+    if (myFixture == null) return;
+    HaxeCompilerNotifications.getInstance(myFixture.getProject()).resetUnavailabilityNotificationForTests();
+  }
+
   /** A leftover temporary code style would leak into the next test of the shared project. */
   private void dropTemporaryCodeStyleSettings() {
     if (myFixture == null) return;
     CodeStyleSettingsManager.getInstance(myFixture.getProject()).dropTemporarySettings();
+  }
+
+  /** A compiler toggle a test switched on would leak the same way; a fresh state carries every default. */
+  private void restoreCompilerSettingsDefaults() {
+    if (myFixture == null) return;
+    HaxeCompilerProjectSettings settings = (HaxeCompilerProjectSettings)HaxeCompilerSettings.getInstance(myFixture.getProject());
+    settings.loadState(new HaxeCompilerProjectSettings.State());
   }
 
   /**

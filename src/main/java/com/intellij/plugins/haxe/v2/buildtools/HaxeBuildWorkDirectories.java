@@ -110,6 +110,20 @@ public final class HaxeBuildWorkDirectories {
     }
   }
 
+  /**
+   * A path the build names (an output, an artifact) resolved the way the
+   * compiler resolves it: against the file's work directory - the file's own
+   * folder for the lime family (lime display runs there, so its paths resolve
+   * the same), the hxml anchor otherwise.
+   */
+  @NotNull
+  public static Path resolve(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull String path) {
+    String anchor = workDirectory(project, buildFile);
+    return Path.of(anchor != null ? anchor : buildFile.getParent().getPath())
+      .resolve(path)
+      .normalize();
+  }
+
   /** The argument for the file's own work directory - the form build commands embed. */
   @NotNull
   public static String fileArgument(@NotNull Project project, @NotNull VirtualFile buildFile) {

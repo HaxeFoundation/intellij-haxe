@@ -13,6 +13,7 @@ import com.intellij.plugins.haxe.util.HaxeQnameResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.OpenSourceUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
 import com.intellij.xdebugger.frame.XValueNode;
@@ -80,7 +81,7 @@ final class FqnNavigateLink {
 
     private void performNavigation(Navigatable navigatable) {
       if (navigatable != null && navigatable.canNavigate()) {
-        navigatable.navigate(true);
+        OpenSourceUtil.navigate(true, navigatable);
       }
     }
 

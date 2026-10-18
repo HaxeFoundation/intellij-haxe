@@ -2,9 +2,9 @@ package com.intellij.plugins.haxe.v2.toolwindow.tree;
 
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.text.HtmlBuilder;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.haxelib.HaxelibGitSpec;
-import com.intellij.plugins.haxe.v2.runconfig.HaxeProgramLaunches;
 import com.intellij.plugins.haxe.v2.buildtools.settings.DefineEffect;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -50,34 +50,28 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
                  target.displayName(), target.selectable());
       case SectionNode section ->
         valueRow(AllIcons.RunConfigurations.Compound, HaxeBundle.message("haxe.toolwindow.node.section"), section.displayName(), true);
-      case GroupNode group -> countRow(groupIcon(group.kind()), groupLabel(group.kind()), group.count());
+      case GroupNode group -> countRow(groupIcon(group.kind()), group.label(), group.count());
       case DefineNode define -> renderDefine(define.name(), define.value());
-      case EnvironmentNode ignored -> labelRow(AllIcons.General.Settings, HaxeBundle.message("haxe.toolwindow.node.environment"));
-      case BuildGroupNode buildGroup ->
-        countRow(AllIcons.Nodes.Folder, HaxeBundle.message("haxe.toolwindow.node.build"), buildGroup.count());
-      case CompilationGroupNode ignored -> labelRow(AllIcons.General.Settings, HaxeBundle.message("haxe.toolwindow.node.compilation"));
+      case EnvironmentNode environment -> labelRow(AllIcons.General.Settings, environment.label());
+      case IdeOverridesNode overrides -> countRow(AllIcons.General.Settings, overrides.label(), overrides.count());
+      case IdeDefinesNode defines -> countRow(AllIcons.Nodes.Folder, defines.label(), defines.count());
+      case IdeDefineNode define -> renderIdeDefine(define);
+      case IdeCustomTargetNode customTarget -> renderCustomTarget(customTarget);
+      case BuildGroupNode buildGroup -> countRow(AllIcons.Nodes.Folder, buildGroup.label(), buildGroup.count());
+      case CompilationGroupNode compilation -> labelRow(AllIcons.General.Settings, compilation.label());
       case CompilationServerNode server -> renderServer(server);
-      case ActionsGroupNode actionsGroup ->
-        countRow(AllIcons.Nodes.ConfigFolder, HaxeBundle.message("haxe.toolwindow.node.actions"), actionsGroup.count());
-      case TestsGroupNode ignored -> labelRow(AllIcons.Nodes.TestSourceFolder, HaxeBundle.message("haxe.toolwindow.node.tests.group"));
-      case ActionNode action -> valueRow(actionIcon(action.name()), action.name(), action.presentableCommand(), false);
-      case ToolsGroupNode toolsGroup ->
-        countRow(AllIcons.General.ExternalTools, HaxeBundle.message("haxe.toolwindow.node.tools"), toolsGroup.count());
+      case ActionsGroupNode actionsGroup -> countRow(AllIcons.Nodes.ConfigFolder, actionsGroup.label(), actionsGroup.count());
+      case TestsGroupNode tests -> labelRow(AllIcons.Nodes.TestSourceFolder, tests.label());
+      case ActionNode action -> renderAction(action);
+      case ToolsGroupNode toolsGroup -> countRow(AllIcons.General.ExternalTools, toolsGroup.label(), toolsGroup.count());
       case ToolNode tool -> valueRow(AllIcons.General.ExternalTools, tool.name(), tool.detail(), false);
-      case ProgramNode program -> valueRow(AllIcons.Actions.Execute, programLabel(program), program.kind(), false);
-      case TestRunNode ignored ->
-        labelRow(AllIcons.RunConfigurations.TestState.Run, HaxeBundle.message("haxe.toolwindow.node.run.unit.tests"));
+      case ProgramNode program -> valueRow(AllIcons.Actions.Execute, program.label(), program.kind().displayName(), false);
+      case TestRunNode testRun -> labelRow(AllIcons.RunConfigurations.TestState.Run, testRun.label());
       case EnvSdkNode sdk -> renderSdk(sdk);
       case EnvCompileCommandNode compileCommand ->
         valueRow(AllIcons.Actions.Compile, HaxeBundle.message("haxe.toolwindow.node.compile.command"), compileCommand.display(), true);
       case EnvLanguageLevelNode level ->
         valueRow(AllIcons.Nodes.Property, HaxeBundle.message("haxe.toolwindow.node.environment.language.level"), level.displayName(), true);
-      case EnvDefinesNode defines ->
-        countRow(AllIcons.Nodes.Folder, HaxeBundle.message("haxe.toolwindow.node.environment.defines"), defines.count());
-      case EnvCustomTargetNode customTarget ->
-        valueRow(AllIcons.Nodes.Property, HaxeBundle.message("haxe.toolwindow.node.environment.custom.target"),
-                 customTargetDisplay(customTarget), true);
-      case EnvDefineNode define -> renderEnvironmentDefine(define);
       case LibraryNode library -> renderLibrary(library);
       case null -> { }
       default -> append(String.valueOf(userObject));
@@ -118,6 +112,21 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
     if (fileRow.testsFile()) {
       append("  " + HaxeBundle.message("haxe.toolwindow.node.build.file.tests"), SimpleTextAttributes.GRAYED_ATTRIBUTES);
     }
+    if (fileRow.toolFailure() != null) {
+      append("  " + HaxeBundle.message("haxe.toolwindow.node.build.file.tool.failed"), SimpleTextAttributes.ERROR_ATTRIBUTES);
+    }
+  }
+
+  /** The name and, for an action that starts something, what it starts - like the Build & run row; the rest is in the tooltip. */
+  private void renderAction(@NotNull ActionNode action) {
+    Icon icon = HaxeActionIcons.forAction(action.name());
+    String launchTarget = action.launchTarget();
+    if (launchTarget == null) {
+      labelRow(icon, action.name());
+    }
+    else {
+      valueRow(icon, action.name(), launchTarget, false);
+    }
   }
 
   private void renderServer(@NotNull CompilationServerNode server) {
@@ -145,17 +154,37 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
     }
   }
 
-  private void renderEnvironmentDefine(@NotNull EnvDefineNode define) {
+  private void renderIdeDefine(@NotNull IdeDefineNode define) {
     if (define.effect() == DefineEffect.REMOVE) {
       setIcon(AllIcons.Nodes.Property);
       append(define.name(), STRIKEOUT_ATTRIBUTES);
-      append("  " + HaxeBundle.message("haxe.environment.effect.remove"), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+      append("  " + HaxeBundle.message("haxe.ide.overrides.effect.remove"), SimpleTextAttributes.GRAYED_ATTRIBUTES);
       return;
     }
     renderDefine(define.name(), define.value());
     if (define.inBuildFile()) {
       append("  " + HaxeBundle.message("haxe.toolwindow.node.define.overriding"), SimpleTextAttributes.GRAYED_ATTRIBUTES);
     }
+  }
+
+  /** A custom target the build's own target beats is struck through, with the target that wins. */
+  private void renderCustomTarget(@NotNull IdeCustomTargetNode customTarget) {
+    String label = customTarget.label();
+    if (customTarget.customTarget() == null) {
+      valueRow(AllIcons.Nodes.Property, label, HaxeBundle.message("haxe.toolwindow.node.target.unspecified"), true);
+      return;
+    }
+    if (customTarget.buildTarget() == null) {
+      valueRow(AllIcons.Nodes.Property, label, customTarget.customTarget(), true);
+      return;
+    }
+    setIcon(AllIcons.Nodes.Property);
+    append(label);
+    append("  ");
+    append(customTarget.customTarget(), STRIKEOUT_ATTRIBUTES);
+    String buildWins = HaxeBundle.message("haxe.toolwindow.node.ide.custom.target.build.wins", customTarget.buildTarget());
+    append("  " + buildWins, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    append(CHOOSER_MARKER, SimpleTextAttributes.GRAYED_ATTRIBUTES);
   }
 
   private void renderLibrary(@NotNull LibraryNode library) {
@@ -184,8 +213,9 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
       case EnvironmentNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment");
       case EnvSdkNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment.sdk");
       case EnvLanguageLevelNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment.language.level");
-      case EnvDefinesNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment.defines");
-      case EnvCustomTargetNode ignored -> HaxeBundle.message("haxe.environment.dialog.custom.target.tooltip");
+      case IdeOverridesNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.ide.overrides");
+      case IdeDefinesNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.ide.defines");
+      case IdeCustomTargetNode customTarget -> customTargetTooltip(customTarget);
       case BuildGroupNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.build.files");
       case TargetNode target ->
         HaxeBundle.message(target.selectable() ? "haxe.toolwindow.tooltip.target.selectable" : "haxe.toolwindow.tooltip.target");
@@ -196,23 +226,34 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
       case LibraryNode library -> libraryTooltip(library);
       case SectionNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.section");
       case ProgramNode program -> programTooltip(program);
+      case ActionNode action -> actionTooltip(action);
       case TestRunNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.run.unit.tests");
+      case BuildFileRow row when row.toolFailure() != null ->
+        HaxeBundle.message("haxe.toolwindow.tooltip.build.file.tool.failed", row.toolFailure());
       case null, default -> null;
     };
   }
 
-  /** "Build & run", or "Run" for a target that runs without a build step (the interpreter). */
-  @NotNull
-  private static String programLabel(@NotNull ProgramNode program) {
-    boolean builds = HaxeProgramLaunches.compilesBeforeLaunch(program.target());
-    return HaxeBundle.message(builds ? "haxe.toolwindow.node.program" : "haxe.toolwindow.node.program.run");
-  }
-
   @NotNull
   private static String programTooltip(@NotNull ProgramNode program) {
-    boolean builds = HaxeProgramLaunches.compilesBeforeLaunch(program.target());
+    boolean builds = program.kind().compilesBeforeLaunch();
     String key = builds ? "haxe.toolwindow.tooltip.program" : "haxe.toolwindow.tooltip.program.run";
-    return HaxeBundle.message(key, program.kind());
+    return HaxeBundle.message(key, program.kind().displayName());
+  }
+
+  /** The command, then what runs first and what the action starts, one per line. */
+  @NotNull
+  private static String actionTooltip(@NotNull ActionNode action) {
+    HtmlBuilder tooltip = new HtmlBuilder().append(action.presentableCommand());
+    if (!action.runBefore().isEmpty()) {
+      String runsFirst = HaxeBundle.message("haxe.toolwindow.tooltip.action.runs.first", String.join(", ", action.runBefore()));
+      tooltip.br().append(runsFirst);
+    }
+    String launchTarget = action.launchTarget();
+    if (launchTarget != null) {
+      tooltip.br().append(HaxeBundle.message("haxe.toolwindow.tooltip.action.starts", launchTarget));
+    }
+    return tooltip.wrapWithHtmlBody().toString();
   }
 
   @NotNull
@@ -228,34 +269,19 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
   @Nullable
   private static String libraryTooltip(@NotNull LibraryNode library) {
     HaxelibGitSpec gitSpec = HaxelibGitSpec.parse(library.version());
-    return gitSpec == null ? null : HaxeBundle.message("haxe.toolwindow.tooltip.library.git", gitSpec.url());
+    if (gitSpec != null) return HaxeBundle.message("haxe.toolwindow.tooltip.library.git", gitSpec.url());
+    return library.transitive() ? HaxeBundle.message("haxe.toolwindow.tooltip.library.transitive", library.requiredBy()) : null;
   }
 
   @NotNull
-  private static String customTargetDisplay(@NotNull EnvCustomTargetNode customTarget) {
-    return customTarget.customTarget() != null
-           ? customTarget.customTarget()
-           : HaxeBundle.message("haxe.toolwindow.node.target.unspecified");
-  }
-
-  /** Actions that only produce output get the build hammer; ones that run something keep the play icon. */
-  @NotNull
-  private static Icon actionIcon(@NotNull String actionName) {
-    boolean buildAction = actionName.equalsIgnoreCase("build")
-                          || actionName.equalsIgnoreCase("compile")
-                          || actionName.equalsIgnoreCase("clean");
-    return buildAction ? AllIcons.Actions.Compile : AllIcons.Actions.Execute;
+  private static String customTargetTooltip(@NotNull IdeCustomTargetNode customTarget) {
+    boolean beaten = customTarget.customTarget() != null && customTarget.buildTarget() != null;
+    return HaxeBundle.message(beaten ? "haxe.toolwindow.tooltip.ide.custom.target.build.wins"
+                                     : "haxe.ide.overrides.dialog.custom.target.tooltip");
   }
 
   @NotNull
   private static Icon groupIcon(@NotNull GroupKind kind) {
     return kind == GroupKind.LIBRARIES ? AllIcons.Nodes.PpLibFolder : AllIcons.Nodes.Folder;
-  }
-
-  @NotNull
-  private static String groupLabel(@NotNull GroupKind kind) {
-    return kind == GroupKind.LIBRARIES
-           ? HaxeBundle.message("haxe.toolwindow.node.libraries")
-           : HaxeBundle.message("haxe.toolwindow.node.defines");
   }
 }

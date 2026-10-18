@@ -17,23 +17,25 @@ package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.lexer.LayeredLexer;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataLexer;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeHighlightingLexer extends LayeredLexer {
 
-  public HaxeHighlightingLexer(Project project) {
-    super(HaxeLexer.forHighlighting(project));
-    registerLayer(new HaxeMetaHighlighterLexer(project), HaxeTokenTypes.EMBEDDED_META);
+  public HaxeHighlightingLexer(Project project, @Nullable VirtualFile file) {
+    super(HaxeLexer.forHighlighting(project, file));
+    registerLayer(new HaxeMetaHighlighterLexer(project, file), HaxeTokenTypes.EMBEDDED_META);
   }
 
   // it looks like its not allowed to stop parsing in the middle of a token (EMBEDDED_META) and switch to another parser
   // so we need to make a second LayeredLexer that can handle Haxe code in EMBEDDED_META tokens.
   static class HaxeMetaHighlighterLexer extends LayeredLexer {
 
-    public HaxeMetaHighlighterLexer(Project project) {
+    public HaxeMetaHighlighterLexer(Project project, @Nullable VirtualFile file) {
       super(new HaxeMetadataLexer());
-      registerLayer(HaxeLexer.forHighlighting(project), HaxeMetadataTokenTypes.CT_META_ARGS, HaxeMetadataTokenTypes.RT_META_ARGS);
+      registerLayer(HaxeLexer.forHighlighting(project, file), HaxeMetadataTokenTypes.CT_META_ARGS, HaxeMetadataTokenTypes.RT_META_ARGS);
     }
   }
 }

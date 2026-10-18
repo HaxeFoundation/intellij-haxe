@@ -1,14 +1,10 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
-import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeProblemReporter;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
-import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeEnumModel;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
@@ -18,8 +14,8 @@ import com.intellij.plugins.haxe.model.fixer.HaxeRemoveElementFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -147,7 +143,7 @@ public class HaxeSemanticsUtil {
                 String typePresentationString = varType.toPresentationString();
                 String nullabilityWarning = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning", typePresentationString);
                 reporter.problem(HighlightSeverity.WEAK_WARNING, nullabilityWarning)
-                        .withFix(NullWrapTypeFix("Null<"+typePresentationString+">", tag))
+                        .withFix(nullWrapTypeFix(typePresentationString, tag))
                         .range(initExpression.getExpression())
                         .create();
             }
@@ -165,7 +161,7 @@ public class HaxeSemanticsUtil {
                     PsiElement resolve = referenceExpression.resolve();
                     if(resolve instanceof HaxePsiField field) {
                         HaxeTypeTag typeTag = field.getTypeTag();
-                        HaxeFixer fix = NullWrapTypeFix("Null<" + typePresentationString + ">", typeTag);
+                        HaxeFixer fix = nullWrapTypeFix(typePresentationString, typeTag);
                         builder.withFix(fix);
                     }
                 }
@@ -174,22 +170,10 @@ public class HaxeSemanticsUtil {
         }
     }
 
-    private static @NotNull HaxeFixer NullWrapTypeFix(String newValue, HaxeTypeTag typeTag) {
-        return new HaxeFixer("Replace type with " + newValue) {
-            @Override
-            public void run() {
-                HaxeDocumentModel.fromElement(typeTag).replaceElementText(typeTag, ":" + newValue);
-            }
-
-            @Override
-            public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
-                int startOffset = typeTag.getTextRange().getStartOffset();
-                int endOffset = typeTag.getTextRange().getEndOffset();
-                editor.getDocument().replaceString(startOffset,endOffset , ":" + newValue);
-
-                return IntentionPreviewInfo.DIFF;
-            }
-        };
+    /** Replaces the tag's type with its {@code Null<...>} wrapping. */
+    private static @NotNull HaxeFixer nullWrapTypeFix(String type, HaxeTypeTag typeTag) {
+        String nullable = HaxePresentableUtil.asNullable(type);
+        return new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.replace.type.with", nullable), typeTag, nullable);
     }
 
 }

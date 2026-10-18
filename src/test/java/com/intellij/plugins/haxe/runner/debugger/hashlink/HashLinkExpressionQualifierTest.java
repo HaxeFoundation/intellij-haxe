@@ -7,21 +7,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpressionCodeFragment;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerTestFixtures;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.List;
 
@@ -70,43 +60,6 @@ public class HashLinkExpressionQualifierTest extends HaxeLightFixtureTestCase {
   }
 
   /**
-   * The evaluate-window editor experience: a bare class reference typed in the
-   * fragment resolves against the breakpoint file's imports (so it is not flagged
-   * unresolved and no text-mutating "import?" fix is offered). Before the fragment
-   * inherited its context's imports, {@code Deep.resolve()} returned {@code null}.
-   */
-  @Test
-  @DisplayName("fragment resolves imported class against context")
-  public void testFragmentResolvesImportedClassAgainstContext() {
-    PsiElement context = importingContext();
-    PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Deep.marker", context, false);
-
-    HaxeReferenceExpression deep = leftmostReference(fragment, "Deep");
-    assertNotNull(deep, "the `Deep` reference is present in the parsed fragment");
-
-    PsiElement target = deep.resolve();
-    assertTrue(target instanceof HaxeClass, "`Deep` resolves to a class via the inherited context imports, got "
-               + (target == null ? "null" : target.getClass().getSimpleName()));
-    assertEquals("pkg.Deep", ((HaxeClass)target).getQualifiedName());
-  }
-
-  /**
-   * The no-import baseline: a fragment whose context sits in another package
-   * does NOT resolve the bare class name. The positive half — an import held
-   * on the fragment resolving it without touching the text — is pinned by
-   * {@link #testAddImportHelperHoldsImportOnFragmentInsteadOfText} (for
-   * fragments, {@code HaxeAddImportHelper.addImport} is {@code importClass}).
-   */
-  @Test
-  @DisplayName("bare fragment does not resolve an unimported class")
-  public void testBareFragmentDoesNotResolveAnUnimportedClass() {
-    PsiElement context = contextIn("package other;\nclass Main { static function main() { var here<caret> = 0; } }");
-
-    PsiFile bare = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Deep.marker", context, false);
-    assertNull(leftmostReference(bare, "Deep").resolve(), "`Deep` is not resolvable from package `other` without an import");
-  }
-
-  /**
    * Part C — project-wide fallback: a class the breakpoint file neither imports
    * nor shares a package with is still qualified when it is the project's only
    * class of that short name, so it evaluates without the user adding an import.
@@ -138,52 +91,14 @@ public class HashLinkExpressionQualifierTest extends HaxeLightFixtureTestCase {
     assertEquals("Widget.count", HashLinkExpressionQualifier.rewrite(getProject(), context, "Widget.count"));
   }
 
-  /**
-   * The auto-import chokepoint: every path that adds an import (completion,
-   * copy/paste, reference binding, the add-import intentions) goes through
-   * {@link HaxeAddImportHelper#addImport}. On a fragment it must hold the import
-   * on the fragment and leave the evaluated text untouched — never insert an
-   * {@code import} statement that would break evaluation.
-   */
-  @Test
-  @DisplayName("add import helper holds import on fragment instead of text")
-  public void testAddImportHelperHoldsImportOnFragmentInsteadOfText() {
-    myFixture.addFileToProject("far/Widget.hx",
-                               "package far;\nclass Widget { public static var count:Int = 3; }");
-    myFixture.configureByText("Main.hx",
-                              "package other;\nclass Main { static function main() { var here<caret> = 0; } }");
-    PsiElement context = contextAtCaret();
-
-    PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Widget.count", context, false);
-    WriteCommandAction.runWriteCommandAction(getProject(),
-                                             () -> { HaxeAddImportHelper.addImport("far.Widget", fragment); });
-
-    assertEquals("Widget.count", fragment.getText(), "the import must not enter the evaluated text");
-    assertTrue(((HaxeExpressionCodeFragment)fragment).getImportedTypeNames().contains("far.Widget"), "the import is held on the fragment");
-    PsiElement target = leftmostReference(fragment, "Widget").resolve();
-    assertTrue(target instanceof HaxeClass, "`Widget` now resolves");
-    assertEquals("far.Widget", ((HaxeClass)target).getQualifiedName());
-  }
-
-  /** A `class Deep` in package `pkg`; the caret context comes from {@code mainSource}. */
+  /** The caret context of {@code mainSource} in the Deep-declaring project. */
   private PsiElement contextIn(String mainSource) {
-    myFixture.addFileToProject("pkg/Deep.hx",
-                               "package pkg;\nclass Deep { public static var marker:Int = 99; }");
-    myFixture.configureByText("Main.hx", mainSource);
+    HaxeDebuggerTestFixtures.deepProject(myFixture, mainSource);
     return contextAtCaret();
   }
 
   /** The Deep-declaring project with a main that reaches it via `import pkg.Deep`. */
   private PsiElement importingContext() {
     return contextIn("import pkg.Deep;\nclass Main { static function main() { var here<caret> = 0; } }");
-  }
-
-  private static HaxeReferenceExpression leftmostReference(PsiFile fragment, String name) {
-    for (HaxeReferenceExpression ref : PsiTreeUtil.findChildrenOfType(fragment, HaxeReferenceExpression.class)) {
-      if (ref.getQualifier() == null && name.equals(ref.getText())) {
-        return ref;
-      }
-    }
-    return null;
   }
 }

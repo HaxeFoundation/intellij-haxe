@@ -20,12 +20,11 @@ import org.junit.jupiter.api.Test;
  */
 @DisplayName("HashLink debugger: packaged statics (integration)")
 public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
-  private static final int DEEP_INSTANCE_LINE = 21; // pkg/Deep.hx readMarker()
 
   @Test
   @DisplayName("unqualified statics resolve in a packaged instance frame")
   public void unqualifiedStaticsResolveInAPackagedInstanceFrame() throws Exception {
-    StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_DEEP, FIXTURE_DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     assertEquals("99", evaluated(frameId, "marker"), "static var, unqualified");
@@ -37,7 +36,7 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("the statics scope appears in a packaged instance frame")
   public void theStaticsScopeAppearsInAPackagedInstanceFrame() throws Exception {
-    StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_DEEP, FIXTURE_DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     Scope statics = scopeByPrefix(frameId, "Statics");

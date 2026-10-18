@@ -8,7 +8,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.options.SettingsEditor;
@@ -18,13 +17,9 @@ import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapCommandLineRunningState;
-import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
-import com.intellij.util.execution.ParametersListUtil;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapExecutableRunConfigurationBase;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /// The legacy HXCPP debugger configuration: launches a hxcpp-compiled
 /// executable whose program was built with the old `debugger` haxelib
@@ -34,18 +29,12 @@ import org.jetbrains.annotations.Nullable;
 /// arguments so the debuggee connects back; a lime/openfl launch must end its
 /// parameters with `-args` so those flags reach the program. Remote mode
 /// only listens — the user starts the debuggee themselves.
-public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
+public class LegacyHxcppRunConfiguration extends DapExecutableRunConfigurationBase {
   public static final int DEFAULT_PORT = 6972;
 
-  private static final String EXECUTABLE = "executable";
-  private static final String PROGRAM_PARAMETERS = "programParameters";
-  private static final String WORKING_DIRECTORY = "workingDirectory";
   private static final String PORT = "debugPort";
   private static final String REMOTE = "remoteDebugging";
 
-  private String executablePath = "";
-  private String programParameters = "";
-  private String workingDirectory = "";
   private int port = DEFAULT_PORT;
   private boolean remoteDebugging = false;
 
@@ -54,30 +43,6 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
   }
 
   // --- settings ---
-
-  public String getExecutablePath() {
-    return executablePath;
-  }
-
-  public void setExecutablePath(@Nullable String path) {
-    executablePath = orEmpty(path);
-  }
-
-  public String getProgramParameters() {
-    return programParameters;
-  }
-
-  public void setProgramParameters(@Nullable String parameters) {
-    programParameters = orEmpty(parameters);
-  }
-
-  public String getWorkingDirectory() {
-    return workingDirectory;
-  }
-
-  public void setWorkingDirectory(@Nullable String directory) {
-    workingDirectory = orEmpty(directory);
-  }
 
   public int getPort() {
     return port;
@@ -100,22 +65,19 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
     return new LegacyHxcppRunConfigurationEditor(getProject());
   }
 
+  /** The port, then the base's executable checks; remote mode only listens, so there a blank executable passes as long as a module is set. */
   @Override
   public void checkConfiguration() throws RuntimeConfigurationException {
-    if (getConfigurationModule().getModule() == null) {
-      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("legacy.hxcpp.runner.no.module"));
-    }
     if (port < 1 || port > 65535) {
       throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("legacy.hxcpp.runner.bad.port"));
     }
-    if (!remoteDebugging && executablePath.isBlank()) {
-      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("legacy.hxcpp.runner.no.executable"));
+    if (remoteDebugging && getExecutablePath().isBlank()) {
+      if (getConfigurationModule().getModule() == null) {
+        throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("hxcpp.runner.no.module"));
+      }
+      return;
     }
-    Path executable = resolveExecutableOrNull();
-    if (executable != null && !Files.isRegularFile(executable)) {
-      throw new RuntimeConfigurationWarning(
-        HaxeDebuggerBundle.message("legacy.hxcpp.runner.executable.missing", executablePath));
-    }
+    super.checkConfiguration();
   }
 
   // Resolution stays inside the supplier - getState runs before before-launch
@@ -129,31 +91,13 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
     return new DapCommandLineRunningState(env, () -> createCommandLine(debug));
   }
 
+  /** The executable invocation plus, on Debug, the flags that make the debuggee dial the IDE's listener. */
   private GeneralCommandLine createCommandLine(boolean debug) throws ExecutionException {
-    Path executable = resolveExecutableOrNull();
-    if (executable == null || !Files.isRegularFile(executable)) {
-      throw new ExecutionException(HaxeDebuggerBundle.message(
-        "legacy.hxcpp.runner.executable.missing", executablePath.isBlank() ? "<not set>" : executablePath));
-    }
-    GeneralCommandLine commandLine = new GeneralCommandLine().withExePath(executable.toString());
-    if (!programParameters.isBlank()) {
-      commandLine.withParameters(ParametersListUtil.parse(programParameters));
-    }
+    GeneralCommandLine commandLine = createCommandLine();
     if (debug) {
       commandLine.withParameters("-start_debugger", "-debugger_host=localhost:" + port);
     }
-    Path workDir = !workingDirectory.isBlank() ? resolveAgainstModule(workingDirectory) : executable.getParent();
-    if (workDir != null) {
-      commandLine.withWorkDirectory(workDir.toString());
-    }
     return commandLine;
-  }
-
-  // --- resolution ---
-
-  @Nullable
-  private Path resolveExecutableOrNull() {
-    return executablePath.isBlank() ? null : resolveAgainstModule(executablePath);
   }
 
   // --- persistence ---
@@ -161,10 +105,6 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
   @Override
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
-    readModule(element);
-    executablePath = orEmpty(JDOMExternalizerUtil.readField(element, EXECUTABLE));
-    programParameters = orEmpty(JDOMExternalizerUtil.readField(element, PROGRAM_PARAMETERS));
-    workingDirectory = orEmpty(JDOMExternalizerUtil.readField(element, WORKING_DIRECTORY));
     try {
       port = Integer.parseInt(JDOMExternalizerUtil.readField(element, PORT, String.valueOf(DEFAULT_PORT)));
     } catch (NumberFormatException e) {
@@ -175,10 +115,7 @@ public class LegacyHxcppRunConfiguration extends DapRunConfigurationBase {
 
   @Override
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
-    super.writeExternal(element); // also serializes the module
-    JDOMExternalizerUtil.writeField(element, EXECUTABLE, executablePath);
-    JDOMExternalizerUtil.writeField(element, PROGRAM_PARAMETERS, programParameters);
-    JDOMExternalizerUtil.writeField(element, WORKING_DIRECTORY, workingDirectory);
+    super.writeExternal(element);
     JDOMExternalizerUtil.writeField(element, PORT, String.valueOf(port));
     JDOMExternalizerUtil.writeField(element, REMOTE, String.valueOf(remoteDebugging));
   }

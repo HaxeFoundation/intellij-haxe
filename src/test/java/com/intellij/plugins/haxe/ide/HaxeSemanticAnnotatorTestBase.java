@@ -24,68 +24,44 @@ import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
-import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 
 public abstract class HaxeSemanticAnnotatorTestBase extends HaxeToolkitLightFixtureTestCase {
 
-
   @Override
   protected abstract String getBasePath();
 
-  private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
-                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
-                      String... additionalFiles)
-    throws Exception {
-    doTest(checkWarnings, checkInfos, checkWeakWarnings, unsetInspections, new InspectionProfileEntry[0], additionalFiles);
-  }
-
-  /**
-   * {@code extraTools} are pre-configured inspection INSTANCES (e.g. with an
-   * option flipped); list their classes in {@code unsetInspections} so the
-   * default instance does not register alongside.
-   */
-  private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
-                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
-                      InspectionProfileEntry[] extraTools,
-                      String... additionalFiles)
-    throws Exception {
-    myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
-    myFixture.enableInspections(getAnnotatorBasedInspection());
-    myFixture.enableInspections(HaxeInspectionTestTools.semanticInspections(unsetInspections));
-    if (extraTools.length > 0) {
-      myFixture.enableInspections(extraTools);
-    }
-    myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
-  }
-
-  protected void doTestSkippingInspections(Set<Class<? extends LocalInspectionTool>> unsetInspections) throws Exception {
-    doTest(true, false, false, unsetInspections);
-  }
-
   protected void doTestReplacingInspection(InspectionProfileEntry configuredTool) throws Exception {
     Set<Class<? extends LocalInspectionTool>> replacedClass = Set.of(configuredTool.getClass().asSubclass(LocalInspectionTool.class));
-    doTest(true, false, false, replacedClass, new InspectionProfileEntry[]{configuredTool});
+    doHighlightingTestOn(new String[]{getTestName(false) + ".hx"}, true, false, false, replacedClass, configuredTool);
   }
 
   protected void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
-    doTest(true, false, false, null, additionalFiles);
+    doHighlightingTest(true, false, false, null, additionalFiles);
   }
   protected void doTestNoFixWithWeakWarnings(String... additionalFiles) throws Exception {
-    doTest(true, false, true, null, additionalFiles);
+    doHighlightingTest(true, false, true, null, additionalFiles);
+  }
+
+  /** {@link #doTestNoFixWithWeakWarnings} over explicitly named files, the first being the one under test - for fixtures the test name cannot locate. */
+  protected void doTestFilesNoFixWithWeakWarnings(String... files) throws Exception {
+    doHighlightingTestOn(files, true, false, true, null);
   }
 
   protected void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
-    doTest(false, false, false, null, additionalFiles);
+    doHighlightingTest(false, false, false, null, additionalFiles);
   }
 
   protected void doTestActions(String... filters) throws Exception {
-    doTest(false, false, false, null);
+    doHighlightingTest(false, false, false, null);
+    applyActionsAndCheckResult(filters);
+  }
 
+  /** Launches every available intention whose text is one of {@code filters}, then compares with the test-named _expected fixture. */
+  protected void applyActionsAndCheckResult(String... filters) {
     List<IntentionAction> intentions = myFixture.getAvailableIntentions();
     for (final IntentionAction action : intentions) {
       if (Arrays.asList(filters).contains(action.getText())) {

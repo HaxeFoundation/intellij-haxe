@@ -1,12 +1,17 @@
 package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerProblemMarks.Update;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @DisplayName("Compiler services: problem marks")
 public class HaxeCompilerProblemMarksTest {
@@ -16,58 +21,41 @@ public class HaxeCompilerProblemMarksTest {
 
   private final HaxeCompilerProblemMarks marks = new HaxeCompilerProblemMarks();
 
-  @Test
-  @DisplayName("opening a broken file keeps its mark although the sweep skips it")
-  public void testOpeningABrokenFileKeepsItsMarkAlthoughTheSweepSkipsIt() {
-    marks.apply(MAIN, false, Set.of(REACHED));
+  /** (scenario, first update, second update, files the second reports, files it clears). */
+  static final List<Arguments> UPDATES = List.of(
+    arguments("opening a broken file keeps its mark although the sweep skips it",
+              new Apply(MAIN, false, Set.of(REACHED)), new Apply(REACHED, true, Set.of(MAIN)),
+              Set.of(REACHED, MAIN), Set.of()),
+    arguments("a sweep that does not reach a file leaves its own pass mark",
+              new Apply(UNREACHED, true, Set.of()), new Apply(MAIN, true, Set.of(REACHED)),
+              Set.of(UNREACHED, MAIN, REACHED), Set.of()),
+    arguments("only a file's own clean pass clears its own pass mark",
+              new Apply(UNREACHED, true, Set.of()), new Apply(UNREACHED, false, Set.of()),
+              Set.of(), Set.of(UNREACHED)),
+    arguments("a sweep clears the sweep marks it no longer lists",
+              new Apply(MAIN, false, Set.of(REACHED)), new Apply(MAIN, false, Set.of()),
+              Set.of(), Set.of(REACHED)),
+    arguments("a failed sweep leaves the sweep marks as they are",
+              new Apply(MAIN, false, Set.of(REACHED)), new Apply(MAIN, true, null),
+              Set.of(MAIN, REACHED), Set.of()));
 
-    Update opened = marks.apply(REACHED, true, Set.of(MAIN));
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("UPDATES")
+  @DisplayName("the second update reports and clears by both mark kinds")
+  public void testTheSecondUpdateReportsAndClearsByBothMarkKinds(String scenario, Apply first, Apply second,
+                                                                  Set<String> report, Set<String> clear) {
+    apply(first);
 
-    assertEquals(Set.of(REACHED, MAIN), opened.report());
-    assertEquals(Set.of(), opened.clear());
+    Update update = apply(second);
+
+    assertEquals(report, update.report());
+    assertEquals(clear, update.clear());
   }
 
-  @Test
-  @DisplayName("a sweep that does not reach a file leaves its own pass mark")
-  public void testASweepThatDoesNotReachAFileLeavesItsOwnPassMark() {
-    marks.apply(UNREACHED, true, Set.of());
-
-    Update sweep = marks.apply(MAIN, true, Set.of(REACHED));
-
-    assertEquals(Set.of(UNREACHED, MAIN, REACHED), sweep.report());
-    assertEquals(Set.of(), sweep.clear());
+  private Update apply(Apply call) {
+    return marks.apply(call.editedPath(), call.editedBroken(), call.sweepBroken());
   }
 
-  @Test
-  @DisplayName("only a file's own clean pass clears its own pass mark")
-  public void testOnlyAFilesOwnCleanPassClearsItsOwnPassMark() {
-    marks.apply(UNREACHED, true, Set.of());
-
-    Update fixed = marks.apply(UNREACHED, false, Set.of());
-
-    assertEquals(Set.of(), fixed.report());
-    assertEquals(Set.of(UNREACHED), fixed.clear());
-  }
-
-  @Test
-  @DisplayName("a sweep clears the sweep marks it no longer lists")
-  public void testASweepClearsTheSweepMarksItNoLongerLists() {
-    marks.apply(MAIN, false, Set.of(REACHED));
-
-    Update repaired = marks.apply(MAIN, false, Set.of());
-
-    assertEquals(Set.of(), repaired.report());
-    assertEquals(Set.of(REACHED), repaired.clear());
-  }
-
-  @Test
-  @DisplayName("a failed sweep leaves the sweep marks as they are")
-  public void testAFailedSweepLeavesTheSweepMarksAsTheyAre() {
-    marks.apply(MAIN, false, Set.of(REACHED));
-
-    Update noSweep = marks.apply(MAIN, true, null);
-
-    assertEquals(Set.of(MAIN, REACHED), noSweep.report());
-    assertEquals(Set.of(), noSweep.clear());
-  }
+  /** One update: the edited file, whether it is broken, and the sweep's broken files (null when the sweep failed). */
+  record Apply(String editedPath, boolean editedBroken, @Nullable Set<String> sweepBroken) {}
 }

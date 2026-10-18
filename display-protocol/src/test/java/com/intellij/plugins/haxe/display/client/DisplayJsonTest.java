@@ -34,6 +34,7 @@ public class DisplayJsonTest {
       {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"not an object"}}""";
     DisplayRequestException e = assertThrows(DisplayRequestException.class, () -> DisplayJson.unwrap(payload));
     assertTrue(e.getMessage().contains("not an object"));
+    assertTrue(e.isCompilerAnswered(), "a JSON-RPC error is the compiler's own answer");
   }
 
   @Test
@@ -78,6 +79,8 @@ public class DisplayJsonTest {
     CompletionItem type = completion.items().get(3);
     assertEquals("haxe.ds.StringMap", type.detail());
     assertEquals("class", type.moduleTypeKind());
+    assertEquals(ImportStatus.UNIMPORTED, type.importStatus());
+    assertNull(local.importStatus(), "only a type carries an import status");
     assertEquals("haxe.ds", completion.items().get(4).detail());
     assertTrue(completion.items().get(6).isKeywordOrLiteral());
   }
@@ -284,5 +287,25 @@ public class DisplayJsonTest {
     assertEquals("() -> Void", main.type().presentable());
 
     assertNull(blueprint.findMember("nope"));
+  }
+
+  @Test
+  @DisplayName("compiled types decode every type with member positions")
+  public void testCompiledTypesDecodeEveryTypeWithMemberPositions() throws DisplayRequestException {
+    String payload = """
+      {"jsonrpc":"2.0","id":1,"result":{"result":[
+        {"pack":[],"name":"Main","moduleName":"Main","kind":"class","args":{"fields":[
+          {"name":"count","type":{"kind":"TAbstract","args":{"path":{"pack":[],"typeName":"Int","moduleName":"StdTypes"},"params":[]}},
+           "kind":{"kind":"FVar","args":{"read":{"kind":"AccNormal"},"write":{"kind":"AccNormal"}}},
+           "pos":{"file":"src/Main.hx","min":20,"max":36}}],"statics":[]}}],
+        "timestamp":1.0}}""";
+
+    List<TypeBlueprint> types = DisplayJson.decodeCompiledTypes(DisplayJson.unwrap(payload));
+
+    assertEquals(1, types.size());
+    TypeBlueprint.Member count = types.getFirst().findMember("count");
+    assertNotNull(count);
+    assertEquals(new JsonPos("src/Main.hx", 20, 36), count.pos());
+    assertEquals("Int", count.type().dotPath());
   }
 }

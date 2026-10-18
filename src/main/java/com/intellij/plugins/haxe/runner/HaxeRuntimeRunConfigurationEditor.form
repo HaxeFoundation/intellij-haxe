@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.intellij.plugins.haxe.runner.HaxeRuntimeRunConfigurationEditor">
+  <grid id="r0001" binding="panel" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0" />
+    <constraints>
+      <xy x="20" y="20" width="800" height="240" />
+    </constraints>
+    <properties />
+    <border type="none" />
+    <children>
+      <component id="r1001" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties>
+          <labelFor value="r1002" />
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="runtime.runner.editor.module" />
+        </properties>
+      </component>
+      <component id="r1002" class="com.intellij.application.options.ModulesComboBox" binding="moduleCombo">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties />
+      </component>
+      <component id="r1003" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties>
+          <labelFor value="r1004" />
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="runtime.runner.editor.executable" />
+        </properties>
+      </component>
+      <component id="r1004" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="executableField">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties />
+      </component>
+      <component id="r1005" class="com.intellij.ui.components.JBLabel" binding="executableHintLabel">
+        <constraints>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties />
+      </component>
+      <component id="r1006" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties>
+          <labelFor value="r1007" />
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="runtime.runner.editor.working.directory" />
+        </properties>
+      </component>
+      <component id="r1007" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="workingDirectoryField">
+        <constraints>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties />
+      </component>
+      <component id="r1008" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties>
+          <labelFor value="r1009" />
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="runtime.runner.editor.program.arguments" />
+        </properties>
+      </component>
+      <component id="r1009" class="com.intellij.ui.components.JBTextField" binding="programArgumentsField">
+        <constraints>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties />
+      </component>
+      <component id="r1010" class="javax.swing.JLabel" binding="adapterLabel">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="runtime.runner.editor.debug.adapter" />
+        </properties>
+      </component>
+      <grid id="r1011" binding="adapterRow" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="6" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0" />
+        <constraints>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false" />
+        </constraints>
+        <properties />
+        <border type="none" />
+        <children>
+          <component id="r1012" class="com.intellij.ui.components.JBLabel" binding="adapterStatusLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+            </constraints>
+            <properties />
+          </component>
+          <component id="r1013" class="com.intellij.ui.components.ActionLink" binding="downloadLink">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+            </constraints>
+            <properties />
+          </component>
+          <component id="r1014" class="com.intellij.ui.components.ActionLink" binding="openStoreLink">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false" />
+            </constraints>
+            <properties />
+          </component>
+          <hspacer id="r1015">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false" />
+            </constraints>
+          </hspacer>
+        </children>
+      </grid>
+      <vspacer id="r1099">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false" />
+        </constraints>
+      </vspacer>
+    </children>
+  </grid>
+</form>

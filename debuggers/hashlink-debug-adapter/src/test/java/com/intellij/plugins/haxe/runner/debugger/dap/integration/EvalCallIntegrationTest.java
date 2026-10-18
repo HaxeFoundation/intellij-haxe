@@ -23,10 +23,11 @@ import org.junit.jupiter.api.Test;
 public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
   @Test
-  @DisplayName("calls functions and returns values")
-  public void callsFunctionsAndReturnsValues() throws Exception {
+  @DisplayName("calls functions return values and leave the process runnable")
+  public void callsFunctionsReturnValuesAndLeaveTheProcessRunnable() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
 
     // integer args + integer return
     assertEquals("23", evaluated(frameId, "add(20, 3)"), "add(20, 3) = 23");
@@ -37,23 +38,9 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // bool arg + bool return
     assertEquals("false", evaluated(frameId, "negate(true)"), "negate(true) = false");
 
-    // the debuggee survived the injected calls and runs to completion
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("calls are repeatable and leave the process runnable")
-  public void callsAreRepeatableAndLeaveTheProcessRunnable() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
-
-    // several calls in a row must each restore state cleanly
-    assertEquals("3", evaluated(frameId, "add(1, 2)"), "1");
-    assertEquals("30", evaluated(frameId, "add(10, 20)"), "2");
-    assertEquals("25", evaluated(frameId, "scale(10.0)"), "3");
-
-    // resume: the program's own output must be intact (calls didn't corrupt it)
-    String output = continueToExit(stopped.getBody().getThreadId());
+    // resume: the program's own output must be intact (the calls in a row
+    // each restored state cleanly)
+    String output = continueToExit(threadId);
     assertTrue(output.contains("call:11,25,true,orig10,L10,16,13,6"), "program output intact after injected calls (" + output + ")");
   }
 
@@ -163,7 +150,8 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // pointer, then run the constructor. Point is constructed elsewhere in the
     // program (Main.inspectDemo), so its ONew site exists to mine.
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
 
     // construct with int + null-string args, expand the result, check fields
     EvaluateResponse p = evaluate(frameId, "new Point(3, 4, null)");
@@ -179,24 +167,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
       variablesByName(evaluate(frameId, "new Point(5, 6, \"hi\")").getBody().getVariablesReference());
     assertEquals("\"hi\"", withLabel.get("label"), "Point.label from a string literal arg");
 
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("assigns a new object to a local and it reaches execution")
-  public void assignsANewObjectToALocalAndItReachesExecution() throws Exception {
-    // `p = new Point(...)` — but Call.demo has no Point local, so verify via a
-    // fresh construction assigned through evaluate into a Dynamic array slot is
-    // out of scope; instead assert the constructed instance survives a resume by
-    // constructing, reading back, then continuing to a clean exit.
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int threadId = stopped.getBody().getThreadId();
-    int frameId = topFrameId(threadId);
-
-    EvaluateResponse p = evaluate(frameId, "new Point(7, 8, \"z\")");
-    assertEquals("8", variablesByName(p.getBody().getVariablesReference()).get("y"), "y set");
-
-    // the injected allocation + ctor left the debuggee intact
+    // the injected allocations + ctors left the debuggee intact
     String output = continueToExit(threadId);
     assertTrue(output.contains("call:11,25,true,orig10,L10,16,13,6"), "program output intact after construction (" + output + ")");
   }

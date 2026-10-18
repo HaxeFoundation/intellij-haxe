@@ -21,17 +21,15 @@ package com.intellij.plugins.haxe.lang.psi.indexes.utils;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-
-import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.stubs.StubBase;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 
 
 /**
@@ -75,34 +73,17 @@ public class HaxeIndexUtil {
     return true;
   }
 
+  /** Whether the file is a std target extern ({@code std/<target>/...}) of a target the build does not activate. */
   public static boolean belongToPlatformNotTargeted(PsiFile file) {
-    Map<String, String> definitions = HaxeDefineDetectionManager.getInstance(file.getProject()).getAllDefinitions();
+    // TODO: the active build's defines answer for every requester; a per-file answer needs the requesting file's resolve context
     HaxeProjectModel project = HaxeProjectModel.fromElement(file);
-    if (project.getSdkRoot().contains(file)) {
-      String stdRootPath = project.getSdkRoot().access("").getVirtualFile().getPath();
-      String fileFullPath = file.getVirtualFile().getPath();
-      String replaced = fileFullPath.replace(stdRootPath, "");
-      String[] split = replaced.split("/");
-      if (split.length > 1) {
-        String scope = split[1];
-        return !switch (scope) {
-          case "cpp"  -> definitions.containsKey("cpp");
-          case "cs" -> definitions.containsKey("cs");
-          case "flash" -> definitions.containsKey("flash");
-          case "hl" -> definitions.containsKey("hl");
-          case "java" -> definitions.containsKey("java");
-          case "js" -> definitions.containsKey("js");
-          case "jvm" -> definitions.containsKey("jvm");
-          case "lua" -> definitions.containsKey("lua");
-          case "php" -> definitions.containsKey("php");
-          case "python" -> definitions.containsKey("python");
-          case "neko" -> definitions.containsKey("neko");
-          default-> true;
-        };
-      }
-    }
-    return false;
-
-
+    if (!project.getSdkRoot().contains(file)) return false;
+    String stdRootPath = project.getSdkRoot().access("").getVirtualFile().getPath();
+    String fileFullPath = file.getVirtualFile().getPath();
+    // the path below the std root, split on "/"; its first folder names the target
+    String[] split = fileFullPath.replace(stdRootPath, "").split("/");
+    if (split.length < 2) return false;
+    String target = split[1];
+    return HaxeModuleVariants.TARGET_ROOT_PACKAGES.contains(target) && !HaxeModuleVariants.isActive(target, file.getProject());
   }
 }

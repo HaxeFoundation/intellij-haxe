@@ -3,15 +3,20 @@ package com.intellij.plugins.haxe.runner.debugger.eval;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 
 /**
  * Uncaught haxe.Exception INSTANCES (as opposed to bare string throws) put
@@ -28,28 +33,25 @@ import org.junit.jupiter.api.Timeout;
 @DisplayName("Eval debugger: object throw (live)")
 public class EvalObjectThrowLiveTest extends EvalLiveTestBase {
 
-  @Test
+  /** (request kind, the request that leaves the exception stop). */
+  static final List<Arguments> LEAVING_REQUESTS = List.of(
+    // resume at the uncaught object stop lets the program die naturally
+    arguments("continue", (IntFunction<Request>)EvalLiveTestBase::continueRequest),
+    // stepping at the uncaught object stop lets the program die naturally
+    arguments("stepIn", (IntFunction<Request>)EvalLiveTestBase::stepInRequest));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("LEAVING_REQUESTS")
   @Timeout(60)
-  @DisplayName("resume at the uncaught object stop lets the program die naturally")
-  public void resumeAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
+  @DisplayName("leaving the uncaught object stop lets the program die naturally")
+  public void leavingTheUncaughtObjectStopLetsTheProgramDieNaturally(String kind, IntFunction<Request> leaveWith) throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitExceptionStop();
     String description = stopped.getBody().getDescription();
     assertTrue(description != null && description.contains("uncaught-object"), "stop carries the thrown text");
 
-    ContinueRequest resume = continueRequest(stopped.getBody().getThreadId());
-    assertTrue(request(resume).isSuccess(), "resume at the uncaught stop");
-    awaitNaturalDeath();
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("stepping at the uncaught object stop lets the program die naturally")
-  public void steppingAtTheUncaughtObjectStopLetsTheProgramDieNaturally() throws Exception {
-    startSession(List.of("uncaught"));
-    StoppedEvent stopped = awaitExceptionStop();
-    StepInRequest stepIn = stepInRequest(stopped.getBody().getThreadId());
-    assertTrue(request(stepIn).isSuccess(), "stepIn at the uncaught stop");
+    Request leave = leaveWith.apply(stopped.getBody().getThreadId());
+    assertTrue(request(leave).isSuccess(), kind + " at the uncaught stop");
     awaitNaturalDeath();
   }
 

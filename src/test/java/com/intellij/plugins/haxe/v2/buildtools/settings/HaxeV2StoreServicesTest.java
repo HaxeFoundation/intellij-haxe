@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.buildtools.settings;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibraryDefinesStore;
 import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowUiState;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @DisplayName("Build tools: store services")
 public class HaxeV2StoreServicesTest extends HaxeLightFixtureTestCase {
 
+  // every project-level store in the settings and libraries packages belongs here
   static final List<Class<?>> STORE_CLASSES = List.of(
     HaxeTargetSelectionStore.class,
     HaxeSectionSelectionStore.class,
@@ -26,8 +28,10 @@ public class HaxeV2StoreServicesTest extends HaxeLightFixtureTestCase {
     HaxeTestsBuildFileStore.class,
     HaxeEnvironmentStore.class,
     HaxeCustomActionsStore.class,
+    HaxeCustomToolsStore.class,
     HaxeBuildFilesStore.class,
     HaxeWorkDirectoryStore.class,
+    HaxeLibraryDefinesStore.class,
     HaxeToolWindowUiState.class);
 
   @Override

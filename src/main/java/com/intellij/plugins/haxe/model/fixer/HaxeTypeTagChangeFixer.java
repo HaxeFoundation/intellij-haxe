@@ -27,22 +27,27 @@ import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
+/** Replaces a declaration's type tag ({@code :Type}) with another type, given as a resolved type or as text. */
 public class HaxeTypeTagChangeFixer extends HaxeFixer {
-  private HaxeTypeTag typeTag;
-  private SpecificTypeReference result;
+  private final HaxeTypeTag typeTag;
+  private final Supplier<String> typeText;
 
-  public HaxeTypeTagChangeFixer(@Nullable String text,
-                                @NotNull HaxeTypeTag typeTag,
-                                @NotNull SpecificTypeReference result) {
-    super(text == null ? "HaxeTypeTagChangeFixer" : text);
-    this.typeTag = typeTag;
-    this.result = result;
+  /** The type is rendered when the fix runs. */
+  public HaxeTypeTagChangeFixer(@NotNull String text, @NotNull HaxeTypeTag typeTag, @NotNull SpecificTypeReference result) {
+    this(text, typeTag, result::toStringWithoutConstant);
   }
 
-  public HaxeTypeTagChangeFixer(@NotNull HaxeTypeTag typeTag, @NotNull SpecificTypeReference result) {
-    this(null, typeTag, result);
+  public HaxeTypeTagChangeFixer(@NotNull String text, @NotNull HaxeTypeTag typeTag, @NotNull String typeText) {
+    this(text, typeTag, () -> typeText);
+  }
+
+  private HaxeTypeTagChangeFixer(@NotNull String text, @NotNull HaxeTypeTag typeTag, @NotNull Supplier<String> typeText) {
+    super(text);
+    this.typeTag = typeTag;
+    this.typeText = typeText;
   }
 
   @Override
@@ -58,6 +63,6 @@ public class HaxeTypeTagChangeFixer extends HaxeFixer {
   }
 
   private @NotNull String createTypeTagString() {
-    return ":" + result.toStringWithoutConstant();
+    return ":" + typeText.get();
   }
 }

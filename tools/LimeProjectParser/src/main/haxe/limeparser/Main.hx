@@ -25,6 +25,12 @@ private typedef Options = {
 	The target's own defines are derived from `--target` the way lime derives
 	them (see TargetDefines); `-D` adds further condition defines. Relative
 	<include> paths resolve against the including file's folder.
+
+	Exit codes: 0 with the JSON on stdout; 1 with the problems on stderr, one
+	per line, when the project (or an included file) is not valid XML or an
+	<include> is missing - what stops lime too; 2 for a usage error. A declared
+	haxelib the resolver cannot find is listed as declared and reported as a
+	`warning:` line on stderr.
 **/
 class Main {
 	static final USAGE = "usage: LimeProjectParser <project.xml|project.hxp> [--target <id>] [--command <cmd>]"
@@ -98,7 +104,16 @@ class Main {
 		};
 
 		var evaluator = new ProjectXmlEvaluator(targetDefines.conditions, options.command, environment, projectDirectory, resolvers);
-		evaluator.parse(File.getContent(projectFile));
+		evaluator.parse(File.getContent(projectFile), projectFile);
+		for (problem in evaluator.problems) {
+			Sys.stderr().writeString(problem + "\n");
+		}
+		for (warning in evaluator.warnings) {
+			Sys.stderr().writeString("warning: " + warning + "\n");
+		}
+		if (evaluator.problems.length > 0) {
+			return null;
+		}
 		evaluator.defineToolsVersion();
 		for (name => value in targetDefines.haxedefs) {
 			evaluator.haxedefs.set(name, value);

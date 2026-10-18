@@ -1,11 +1,12 @@
 package com.intellij.plugins.haxe.v2.toolwindow.actions;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,17 +19,8 @@ final class DefinePrompt {
   record DefineInput(@NotNull String name, @NotNull String value) {
   }
 
-  private static final InputValidator NAME_NOT_BLANK = new InputValidator() {
-    @Override
-    public boolean checkInput(String input) {
-      return isDefineName(input.split("=", 2)[0]);
-    }
-
-    @Override
-    public boolean canClose(String input) {
-      return checkInput(input);
-    }
-  };
+  /** Accepts "name" or "name=value" for a SET entry. */
+  private static final InputValidatorEx DEFINE_INPUT = DefinePrompt::defineInputError;
 
   /** Accepts a bare define name only; "name=value" belongs to Add Define. */
   private static final InputValidatorEx UNDEFINE_NAME = DefinePrompt::undefineNameError;
@@ -43,7 +35,7 @@ final class DefinePrompt {
                                             HaxeBundle.message("haxe.toolwindow.define.title"),
                                             null,
                                             initialValue,
-                                            NAME_NOT_BLANK);
+                                            DEFINE_INPUT);
     if (StringUtil.isEmptyOrSpaces(input)) return null;
 
     String[] parts = input.trim().split("=", 2);
@@ -62,15 +54,32 @@ final class DefinePrompt {
     return StringUtil.isEmptyOrSpaces(input) ? null : input.trim();
   }
 
+  /** The error for a SET entry ("name" or "name=value"), or null when its name can be overridden. */
   @Nullable
-  private static String undefineNameError(@NotNull String entered) {
-    boolean valid = !entered.contains("=") && isDefineName(entered);
-    return valid ? null : HaxeBundle.message("haxe.toolwindow.add.undefine.invalid");
+  static String defineInputError(@NotNull String entered) {
+    return nameError(entered.split("=", 2)[0]);
+  }
+
+  /** The error for a REMOVE entry (a bare name), or null when it names a define that can be overridden. */
+  @Nullable
+  static String undefineNameError(@NotNull String entered) {
+    if (entered.contains("=")) return HaxeBundle.message("haxe.toolwindow.add.undefine.invalid");
+    return nameError(entered);
+  }
+
+  /** A name is refused when it is not one, or when it identifies the compiler: an override cannot sensibly toggle {@code haxe_ver}. */
+  @Nullable
+  private static String nameError(@NotNull String entered) {
+    String name = entered.trim();
+    if (!isDefineName(name)) return HaxeBundle.message("haxe.toolwindow.define.name.invalid");
+    if (HaxeDefineContextService.isCompilerIdentityDefine(HaxeDefine.compilerName(name))) {
+      return HaxeBundle.message("haxe.toolwindow.define.name.identity", name);
+    }
+    return null;
   }
 
   /** Whether the trimmed text is usable as a define name */
-  private static boolean isDefineName(@NotNull String entered) {
-    String name = entered.trim();
+  private static boolean isDefineName(@NotNull String name) {
     // any whitespace character inside the name
     return !name.isEmpty() && !name.matches(".*\\s.*");
   }

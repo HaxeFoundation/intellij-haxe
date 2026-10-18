@@ -19,17 +19,6 @@ class ThreadRegistryTest {
 		return Int64.ofInt(v);
 	}
 
-	static function pokeI32(api:FakeDebugApi, at:Int, value:Int):Void {
-		for (i in 0...4) {
-			api.poke(addr(at + i), (value >>> (8 * i)) & 0xFF);
-		}
-	}
-
-	static function pokePtr(api:FakeDebugApi, at:Int, value:Int):Void {
-		pokeI32(api, at, value);
-		pokeI32(api, at + 4, 0);
-	}
-
 	static function pokeName(api:FakeDebugApi, at:Int, name:String):Void {
 		for (i in 0...name.length) {
 			api.poke(addr(at + i), name.charCodeAt(i));
@@ -57,21 +46,21 @@ class ThreadRegistryTest {
 	static function readsRegistryWithNamesAndMainByLowestId(assert:Assert):Void {
 		var api = new FakeDebugApi();
 		// registry @0x100: count=2 @0, array ptr @+8 -> 0x200
-		pokeI32(api, 0x100, 2);
-		pokePtr(api, 0x108, 0x200);
+		api.pokeI32(0x100, 2);
+		api.pokePtr(0x108, 0x200);
 
 		// array @0x200: [tinfo0 -> 0x300, tinfo1 -> 0x400]
-		pokePtr(api, 0x200, 0x300);
-		pokePtr(api, 0x208, 0x400);
+		api.pokePtr(0x200, 0x300);
+		api.pokePtr(0x208, 0x400);
 
 		// tinfo0 @0x300: tid=77 (the HIGHER id), flags=0, name="worker"
-		pokeI32(api, 0x300, 77);
-		pokeI32(api, 0x300 + FLAGS, 0);
+		api.pokeI32(0x300, 77);
+		api.pokeI32(0x300 + FLAGS, 0);
 		pokeName(api, 0x300 + NAME, "worker");
 
 		// tinfo1 @0x400: tid=5 (the LOWER id), flags=0, no name
-		pokeI32(api, 0x400, 5);
-		pokeI32(api, 0x400 + FLAGS, 0);
+		api.pokeI32(0x400, 5);
+		api.pokeI32(0x400 + FLAGS, 0);
 
 		var threads = registry(api).read(addr(0x100), true, 77);
 		assert.equals(2, threads.length, "two visible threads");
@@ -84,16 +73,16 @@ class ThreadRegistryTest {
 
 	static function skipsInvisibleThreads(assert:Assert):Void {
 		var api = new FakeDebugApi();
-		pokeI32(api, 0x100, 2);
-		pokePtr(api, 0x108, 0x200);
-		pokePtr(api, 0x200, 0x300);
-		pokePtr(api, 0x208, 0x400);
+		api.pokeI32(0x100, 2);
+		api.pokePtr(0x108, 0x200);
+		api.pokePtr(0x200, 0x300);
+		api.pokePtr(0x208, 0x400);
 		// visible user thread
-		pokeI32(api, 0x300, 9);
-		pokeI32(api, 0x300 + FLAGS, 0);
+		api.pokeI32(0x300, 9);
+		api.pokeI32(0x300 + FLAGS, 0);
 		// an internal thread with the invisible flag (value 16) is skipped
-		pokeI32(api, 0x400, 3);
-		pokeI32(api, 0x400 + FLAGS, 16);
+		api.pokeI32(0x400, 3);
+		api.pokeI32(0x400 + FLAGS, 16);
 
 		var threads = registry(api).read(addr(0x100), true, 9);
 		assert.equals(1, threads.length, "invisible thread hidden");
@@ -102,7 +91,7 @@ class ThreadRegistryTest {
 
 	static function implausibleCountFallsBack(assert:Assert):Void {
 		var api = new FakeDebugApi();
-		pokeI32(api, 0x100, 999999); // garbage count
+		api.pokeI32(0x100, 999999); // garbage count
 		var threads = registry(api).read(addr(0x100), true, 88);
 		assert.equals(1, threads.length, "garbage count falls back to one thread");
 		assert.equals(88, threads[0].id, "fallback uses the stopped id");

@@ -391,7 +391,7 @@ public class HaxeLibraryList {
         return true;
       }
     });
-    log.debug(logText.toString());
+    if (log.isDebugEnabled()) log.debug(logText.toString());
   }
 
 }

@@ -22,10 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Container resolution behind {@link HaxeLanguageLevelUtil#getLanguageLevel}:
- * a library/SDK file (outside every content root) follows the ACTIVE build
- * container's level — the same source the define context derives haxe_ver
- * from — so level-gated checks agree with which {@code #if haxe_ver} block
- * is active in library sources.
+ * a library/SDK file (outside every content root) follows the container of
+ * the build it is analysed under, and without one the ACTIVE build's — the
+ * same source the define context derives haxe_ver from — so level-gated
+ * checks agree with which {@code #if haxe_ver} block is active in library
+ * sources.
  */
 @DisplayName("Compiler: language level container resolution")
 public class HaxeLanguageLevelContainerResolutionTest extends HaxeCodeInsightFixtureTestCase {

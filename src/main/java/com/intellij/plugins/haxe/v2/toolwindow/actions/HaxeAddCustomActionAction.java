@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeCustomActionsStore;
 import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowPanel;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.ActionNode;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.ActionsGroupNode;
+import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.BuildFileRow;
 import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeCustomActionDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,12 +30,12 @@ public final class HaxeAddCustomActionAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     String ownerId = selectedOwnerId();
-    if (project == null || ownerId == null) return;
+    BuildFileRow row = panel.getSelectedBuildFileRowAncestor();
+    if (project == null || ownerId == null || row == null) return;
 
-    HaxeCustomActionDialog dialog = HaxeCustomActionDialog.forAction(project, null);
+    HaxeCustomActionDialog dialog = HaxeCustomActionDialog.forAction(project, row.buildFile(), selectedLaunchOutput(), null);
     if (dialog.showAndGet()) {
       HaxeCustomActionsStore.getInstance(project).addAction(ownerId, dialog.getAction());
-      panel.refreshTree();
     }
   }
 
@@ -48,6 +49,16 @@ public final class HaxeAddCustomActionAction extends DumbAwareAction {
     return switch (panel.getSelectedUserObject()) {
       case ActionsGroupNode actionsGroup -> actionsGroup.ownerId();
       case ActionNode actionNode -> actionNode.ownerId();
+      case null, default -> null;
+    };
+  }
+
+  /** What a launching action under the selected row would run; the dialog derives its defaults from it. */
+  @Nullable
+  private String selectedLaunchOutput() {
+    return switch (panel.getSelectedUserObject()) {
+      case ActionsGroupNode actionsGroup -> actionsGroup.launchOutput();
+      case ActionNode actionNode -> actionNode.launchOutput();
       case null, default -> null;
     };
   }

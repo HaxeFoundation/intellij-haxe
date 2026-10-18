@@ -36,12 +36,11 @@ public final class HaxeAddToolAction extends DumbAwareAction {
     String containerId = selectedContainerId(e.getProject());
     if (project == null || containerId == null) return;
 
-    HaxeCustomActionDialog dialog = HaxeCustomActionDialog.forTool(project, null);
+    HaxeCustomActionDialog dialog = HaxeCustomActionDialog.forTool(project, containerId, null);
     if (dialog.showAndGet()) {
       var edited = dialog.getEditedCommand();
       var tool = new HaxeCustomToolsStore.CustomTool(edited.name(), edited.command(), edited.workDirectory());
       HaxeCustomToolsStore.getInstance(project).addTool(containerId, tool);
-      panel.refreshTree();
     }
   }
 

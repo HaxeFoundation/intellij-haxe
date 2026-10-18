@@ -12,12 +12,12 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.ide.intention.HaxeDefineIntention;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
@@ -85,7 +85,7 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
   }
 
   private static void annotateCompilationExpression(PsiElement node, AnnotationHolder holder) {
-    Map<String, String> allDefinitions = HaxeDefineDetectionManager.getInstance(node.getProject()).getAllDefinitions();
+    Map<String, String> allDefinitions = HaxeConditionalExpression.definitionsFor(node.getProject(), node.getContainingFile());
     final Set<String> definitionKeys = allDefinitions.keySet();
     final String nodeText = node.getText();
     for (Pair<String, Integer> pair : HaxeStringUtil.getWordsWithOffset(nodeText)) {

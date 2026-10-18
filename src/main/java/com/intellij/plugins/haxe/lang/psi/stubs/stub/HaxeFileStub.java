@@ -1,12 +1,7 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.stub;
 
-import com.intellij.openapi.roots.PackageIndex;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.stubs.PsiFileStubImpl;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.tree.IElementType;
@@ -41,12 +36,9 @@ public class HaxeFileStub extends PsiFileStubImpl<HaxeFile> {
         return packageStub.getPackageName();
       }
     }
-    // import.hx files are based on path and not package, so the package statment is not required.
-    if(getFileName().equals("import.hx")) {
-      PsiFile file = getPsi();
-      PackageIndex instance = PackageIndex.getInstance(file.getProject());
-      String packageName = instance.getPackageName(file.getVirtualFile());
-      if(packageName != null) return packageName;
+    if (HaxeFile.isImportHx(getFileName())) {
+      String packageName = HaxeFile.importHxPackage(getPsi());
+      if (packageName != null) return packageName;
     }
 
     return ""; // no package statment defaults to root package

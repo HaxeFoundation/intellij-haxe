@@ -53,8 +53,10 @@ public final class HaxeBuildFilesProjectAware implements ExternalSystemProjectAw
     return projectId;
   }
 
+  // the tracker also asks from VFS listeners that run while the project is being disposed
   @Override
   public @NotNull Set<String> getSettingsFiles() {
+    if (project.isDisposed()) return Set.of();
     return HaxeReadActions.compute(() -> {
       Set<String> files = new HashSet<>();
       for (HaxeBuildFile buildFile : HaxeKnownBuildFiles.all(project)) {
@@ -95,14 +97,29 @@ public final class HaxeBuildFilesProjectAware implements ExternalSystemProjectAw
    * {@link ExternalSystemProjectListener#onSettingsFilesListChange()}, sent
    * whenever the watched set may have changed: after a sync (the edit that
    * triggered it may have changed the imports) and when a build file is
-   * registered or removed.
+   * registered, removed or moved.
    */
   @Override
   public void subscribe(@NotNull ExternalSystemProjectListener listener, @NotNull Disposable parentDisposable) {
     listeners.add(listener);
     Disposer.register(parentDisposable, () -> listeners.remove(listener));
     MessageBusConnection connection = project.getMessageBus().connect(parentDisposable);
-    connection.subscribe(HaxeBuildConfigListener.TOPIC, (HaxeBuildConfigListener)listener::onSettingsFilesListChange);
-    connection.subscribe(HaxeBuildSettingsListener.TOPIC, (HaxeBuildSettingsListener)listener::onSettingsFilesListChange);
+    connection.subscribe(HaxeBuildEventListener.TOPIC, new HaxeBuildEventListener() {
+      @Override
+      public void librariesSynced() {
+        listener.onSettingsFilesListChange();
+      }
+    });
+    connection.subscribe(HaxeBuildSettingsListener.TOPIC, new HaxeBuildSettingsListener() {
+      @Override
+      public void stateLoaded() {
+        listener.onSettingsFilesListChange();
+      }
+
+      @Override
+      public void buildFilesChanged() {
+        listener.onSettingsFilesListChange();
+      }
+    });
   }
 }

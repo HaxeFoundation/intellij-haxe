@@ -80,7 +80,24 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
       state.excludedFiles = new ArrayList<>();
     }
     this.state = state;
-    notifyChanged();
+    modificationTracker.incModificationCount();
+    HaxeBuildSettingsListener.publisher(project).stateLoaded();
+  }
+
+  /** A marked or excluded tests build file keeps its mark when it, or a folder above it, is moved or renamed; whether anything changed. */
+  public boolean moveFile(@NotNull String oldPath, @NotNull String newPath) {
+    boolean changed = false;
+    for (ContainerTestsFile entry : state.testsFiles) changed |= moveEntry(entry, oldPath, newPath);
+    for (ContainerTestsFile entry : state.excludedFiles) changed |= moveEntry(entry, oldPath, newPath);
+    return changed;
+  }
+
+  private static boolean moveEntry(@NotNull ContainerTestsFile entry, @NotNull String oldPath, @NotNull String newPath) {
+    if (entry.filePath == null) return false;
+    String movedFile = HaxeStoredPaths.moved(entry.filePath, oldPath, newPath);
+    boolean changed = !movedFile.equals(entry.filePath);
+    entry.filePath = movedFile;
+    return changed;
   }
 
   /** The container's marked tests build file paths (possibly none). */
@@ -110,7 +127,7 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
       state.testsFiles.add(newEntry(containerId, filePath));
     }
     state.excludedFiles.removeIf(entryFor(containerId, filePath));
-    notifyChanged();
+    notifyChanged(containerId);
   }
 
   /**
@@ -124,7 +141,7 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
     if (!excluded) {
       state.excludedFiles.add(newEntry(containerId, filePath));
     }
-    notifyChanged();
+    notifyChanged(containerId);
   }
 
   /** Every excluded path across all containers - the gutter markers skip these. */
@@ -206,8 +223,8 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
     return entry;
   }
 
-  private void notifyChanged() {
+  private void notifyChanged(@NotNull String containerId) {
     modificationTracker.incModificationCount();
-    HaxeBuildSettingsListener.publish(project);
+    HaxeBuildSettingsListener.publisher(project).testsMarkChanged(containerId);
   }
 }

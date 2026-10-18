@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType
+import com.intellij.plugins.haxe.haxelib.HaxelibRepositoryLayout
 import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeActiveBuildFileStore
@@ -108,7 +109,7 @@ internal object HaxeTemplateScaffold {
     val contentRoot = contentRootOf(step) ?: return
     WriteAction.runAndWait<IOException> {
       val root = VfsUtil.createDirectoryIfMissing(contentRoot) ?: return@runAndWait
-      val repo = VfsUtil.createDirectoryIfMissing(root, ".haxelib")
+      val repo = VfsUtil.createDirectoryIfMissing(root, HaxelibRepositoryLayout.LOCAL_REPOSITORY_DIR_NAME)
       if (gitEnabled) {
         repo.findOrCreateChildData(this, ".gitkeep")
       }

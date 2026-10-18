@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.v2.buildsystem;
 
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
+import com.intellij.plugins.haxe.v2.buildsystem.HxmlFileParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
@@ -42,7 +43,7 @@ public final class HaxeBuildFileNavigation {
   @NotNull
   private static List<String> declarationPatterns(@NotNull HaxeBuildFileType type, @NotNull String defineName) {
     return switch (type) {
-      case HXML -> List.of("-D " + defineName, "--define " + defineName);
+      case HXML -> HxmlFileParser.DEFINE_FLAGS.stream().map(flag -> flag + " " + defineName).toList();
       // xml attribute form used by haxedef/define/undefine tags
       case OPENFL, LIME, NMML -> List.of("name=\"" + defineName + "\"", "name='" + defineName + "'");
       case HXP_PROJECT, HXP_SCRIPT -> List.of();

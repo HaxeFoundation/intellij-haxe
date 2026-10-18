@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerInlayService;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +21,7 @@ public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider
   @Nullable
   @Override
   public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
+    if (HaxeCompilerInlayService.isActive(file.getProject())) return null;
     return new TypeCollector();
   }
 
@@ -43,12 +45,7 @@ public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider
       if (varDeclaration.getTypeTag() == null && varDeclaration.getVarInit() == null) {
         ResultHolder result = HaxeExpressionEvaluator.evaluate(varDeclaration, new HaxeExpressionEvaluatorContext(element), null).result;
 
-        if (!result.isUnknown() && !result.getType().isInvalid()) {
-          int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
-          InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-          sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(result)
-          );
-        }
+        addTypeHint(varDeclaration, sink, result);
       }
     }
 
@@ -59,10 +56,7 @@ public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider
           ResultHolder result = HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(element), null).result;
 
           if (!result.isUnknown() && !result.getType().isInvalid()) {
-            int offset = switchCaseExpr.getTextRange().getEndOffset();
-            InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-            sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(result)
-            );
+            HaxeTypeHintAnchors.addTypeHint(sink, switchCaseExpr.getTextRange().getEndOffset(), typeTexts(result));
           }
       }
     }

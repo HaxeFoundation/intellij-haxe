@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2
 
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.module.ModuleManager
@@ -12,16 +13,17 @@ import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectSync
 import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeSourceRootsInitializer
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeActiveBuildFileStore
-import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerCaches
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Registers the v2 build file watcher so changed hxml/project.xml files show the
  * platform's floating "reload" icon, wired to the v2 sync pipeline. Also gives
  * freshly opened folders their initial setup: source/excluded roots from the
  * build files they contain, and — when the choice is unambiguous — the active
- * build file.
+ * build file. Every open of a trusted project syncs its libraries.
  */
 class HaxeV2ProjectActivity : ProjectActivity {
 
@@ -32,9 +34,22 @@ class HaxeV2ProjectActivity : ProjectActivity {
     tracker.activate(projectAware.projectId)
 
     HaxeSourceRootsInitializer.initialize(project)
-    initializeActiveBuildFile(project)
     applyEffectiveSdks(project)
+    syncLibrariesWhenTrusted(project)
     rehydrateWhenTrusted(project)
+  }
+
+  /**
+   * The library list is saved with the project, but what a library sync
+   * derives beside it (library defines, the dependency graph, external
+   * classpaths) lives for the session only, so every open derives it again.
+   * An untrusted project waits for trust instead (see rehydrateWhenTrusted).
+   */
+  private suspend fun syncLibrariesWhenTrusted(project: Project) {
+    if (!HaxeProjectTrust.isTrusted(project)) return
+    withContext(Dispatchers.EDT) {
+      HaxeLibrarySync.sync(project, null)
+    }
   }
 
   /**
@@ -69,16 +84,5 @@ class HaxeV2ProjectActivity : ProjectActivity {
         applier.applyAsync(moduleName, sdkName)
       }
     }
-  }
-
-  /** A project with exactly ONE build file and no active file gets it activated; ambiguity stays with the user. */
-  private suspend fun initializeActiveBuildFile(project: Project) {
-    val store = HaxeActiveBuildFileStore.getInstance(project)
-    if (!store.activeFilePath.isNullOrBlank()) return
-    val buildFiles = smartReadAction(project) {
-      ModuleManager.getInstance(project).modules.flatMap { HaxeBuildFileScanner.scan(it) }
-    }
-    val single = buildFiles.singleOrNull() ?: return
-    store.setActiveFile(single.file().path)
   }
 }

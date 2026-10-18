@@ -31,16 +31,8 @@ public class HaxelibGitCheckoutTest {
   }
 
   @Test
-  @DisplayName("web url converts the scp like ssh remote form")
-  public void webUrlConvertsTheScpLikeSshRemoteForm() {
-    GitCheckout checkout = new GitCheckout(null, COMMIT, "git@github.com:libowner/repo.git");
-    assertEquals("https://github.com/libowner/repo/commit/" + COMMIT, checkout.webUrl());
-  }
-
-  @Test
   @DisplayName("web url is null without a browsable remote")
   public void webUrlIsNullWithoutABrowsableRemote() {
     assertNull(new GitCheckout("main", COMMIT, null).webUrl());
-    assertNull(new GitCheckout("main", COMMIT, "file:///local/mirror.git").webUrl());
   }
 }

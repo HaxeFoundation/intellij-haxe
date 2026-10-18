@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerInlayService;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ public class HaxeInlayLocalVariableHintsProvider implements InlayHintsProvider {
   @Nullable
   @Override
   public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
+    if (HaxeCompilerInlayService.isActive(file.getProject())) return null;
     return new TypeCollector();
   }
 
@@ -35,11 +37,7 @@ public class HaxeInlayLocalVariableHintsProvider implements InlayHintsProvider {
         // attempts to resolve type from init or usage
         ResultHolder type = HaxeTypeResolver.getPsiElementType(varDeclaration, null);
 
-        if (!type.isUnknown() && !type.getType().isInvalid()) {
-          int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
-          InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-          sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(type));
-        }
+        addTypeHint(varDeclaration, sink, type);
       }
     }
   }

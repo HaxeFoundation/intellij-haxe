@@ -51,6 +51,22 @@ public interface HaxeBuildSystem {
   @NotNull
   List<String> defaultActionNames();
 
+  /**
+   * The built-in actions this file offers, in menu order: the
+   * {@link #defaultActionNames} plus those the file's own content enables (an
+   * hxml building C++ gets Clean).
+   */
+  @NotNull
+  default List<String> actionNames(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    return defaultActionNames();
+  }
+
+  /** Where a built-in action runs; null runs it in the build file's work directory. */
+  @Nullable
+  default String actionWorkDirectory(@NotNull Project project, @NotNull HaxeBuildFile buildFile, @NotNull String actionName) {
+    return null;
+  }
+
   /** A named built-in action's command; null when the name is not one of the built-ins. */
   @Nullable
   List<String> actionCommand(@NotNull Project project, @Nullable String environmentSdk, @NotNull HaxeBuildFile buildFile,
@@ -84,6 +100,21 @@ public interface HaxeBuildSystem {
    */
   @Nullable
   HaxeTarget launchTarget(@NotNull Project project, @NotNull HaxeBuildFile buildFile);
+
+  /**
+   * Plain hxml arguments ({@code -D}, {@code -cp}, {@code --macro}) in the
+   * spelling this build system's tool forwards into the build it generates;
+   * unchanged for a build the compiler takes directly.
+   */
+  @NotNull
+  default List<String> forwardedArguments(@NotNull List<String> haxeArguments) {
+    return haxeArguments;
+  }
+
+  /** Whether the build tool merges each library's include file into the project, as a nested project ({@link LimeProjects#libraryIncludeFile}). */
+  default boolean mergesLibraryIncludeFiles() {
+    return false;
+  }
 
   /**
    * The extra compile arguments that make the current selection's output

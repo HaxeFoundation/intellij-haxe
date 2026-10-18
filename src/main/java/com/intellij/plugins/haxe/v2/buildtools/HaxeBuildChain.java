@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
@@ -84,7 +83,7 @@ final class HaxeBuildChain extends ProcessHandler {
   private void startCommand(@NotNull String containerId, @NotNull List<String> command, @Nullable String workDirectory) {
     KillableColoredProcessHandler handler;
     try {
-      GeneralCommandLine commandLine = HaxeToolCommandLines.interactive(command, workDirectory);
+      GeneralCommandLine commandLine = HaxeToolCommandLines.interactive(project, containerId, command, workDirectory);
       handler = new KillableColoredProcessHandler(commandLine);
     }
     catch (ExecutionException e) {
@@ -185,19 +184,7 @@ final class HaxeBuildChain extends ProcessHandler {
   /** Console input reaches whichever command is running, so a tool's prompt can be answered. */
   @Override
   public @NotNull OutputStream getProcessInput() {
-    return new OutputStream() {
-      @Override
-      public void write(int b) throws IOException {
-        OutputStream input = runningInput();
-        if (input != null) input.write(b);
-      }
-
-      @Override
-      public void flush() throws IOException {
-        OutputStream input = runningInput();
-        if (input != null) input.flush();
-      }
-    };
+    return new HaxeForwardingProcessInput(this::runningInput);
   }
 
   @Nullable

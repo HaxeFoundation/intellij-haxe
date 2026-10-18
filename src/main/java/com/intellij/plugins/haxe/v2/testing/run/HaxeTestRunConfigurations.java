@@ -138,15 +138,25 @@ public final class HaxeTestRunConfigurations {
   }
 
   /**
+   * Keys that tell the two resyncs' submissions apart: a newer submission
+   * cancels the pending and running ones of its own kind only.
+   */
+  private static final Object ALL_CONFIGURATIONS_RESYNC = new Object();
+  private static final Object ONE_CONFIGURATION_RESYNC = new Object();
+
+  /**
    * Recomputes every test configuration's before-run compile step. Artifact
    * targets persist their compile arguments in that step, so a settings change
    * feeding into them (the live-reporter injection) must resync explicitly -
    * otherwise it only applies after the configuration is next edited.
    * The computation parses build files (PSI/VFS), so it runs in the
-   * background; only the configuration mutation lands on the EDT.
+   * background; only the configuration mutation lands on the EDT. An event
+   * burst (a Reload publishes several) ends in one recompute: a newer
+   * submission cancels the ones still pending or running.
    */
   public static void resyncCompileSteps(@NotNull Project project) {
     ReadAction.nonBlocking(() -> compileStepUpdates(project))
+      .coalesceBy(ALL_CONFIGURATIONS_RESYNC, project)
       .expireWith(project)
       .finishOnUiThread(ModalityState.defaultModalityState(), applications -> applications.forEach(Runnable::run))
       .submit(AppExecutorUtil.getAppExecutorService());
@@ -168,13 +178,15 @@ public final class HaxeTestRunConfigurations {
   /**
    * Recomputes ONE configuration's compile step in the background — the
    * dialog's Apply must not parse build files on the EDT (the platform even
-   * applies to validation snapshots while the user types). Nothing needs the
-   * result synchronously: the dialog shows no step-derived field, and the
+   * applies to validation snapshots while the user types, so only the latest
+   * recompute of a configuration lands). Nothing needs the result
+   * synchronously: the dialog shows no step-derived field, and the
    * before-run task re-derives its arguments at launch.
    */
   public static void resyncCompileStepAsync(@NotNull HaxeTestRunConfiguration configuration) {
     Project project = configuration.getProject();
     ReadAction.nonBlocking(configuration::computedCompileStep)
+      .coalesceBy(ONE_CONFIGURATION_RESYNC, configuration)
       .expireWith(project)
       .finishOnUiThread(ModalityState.defaultModalityState(), configuration::applyCompileStep)
       .submit(AppExecutorUtil.getAppExecutorService());

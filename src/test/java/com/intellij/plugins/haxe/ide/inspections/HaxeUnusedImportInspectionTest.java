@@ -99,18 +99,12 @@ public class HaxeUnusedImportInspectionTest extends HaxeLightFixtureTestCase {
     HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
     settings.setCompilerDiagnosticsEnabled(true);
     settings.setDiagnosticsUnusedImportsEnabled(true);
-    try {
-      myFixture.configureByFiles("UnusedClass.hx", "helper/Bar.hx", "helper/Foo.hx", "helper/IFoo.hx", "helper/Typedefs.hx");
-      myFixture.enableInspections(new HaxeUnusedImportInspection());
+    myFixture.configureByFiles("UnusedClass.hx", "helper/Bar.hx", "helper/Foo.hx", "helper/IFoo.hx", "helper/Typedefs.hx");
+    myFixture.enableInspections(new HaxeUnusedImportInspection());
 
-      boolean unusedImportReported = myFixture.doHighlighting().stream()
-        .anyMatch(info -> info.getDescription() != null && info.getDescription().contains("nused import"));
-      assertFalse(unusedImportReported, "the static inspection must stand down while the compiler owns unused imports");
-    } finally {
-      // the shared light project remembers project-level settings
-      settings.setCompilerDiagnosticsEnabled(false);
-      settings.setDiagnosticsUnusedImportsEnabled(false);
-    }
+    boolean unusedImportReported = myFixture.doHighlighting().stream()
+      .anyMatch(info -> info.getDescription() != null && info.getDescription().contains("nused import"));
+    assertFalse(unusedImportReported, "the static inspection must stand down while the compiler owns unused imports");
   }
 
   private void doTest(String fileName) {

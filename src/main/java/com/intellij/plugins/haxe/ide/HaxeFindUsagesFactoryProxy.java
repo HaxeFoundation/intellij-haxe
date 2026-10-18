@@ -4,11 +4,11 @@ import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesHandlerFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerFindUsagesHandler;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerNavigationService;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,14 +35,14 @@ public final class HaxeFindUsagesFactoryProxy extends FindUsagesHandlerFactory {
 
   @Override
   public FindUsagesHandler createFindUsagesHandler(@NotNull PsiElement element, boolean forHighlightUsages) {
-    boolean useCompiler = !forHighlightUsages && HaxeCompilerSettings.getInstance(project).isCompilerIdeFeaturesEnabled();
+    boolean useCompiler = !forHighlightUsages && HaxeCompilerSettings.getInstance(project).usesCompilerFindUsages();
     if (!useCompiler) return staticFactory.createFindUsagesHandler(element, forHighlightUsages);
     if (!canFindUsages(element)) return FindUsagesHandler.NULL_HANDLER;
 
-    PsiFile file = element.getContainingFile();
-    VirtualFile virtualFile = file == null ? null : file.getOriginalFile().getVirtualFile();
-    boolean available = virtualFile != null && HaxeCompilerNavigationService.getInstance(project).ensureAvailable(virtualFile);
-    if (!available) return FindUsagesHandler.NULL_HANDLER;
+    VirtualFile virtualFile = HaxeDefineContextService.physicalFileOf(element.getContainingFile());
+    // a light file (a generated preview) belongs to no build the compiler could answer for
+    if (virtualFile == null) return staticFactory.createFindUsagesHandler(element, false);
+    if (!HaxeCompilerNavigationService.getInstance(project).ensureAvailable(virtualFile)) return FindUsagesHandler.NULL_HANDLER;
     PsiElement target = HaxeFindUsagesUtil.getTargetElement(element);
     return new HaxeCompilerFindUsagesHandler(target != null ? target : element);
   }

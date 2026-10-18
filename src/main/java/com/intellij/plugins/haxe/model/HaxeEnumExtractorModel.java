@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.HaxeIterationProtocol;
 import com.intellij.plugins.haxe.model.evaluator.HaxeSwitchSubjectTypeCache;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -230,11 +231,11 @@ public class HaxeEnumExtractorModel implements HaxeModel {
             }
           } else {
             if(loopType instanceof  SpecificHaxeClassReference classReference) {
-              ResultHolder iteratorResult = searchForIteratorType(classReference, "iterator", extractedValue);
+              ResultHolder iteratorResult = searchForIteratorType(classReference, HaxeIterationProtocol.ITERATOR, extractedValue);
               if (iteratorResult != null && iteratorResult.getClassType() != null) {
                 SpecificHaxeClassReference iterator = iteratorResult.getClassType();
                 HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
-                ResultHolder access = iterator.access("next", context, iterator.getGenericResolver());
+                ResultHolder access = iterator.access(HaxeIterationProtocol.NEXT, context, iterator.getGenericResolver());
                 if (access != null && access.getFunctionType() != null) {
                   SpecificFunctionReference functionType = access.getFunctionType();
                   ResultHolder result = functionType.getReturnType();

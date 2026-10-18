@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.v2.buildsystem;
 
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
+import com.intellij.plugins.haxe.buildsystem.lime.LimeProjectShape;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeLibDependency;
 import com.intellij.openapi.util.text.StringUtil;
@@ -15,7 +17,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * StAX parser for XML-based Haxe project files (Lime/OpenFL project.xml, NMML),
@@ -26,12 +27,36 @@ import java.util.Set;
 @CustomLog
 public final class ProjectXmlParser {
 
-  /** The elements that declare a compiler define through their {@code name} (and optional {@code value}) attribute. */
-  public static final Set<String> DEFINE_TAGS = Set.of("haxedef", "define");
-  /** lime/openfl use {@code <source path>}, historic NMML {@code <classpath name>}. */
-  private static final Set<String> CLASSPATH_TAGS = Set.of("source", "classpath");
-
   private ProjectXmlParser() {
+  }
+
+  /**
+   * The shape of the text for classifying a file before its PSI exists: the
+   * root element, and the library and source elements below it however nested.
+   */
+  @NotNull
+  public static LimeProjectShape parseShape(@NotNull String content) {
+    LimeProjectShape.Builder shape = new LimeProjectShape.Builder();
+    try {
+      XMLStreamReader reader = readerOf(content);
+      boolean rootSeen = false;
+      while (reader.hasNext()) {
+        if (reader.next() != XMLStreamConstants.START_ELEMENT) continue;
+        String element = reader.getLocalName();
+        if (!rootSeen) {
+          shape.root(element);
+          rootSeen = true;
+          continue;
+        }
+        shape.element(element);
+        shape.library(element, attribute(reader, ProjectXmlVocabulary.NAME_ATTRIBUTE));
+      }
+    }
+    catch (XMLStreamException e) {
+      // malformed or partially edited file - keep whatever was collected so far
+      if (log.isDebugEnabled()) log.debug("Failed to parse project xml: " + e.getMessage());
+    }
+    return shape.build();
   }
 
   @NotNull
@@ -41,7 +66,7 @@ public final class ProjectXmlParser {
     List<String> classpaths = new ArrayList<>();
 
     try {
-      XMLStreamReader reader = createSecureFactory().createXMLStreamReader(new StringReader(content));
+      XMLStreamReader reader = readerOf(content);
       while (reader.hasNext()) {
         if (reader.next() == XMLStreamConstants.START_ELEMENT) {
           handleElement(reader, defines, libraries, classpaths);
@@ -50,7 +75,7 @@ public final class ProjectXmlParser {
     }
     catch (XMLStreamException e) {
       // malformed or partially edited file - keep whatever was collected so far
-      log.debug("Failed to parse project xml: " + e.getMessage());
+      if (log.isDebugEnabled()) log.debug("Failed to parse project xml: " + e.getMessage());
     }
     return new HaxeBuildFileInfo(null, null, List.copyOf(defines), List.copyOf(libraries), List.copyOf(classpaths));
   }
@@ -68,7 +93,7 @@ public final class ProjectXmlParser {
   /// declares none (the tools default to `bin`).
   @Nullable
   public static String parseAppPath(@NotNull String content) {
-    return appAttribute(content, "path");
+    return appAttribute(content, ProjectXmlVocabulary.PATH_ATTRIBUTE);
   }
 
   /**
@@ -81,11 +106,11 @@ public final class ProjectXmlParser {
   public static List<String> parseIncludePaths(@NotNull String content) {
     List<String> includes = new ArrayList<>();
     try {
-      XMLStreamReader reader = createSecureFactory().createXMLStreamReader(new StringReader(content));
+      XMLStreamReader reader = readerOf(content);
       while (reader.hasNext()) {
         if (reader.next() != XMLStreamConstants.START_ELEMENT) continue;
-        if (!"include".equals(reader.getLocalName().toLowerCase(Locale.ROOT))) continue;
-        if (attribute(reader, "haxelib") != null) continue;
+        if (!ProjectXmlVocabulary.INCLUDE_ELEMENT.equals(reader.getLocalName().toLowerCase(Locale.ROOT))) continue;
+        if (attribute(reader, ProjectXmlVocabulary.HAXELIB_ATTRIBUTE) != null) continue;
         String path = pathOrLegacyName(reader);
         if (path != null) {
           includes.add(path);
@@ -93,7 +118,7 @@ public final class ProjectXmlParser {
       }
     }
     catch (XMLStreamException e) {
-      log.debug("Failed to parse project xml: " + e.getMessage());
+      if (log.isDebugEnabled()) log.debug("Failed to parse project xml: " + e.getMessage());
     }
     return List.copyOf(includes);
   }
@@ -101,10 +126,10 @@ public final class ProjectXmlParser {
   @Nullable
   private static String appAttribute(@NotNull String content, @NotNull String attributeName) {
     try {
-      XMLStreamReader reader = createSecureFactory().createXMLStreamReader(new StringReader(content));
+      XMLStreamReader reader = readerOf(content);
       while (reader.hasNext()) {
         if (reader.next() != XMLStreamConstants.START_ELEMENT) continue;
-        if (!"app".equals(reader.getLocalName().toLowerCase(Locale.ROOT))) continue;
+        if (!ProjectXmlVocabulary.APP_ELEMENT.equals(reader.getLocalName().toLowerCase(Locale.ROOT))) continue;
         String value = StringUtil.nullize(attribute(reader, attributeName), true);
         if (value != null) {
           return value.trim();
@@ -112,7 +137,7 @@ public final class ProjectXmlParser {
       }
     }
     catch (XMLStreamException e) {
-      log.debug("Failed to parse project xml: " + e.getMessage());
+      if (log.isDebugEnabled()) log.debug("Failed to parse project xml: " + e.getMessage());
     }
     return null;
   }
@@ -122,19 +147,19 @@ public final class ProjectXmlParser {
                                     @NotNull List<HaxeLibDependency> libraries,
                                     @NotNull List<String> classpaths) {
     String tag = reader.getLocalName().toLowerCase(Locale.ROOT);
-    if (tag.equals("haxelib")) {
-      String name = attribute(reader, "name");
+    if (tag.equals(ProjectXmlVocabulary.LIBRARY_ELEMENT)) {
+      String name = attribute(reader, ProjectXmlVocabulary.NAME_ATTRIBUTE);
       if (name != null) {
-        libraries.add(new HaxeLibDependency(name, StringUtil.nullize(attribute(reader, "version"))));
+        libraries.add(new HaxeLibDependency(name, StringUtil.nullize(attribute(reader, ProjectXmlVocabulary.VERSION_ATTRIBUTE))));
       }
     }
-    else if (DEFINE_TAGS.contains(tag)) {
-      String name = attribute(reader, "name");
+    else if (ProjectXmlVocabulary.DEFINE_ELEMENTS.contains(tag)) {
+      String name = attribute(reader, ProjectXmlVocabulary.NAME_ATTRIBUTE);
       if (name != null) {
-        defines.add(new HaxeDefine(name, StringUtil.nullize(attribute(reader, "value"))));
+        defines.add(new HaxeDefine(name, StringUtil.nullize(attribute(reader, ProjectXmlVocabulary.VALUE_ATTRIBUTE))));
       }
     }
-    else if (CLASSPATH_TAGS.contains(tag)) {
+    else if (ProjectXmlVocabulary.SOURCE_ELEMENTS.contains(tag)) {
       String path = pathOrLegacyName(reader);
       if (path != null) {
         classpaths.add(path);
@@ -145,14 +170,21 @@ public final class ProjectXmlParser {
   /** The element's {@code path} attribute, else its legacy {@code name} spelling; null when neither carries a value. */
   @Nullable
   private static String pathOrLegacyName(@NotNull XMLStreamReader reader) {
-    String path = attribute(reader, "path");
-    if (path == null) path = attribute(reader, "name");
+    String path = attribute(reader, ProjectXmlVocabulary.PATH_ATTRIBUTE);
+    if (path == null) path = attribute(reader, ProjectXmlVocabulary.NAME_ATTRIBUTE);
     return path == null || path.isBlank() ? null : path.trim();
   }
 
   @Nullable
   private static String attribute(@NotNull XMLStreamReader reader, @NotNull String name) {
     return reader.getAttributeValue(null, name);
+  }
+
+  /** A reader over the text as the tools read it: attribute values may hold a raw {@code <} or {@code &} ({@link ProjectXmlEscaping}). */
+  @NotNull
+  private static XMLStreamReader readerOf(@NotNull String content) throws XMLStreamException {
+    String escaped = ProjectXmlEscaping.escapeAttributeValues(content);
+    return createSecureFactory().createXMLStreamReader(new StringReader(escaped));
   }
 
   @NotNull

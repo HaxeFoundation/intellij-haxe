@@ -20,6 +20,9 @@ import java.util.concurrent.TimeoutException;
 @CustomLog
 final class HaxeCancelableFutures {
 
+  /** The wait an interactive request (a popup, a navigation) gets before the IDE moves on; the request itself runs on. */
+  static final long ANSWER_TIMEOUT_MS = 3_000;
+
   private static final long POLL_MS = 100;
 
   private HaxeCancelableFutures() {

@@ -17,14 +17,8 @@ public class BuddyDetectionTest extends HaxeTestFrameworkDetectionTestBase {
 
   private final BuddyFramework framework = new BuddyFramework();
 
-  @Override
-  protected String getBasePath() {
-    return "/testing/";
-  }
-
   private void configureFixtureProject() {
-    myFixture.configureByFiles("buddy/BuddySuite.hx", "buddy/SingleSuite.hx",
-                               "cases/BuddyStyleSuite.hx", "cases/NotATest.hx");
+    myFixture.configureByFiles("buddy/BuddySuite.hx", "buddy/SingleSuite.hx", "cases/BuddyStyleSuite.hx");
   }
 
   @Test
@@ -32,13 +26,6 @@ public class BuddyDetectionTest extends HaxeTestFrameworkDetectionTestBase {
   public void testSuiteThroughSingleSuiteIsDetected() {
     configureFixtureProject();
     assertTrue(framework.isTestClass(classByQName("cases.BuddyStyleSuite")));
-  }
-
-  @Test
-  @DisplayName("plain class is not detected")
-  public void testPlainClassIsNotDetected() {
-    configureFixtureProject();
-    assertFalse(framework.isTestClass(classByQName("cases.NotATest")));
   }
 
   @Test

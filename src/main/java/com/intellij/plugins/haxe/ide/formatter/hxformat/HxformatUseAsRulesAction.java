@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolConfigs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,7 @@ public final class HxformatUseAsRulesAction extends ToggleAction implements Dumb
     if (e.getProject() == null) return null;
     VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
     boolean isConfig = file != null && !file.isDirectory()
-                       && HxformatConfigs.HXFORMAT_FILE_NAME.equals(file.getName());
+                       && HaxeToolConfigs.FORMATTER_CONFIG_NAME.equals(file.getName());
     return isConfig ? file : null;
   }
 }

@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.ide.util.EditSourceUtil;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
+import com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.pom.Navigatable;
 import com.intellij.pom.PomTargetPsiElement;
@@ -38,14 +39,37 @@ public class HaxeGeneratedPreviewTargetTest extends HaxeLightFixtureTestCase {
   public void testEditSourceDescriptorIsTheTargetItself() {
     PsiFile file = myFixture.configureByText("Sample.hx", "extern class Sample { function run():Void; }");
     HaxeClass externClass = PsiTreeUtil.findChildOfType(file, HaxeClass.class);
-    var overrides = HaxeDisplayConfiguration.DefineOverrides.EMPTY;
+    var overrides = HaxeDisplayConfiguration.OverrideArguments.EMPTY;
     var context = new HaxeCompilerDisplayService.DisplayContext(List.of(), null, null, overrides, "container");
 
-    PsiElement element = HaxeGeneratedPreviewTarget.createElement(externClass, context, "Sample", "run");
+    HaxeGeneratedPreviewSpot spot = HaxeGeneratedPreviewSpot.ofType("Sample", "run");
+    PsiElement element = HaxeGeneratedPreviewTarget.createElement(externClass, context, spot);
     Navigatable descriptor = EditSourceUtil.getDescriptor(element);
 
     HaxeGeneratedPreviewTarget target = assertInstanceOf(HaxeGeneratedPreviewTarget.class, descriptor);
     assertSame(((PomTargetPsiElement)element).getTarget(), target);
     assertTrue(target.canNavigate(), "the popup only navigates targets that canNavigate");
+  }
+
+  /**
+   * Go-to-declaration navigates to a target's navigation element itself,
+   * without calling navigate(); the evaluator must hand the wrapper back as
+   * the target, or the caret lands on the previewed declaration instead of
+   * the preview opening.
+   */
+  @Test
+  @DisplayName("go to declaration keeps the wrapper as its target")
+  public void testGoToDeclarationKeepsTheWrapperAsItsTarget() {
+    PsiFile file = myFixture.configureByText("Sample.hx", "class Sample { static var field = 1; }");
+    HaxeClass sampleClass = PsiTreeUtil.findChildOfType(file, HaxeClass.class);
+    var overrides = HaxeDisplayConfiguration.OverrideArguments.EMPTY;
+    var context = new HaxeCompilerDisplayService.DisplayContext(List.of(), null, null, overrides, "container");
+    HaxeGeneratedPreviewSpot spot = HaxeGeneratedPreviewSpot.ofType("Sample", "field");
+    PsiElement element = HaxeGeneratedPreviewTarget.createElement(sampleClass, context, spot);
+
+    PsiElement target = new HaxeTargetElementEvaluator().getGotoDeclarationTarget(element, element.getNavigationElement());
+
+    assertSame(element, target);
+    assertSame(sampleClass, element.getNavigationElement(), "popups still present the previewed declaration");
   }
 }

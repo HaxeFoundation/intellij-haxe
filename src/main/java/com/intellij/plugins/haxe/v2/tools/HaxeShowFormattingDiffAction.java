@@ -18,15 +18,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeCommandNotifications;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeToolConfigs;
+import com.intellij.plugins.haxe.v2.buildtools.*;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Shows an IDE diff of the editor buffer against the formatter's output,
@@ -64,23 +63,27 @@ public final class HaxeShowFormattingDiffAction extends HaxeFileToolAction {
     if (project == null || file == null || configDirectory == null) return;
     Document document = FileDocumentManager.getInstance().getDocument(file);
     if (document == null) return;
+    // the formatter is a haxelib the project may supply from its local repository - project code
+    if (!HaxeProjectTrust.confirmForAction(project, HaxeBundle.message("haxe.trust.action.execute.command"))) return;
 
     String before = document.getText();
+    String containerId = HaxeContainers.containerIdFor(project, file);
     String haxelib = haxelibFor(project, file);
     String title = HaxeBundle.message("haxe.tools.format.diff.progress", file.getName());
     new Task.Backgroundable(project, title, true) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        formatAndShow(project, file, document, before, haxelib, configDirectory.getPath());
+        formatAndShow(project, containerId, file, document, before, haxelib, configDirectory.getPath());
       }
     }.queue();
   }
 
-  private static void formatAndShow(@NotNull Project project, @NotNull VirtualFile file, @NotNull Document document,
-                                    @NotNull String before, @NotNull String haxelib, @NotNull String workDirectory) {
-    GeneralCommandLine commandLine = new GeneralCommandLine(haxelib, "run", HaxeToolConfigs.FORMATTER_HAXELIB, "--stdin", "-s", file.getPath())
-      .withWorkingDirectory(Path.of(workDirectory))
-      .withCharset(StandardCharsets.UTF_8);
+  private static void formatAndShow(@NotNull Project project, @NotNull String containerId, @NotNull VirtualFile file,
+                                    @NotNull Document document, @NotNull String before, @NotNull String haxelib,
+                                    @NotNull String workDirectory) {
+    List<String> command =
+      HaxeToolConfigs.toolCommand(haxelib, HaxeToolConfigs.FORMATTER_HAXELIB, List.of("--stdin"), List.of(file.getPath()));
+    GeneralCommandLine commandLine = HaxeToolCommandLines.captured(project, containerId, command, workDirectory);
 
     ProcessOutput output;
     try {

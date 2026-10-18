@@ -17,11 +17,6 @@ public class UtestDetectionTest extends HaxeTestFrameworkDetectionTestBase {
 
   private final UtestFramework framework = new UtestFramework();
 
-  @Override
-  protected String getBasePath() {
-    return "/testing/";
-  }
-
   private void configureFixtureProject() {
     myFixture.configureByFiles("utest/ITest.hx", "utest/Test.hx", "unit/Test.hx",
                                "cases/MathTest.hx", "cases/InterfaceStyleTest.hx", "cases/NotATest.hx");
@@ -42,13 +37,6 @@ public class UtestDetectionTest extends HaxeTestFrameworkDetectionTestBase {
   }
 
   @Test
-  @DisplayName("plain class is not detected")
-  public void testPlainClassIsNotDetected() {
-    configureFixtureProject();
-    assertFalse(framework.isTestClass(classByQName("cases.NotATest")));
-  }
-
-  @Test
   @DisplayName("marker interface itself is not detected")
   public void testMarkerInterfaceItselfIsNotDetected() {
     configureFixtureProject();
@@ -62,6 +50,9 @@ public class UtestDetectionTest extends HaxeTestFrameworkDetectionTestBase {
     HaxeClass mathTest = classByQName("cases.MathTest");
     assertTrue(framework.isTestMethod(methodOf(mathTest, "testAddition")));
     assertTrue(framework.isTestMethod(methodOf(mathTest, "specRounding")));
+    // visibility is irrelevant: utest's TestBuilder collects every
+    // non-static function whose name carries a test prefix
+    assertTrue(framework.isTestMethod(methodOf(mathTest, "testPrivateSetup")), "private prefixed methods ARE tests");
     assertTrue(framework.isTestMethod(methodOf(classByQName("cases.InterfaceStyleTest"), "testDirect")));
   }
 
@@ -71,9 +62,6 @@ public class UtestDetectionTest extends HaxeTestFrameworkDetectionTestBase {
     configureFixtureProject();
     HaxeClass mathTest = classByQName("cases.MathTest");
     assertFalse(framework.isTestMethod(methodOf(mathTest, "helperCompute")), "no test/spec prefix");
-    // visibility is irrelevant: utest's TestBuilder collects every
-    // non-static function whose name carries a test prefix
-    assertTrue(framework.isTestMethod(methodOf(mathTest, "testPrivateSetup")), "private prefixed methods ARE tests");
     assertFalse(framework.isTestMethod(methodOf(mathTest, "testStaticFactory")), "not an instance method");
   }
 

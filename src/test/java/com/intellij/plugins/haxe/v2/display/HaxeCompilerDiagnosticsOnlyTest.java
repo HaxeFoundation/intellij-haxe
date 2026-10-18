@@ -7,12 +7,14 @@ import com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedSymbolIns
 import com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedTypeInspection;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @DisplayName("Compiler diagnostics: only mode")
 public class HaxeCompilerDiagnosticsOnlyTest extends HaxeLightFixtureTestCase {
@@ -38,56 +40,27 @@ public class HaxeCompilerDiagnosticsOnlyTest extends HaxeLightFixtureTestCase {
     myFixture.enableInspections(HaxeUnresolvedTypeInspection.class, HaxeUnresolvedSymbolInspection.class);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      // the shared light project keeps project-level state between tests
-      HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
-      settings.setCompilerDiagnosticsEnabled(false);
-      settings.setCompilerDiagnosticsOnly(false);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
+  /** (master toggle, only toggle, the plugin's own analysis suppressed). */
+  static final List<Arguments> TOGGLES = List.of(
+    // the plugins static analysis stands down while the compiler is the only source
+    arguments(true, true, true),
+    // static analysis stays while the only toggle is off
+    arguments(true, false, false),
+    // the only toggle needs the master toggle
+    arguments(false, true, false),
+    arguments(false, false, false));
 
-  @Test
-  @DisplayName("the plugins static analysis stands down while the compiler is the only source")
-  public void testThePluginsStaticAnalysisStandsDownWhileTheCompilerIsTheOnlySource() {
+  @ParameterizedTest(name = "compiler diagnostics {0}, only {1}: suppressed {2}")
+  @FieldSource("TOGGLES")
+  @DisplayName("static analysis stands down only under both toggles")
+  public void testStaticAnalysisStandsDownOnlyUnderBothToggles(boolean enabled, boolean only, boolean suppressed) {
     HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
-    settings.setCompilerDiagnosticsEnabled(true);
-    settings.setCompilerDiagnosticsOnly(true);
+    settings.setCompilerDiagnosticsEnabled(enabled);
+    settings.setCompilerDiagnosticsOnly(only);
     myFixture.configureByText("Main.hx", SOURCE);
 
     List<HighlightInfo> problems = myFixture.doHighlighting(HighlightSeverity.WEAK_WARNING);
 
-    assertTrue(problems.isEmpty(), "no static-analysis problem may show: " + problems);
-  }
-
-  @Test
-  @DisplayName("static analysis stays while the only toggle is off")
-  public void testStaticAnalysisStaysWhileTheOnlyToggleIsOff() {
-    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
-    settings.setCompilerDiagnosticsEnabled(true);
-    settings.setCompilerDiagnosticsOnly(false);
-    myFixture.configureByText("Main.hx", SOURCE);
-
-    List<HighlightInfo> problems = myFixture.doHighlighting(HighlightSeverity.WEAK_WARNING);
-
-    assertFalse(problems.isEmpty(), "the unresolved type and call must be flagged by the plugin");
-  }
-
-  @Test
-  @DisplayName("the only toggle needs the master toggle")
-  public void testTheOnlyToggleNeedsTheMasterToggle() {
-    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
-    settings.setCompilerDiagnosticsEnabled(false);
-    settings.setCompilerDiagnosticsOnly(true);
-    myFixture.configureByText("Main.hx", SOURCE);
-
-    List<HighlightInfo> problems = myFixture.doHighlighting(HighlightSeverity.WEAK_WARNING);
-
-    assertFalse(settings.isStaticAnalysisSuppressed());
-    assertFalse(problems.isEmpty(), "without compiler diagnostics the plugin keeps analysing");
+    assertEquals(suppressed, problems.isEmpty(), "static-analysis problems: " + problems);
   }
 }

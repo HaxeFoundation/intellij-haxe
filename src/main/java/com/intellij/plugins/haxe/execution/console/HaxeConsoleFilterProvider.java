@@ -27,7 +27,7 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProviderEx {
     List<Filter> filters = new ArrayList<>();
 
     if (HaxeProjectSettings.getInstance(project).getDetectCodeReferencesInConsole()) {
-      filters.add(new HaxeCompilerMessageFilter(project));
+      filters.add(new HaxeCompilerMessageFilter(project, scope));
       filters.add(new HaxeStackTraceFilter(project, scope));
       filters.add(new HaxeUtestFailureFilter(project, scope));
     }

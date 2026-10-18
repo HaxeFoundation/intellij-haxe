@@ -11,7 +11,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeLocalFunctionDeclaration;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
-import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
@@ -56,20 +55,20 @@ public class HaxeMetadataAnnotator implements Annotator, DumbAware {
     }
 
     /**
-     * The 3.4-era metadata forms whose keyword replacement arrived in 4.0:
-     * {@code @:enum abstract}, {@code @:final}, {@code @:extern}. Warned only
-     * at 4.0+ — below that the metadata is the only spelling.
+     * The 3.4-era metadata forms with a keyword replacement
+     * ({@link HaxeSyntaxMigrationFixes#DEPRECATED_METADATA}). Warned only from
+     * the replacement's level: below it the metadata is the only spelling.
      */
     private static void checkDeprecatedSyntaxMeta(HaxeMeta meta, AnnotationHolder holder) {
       String oldForm = deprecatedSyntaxFormOf(meta);
       if (oldForm == null) return;
-      if (!HaxeLanguageLevelUtil.isAtLeast(meta, HaxeLanguageLevel.HAXE_4_0)) return;
+      HaxeSyntaxMigrationFixes.ApiMigration migration = HaxeSyntaxMigrationFixes.DEPRECATED_METADATA.get(oldForm);
+      if (!HaxeLanguageLevelUtil.isAtLeast(meta, migration.level())) return;
 
       HaxeFixer fix = HaxeSyntaxMigrationFixes.modernizeMetaFix(meta);
       if (fix == null) return;
-      String keywordForm = oldForm.substring("@:".length());
       String message = HaxeBundle.message("haxe.semantic.deprecated.since.language.level",
-                                          oldForm, HaxeLanguageLevel.HAXE_4_0.getPresentableText(), keywordForm);
+                                          oldForm, migration.level().getPresentableText(), migration.replacement());
       AnnotationBuilder annotation = holder.newAnnotation(HighlightSeverity.WARNING, message)
         .range(meta.getContainer())
         .withFix(fix);

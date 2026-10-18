@@ -7,7 +7,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.protocol.FindReferencesKind;
 import com.intellij.plugins.haxe.display.protocol.Location;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
@@ -64,8 +63,7 @@ public final class HaxeCompilerFindUsagesHandler extends FindUsagesHandler {
     HaxeNamedComponent named = element instanceof HaxeNamedComponent component ? component : null;
     HaxeComponentName name = named == null ? null : named.getComponentName();
     int offset = (name != null ? name : element).getTextRange().getStartOffset();
-    FindReferencesKind kind = named instanceof HaxeMethod ? FindReferencesKind.WITH_BASE_AND_DESCENDANTS : FindReferencesKind.DIRECT;
-    return new Query(file, offset, kind, nameOf(element, name));
+    return new Query(file, offset, HaxeCompilerUsageService.referenceKindOf(named), nameOf(element, name));
   }
 
   @Nullable

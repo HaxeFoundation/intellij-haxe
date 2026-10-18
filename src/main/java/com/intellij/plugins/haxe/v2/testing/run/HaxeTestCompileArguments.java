@@ -7,6 +7,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.buildtools.*;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolFlagSpellings;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.testing.*;
 import com.intellij.util.execution.ParametersListUtil;
@@ -30,25 +31,6 @@ final class HaxeTestCompileArguments {
   private record SuiteContext(@Nullable String suiteName, boolean hostedTests) {
   }
 
-  /** A build tool's forwarding forms for the three plain-hxml flags; each flag's VALUE is appended to its form. */
-  private record FlagSpellings(@NotNull String defineForm, @NotNull String classpathForm, @NotNull String macroForm) {
-  }
-
-  /**
-   * lime's forwarding forms (lime 8.3.2): ATTACHED defines ({@code -Dname=value}:
-   * the two-word spelling trips a lime bug duplicating the value),
-   * {@code --source=} for classpaths and {@code --haxeflag=} for macros.
-   */
-  private static final FlagSpellings LIME_SPELLINGS = new FlagSpellings("-D", "--source=", "--haxeflag=--macro ");
-
-  /**
-   * nme's forwarding forms: the tool forwards ATTACHED defines and any
-   * double-dash token verbatim into its generated build.hxml (single-dash
-   * haxe flags like {@code -cp} are swallowed - the classpath rides the
-   * {@code --class-path} spelling; nme 7.0.64).
-   */
-  private static final FlagSpellings NME_SPELLINGS = new FlagSpellings("-D", "--class-path ", "--macro ");
-
   /** lime's app-field override form for the entry point ({@code --app-main=Class}, lime 8.3.2). */
   private static final String LIME_APP_MAIN_FORM = "--app-main=";
 
@@ -59,7 +41,7 @@ final class HaxeTestCompileArguments {
    * The framework's compile arguments (reporting + optional filter) as an
    * extra-arguments string, in the spelling the build tool takes: plain haxe
    * flags for hxml builds, the tool's forwarding forms for lime-family and nme
-   * builds (see {@link #LIME_SPELLINGS}, {@link #NME_SPELLINGS}).
+   * builds ({@link LimeProjects#FLAG_SPELLINGS}, {@link NmeProjects#FLAG_SPELLINGS}).
    */
   @NotNull
   static String compileArguments(@NotNull Project project,
@@ -120,7 +102,7 @@ final class HaxeTestCompileArguments {
   /** Plain hxml arguments in lime's forwarding spelling, plus the air swf-version flag where the target needs it. */
   @NotNull
   private static List<String> limeSpelled(@NotNull Project project, @NotNull String targetFlag, @NotNull List<String> plain) {
-    List<String> spelled = new ArrayList<>(respell(plain, LIME_SPELLINGS));
+    List<String> spelled = new ArrayList<>(LimeProjects.FLAG_SPELLINGS.respell(plain));
     if ("air".equals(targetFlag)) {
       spelled.addAll(airSwfVersionFlag(project));
     }
@@ -145,7 +127,7 @@ final class HaxeTestCompileArguments {
     List<String> spelled = limeSpelled(project, targetFlag, plain);
     Path generated = HaxeTestSingleRuns.generatedDirectory(file.getPath(), framework, singleRun);
     if (generated == null) return null;
-    spelled.add(LIME_SPELLINGS.classpathForm() + generated);
+    spelled.add(LimeProjects.FLAG_SPELLINGS.classpathForm() + generated);
     spelled.add(LIME_APP_MAIN_FORM + HaxeTestSingleRuns.MAIN_CLASS);
     return ParametersListUtil.join(spelled);
   }
@@ -178,8 +160,8 @@ final class HaxeTestCompileArguments {
 
   /**
    * The tests build's framework arguments in plain hxml spelling — the
-   * reporting set plus the filter. The tool-specific paths respell them (see
-   * {@link #respell}).
+   * reporting set plus the filter. The tool-specific paths respell them
+   * ({@link HaxeToolFlagSpellings#respell}).
    *
    * buddy's packaged (lime/nme) tests only report when the app's OWN main
    * honors the injected {@code -D reporter} define — a lime/nme main is the
@@ -213,22 +195,6 @@ final class HaxeTestCompileArguments {
     return new ArrayList<>(framework.reportingArgs(suite.suiteName(), framework.reporterClasspath(), liveReporting));
   }
 
-  /** Respells plain hxml arguments into a build tool's forwarding forms. */
-  @NotNull
-  private static List<String> respell(@NotNull List<String> plainArguments, @NotNull FlagSpellings forms) {
-    List<String> spelled = new ArrayList<>();
-    for (int i = 0; i < plainArguments.size(); i++) {
-      String argument = plainArguments.get(i);
-      switch (argument) {
-        case "-D" -> spelled.add(forms.defineForm() + plainArguments.get(++i));
-        case "-cp" -> spelled.add(forms.classpathForm() + plainArguments.get(++i));
-        case "--macro" -> spelled.add(forms.macroForm() + plainArguments.get(++i));
-        default -> spelled.add(argument);
-      }
-    }
-    return spelled;
-  }
-
   /** The plan-level target a lime target flag compiles through; unknown ids fall to hxcpp, the desktop default. */
   @NotNull
   static HaxeTarget limeTarget(@NotNull String targetFlag) {
@@ -246,7 +212,7 @@ final class HaxeTestCompileArguments {
     HaxeTarget target = mapped != null ? mapped : HaxeTarget.CPP;
     SuiteContext suite = new SuiteContext(suiteLabel(target), target == HaxeTarget.FLASH);
     List<String> plain = frameworkArguments(project, file.getPath(), suite, filterPattern);
-    return ParametersListUtil.join(respell(plain, NME_SPELLINGS));
+    return ParametersListUtil.join(NmeProjects.FLAG_SPELLINGS.respell(plain));
   }
 
   /** The tree's root-suite label for a target ({@code Target: Neko}). */

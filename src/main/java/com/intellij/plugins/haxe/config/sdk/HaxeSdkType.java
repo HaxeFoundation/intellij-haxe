@@ -18,40 +18,24 @@
 package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
-import com.intellij.util.xmlb.Accessor;
-import com.intellij.util.xmlb.SerializationFilter;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Set;
 
 public class HaxeSdkType extends SdkType {
-
-  // SDK entries stored before these fields existed never carry them; writing
-  // them out as empty strings would make every startup flag such an SDK as
-  // inconsistently updated (the workspace model compares serialized forms).
-  // Omitted while empty, the stored shape survives until a real value is set.
-  private static final Set<String> OMITTED_WHEN_EMPTY = Set.of("nodeBinPath", "flashPlayerPath", "flexSdkName");
-  private static final SerializationFilter SKIP_EMPTY_RUNTIME_FIELDS = new SerializationFilter() {
-    @Override
-    public boolean accepts(@NotNull Accessor accessor, @NotNull Object bean) {
-      if (!OMITTED_WHEN_EMPTY.contains(accessor.getName())) {
-        return true;
-      }
-      Object value = accessor.read(bean);
-      return value != null && !value.toString().isEmpty();
-    }
-  };
 
   public HaxeSdkType() {
     super(HaxeCommonBundle.message("haxe.sdk.name"));
@@ -105,52 +89,49 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public void setupSdkPaths(Sdk sdk) {
-
-
-
     SdkAdditionalData data = sdk.getSdkAdditionalData();
     if (data == null) {
       data = HaxeSdkUtil.testHaxeSdk(sdk.getHomePath());
-
     }
     super.setupSdkPaths(sdk);
     writeSdkData(sdk, data);
   }
 
-  private static void writeSdkData(Sdk sdk, SdkAdditionalData data) {
-    Runnable saveTask = () -> {
-      ApplicationManager.getApplication().runWriteAction( () -> {
-        if (data != null) {
-          final SdkModificator modificator = sdk.getSdkModificator();
-          // this task may run deferred (invokeLaterOnWriteThread below), by which
-          // time the user can already have configured the SDK's additional data;
-          // the stale `data` snapshot must not clobber it
-          if (sdk.getSdkAdditionalData() == null) {
-            modificator.setSdkAdditionalData(data);
-          }
-          HaxeSdkUtil.setupSdkPaths(sdk.getHomeDirectory(), modificator);
-          modificator.commitChanges();
-        }
-      });
-    };
-
-    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      saveTask.run();
-    } else {
-      ApplicationManager.getApplication().invokeLaterOnWriteThread(saveTask);
+  /**
+   * Fills the SDK's data and std roots before setup returns: the SDK model
+   * registers the SDK as soon as setup is done, and roots written after that
+   * never reach the registered SDK. Only the commit takes the write lock.
+   */
+  private static void writeSdkData(Sdk sdk, @Nullable SdkAdditionalData data) {
+    if (data == null) return;
+    SdkModificator modificator = sdk.getSdkModificator();
+    if (sdk.getSdkAdditionalData() == null) {
+      modificator.setSdkAdditionalData(data);
     }
+    HaxeSdkUtil.setupSdkPaths(sdk.getHomeDirectory(), modificator);
+    WriteAction.runAndWait(modificator::commitChanges);
   }
 
   @Override
   public SdkAdditionalData loadAdditionalData(Element additional) {
-    return XmlSerializer.deserialize(additional, HaxeSdkData.class);
+    HaxeSdkData data = XmlSerializer.deserialize(additional, HaxeSdkData.class);
+    if (!isWrittenInCurrentFormat(data, additional)) data.markStoredInOldFormat();
+    return data;
   }
 
   @Override
   public void saveAdditionalData(SdkAdditionalData additionalData, Element additional) {
     if (additionalData instanceof HaxeSdkData) {
-      XmlSerializer.serializeInto(additionalData, additional, SKIP_EMPTY_RUNTIME_FIELDS);
+      XmlSerializer.serializeInto(additionalData, additional);
     }
+  }
+
+  // The platform compares the stored text with a fresh save on every save and
+  // logs an error while they differ (a field added or removed since).
+  private boolean isWrittenInCurrentFormat(HaxeSdkData data, Element stored) {
+    Element current = new Element(stored.getName());
+    saveAdditionalData(data, current);
+    return JDOMUtil.write(current).equals(JDOMUtil.write(stored));
   }
 
   @NotNull

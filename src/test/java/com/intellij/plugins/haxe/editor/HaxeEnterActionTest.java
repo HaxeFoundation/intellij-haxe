@@ -19,11 +19,15 @@
 package com.intellij.plugins.haxe.editor;
 
 import com.intellij.codeInsight.AbstractEnterActionTestCase;
-
-import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
+
+import java.util.List;
+
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * @author winmain
@@ -31,96 +35,34 @@ import org.junit.jupiter.api.Test;
 @DisplayName("Editor: enter action")
 public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
 
-    @Override
-    public void tearDown() throws Exception {
-        HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
-        super.tearDown();
-    }
+    /** (declaration keyword, the member line the caret ends). */
+    static final List<Arguments> DECLARATION_BODIES = List.of(
+            // enter in abstract
+            arguments("abstract", "var a;"),
+            // enter in class
+            arguments("class", "var a;"),
+            // enter in enum
+            arguments("enum", "FOO;"),
+            // enter in extern class
+            arguments("extern class", "var a;"),
+            // enter in interface
+            arguments("interface", "function qwe():Void;"));
 
-    @NotNull
-    @Override
-    protected String getTestDataPath() {
-        return HaxeTestUtils.BASE_TEST_DATA_PATH;
-    }
+    @ParameterizedTest(name = "enter in {0}")
+    @FieldSource("DECLARATION_BODIES")
+    @DisplayName("enter after a member keeps the body indent")
+    public void testEnterAfterAMemberKeepsTheBodyIndent(String keyword, String member) throws Throwable {
+        String before = """
+                %s Test {
+                    %s<caret>
+                }""".formatted(keyword, member);
+        String after = """
+                %s Test {
+                    %s
+                   \s
+                }""".formatted(keyword, member);
 
-    @Override
-    protected void doTest() throws Exception {
-        doTest("hx");
-    }
-
-    @Test
-    @DisplayName("enter in abstract")
-    public void testEnterInAbstract() throws Throwable {
-        doTextTest("hx",
-                """
-                        abstract Test {
-                            var a;<caret>
-                        }""",
-                """
-                        abstract Test {
-                            var a;
-                           \s
-                        }""");
-    }
-
-    @Test
-    @DisplayName("enter in class")
-    public void testEnterInClass() throws Throwable {
-        doTextTest("hx",
-                """
-                        class Test {
-                            var a;<caret>
-                        }""",
-                """
-                        class Test {
-                            var a;
-                           \s
-                        }""");
-    }
-
-    @Test
-    @DisplayName("enter in enum")
-    public void testEnterInEnum() throws Throwable {
-        doTextTest("hx",
-                """
-                        enum Test {
-                            FOO;<caret>
-                        }""",
-                """
-                        enum Test {
-                            FOO;
-                           \s
-                        }""");
-    }
-
-    @Test
-    @DisplayName("enter in extern class")
-    public void testEnterInExternClass() throws Throwable {
-        doTextTest("hx",
-                """
-                        extern class Test {
-                            var a;<caret>
-                        }""",
-                """
-                        extern class Test {
-                            var a;
-                           \s
-                        }""");
-    }
-
-    @Test
-    @DisplayName("enter in interface")
-    public void testEnterInInterface() throws Throwable {
-        doTextTest("hx",
-                """
-                        interface Test {
-                            function qwe():Void;<caret>
-                        }""",
-                """
-                        interface Test {
-                            function qwe():Void;
-                           \s
-                        }""");
+        doTextTest("hx", before, after);
     }
 
     @Test
@@ -183,6 +125,4 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                        }
                        """);
     }
-
-
 }

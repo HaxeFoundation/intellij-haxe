@@ -250,11 +250,18 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("renders closure as function")
-  public void rendersClosureAsFunction() throws Exception {
+  @DisplayName("renders and expands a bound closure")
+  public void rendersAndExpandsABoundClosure() throws Exception {
+    // a bound closure (hasValue == 1) renders as a function and expands to its
+    // capture environment; the box's CONTENT is the "captured" row of the
+    // container-locals table
     Variable f = findVariable(richLocals(), "f");
     assertNotNull(f, "local f present");
     assertTrue(f.getValue().startsWith("function"), "closure renders as a function (was " + f.getValue() + ")");
+    assertTrue(f.getVariablesReference() > 0, "bound closure is expandable");
+
+    Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
+    assertNotNull(captured, "captured child present");
 
     request(new DisconnectRequest());
   }
@@ -277,21 +284,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     Map<String, String> vec = variablesByName(pos.getVariablesReference());
     assertEquals("1.5", vec.get("x"), "holder.pos.x");
     assertEquals("2.5", vec.get("y"), "holder.pos.y");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("expands closure captured value")
-  public void expandsClosureCapturedValue() throws Exception {
-    // a bound closure (hasValue == 1): the capture environment is a child;
-    // the box's CONTENT is the "captured" row of the container-locals table
-    Variable f = findVariable(richLocals(), "f");
-    assertNotNull(f, "local f present");
-    assertTrue(f.getVariablesReference() > 0, "bound closure is expandable");
-
-    Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
-    assertNotNull(captured, "captured child present");
 
     request(new DisconnectRequest());
   }
@@ -651,6 +643,21 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("boxes primitives into dynamic arguments")
+  public void boxesPrimitivesIntoDynamicArguments() throws Exception {
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // stringMap is Map<String,Int>: its values are stored BOXED (Dynamic), so
+    // the int literal 9 has to be boxed into a vdynamic on the way in
+    assertEquals("null", evaluated(frameId, "stringMap.get(\"c\")"), "absent key is null before insert");
+    assertTrue(evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess(), "stringMap.set(\"c\", 9) with boxing");
+    assertEquals("9", evaluated(frameId, "stringMap.get(\"c\")"), "the boxed int reads back");
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
   @DisplayName("map bracket syntax sugars to get and set")
   public void mapBracketSyntaxSugarsToGetAndSet() throws Exception {
     // map[k] / map[k]=v are compile-time sugar for get/set; the evaluator
@@ -672,22 +679,6 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // arrays are NOT maps: arr[i] stays a real indexed slot, never rewritten
     // to get() (element writes are pinned by writesArrayElementsThroughEvaluate)
     assertEquals("5", evaluated(frameId, "ints[1]"), "ints[1] stays an index read");
-
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("boxes primitives into dynamic arguments")
-  public void boxesPrimitivesIntoDynamicArguments() throws Exception {
-    // stringMap is Map<String,Int>: values are stored BOXED (Dynamic). Passing
-    // the int literal 9 requires boxing it into a vdynamic.
-    // Proven end to end: set then read the value back.
-    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
-    int frameId = topFrameId(lastStoppedThreadId());
-
-    assertEquals("null", evaluated(frameId, "stringMap.get(\"c\")"), "absent before insert");
-    assertTrue(evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess(), "stringMap.set(\"c\", 9) with boxing");
-    assertEquals("9", evaluated(frameId, "stringMap.get(\"c\")"), "boxed int reads back");
 
     request(new DisconnectRequest());
   }

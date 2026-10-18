@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.testing.run;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.runner.debugger.flash.AdlLaunches;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeSystemPaths;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,15 +34,14 @@ final class AirTestHost {
   private AirTestHost() {
   }
 
-  /** {@code adl [-nodebug] <descriptor> <content root>} — the content root is the swf's own directory (see class doc for the modes). */
+  /** {@code adl [-nodebug] <descriptor> <content root>} ({@link AdlLaunches#command}) — the content root is the swf's own directory (see class doc for the modes). */
   @NotNull
   static List<String> command(@NotNull String adlExecutable,
                               @NotNull Path descriptor,
                               @NotNull Path contentRoot,
                               boolean debugLaunch) {
-    return debugLaunch
-           ? List.of(adlExecutable, descriptor.toString(), contentRoot.toString())
-           : List.of(adlExecutable, "-nodebug", descriptor.toString(), contentRoot.toString());
+    return AdlLaunches.command(Path.of(adlExecutable), List.of(), descriptor, contentRoot, debugLaunch, List.of())
+      .getCommandLineList(null);
   }
 
   /**

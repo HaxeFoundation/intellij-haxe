@@ -20,7 +20,7 @@ public class ConvertQuotesIntentionTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
-    return "/intention/";
+    return "";
   }
 
   @Test

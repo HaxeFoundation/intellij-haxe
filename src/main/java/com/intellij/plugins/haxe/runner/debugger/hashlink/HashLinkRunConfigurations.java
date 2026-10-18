@@ -2,10 +2,9 @@ package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -40,7 +39,7 @@ final class HashLinkRunConfigurations {
 
     HlBuildSniffer.HlBuild build;
     if (settings.isUseHxmlToBuild()) {
-      Path hxml = resolveAgainstModule(module, settings.getHxmlPath());
+      Path hxml = hxmlPath(module, settings);
       build = hxml != null ? HlBuildSniffer.fromHxml(hxml) : HlBuildSniffer.HlBuild.NONE;
     } else {
       build = HlBuildSniffer.fromArguments(settings.getArguments());
@@ -56,25 +55,17 @@ final class HashLinkRunConfigurations {
       .or(() -> candidates.stream().findFirst());
   }
 
-  /** Resolves a possibly-relative user path against the module directory. */
-  static @Nullable Path resolveAgainstModule(Module module, @Nullable String path) {
-    if (path == null || path.isBlank()) {
+  /** The hxml the module builds from, module-relative; null when it builds from arguments or names none. */
+  private static @Nullable Path hxmlPath(Module module, HaxeModuleSettings settings) {
+    String hxmlPath = settings.getHxmlPath();
+    if (!settings.isUseHxmlToBuild() || hxmlPath == null || hxmlPath.isBlank()) {
       return null;
     }
-    try {
-      Path asPath = Path.of(path);
-      if (asPath.isAbsolute()) {
-        return asPath;
-      }
-      Path moduleDir = moduleDir(module);
-      return moduleDir != null ? moduleDir.resolve(asPath) : asPath;
-    } catch (InvalidPathException e) {
-      return null;
-    }
+    return DapRunConfigurationBase.resolveAgainstModule(module, module.getProject(), hxmlPath);
   }
 
   // A relative -hl output is resolved the way the compiler would: against the
-  // compilation working directory (the module dir), with the hxml's own
+  // compilation working directory (the module folder), with the hxml's own
   // directory as a fallback.
   private static List<Path> outputCandidates(Module module, HaxeModuleSettings settings, String output) {
     List<Path> candidates = new ArrayList<>();
@@ -84,27 +75,20 @@ final class HashLinkRunConfigurations {
         candidates.add(path);
         return candidates;
       }
-      Path moduleDir = moduleDir(module);
-      if (moduleDir != null) {
-        candidates.add(moduleDir.resolve(path));
+      Path baseDir = DapRunConfigurationBase.baseDirectory(module, module.getProject());
+      if (baseDir != null) {
+        candidates.add(baseDir.resolve(path));
       }
-      if (settings.isUseHxmlToBuild()) {
-        Path hxml = resolveAgainstModule(module, settings.getHxmlPath());
-        if (hxml != null && hxml.getParent() != null) {
-          Path fromHxml = hxml.getParent().resolve(path);
-          if (!candidates.contains(fromHxml)) {
-            candidates.add(fromHxml);
-          }
+      Path hxml = hxmlPath(module, settings);
+      if (hxml != null && hxml.getParent() != null) {
+        Path fromHxml = hxml.getParent().resolve(path);
+        if (!candidates.contains(fromHxml)) {
+          candidates.add(fromHxml);
         }
       }
     } catch (InvalidPathException ignored) {
       // fall through with the candidates collected so far
     }
     return candidates;
-  }
-
-  private static @Nullable Path moduleDir(Module module) {
-    VirtualFile dir = ProjectUtil.guessModuleDir(module);
-    return dir != null ? Path.of(dir.getPath()) : null;
   }
 }

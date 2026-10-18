@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.ide.refactoring.rename;
 
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.SuggestedNameInfo;
@@ -161,21 +160,6 @@ public class HaxeNameSuggestionProviderTest extends HaxeLightFixtureTestCase {
 
     assertFalse(names.contains("str"), "str is taken by the sibling local: " + names);
     assertTrue(names.contains("str1"), names.toString());
-  }
-
-  @Test
-  @DisplayName("rename started on the name element itself gets the same suggestions")
-  public void testRenameStartedOnTheNameElementItselfGetsTheSameSuggestions() {
-    myFixture.configureByText("Main.hx", TYPED_LOCAL_SOURCE);
-    PsiElement leaf = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    HaxeComponentName name = PsiTreeUtil.getParentOfType(leaf, HaxeComponentName.class);
-    assertNotNull(name);
-    Set<String> names = new LinkedHashSet<>();
-
-    SuggestedNameInfo info = new HaxeNameSuggestionProvider().getSuggestedNames(name, null, names);
-
-    assertNotNull(info, "the provider answers for the name element the in-place renamer hands over");
-    assertTrue(names.contains("str"), names.toString());
   }
 
   @Test

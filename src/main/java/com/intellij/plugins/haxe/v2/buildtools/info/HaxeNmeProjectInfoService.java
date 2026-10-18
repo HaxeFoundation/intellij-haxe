@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.v2.buildtools.info;
 
+import com.intellij.plugins.haxe.haxelib.HaxelibRepositoryLayout;
+import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTrust;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import com.intellij.plugins.haxe.v2.buildtools.NmeProjects;
@@ -17,16 +19,17 @@ import com.intellij.plugins.haxe.v2.buildsystem.HxmlFileParser;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.Key;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.Outcome;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.v2.buildtools.info.HaxeProjectInfoCache.firstErrorLine;
 
@@ -52,11 +55,7 @@ public final class HaxeNmeProjectInfoService implements Disposable {
 
   private static final int PREPARE_TIMEOUT_MS = 60_000;
   private static final String BUILD_FILE_MARKER = "PREPARE BUILD_FILE=";
-
-  // a haxelib-repo path segment naming an installed version: haxelib stores
-  // versions with commas (6,3,149) or as "git"; the segment BEFORE it is the
-  // library name (<repo>/<name>/<version>/...)
-  private static final Pattern HAXELIB_VERSION_SEGMENT = Pattern.compile("\\d+(?:,\\d+)+|git");
+  private static final String PREPARE_TOOL = "nme prepare";
 
   /**
    * One landed evaluation: the parsed info for the tool window plus the
@@ -73,9 +72,11 @@ public final class HaxeNmeProjectInfoService implements Disposable {
 
   private final Project project;
   private final HaxeProjectInfoCache<PreparedRun> cache;
+  private final HaxeBuildToolFailures failures;
 
   public HaxeNmeProjectInfoService(@NotNull Project project) {
     this.project = project;
+    this.failures = HaxeBuildToolFailures.getInstance(project);
     this.cache = new HaxeProjectInfoCache<>(project, "Haxe nme prepare", HaxeNmeProjectInfoService::deletePreparedDir);
   }
 
@@ -86,8 +87,22 @@ public final class HaxeNmeProjectInfoService implements Disposable {
 
   /**
    * The file's evaluation for the target, or null when not resolved (yet).
-   * Schedules a background run when the cache is stale; {@code onUpdated}
-   * fires on the EDT after the run completes. Safe to call from read actions.
+   * Schedules a background run when the cache is stale; the landing is
+   * announced as {@link HaxeBuildEventListener#evaluationLanded}. Safe to call
+   * from read actions.
+   */
+  @Nullable
+  public Evaluation getCachedOrSchedule(@NotNull HaxeBuildFile buildFile,
+                                        @NotNull String targetFlag,
+                                        @Nullable String preferredSdkName) {
+    return getCachedOrSchedule(buildFile, targetFlag, preferredSdkName, HaxeProjectInfoCache.NO_CALLBACK);
+  }
+
+  /**
+   * {@link #getCachedOrSchedule(HaxeBuildFile, String, String)} for a caller
+   * that must react to the evaluation this call starts: {@code onUpdated}
+   * runs on the EDT when it lands. Kept by identity, so pass one long-lived
+   * instance.
    */
   @Nullable
   public Evaluation getCachedOrSchedule(@NotNull HaxeBuildFile buildFile,
@@ -120,7 +135,19 @@ public final class HaxeNmeProjectInfoService implements Disposable {
    * failed tool — the raw xml parse serves with the selected target, its
    * conditions unevaluated. The prepared hxml flattens libs into classpaths,
    * so a run whose derived library list is empty keeps the declared one.
-   * Call in a read action; {@code onUpdated} as in {@link #getCachedOrSchedule}.
+   * Call in a read action.
+   */
+  @NotNull
+  public HaxeBuildFileInfo effectiveInfo(@NotNull HaxeBuildFile buildFile,
+                                         @NotNull HaxeBuildFileInfo raw,
+                                         @Nullable String preferredSdkName) {
+    return effectiveInfo(buildFile, raw, preferredSdkName, HaxeProjectInfoCache.NO_CALLBACK);
+  }
+
+  /**
+   * {@link #effectiveInfo(HaxeBuildFile, HaxeBuildFileInfo, String)} with
+   * {@code onUpdated} as in
+   * {@link #getCachedOrSchedule(HaxeBuildFile, String, String, Runnable)}.
    */
   @NotNull
   public HaxeBuildFileInfo effectiveInfo(@NotNull HaxeBuildFile buildFile,
@@ -142,6 +169,12 @@ public final class HaxeNmeProjectInfoService implements Disposable {
 
   public void clearCache() {
     cache.clear();
+  }
+
+  /** Blocks until the preparations queued so far have run; their tool runs in the project file's folder. */
+  @TestOnly
+  public void awaitPreparationsForTests() throws Exception {
+    cache.awaitQueuedEvaluations(PREPARE_TIMEOUT_MS);
   }
 
   /** Drops every cached evaluation of one build file (all targets/toolchains), forcing a re-run on the next ask. */
@@ -175,18 +208,20 @@ public final class HaxeNmeProjectInfoService implements Disposable {
       GeneralCommandLine commandLine = new GeneralCommandLine(command).withWorkDirectory(workDirectory);
       ProcessOutput output = new CapturingProcessHandler(commandLine).runProcess(PREPARE_TIMEOUT_MS);
       if (output.isTimeout() || output.getExitCode() != 0) {
-        // TODO: show a failed nme prepare to the user; it is only logged.
         log.warn("nme prepare failed for " + fileName + " (" + key.targetFlag() + "): " + firstErrorLine(output));
+        failures.record(key.filePath(), HaxeBuildToolFailures.failureOf(PREPARE_TOOL, output));
         return null;
       }
       Evaluation evaluation = parsePreparedBuildFile(output.getStdout(), workDirectory, fileName);
       if (evaluation != null) {
         run = new PreparedRun(evaluation, tempBin);
       }
+      failures.record(key.filePath(), null);
       return run;
     }
     catch (Exception e) {
       log.warn("nme prepare could not run for " + fileName + ": " + e.getMessage());
+      failures.record(key.filePath(), HaxeBuildToolFailures.failureOf(PREPARE_TOOL, e));
       return null;
     }
     finally {
@@ -210,7 +245,11 @@ public final class HaxeNmeProjectInfoService implements Disposable {
       return null;
     }
 
-    Path hxml = Path.of(buildFilePath);
+    Path hxml = HaxeExternalPaths.pathOf(buildFilePath);
+    if (hxml == null) {
+      log.warn("nme prepare named an unusable build file for " + fileName + ": " + buildFilePath);
+      return null;
+    }
     if (!hxml.isAbsolute() && workDirectory != null) {
       hxml = Path.of(workDirectory).resolve(hxml);
     }
@@ -246,9 +285,11 @@ public final class HaxeNmeProjectInfoService implements Disposable {
     // either path separator
     String[] segments = classpath.split("[/\\\\]");
     for (int i = 1; i < segments.length; i++) {
-      if (HAXELIB_VERSION_SEGMENT.matcher(segments[i]).matches()) {
-        String version = "git".equals(segments[i]) ? null : segments[i].replace(',', '.');
-        return new HaxeLibDependency(segments[i - 1], version);
+      // <repo>/<name>/<version folder>/...: an scm checkout pins no version
+      String version = HaxelibRepositoryLayout.versionOf(segments[i]);
+      if (version != null) {
+        boolean checkout = HaxelibRepositoryLayout.isScmDirName(segments[i]);
+        return new HaxeLibDependency(segments[i - 1], checkout ? null : version);
       }
     }
     return null;

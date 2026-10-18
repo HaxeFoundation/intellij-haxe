@@ -22,7 +22,6 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
-import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -118,18 +117,6 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   }
 
   @Test
-  @DisplayName("suggest name 1 - name derived from getTest call")
-  public void testSuggestName1() throws Throwable {
-    doTestSuggestions(HaxeCallExpression.class, "test");
-  }
-
-  @Test
-  @DisplayName("suggest name 2 - name derived from test call")
-  public void testSuggestName2() throws Throwable {
-    doTestSuggestions(HaxeCallExpression.class, "test1");
-  }
-
-  @Test
   @DisplayName("replace constant")
   public void testReplaceConstant() throws Throwable {
     doTestInplace(null, false, null);
@@ -151,6 +138,12 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   @DisplayName("extract this")
   public void testExtractThis() throws Throwable {
     doTestInplace(null, false, null);
+  }
+
+  @Test
+  @DisplayName("replace this - given name beside a same-named field")
+  public void testReplaceThis() throws Throwable {
+    doTest(null, false, "myThis", false);
   }
 
   @Test

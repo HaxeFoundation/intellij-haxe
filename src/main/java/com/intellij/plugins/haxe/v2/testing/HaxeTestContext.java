@@ -1,28 +1,19 @@
 package com.intellij.plugins.haxe.v2.testing;
 
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
-import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
-import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo;
-import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
-import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildClasspaths;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSections;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
-import com.intellij.plugins.haxe.v2.buildtools.LimeProjects;
+import com.intellij.plugins.haxe.v2.buildsystem.*;
+import com.intellij.plugins.haxe.v2.buildtools.*;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTestsBuildFileStore;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,24 +30,16 @@ import java.util.List;
  * the one with the most specific classpath wins, ties going to the earlier
  * candidate. An hxml build's work directory counts as a classpath (haxe's
  * implicit one), so a root-level tests build would otherwise claim every file
- * of a nested one. Nothing
- * claims a path outside every build. Resolved from a project-level
- * cache of the builds' classpaths, invalidated by the marked set, the VFS
- * structure and build-file content (see {@link #dependencies}) — never by
- * the whole-PSI counter, which bumps on every keystroke.
+ * of a nested one. Nothing claims a path outside every build. Resolved from a
+ * project-level cache of the builds' classpaths, dropped by the shared build
+ * inputs ({@link HaxeBuildInputs}: marks, sections, work directories, syncs,
+ * build-file content) and the VFS structure (see {@link #dependencies}) —
+ * never by the whole-PSI counter, which bumps on every keystroke.
  */
 public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull String testsBuildPath) {
 
   /** One tests build and the source directories it compiles. */
   private record Ownership(@NotNull HaxeTestContext context, @NotNull List<String> sourceDirectories) {
-    /** Length of the longest source directory containing the path, or -1 when none does. */
-    int specificity(@NotNull String pathAsPrefix) {
-      int longest = -1;
-      for (String directory : sourceDirectories) {
-        if (pathAsPrefix.startsWith(directory + "/")) longest = Math.max(longest, directory.length());
-      }
-      return longest;
-    }
   }
 
   /** The file's context, or null when no marked-or-conventional tests build owns it (or its framework has no single-run support). */
@@ -75,17 +58,8 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
   @Nullable
   private static HaxeTestContext forPath(@NotNull Project project, @NotNull String path) {
     // TODO: a directory ABOVE a classpath root (the tests build's own directory) is claimed by nothing
-    String pathAsPrefix = path + "/";
-    HaxeTestContext owner = null;
-    int ownerSpecificity = -1;
-    for (Ownership ownership : ownerships(project)) {
-      int specificity = ownership.specificity(pathAsPrefix);
-      if (specificity > ownerSpecificity) {
-        owner = ownership.context();
-        ownerSpecificity = specificity;
-      }
-    }
-    return owner;
+    List<Ownership> closest = HaxeBuildOwnership.closest(path, ownerships(project), Ownership::sourceDirectories);
+    return closest.isEmpty() ? null : closest.getFirst().context();
   }
 
   @NotNull
@@ -95,29 +69,23 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
   }
 
   private static Object @NotNull [] dependencies(@NotNull Project project) {
-    PsiModificationTracker psiTracker = PsiModificationTracker.getInstance(project);
-    return new Object[]{
-      HaxeTestsBuildFileStore.getInstance(project).getModificationTracker(),
-      VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-      psiTracker.forLanguage(HXMLLanguage.INSTANCE),
-      psiTracker.forLanguage(XMLLanguage.INSTANCE)};
+    // the candidate discovery enumerates the project's files, so the VFS structure counts too
+    return ArrayUtil.append(HaxeBuildInputs.getInstance(project).dependencies(), VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS);
   }
 
   @NotNull
   private static List<Ownership> computeOwnerships(@NotNull Project project) {
     List<Ownership> ownerships = new ArrayList<>();
     for (String testsPath : candidateTestsPaths(project)) {
-      VirtualFile testsFile = LocalFileSystem.getInstance().findFileByPath(testsPath);
-      if (testsFile == null || !testsFile.isValid()) continue;
+      HaxeBuildFile testsBuild = HaxeBuildFileScanner.findBuildFile(project, testsPath);
+      if (testsBuild == null) continue;
       // lime-family ownership/detection reads the project xml's DECLARED
       // sources and haxelibs (no tool run) - precise enough to claim a file
       // TODO single runs for nmml tests builds: nme's app-main override is unverified
-      HaxeBuildFileType type = HaxeBuildFileScanner.detectType(project, testsFile);
-      boolean supported = type == HaxeBuildFileType.HXML || LimeProjects.isLimeFamily(type);
+      boolean supported = testsBuild.type() == HaxeBuildFileType.HXML || LimeProjects.isLimeFamily(testsBuild.type());
       if (!supported) continue;
       // ONE inspection per candidate: its classpaths decide ownership, its
       // -lib declarations the framework
-      HaxeBuildFile testsBuild = new HaxeBuildFile(testsFile, type);
       HaxeBuildFileInfo info = HaxeBuildSections.inspectSelected(project, testsBuild);
       // a build declaring no framework lib offers no runs - the detection
       // default must not turn an application build into a utest run

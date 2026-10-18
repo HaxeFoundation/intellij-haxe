@@ -31,6 +31,7 @@ import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressi
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerTypeLookupService;
 import com.intellij.psi.*;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -149,6 +150,9 @@ public class HaxeExpressionEvaluator {
     if (element == null) {
       return createUnknown(context.root);
     }
+    // a declaration the compiler can type (parameter, variable, field, extracted value) skips the evaluation
+    ResultHolder compilerType = HaxeCompilerTypeLookupService.compilerTypeOf(element);
+    if (compilerType != null) return compilerType;
     HaxeGenericResolver resolver = optionalResolver != null ? optionalResolver: HaxeGenericResolverUtil.generateResolverFromScopeParents(element);
 
     if(log.isDebugEnabled())log.debug("Handling element: " + element);

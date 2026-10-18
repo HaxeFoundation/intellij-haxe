@@ -6,6 +6,8 @@ import com.intellij.psi.PsiFile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,6 +35,14 @@ public class HaxeToolConfigsTest extends HaxeLightFixtureTestCase {
     VirtualFile root = HaxeToolConfigs.findConfigDirectory(getProject(), top.getVirtualFile(), HaxeToolConfigs.FORMATTER_CONFIG_NAME);
     assertNotNull(root);
     assertEquals(top.getVirtualFile().getParent(), root);
+  }
+
+  @Test
+  @DisplayName("tool command puts modes before the sources")
+  public void testToolCommandPutsModesBeforeTheSources() {
+    List<String> command = HaxeToolConfigs.toolCommand("haxelib", "formatter", List.of("--check"), List.of("src", "test"));
+
+    assertEquals(List.of("haxelib", "run", "formatter", "--check", "-s", "src", "-s", "test"), command);
   }
 
   @Test

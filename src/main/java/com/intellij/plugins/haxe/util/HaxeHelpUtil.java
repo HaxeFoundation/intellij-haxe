@@ -19,43 +19,16 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 
-import java.io.File;
 
 public class HaxeHelpUtil {
 
-  public static String getHaxePath(Module myModule) {
-    String executable = HaxeSdkUtilBase.getExecutableName("haxe");
-
-    if (myModule != null) {
-      Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-      if (sdk != null) {
-        String haxeToolkitHome = sdk.getHomePath();
-        if(haxeToolkitHome != null && !haxeToolkitHome.isEmpty()) {
-          File haxeBin = new File(haxeToolkitHome, executable);
-          if(haxeBin.exists()) {
-            return haxeBin.toString();
-          }
-        }
-
-        SdkAdditionalData data = sdk.getSdkAdditionalData();
-        if (data instanceof HaxeSdkData) {
-          HaxeSdkData sdkData;
-          sdkData = (HaxeSdkData)data;
-          haxeToolkitHome = sdkData.getHomePath();
-          if(haxeToolkitHome != null && !haxeToolkitHome.isEmpty()) {
-            File haxeBin = new File(haxeToolkitHome, executable);
-            if(haxeBin.exists()) {
-              return haxeBin.toString();
-            }
-          }
-        }
-      }
-    }
-
-    return executable;
+  /** The compiler for the module: its SDK's haxe (in the home or its bin), else the bare name for a PATH lookup. */
+  public static String getHaxePath(Module module) {
+    Sdk sdk = module != null ? ModuleRootManager.getInstance(module).getSdk() : null;
+    String home = sdk != null ? sdk.getHomePath() : null;
+    String compiler = home != null ? HaxeSdkUtilBase.getCompilerPathByFolderPath(home) : null;
+    return compiler != null ? compiler : HaxeSdkUtilBase.getExecutableName("haxe");
   }
 }

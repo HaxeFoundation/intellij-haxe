@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.display.protocol.server;
 
+import com.intellij.plugins.haxe.display.protocol.JsonPos;
 import com.intellij.plugins.haxe.display.protocol.JsonTypeRef;
 import java.util.List;
 
@@ -16,7 +17,8 @@ public record TypeBlueprint(String name,
                             List<Member> statics) {
 
   /** {@code fieldKind} is the JsonClassField kind: FMethod, FVar or FProp. */
-  public record Member(String name, JsonTypeRef type, String fieldKind) {
+  /** A member with its compiler type and, where the answer carries one, the position of its declaration. */
+  public record Member(String name, JsonTypeRef type, String fieldKind, JsonPos pos) {
     public boolean isMethod() {
       return "FMethod".equals(fieldKind);
     }

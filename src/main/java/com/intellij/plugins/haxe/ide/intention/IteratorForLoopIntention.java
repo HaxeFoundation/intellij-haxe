@@ -10,8 +10,8 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.refactoring.introduceVariable.HaxeIntroduceHandler;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
+import com.intellij.plugins.haxe.model.evaluator.HaxeIterationProtocol;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -21,6 +21,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -86,19 +87,10 @@ public class IteratorForLoopIntention extends BaseIntentionAction {
      return psiElement instanceof HaxeReference reference ? reference : PsiTreeUtil.getParentOfType(psiElement, HaxeReference.class);
   }
 
-  private boolean hasIterator(HaxeReference reference) {
+  private static boolean hasIterator(@Nullable HaxeReference reference) {
     if (reference == null) return false;
-
-    ResultHolder holder = HaxeExpressionEvaluator.evaluate(reference, null).result;
-    SpecificHaxeClassReference resolvedType = holder.getClassType();
-    if (resolvedType == null) return false;
-
-    return resolvedType.isLiteralArray() || hasIterator(resolvedType);
-  }
-
-  private boolean hasIterator(SpecificHaxeClassReference type) {
-    if (type.getHaxeClassModel() == null) return false;
-    return  type.getHaxeClassModel().getMember("iterator", null) != null;
+    ResultHolder value = HaxeExpressionEvaluator.evaluate(reference, null).result;
+    return HaxeIterationProtocol.iterates(value, false, reference);
   }
 
 }

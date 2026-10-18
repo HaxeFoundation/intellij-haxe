@@ -6,12 +6,19 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.fqn.HaxeFullyQualifiedClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerTypeCatalogService.GeneratedType;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerDisplayService.DisplayContext;
+import com.intellij.pom.PomTargetPsiElement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +33,8 @@ import java.util.List;
  * Live IDE integration, opt-in with {@code -PliveCompilerTests=true}. Covers
  * the full chain from a real {@code haxe --wait} compilation server to what
  * the user sees: the type catalog discovering a {@code Context.defineType}
- * type, the unified indexes resolving it, and completion offering it.
+ * type, the unified indexes resolving it, completion offering it, and
+ * go-to-declaration on a member a build macro generated.
  * Fixtures live in {@code testData/liveCompiler/}. Skips itself when haxe is
  * not on the PATH.
  *
@@ -40,6 +48,8 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
 
   private static final String GENERATED_FQN = "gen.GeneratedThing";
 
+  private VirtualFile mainFile;
+
   @Override
   protected String getBasePath() {
     return "/liveCompiler/";
@@ -51,20 +61,26 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
 
     // real files on disk: the compilation server compiles what the fixture copied
     VirtualFile buildFile = myFixture.copyFileToProject("build.hxml");
-    myFixture.copyFileToProject("Main.hx");
+    mainFile = myFixture.copyFileToProject("Main.hx");
     myFixture.copyFileToProject("GenMacro.hx");
+    myFixture.copyFileToProject("Settings.hx");
+    myFixture.copyFileToProject("AccessorMacro.hx");
 
-    // the module's Build command supplies the display context (same wiring the
-    // tool window's Compile command row writes)
+    // the module's Build command as the tool window's row writes it; the
+    // compiler features work without one too (see the test that clears it)
     String containerId = myFixture.getModule().getName();
     HaxeEnvironmentStore.CompileCommand command =
       new HaxeEnvironmentStore.CompileCommand(buildFile.getPath(), null, "");
     HaxeEnvironmentStore.getInstance(getProject()).setCompileCommand(containerId, command);
+    // the catalog and the blueprints answer only while the compiler features are on
+    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
+    settings.setCompilerIdeFeaturesEnabled(true);
+    settings.setGeneratedMemberPreviewEnabled(true);
   }
 
   @AfterEach
   void stopCompilationServer() {
-    HaxeCompilationServerManager.getInstance(getProject()).stop();
+    HaxeCompilationServerManager.getInstance(getProject()).stopAll();
   }
 
   @Test
@@ -123,6 +139,46 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
     }
   }
 
+  @Test
+  @Timeout(180)
+  @DisplayName("go to declaration on a build macro member opens the generated preview")
+  public void testGoToDeclarationOnABuildMacroMemberOpensTheGeneratedPreview() {
+    PsiElement[] targets = gotoDeclarationTargetsOfGeneratedGetter();
+
+    assertEquals(1, targets.length);
+    PomTargetPsiElement wrapper = assertInstanceOf(PomTargetPsiElement.class, targets[0]);
+    HaxeGeneratedPreviewTarget preview = assertInstanceOf(HaxeGeneratedPreviewTarget.class, wrapper.getTarget());
+    assertEquals(HaxeGeneratedPreviewSpot.ofType("Settings", "getWidth"), preview.spot());
+  }
+
+  @Test
+  @Timeout(180)
+  @DisplayName("go to declaration on a build macro member opens the generated preview without a build command")
+  public void testGoToDeclarationOnABuildMacroMemberOpensTheGeneratedPreviewWithoutABuildCommand() {
+    String containerId = myFixture.getModule().getName();
+    HaxeEnvironmentStore.getInstance(getProject()).setCompileCommand(containerId, null);
+
+    PsiElement[] targets = gotoDeclarationTargetsOfGeneratedGetter();
+
+    assertEquals(1, targets.length);
+    PomTargetPsiElement wrapper = assertInstanceOf(PomTargetPsiElement.class, targets[0]);
+    assertInstanceOf(HaxeGeneratedPreviewTarget.class, wrapper.getTarget());
+  }
+
+  @Test
+  @Timeout(180)
+  @DisplayName("go to declaration on a build macro member lands on the macro position while the preview is off")
+  public void testGoToDeclarationOnABuildMacroMemberLandsOnTheMacroPositionWhileThePreviewIsOff() {
+    HaxeCompilerSettings.getInstance(getProject()).setGeneratedMemberPreviewEnabled(false);
+
+    PsiElement[] targets = gotoDeclarationTargetsOfGeneratedGetter();
+
+    assertEquals(1, targets.length);
+    HaxeNamedComponent sourceField = PsiTreeUtil.getParentOfType(targets[0], HaxeNamedComponent.class, false);
+    assertNotNull(sourceField, "the macro gave the getter the position of its source field");
+    assertEquals("width", sourceField.getName());
+  }
+
   /**
    * The FIRST fill spawns the compilation server, whose start event queues a
    * cache invalidation on the EDT (correct in production: caches die with
@@ -135,5 +191,28 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
     catalog.fillNowForTests();
     UIUtil.dispatchAllInvocationEvents();
     catalog.fillNowForTests();
+  }
+
+  /** Blueprint hydration against the running server, twice for the reason {@link #fillCatalogStably()} gives. */
+  private void hydrateStably(@NotNull DisplayContext context, @NotNull String dotPath) {
+    HaxeCompilerResolveService resolveService = HaxeCompilerResolveService.getInstance(getProject());
+    resolveService.hydrateNowForTests(context, dotPath);
+    UIUtil.dispatchAllInvocationEvents();
+    resolveService.hydrateNowForTests(context, dotPath);
+  }
+
+  /** The compiler handler's targets for {@code settings.getWidth()} in Main.hx, once the blueprint declaring it is in. */
+  private PsiElement @NotNull [] gotoDeclarationTargetsOfGeneratedGetter() {
+    myFixture.configureFromExistingVirtualFile(mainFile);
+    DisplayContext context = HaxeCompilerDisplayService.getInstance(getProject()).contextFor(mainFile);
+    assertNotNull(context, "Main.hx must have the build's display context");
+    hydrateStably(context, "Settings");
+
+    int offset = myFixture.getEditor().getDocument().getText().indexOf("getWidth") + 1;
+    PsiElement source = myFixture.getFile().findElementAt(offset);
+    HaxeCompilerGotoDeclarationHandler handler = new HaxeCompilerGotoDeclarationHandler();
+    PsiElement[] targets = handler.getGotoDeclarationTargets(source, offset, myFixture.getEditor());
+    assertNotNull(targets, "the compiler handler must answer for the generated getter");
+    return targets;
   }
 }

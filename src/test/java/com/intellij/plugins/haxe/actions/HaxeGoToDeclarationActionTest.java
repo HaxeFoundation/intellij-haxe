@@ -77,15 +77,9 @@ public class HaxeGoToDeclarationActionTest extends HaxeToolkitLightFixtureTestCa
   }
 
   @Test
-  @DisplayName("function parameter")
-  public void testFunctionParameter() {
-    doTest(myFixture.configureByFiles("FunctionParameter.hx", "com/bar/Foo.hx"), 1);
-  }
-
-  @Test
-  @DisplayName("interface parameter")
-  public void testInterfaceParameter() {
-    doTest(myFixture.configureByFiles("InterfaceDeclaration.hx", "com/bar/IBar.hx"), 1);
+  @DisplayName("type in function parameter tag")
+  public void testTypeInFunctionParameterTag() {
+    doTest(myFixture.configureByFiles("TypeInFunctionParameterTag.hx", "com/bar/Foo.hx"), 1);
   }
 
   @Test

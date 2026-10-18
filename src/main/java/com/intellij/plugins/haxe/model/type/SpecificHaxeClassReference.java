@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
@@ -379,7 +380,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
               specific = paramModel.getInstanceType();
             }
           }
-          if(!hasReachedRestTypeParam && "Rest".equals(paramModel.getName())) {
+          if (!hasReachedRestTypeParam && HaxeClassModel.isGenericBuildRestParam(paramModel.getName())) {
               hasReachedRestTypeParam = true;
           }
           if (hasTypeParamRest && hasReachedRestTypeParam) {

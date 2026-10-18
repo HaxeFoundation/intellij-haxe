@@ -3,56 +3,57 @@ package com.intellij.plugins.haxe.v2.runconfig;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
-import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration.Lane;
-import com.intellij.plugins.haxe.util.HaxeReadActions;
-import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration;
-import com.intellij.plugins.haxe.runner.debugger.browser.BrowserConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
-import com.intellij.plugins.haxe.runner.debugger.flash.*;
+import com.intellij.plugins.haxe.runner.debugger.flash.AirRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.flash.FlashRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunConfiguration;
-import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkConfigurationFactory;
-import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
-import com.intellij.plugins.haxe.runner.debugger.interp.InterpConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpRunConfiguration;
+import com.intellij.plugins.haxe.runner.HaxeRuntimeRunConfiguration;
+import com.intellij.plugins.haxe.util.HaxeReadActions;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
-import com.intellij.plugins.haxe.runner.neko.NekoConfigurationFactory;
-import com.intellij.plugins.haxe.runner.neko.NekoRunConfiguration;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSystem;
+import com.intellij.plugins.haxe.v2.buildtools.HxcppExecutables;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildWorkDirectories;
 import com.intellij.plugins.haxe.v2.buildtools.LimeProjects;
-import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeLaunchKind.Parameter;
+import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Consumer;
 
-/// Maps a build's compilation target to the run configuration able to launch its
-/// output (the tool window's Build & run): HL bytecode → HashLink Application,
-/// JS → Browser, a swf → Flash (or AIR when the selected lime target is air), C++ → hxcpp, neko → Neko.
-/// For hxml files the target comes from the file itself;
-/// for lime/openfl/hxp files from the selected target's evaluation. The
-/// configuration is created once with a "Run Haxe action" build step attached and
-/// matched by that step's build file afterwards, so tree launches and the
-/// run-configuration dropdown stay in sync.
+/// Maps a build's compilation target to the [HaxeLaunchKind] able to launch its
+/// output (the tool window's Build & run) and creates or finds that
+/// configuration. For hxml files the target comes from the file itself; for
+/// lime/openfl/hxp files from the selected target's evaluation. A
+/// configuration is created once with a "Run Haxe action" build step attached
+/// and matched by that step's build file and action afterwards, so tree
+/// launches and the run-configuration dropdown stay in sync; a launching
+/// custom action gets a configuration of its own, keyed by its name.
 ///
-/// CPP is wired for lime-family and nmml files only (both tools name the
-/// executable after `<app file>` regardless of -debug); for plain hxml a
-/// -debug build renames the executable (Main-debug.exe), so run and debug launch
-/// different artifacts — a single static executable path cannot serve both
-/// executors yet.
+/// CPP launches the executable the build links. Lime-family and nmml files
+/// name it after `<app file>` whatever the build type. A plain hxml build
+/// names it after the main class, with `-debug` for a debug build, so its
+/// configuration holds `${executable}` and resolves the name per launch
+/// ([HxcppExecutables]); an hxml linking a library or building for another
+/// platform gets no launch.
 ///
 /// An interpreter build (`--interp`) writes no output to launch: compiling IS
 /// running. Its Haxe Interpreter configuration runs the hxml the way the Build
@@ -60,101 +61,73 @@ import java.util.Locale;
 /// step, and is matched by the hxml its arguments name.
 public final class HaxeProgramLaunches {
 
+  private static final List<HaxeLaunchKind> NODE_FIRST = List.of(HaxeLaunchKind.NODE, HaxeLaunchKind.BROWSER);
+  private static final List<HaxeLaunchKind> BROWSER_FIRST = List.of(HaxeLaunchKind.BROWSER, HaxeLaunchKind.NODE);
+
   private HaxeProgramLaunches() {
   }
-
-  /**
-   * The configuration flavour serving one target's output, the factory that
-   * creates it and the bundle key naming a created configuration.
-   */
-  record LaunchSpec(@NotNull Class<? extends RunConfiguration> configurationClass,
-                    @NotNull Class<? extends ConfigurationFactory> factoryClass,
-                    @NotNull String nameKey) {
-  }
-
-  private static final LaunchSpec HASHLINK_APP = new LaunchSpec(
-    HashLinkRunConfiguration.class, HashLinkConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.hashlink");
-  private static final LaunchSpec BROWSER_APP = new LaunchSpec(
-    BrowserRunConfiguration.class, BrowserConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.browser");
-  private static final LaunchSpec FLASH_APP = new LaunchSpec(
-    FlashRunConfiguration.class, FlashConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.flash");
-  private static final LaunchSpec AIR_APP = new LaunchSpec(
-    AirRunConfiguration.class, AirConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.air");
-  private static final LaunchSpec HXCPP_APP = new LaunchSpec(
-    HxcppIntellijRunConfiguration.class, HxcppIntellijConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.hxcpp");
-  private static final LaunchSpec NEKO_APP = new LaunchSpec(
-    NekoRunConfiguration.class, NekoConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.neko");
-  private static final LaunchSpec INTERP_APP = new LaunchSpec(
-    InterpRunConfiguration.class, InterpConfigurationFactory.class, "haxe.toolwindow.program.configuration.name.interp");
 
   /**
    * The single authority on which run configuration launches which target
    * output. {@code targetFlag} is the lime/nme target the file is set to
    * build (null for hxml): a swf launches as AIR only when that flag is
    * lime's air target - the output path says nothing reliable about it,
-   * since the air export directory is configurable.
+   * since the air export directory is configurable. {@code defines} decide
+   * whether an hxml C++ build links an executable this machine runs.
    */
   @Nullable
-  static LaunchSpec specFor(@NotNull HaxeTarget target,
-                            @NotNull String targetOutput,
-                            @NotNull HaxeBuildFileType type,
-                            @Nullable String targetFlag) {
+  static HaxeLaunchKind kindFor(@NotNull HaxeTarget target,
+                                @NotNull String targetOutput,
+                                @NotNull HaxeBuildFileType type,
+                                @Nullable String targetFlag,
+                                @NotNull List<HaxeDefine> defines) {
     String output = targetOutput.toLowerCase(Locale.ROOT);
     return switch (target) {
       // HL/C output (-hl out/main.c) is a source directory, not runnable bytecode
-      case HL -> output.endsWith(".hl") ? HASHLINK_APP : null;
-      case JAVA_SCRIPT -> output.endsWith(".js") ? BROWSER_APP : null;
+      case HL -> output.endsWith(".hl") ? HaxeLaunchKind.HASHLINK : null;
+      // lime's electron target runs in Electron, neither a browser nor plain node
+      case JAVA_SCRIPT -> output.endsWith(".js") && !LimeProjects.isElectronTarget(targetFlag) ? HaxeLaunchKind.BROWSER : null;
       case FLASH -> {
         if (!output.endsWith(".swf")) yield null;
-        yield LimeProjects.isAirTarget(targetFlag) ? AIR_APP : FLASH_APP;
+        yield LimeProjects.isAirTarget(targetFlag) ? HaxeLaunchKind.AIR : HaxeLaunchKind.FLASH;
       }
-      case CPP -> type != HaxeBuildFileType.HXML ? HXCPP_APP : null;
+      case CPP -> type != HaxeBuildFileType.HXML || HxcppExecutables.buildsHostExecutable(defines) ? HaxeLaunchKind.HXCPP : null;
       // hxml runs the .n through the neko runtime; lime/nme package a launcher
-      case NEKO -> type != HaxeBuildFileType.HXML || output.endsWith(".n") ? NEKO_APP : null;
-      case INTERP -> INTERP_APP;
+      case NEKO -> type != HaxeBuildFileType.HXML || output.endsWith(".n") ? HaxeLaunchKind.NEKO : null;
+      case INTERP -> HaxeLaunchKind.INTERP;
       default -> null;
     };
   }
 
   /**
-   * The profiler lane the build's launch configuration profiles under,
-   * null for targets without one. Flash profiles only as AIR: adl's
-   * debugger runtime carries the telemetry sampler; the standalone player
-   * launch does not.
+   * Every kind launching this build's output, the likelier first. JS from an
+   * hxml may be browser code or a Node.js program, and nothing in the build
+   * proves which (a shared hxml, a bundler in between), so it gets both:
+   * hxnodejs or {@code -D nodejs} puts Node.js first. The lime family's html5
+   * is a browser build.
    */
-  @Nullable
-  public static Lane profilingLaneFor(@NotNull Project project, @NotNull HaxeBuildFile buildFile, @NotNull HaxeTarget target) {
-    return switch (target) {
-      case HL -> Lane.HASHLINK;
-      case CPP -> Lane.HXCPP;
-      case JAVA_SCRIPT -> Lane.JS;
-      case FLASH -> LimeProjects.isAirTarget(selectedTargetFlag(project, buildFile)) ? Lane.FLASH : null;
-      default -> null;
-    };
+  @NotNull
+  public static List<HaxeLaunchKind> launchKinds(@NotNull Project project,
+                                                 @NotNull HaxeBuildFileInfo info,
+                                                 @NotNull HaxeBuildFile buildFile) {
+    HaxeLaunchKind kind = launchKind(project, info, buildFile);
+    if (kind == null) return List.of();
+    if (kind != HaxeLaunchKind.BROWSER || buildFile.type() != HaxeBuildFileType.HXML) return List.of(kind);
+    return info.hasNodeSignal() ? NODE_FIRST : BROWSER_FIRST;
   }
 
-  /** Display name of the configuration kind that launches this build ("HashLink Application", …), or null when unsupported. */
+  /** The likeliest kind launching this build's output, or null when nothing can. */
   @Nullable
-  public static String launchKind(@NotNull Project project, @NotNull HaxeBuildFileInfo info, @NotNull HaxeBuildFile buildFile) {
+  private static HaxeLaunchKind launchKind(@NotNull Project project, @NotNull HaxeBuildFileInfo info, @NotNull HaxeBuildFile buildFile) {
     String output = launchOutput(info);
     if (info.target() == null || output == null) return null;
-    LaunchSpec spec = specFor(info.target(), output, buildFile.type(), selectedTargetFlag(project, buildFile));
-    return spec == null ? null : factoryOf(spec).getName();
+    return kindFor(info.target(), output, buildFile.type(), selectedTargetFlag(project, buildFile), info.defines());
   }
 
   /** The lime/nme target flag the file is currently set to build; null for hxml, whose target is in the file itself. */
   @Nullable
   private static String selectedTargetFlag(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
     return HaxeBuildSystem.of(buildFile.type()).selectedTargetFlag(project, buildFile);
-  }
-
-  /**
-   * Whether the target's launch compiles the build file first and then runs
-   * its output. The interpreter compiles AS it runs: a build step before it
-   * would run the program once before the launch does.
-   */
-  public static boolean compilesBeforeLaunch(@NotNull HaxeTarget target) {
-    return target != HaxeTarget.INTERP;
   }
 
   /**
@@ -167,183 +140,167 @@ public final class HaxeProgramLaunches {
   }
 
   /**
-   * The build's launch configuration: the registered one when present (matched by
-   * target class + the build step's build file, so renames don't duplicate it),
-   * else a new one added to the RunManager.
+   * The configuration launching {@code buildFile}'s output through {@code kind}
+   * after the action named {@code buildAction} compiled it: the registered one
+   * when present (matched by kind + build file + action, so renaming the
+   * configuration does not duplicate it), else a new one added to the
+   * RunManager. Parameters: the
+   * kind's defaults derived from the build file, overlaid with the non-blank
+   * {@code overrides} - a blank override keeps the default live.
    */
-  @Nullable
+  @NotNull
   public static RunnerAndConfigurationSettings findOrCreate(@NotNull Project project,
                                                             @NotNull Module module,
                                                             @NotNull HaxeBuildFile buildFile,
-                                                            @NotNull HaxeTarget target,
-                                                            @NotNull String targetOutput) {
-    LaunchSpec spec = specFor(target, targetOutput, buildFile.type(), selectedTargetFlag(project, buildFile));
-    if (spec == null) return null;
+                                                            @NotNull HaxeLaunchKind kind,
+                                                            @NotNull String targetOutput,
+                                                            @NotNull String buildAction,
+                                                            @NotNull Map<Parameter, String> overrides,
+                                                            boolean injectDebugArguments) {
     VirtualFile file = buildFile.file();
+    Map<Parameter, String> parameters = defaultParameters(project, buildFile, kind, targetOutput);
+    overrides.forEach((parameter, value) -> {
+      if (!StringUtil.isEmptyOrSpaces(value)) parameters.put(parameter, value.trim());
+    });
 
     RunnerAndConfigurationSettings existing = RunManager.getInstance(project).getAllSettings().stream()
-      .filter(candidate -> matches(candidate, spec.configurationClass(), file.getPath()))
+      .filter(candidate -> matches(candidate, kind, file.getPath(), buildAction))
       .findFirst()
       .orElse(null);
-
     if (existing != null) {
       // the DERIVED fields (artifact/launcher paths) follow the build file's
       // current layout - a reused configuration must not keep values baked
       // when the export layout was different
-      configure(existing, buildFile, targetOutput);
+      apply(existing.getConfiguration(), parameters);
       return existing;
     }
 
-    String name = HaxeBundle.message(spec.nameKey(), file.getName());
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name, factoryOf(spec));
-    configure(settings, buildFile, targetOutput);
+    boolean defaultBuild = buildAction.equals(HaxeBuildSystem.of(buildFile.type()).defaultBuildActionName());
+    String name = kind.configurationName(defaultBuild ? file.getName() : file.getName() + " " + buildAction);
+    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name, kind.factory());
+    apply(settings.getConfiguration(), parameters);
     DapRunConfigurationBase configuration = (DapRunConfigurationBase)settings.getConfiguration();
     configuration.setModule(module);
 
     // an empty list also drops the platform's default Build step
-    List<BeforeRunTask<?>> beforeLaunch = compilesBeforeLaunch(target) ? List.of(buildStep(buildFile)) : List.of();
+    List<BeforeRunTask<?>> beforeLaunch = kind.compilesBeforeLaunch()
+                                          ? List.of(buildStep(buildFile, buildAction, injectDebugArguments))
+                                          : List.of();
     configuration.setBeforeRunTasks(beforeLaunch);
 
     RunManager.getInstance(project).addConfiguration(settings);
     return settings;
   }
 
+  /**
+   * The kind's parameters as the build file's layout dictates: the artifact
+   * the selected target writes and, for the lime family, the launcher packaged
+   * beside it. A parameter the file gives no value for is absent, and the
+   * visible configuration prompts for it.
+   */
   @NotNull
-  private static ConfigurationFactory factoryOf(@NotNull LaunchSpec spec) {
-    return HaxeRunConfigurationType.getInstance().getFactory(spec.factoryClass());
-  }
-
-  /**
-   * hxml: the neko runtime executes the {@code .n} bytecode (the configured
-   * Build Tools neko, else the bare name from PATH). lime and nme both wrap
-   * the bytecode in a launcher executable, which runs directly - lime's
-   * target output points inside obj with the launcher in bin beside it
-   * (same layout the hxcpp and HL configs navigate); nme's target output IS
-   * the launcher.
-   */
-  private static void configureNeko(@NotNull Project project,
-                                    @NotNull NekoRunConfiguration configuration,
-                                    @NotNull HaxeBuildFile buildFile,
-                                    @NotNull String targetOutput) {
-    Path output = resolvedOutput(project, buildFile.file(), targetOutput);
-    if (buildFile.type() == HaxeBuildFileType.HXML) {
-      // empty executable = the neko RUNTIME, resolved at launch (settings/SDK/PATH)
-      configuration.setExecutablePath("");
-      configuration.setProgramArguments(output.toString());
-      configuration.setWorkingDirectory(String.valueOf(output.getParent()));
-      return;
+  public static Map<Parameter, String> defaultParameters(@NotNull Project project,
+                                                         @NotNull HaxeBuildFile buildFile,
+                                                         @NotNull HaxeLaunchKind kind,
+                                                         @NotNull String targetOutput) {
+    Map<Parameter, String> parameters = new EnumMap<>(Parameter.class);
+    switch (kind) {
+      case HASHLINK -> hashLinkDefaults(project, buildFile, targetOutput, parameters);
+      case BROWSER -> browserDefaults(project, buildFile, targetOutput, parameters);
+      case NODE -> runtimeDefaults(HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput), parameters);
+      case FLASH -> parameters.put(Parameter.SWF, HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput).toString());
+      case AIR -> airDefaults(project, buildFile, targetOutput, parameters);
+      case HXCPP -> hxcppDefaults(project, buildFile, targetOutput, parameters);
+      case NEKO -> nekoDefaults(project, buildFile, targetOutput, parameters);
+      case INTERP -> interpDefaults(project, buildFile, parameters);
     }
-
-    Path launcher = output;
-    if (LimeProjects.isLimeFamily(buildFile.type())) {
-      // lime's target output points inside obj; the launcher is bin/<app file> beside it
-      Path binDir = binDirBesideObj(output.getParent());
-      String appFile = appFileName(buildFile);
-      if (binDir != null && appFile != null) {
-        launcher = binDir.resolve(HaxeSdkUtilBase.getExecutableName(appFile));
-      }
-    }
-    configuration.setExecutablePath(launcher.toString());
+    return parameters;
   }
 
-  /**
-   * The hxml as the Build action runs it: its working directory (override or
-   * sniffed) and the file argument relative to it. Extra arguments and the
-   * interpreter checkbox stay the user's.
-   */
-  private static void configureInterp(@NotNull Project project,
-                                      @NotNull InterpRunConfiguration configuration,
-                                      @NotNull HaxeBuildFile buildFile) {
-    String workDirectory = HaxeBuildWorkDirectories.workDirectory(project, buildFile.file());
-    configuration.setWorkingDirectory(StringUtil.notNullize(workDirectory));
-    configuration.setCompilerArguments(HaxeBuildWorkDirectories.fileArgument(buildFile.file(), workDirectory));
-  }
-
-  /** Applies the derived fields (artifact/launcher paths) onto a configuration; user-owned fields (SDK, browser choice...) stay. */
-  private static void configure(@NotNull RunnerAndConfigurationSettings settings,
-                                @NotNull HaxeBuildFile buildFile,
-                                @NotNull String targetOutput) {
-    Project project = settings.getConfiguration().getProject();
-    switch (settings.getConfiguration()) {
-      case HashLinkRunConfiguration configuration -> configureHashLink(project, configuration, buildFile, targetOutput);
-      case BrowserRunConfiguration configuration -> configureBrowser(project, configuration, buildFile, targetOutput);
-      case FlashRunConfiguration configuration -> configureFlash(project, configuration, buildFile, targetOutput);
-      case AirRunConfiguration configuration -> configureAir(project, configuration, buildFile, targetOutput);
-      case HxcppIntellijRunConfiguration configuration ->
-        configureHxcppExecutable(configuration, buildFile, resolvedOutput(project, buildFile.file(), targetOutput));
-      case NekoRunConfiguration configuration -> configureNeko(project, configuration, buildFile, targetOutput);
-      case InterpRunConfiguration configuration -> configureInterp(project, configuration, buildFile);
+  /** Writes the parameters onto a configuration of the matching kind; fields without a parameter (SDK, browser choice...) stay. */
+  public static void apply(@NotNull RunConfiguration configuration, @NotNull Map<Parameter, String> parameters) {
+    switch (configuration) {
+      case HashLinkRunConfiguration hashLink -> applyHashLink(hashLink, parameters);
+      case BrowserRunConfiguration browser -> ifPresent(parameters, Parameter.CONTENT_ROOT, browser::setContentRoot);
+      case FlashRunConfiguration flash -> ifPresent(parameters, Parameter.SWF, flash::setSwfFilePath);
+      case AirRunConfiguration air -> applyAir(air, parameters);
+      case HxcppIntellijRunConfiguration hxcpp -> ifPresent(parameters, Parameter.EXECUTABLE, hxcpp::setExecutablePath);
+      case HaxeRuntimeRunConfiguration runtime -> applyRuntime(runtime, parameters);
+      case InterpRunConfiguration interp -> applyInterp(interp, parameters);
       default -> { }
     }
   }
 
-  private static void configureHashLink(@NotNull Project project,
-                                        @NotNull HashLinkRunConfiguration configuration,
-                                        @NotNull HaxeBuildFile buildFile,
-                                        @NotNull String targetOutput) {
-    Path output = resolvedOutput(project, buildFile.file(), targetOutput);
-    if (buildFile.type() == HaxeBuildFileType.HXML) {
-      configuration.setHlFilePath(output.toString());
-    }
-    else {
-      configureLimeHashLink(configuration, buildFile, output);
-    }
-  }
-
-  private static void configureBrowser(@NotNull Project project,
-                                       @NotNull BrowserRunConfiguration configuration,
-                                       @NotNull HaxeBuildFile buildFile,
-                                       @NotNull String targetOutput) {
-    // serve mode hosts the directory containing the compiled .js (plus its
-    // source map and index.html); the browser is picked in the editor
-    Path outputDirectory = resolvedOutput(project, buildFile.file(), targetOutput).getParent();
-    if (outputDirectory != null) {
-      configuration.setContentRoot(outputDirectory.toString());
-    }
-  }
-
-  private static void configureFlash(@NotNull Project project,
-                                     @NotNull FlashRunConfiguration configuration,
-                                     @NotNull HaxeBuildFile buildFile,
-                                     @NotNull String targetOutput) {
-    configuration.setSwfFilePath(resolvedOutput(project, buildFile.file(), targetOutput).toString());
-    // the flex SDK and player cannot be guessed - the visible config prompts for them
-  }
-
-  /**
-   * lime's air target exports the descriptor (application.xml) at the
-   * target root with the content (swf) in {@code bin/} beside it, whatever
-   * the configured output directory - the target output names the swf.
-   */
-  private static void configureAir(@NotNull Project project,
-                                   @NotNull AirRunConfiguration configuration,
-                                   @NotNull HaxeBuildFile buildFile,
-                                   @NotNull String targetOutput) {
-    Path binDir = resolvedOutput(project, buildFile.file(), targetOutput).getParent();
-    if (binDir == null || binDir.getParent() == null) return;
-    configuration.setDescriptorPath(binDir.getParent().resolve("application.xml").toString());
-    configuration.setContentRootPath(binDir.toString());
-    // the flex/AIR SDK cannot be guessed - the visible config prompts for it
+  private static void ifPresent(@NotNull Map<Parameter, String> parameters,
+                                @NotNull Parameter parameter,
+                                @NotNull Consumer<String> setter) {
+    String value = parameters.get(parameter);
+    if (value != null) setter.accept(value);
   }
 
   /// lime packages an HL build into `<export>/hl/bin`: the obj bytecode
   /// becomes `bin/hlboot.dat`, next to a renamed copy of the hl runtime
   /// (`<app file>[.exe]`) carrying the game's .hdll libraries. The SDK's
-  /// plain hl executable cannot run that game, so the configuration points at
-  /// hlboot.dat and overrides the runtime with the bundled executable.
-  private static void configureLimeHashLink(@NotNull HashLinkRunConfiguration configuration,
-                                            @NotNull HaxeBuildFile buildFile,
-                                            @NotNull Path objOutput) {
-    // the HL output path points at a file INSIDE obj - its parent is the obj dir
-    Path binDir = binDirBesideObj(objOutput.getParent());
+  /// plain hl executable cannot run that game, so the launch points at
+  /// hlboot.dat and overrides the runtime with the bundled executable. An
+  /// hxml's `.hl` runs on the SDK's hl.
+  private static void hashLinkDefaults(@NotNull Project project,
+                                       @NotNull HaxeBuildFile buildFile,
+                                       @NotNull String targetOutput,
+                                       @NotNull Map<Parameter, String> parameters) {
+    Path output = HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput);
+    if (buildFile.type() == HaxeBuildFileType.HXML) {
+      parameters.put(Parameter.HL_FILE, output.toString());
+      return;
+    }
+    Path beside = LimeProjects.binDirBesideObj(output);
+    Path binDir = beside != null ? beside : output.getParent();
     if (binDir == null) return;
-    configuration.setHlFilePath(binDir.resolve("hlboot.dat").toString());
-
+    parameters.put(Parameter.HL_FILE, binDir.resolve(LimeProjects.HL_BOOT_FILE).toString());
     String appFile = appFileName(buildFile);
     if (appFile != null) {
-      configuration.setUseCustomHlBinary(true);
-      configuration.setCustomHlBinaryPath(binDir.resolve(HaxeSdkUtilBase.getExecutableName(appFile)).toString());
+      parameters.put(Parameter.HL_BINARY, binDir.resolve(HaxeSdkUtilBase.getExecutableName(appFile)).toString());
     }
+  }
+
+  private static void applyHashLink(@NotNull HashLinkRunConfiguration configuration, @NotNull Map<Parameter, String> parameters) {
+    ifPresent(parameters, Parameter.HL_FILE, configuration::setHlFilePath);
+    String binary = parameters.get(Parameter.HL_BINARY);
+    if (binary != null) {
+      configuration.setUseCustomHlBinary(true);
+      configuration.setCustomHlBinaryPath(binary);
+    }
+  }
+
+  /// Serve mode hosts the directory containing the compiled .js (plus its
+  /// source map and index.html); the browser is picked in the editor.
+  private static void browserDefaults(@NotNull Project project,
+                                      @NotNull HaxeBuildFile buildFile,
+                                      @NotNull String targetOutput,
+                                      @NotNull Map<Parameter, String> parameters) {
+    Path outputDirectory = HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput).getParent();
+    if (outputDirectory != null) {
+      parameters.put(Parameter.CONTENT_ROOT, outputDirectory.toString());
+    }
+  }
+
+  /// lime's air target exports the descriptor (application.xml) at the
+  /// target root with the content (swf) in `bin/` beside it, whatever the
+  /// configured output directory - the target output names the swf. The
+  /// flex/AIR SDK cannot be guessed; the visible configuration prompts for it.
+  private static void airDefaults(@NotNull Project project,
+                                  @NotNull HaxeBuildFile buildFile,
+                                  @NotNull String targetOutput,
+                                  @NotNull Map<Parameter, String> parameters) {
+    Path binDir = HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput).getParent();
+    if (binDir == null || binDir.getParent() == null) return;
+    parameters.put(Parameter.DESCRIPTOR, binDir.getParent().resolve("application.xml").toString());
+    parameters.put(Parameter.CONTENT_ROOT, binDir.toString());
+  }
+
+  private static void applyAir(@NotNull AirRunConfiguration configuration, @NotNull Map<Parameter, String> parameters) {
+    ifPresent(parameters, Parameter.DESCRIPTOR, configuration::setDescriptorPath);
+    ifPresent(parameters, Parameter.CONTENT_ROOT, configuration::setContentRootPath);
   }
 
   /// An nmml target output is the executable path already and passes through.
@@ -352,25 +309,86 @@ public final class HaxeProgramLaunches {
   /// fallback yields the C++ obj directory instead — derive bin from it the way
   /// the HL flavor does. Unresolvable (hxp, or an nmml without an app file):
   /// the visible configuration prompts for the executable.
-  private static void configureHxcppExecutable(@NotNull HxcppIntellijRunConfiguration configuration,
-                                               @NotNull HaxeBuildFile buildFile,
-                                               @NotNull Path output) {
-    if ("obj".equals(String.valueOf(output.getFileName()))) {
-      // the CPP output path IS the obj dir; the executable sits in bin beside it
-      Path binDir = binDirBesideObj(output);
-      String appFile = appFileName(buildFile);
-      if (binDir == null || appFile == null) return;
-      output = binDir.resolve(HaxeSdkUtilBase.getExecutableName(appFile));
+  private static void hxcppDefaults(@NotNull Project project,
+                                    @NotNull HaxeBuildFile buildFile,
+                                    @NotNull String targetOutput,
+                                    @NotNull Map<Parameter, String> parameters) {
+    if (buildFile.type() == HaxeBuildFileType.HXML) {
+      // the name follows the launch's debug flags: resolved per launch
+      parameters.put(Parameter.EXECUTABLE, HxcppExecutables.EXECUTABLE_VARIABLE);
+      return;
     }
-    configuration.setExecutablePath(output.toString());
+    Path output = HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput);
+    Path launcher = packagedLauncher(project, buildFile, output);
+    if (launcher != null) parameters.put(Parameter.EXECUTABLE, launcher.toString());
   }
 
-  /// lime's runnable artifacts live in `<export>/<target>/bin`, beside the obj dir the legacy display path reports.
+  /**
+   * The launcher an evaluated output stands for: the output itself when the
+   * evaluation names the launcher (every nmml output, lime's desktop and neko
+   * outputs); for an output under obj (lime's HL bytecode, or the obj
+   * directory itself) the launcher in bin beside it, per
+   * {@link LimeProjects#packagedBinary(Path, String, String)}. Null for an
+   * obj output whose launcher cannot be named (an hxp, an undeclared app
+   * file): the visible configuration then prompts for the executable.
+   */
   @Nullable
-  private static Path binDirBesideObj(@Nullable Path objDir) {
-    if (objDir == null || !"obj".equals(String.valueOf(objDir.getFileName()))) return objDir;
-    Path targetDir = objDir.getParent();
-    return targetDir == null ? null : targetDir.resolve("bin");
+  private static Path packagedLauncher(@NotNull Project project, @NotNull HaxeBuildFile buildFile, @NotNull Path output) {
+    if (LimeProjects.binDirBesideObj(output) == null) return output;
+    String appFile = appFileName(buildFile);
+    String targetFlag = selectedTargetFlag(project, buildFile);
+    if (appFile == null || targetFlag == null) return null;
+    return LimeProjects.packagedBinary(output, targetFlag, appFile);
+  }
+
+  /**
+   * hxml: the neko runtime executes the {@code .n} bytecode (the configured
+   * Build Tools neko, else the bare name from PATH). lime and nme both wrap
+   * the bytecode in a launcher executable, which runs directly; both
+   * evaluations name the launcher (see {@link #packagedLauncher}).
+   */
+  private static void nekoDefaults(@NotNull Project project,
+                                   @NotNull HaxeBuildFile buildFile,
+                                   @NotNull String targetOutput,
+                                   @NotNull Map<Parameter, String> parameters) {
+    Path output = HaxeBuildWorkDirectories.resolve(project, buildFile.file(), targetOutput);
+    if (buildFile.type() == HaxeBuildFileType.HXML) {
+      runtimeDefaults(output, parameters);
+      return;
+    }
+    Path launcher = packagedLauncher(project, buildFile, output);
+    if (launcher != null) parameters.put(Parameter.EXECUTABLE, launcher.toString());
+  }
+
+  /** The runtime runs the output from the output's folder; an empty executable is the RUNTIME, resolved at launch. */
+  private static void runtimeDefaults(@NotNull Path output, @NotNull Map<Parameter, String> parameters) {
+    parameters.put(Parameter.EXECUTABLE, "");
+    parameters.put(Parameter.PROGRAM_ARGUMENTS, ParametersListUtil.join(List.of(output.toString())));
+    parameters.put(Parameter.WORKING_DIRECTORY, String.valueOf(output.getParent()));
+  }
+
+  private static void applyRuntime(@NotNull HaxeRuntimeRunConfiguration configuration, @NotNull Map<Parameter, String> parameters) {
+    ifPresent(parameters, Parameter.EXECUTABLE, configuration::setExecutablePath);
+    ifPresent(parameters, Parameter.PROGRAM_ARGUMENTS, configuration::setProgramArguments);
+    ifPresent(parameters, Parameter.WORKING_DIRECTORY, configuration::setWorkingDirectory);
+  }
+
+  /**
+   * The hxml as the Build action runs it: its working directory (override or
+   * sniffed) and the file argument relative to it. Extra arguments and the
+   * interpreter checkbox stay the user's.
+   */
+  private static void interpDefaults(@NotNull Project project,
+                                     @NotNull HaxeBuildFile buildFile,
+                                     @NotNull Map<Parameter, String> parameters) {
+    String workDirectory = HaxeBuildWorkDirectories.workDirectory(project, buildFile.file());
+    parameters.put(Parameter.WORKING_DIRECTORY, StringUtil.notNullize(workDirectory));
+    parameters.put(Parameter.COMPILER_ARGUMENTS, HaxeBuildWorkDirectories.fileArgument(buildFile.file(), workDirectory));
+  }
+
+  private static void applyInterp(@NotNull InterpRunConfiguration configuration, @NotNull Map<Parameter, String> parameters) {
+    ifPresent(parameters, Parameter.WORKING_DIRECTORY, configuration::setWorkingDirectory);
+    ifPresent(parameters, Parameter.COMPILER_ARGUMENTS, configuration::setCompilerArguments);
   }
 
   /// The `<app file>` name the tool packages under: lime's default when a lime-family
@@ -383,32 +401,21 @@ public final class HaxeProgramLaunches {
     return LimeProjects.isLimeFamily(buildFile.type()) ? LimeProjects.appFile(content) : ProjectXmlParser.parseAppFile(content);
   }
 
-  /**
-   * The target output resolved the way the compiler would: against the build
-   * file's work directory - the file's own folder for the lime family (lime
-   * display runs there, so its paths resolve the same), the hxml anchor from
-   * {@link HaxeBuildWorkDirectories} otherwise.
-   */
-  @NotNull
-  private static Path resolvedOutput(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull String targetOutput) {
-    String anchor = HaxeBuildWorkDirectories.workDirectory(project, buildFile);
-    return Path.of(anchor != null ? anchor : buildFile.getParent().getPath())
-      .resolve(targetOutput)
-      .normalize();
-  }
-
   private static boolean matches(@NotNull RunnerAndConfigurationSettings candidate,
-                                 @NotNull Class<? extends RunConfiguration> configurationClass,
-                                 @NotNull String buildFilePath) {
+                                 @NotNull HaxeLaunchKind kind,
+                                 @NotNull String buildFilePath,
+                                 @NotNull String buildAction) {
     RunConfiguration configuration = candidate.getConfiguration();
-    if (!configurationClass.isInstance(configuration)) return false;
+    if (!kind.configurationClass().isInstance(configuration)) return false;
     return configuration instanceof InterpRunConfiguration interp
            ? namesBuildFile(interp, buildFilePath)
-           : configuration.getBeforeRunTasks().stream().anyMatch(task -> buildsFile(task, buildFilePath));
+           : configuration.getBeforeRunTasks().stream().anyMatch(task -> buildsFile(task, buildFilePath, buildAction));
   }
 
-  private static boolean buildsFile(@NotNull BeforeRunTask<?> task, @NotNull String buildFilePath) {
-    return task instanceof HaxeActionBeforeRunTaskProvider.Task build && build.getBuildFilePath().equals(buildFilePath);
+  private static boolean buildsFile(@NotNull BeforeRunTask<?> task, @NotNull String buildFilePath, @NotNull String buildAction) {
+    return task instanceof HaxeActionBeforeRunTaskProvider.Task build
+           && build.getBuildFilePath().equals(buildFilePath)
+           && build.getActionName().equals(buildAction);
   }
 
   /** Whether the interpreter configuration's arguments are exactly the hxml, resolved against its working directory. */
@@ -424,12 +431,71 @@ public final class HaxeProgramLaunches {
     }
   }
 
+  /**
+   * Gives an existing configuration of any type the "Run Haxe action" step
+   * that compiles {@code buildFile} with {@code buildAction} before it runs,
+   * unless it carries that step already. The configuration's other steps stay.
+   */
+  public static void ensureBuildStep(@NotNull RunConfiguration configuration,
+                                     @NotNull HaxeBuildFile buildFile,
+                                     @NotNull String buildAction,
+                                     boolean injectDebugArguments) {
+    String path = buildFile.file().getPath();
+    List<BeforeRunTask<?>> steps = configuration.getBeforeRunTasks();
+    if (steps.stream().anyMatch(task -> buildsFile(task, path, buildAction))) return;
+    List<BeforeRunTask<?>> withBuild = new ArrayList<>(steps);
+    withBuild.addFirst(buildStep(buildFile, buildAction, injectDebugArguments));
+    configuration.setBeforeRunTasks(withBuild);
+  }
+
+  /**
+   * Points the "Run Haxe action" steps that compile {@code buildFilePath} with
+   * the action {@code oldName} at {@code newName}, or drops them when
+   * {@code newName} is null. A step naming an action that no longer exists
+   * fails every launch of the configuration carrying it.
+   */
+  public static void retargetBuildSteps(@NotNull Project project,
+                                        @NotNull String buildFilePath,
+                                        @NotNull String oldName,
+                                        @Nullable String newName) {
+    for (RunnerAndConfigurationSettings settings : RunManager.getInstance(project).getAllSettings()) {
+      RunConfiguration configuration = settings.getConfiguration();
+      List<BeforeRunTask<?>> steps = configuration.getBeforeRunTasks();
+      boolean affected = steps.stream().anyMatch(task -> buildsFile(task, buildFilePath, oldName));
+      if (affected) {
+        configuration.setBeforeRunTasks(retargeted(steps, buildFilePath, oldName, newName));
+      }
+    }
+  }
+
+  @NotNull
+  private static List<BeforeRunTask<?>> retargeted(@NotNull List<BeforeRunTask<?>> steps,
+                                                   @NotNull String buildFilePath,
+                                                   @NotNull String oldName,
+                                                   @Nullable String newName) {
+    List<BeforeRunTask<?>> result = new ArrayList<>();
+    for (BeforeRunTask<?> task : steps) {
+      if (!buildsFile(task, buildFilePath, oldName)) {
+        result.add(task);
+      }
+      else if (newName != null) {
+        HaxeActionBeforeRunTaskProvider.Task build = (HaxeActionBeforeRunTaskProvider.Task)task;
+        build.setActionName(newName);
+        result.add(build);
+      }
+    }
+    return result;
+  }
+
   /** The "Run Haxe action" step compiling the build file before the program launches. */
   @NotNull
-  private static HaxeActionBeforeRunTaskProvider.Task buildStep(@NotNull HaxeBuildFile buildFile) {
+  private static HaxeActionBeforeRunTaskProvider.Task buildStep(@NotNull HaxeBuildFile buildFile,
+                                                                @NotNull String buildAction,
+                                                                boolean injectDebugArguments) {
     HaxeActionBeforeRunTaskProvider.Task buildTask = new HaxeActionBeforeRunTaskProvider.Task();
     buildTask.setBuildFilePath(buildFile.file().getPath());
-    buildTask.setActionName(HaxeBuildSystem.of(buildFile.type()).defaultBuildActionName());
+    buildTask.setActionName(buildAction);
+    buildTask.setInjectDebugArguments(injectDebugArguments);
     return buildTask;
   }
 }

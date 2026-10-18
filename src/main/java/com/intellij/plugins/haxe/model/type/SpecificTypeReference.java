@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.HaxeIterationProtocol;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
@@ -487,8 +488,8 @@ public abstract class SpecificTypeReference {
 
       HaxeClassModel model = classReference.getHaxeClassModel();
       if (model != null) {
-        HaxeBaseMemberModel hasNext = model.getMember("hasNext", resolver);
-        HaxeBaseMemberModel next = model.getMember("next", resolver);
+        HaxeBaseMemberModel hasNext = model.getMember(HaxeIterationProtocol.HAS_NEXT, resolver);
+        HaxeBaseMemberModel next = model.getMember(HaxeIterationProtocol.NEXT, resolver);
         if (hasNext != null && next != null) {
           return next.getResultType(resolver);
         }

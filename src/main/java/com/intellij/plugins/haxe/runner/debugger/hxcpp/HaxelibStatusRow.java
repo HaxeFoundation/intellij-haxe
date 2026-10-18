@@ -3,11 +3,14 @@ package com.intellij.plugins.haxe.runner.debugger.hxcpp;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxelibInstaller;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxelibMutations;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Run-configuration editor row showing whether a debug-server haxelib is
@@ -52,19 +55,26 @@ public final class HaxelibStatusRow {
   private void install() {
     statusLabel.setText(HaxeDebuggerBundle.message("hxcpp.runner.editor.server.lib.installing", libName));
     installLink.setVisible(false);
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      String failure = HaxelibInstaller.install(project, libName, null, null);
-      onEditorModality(() -> {
-        if (failure == null) {
-          refresh();
-        }
-        else {
-          String firstLine = failure.lines().findFirst().orElse("");
-          statusLabel.setText(HaxeDebuggerBundle.message("hxcpp.runner.editor.server.lib.failed", firstLine));
-          installLink.setVisible(true);
-        }
-      });
+    String progressTitle = HaxeBundle.message("haxe.toolwindow.install.library.progress", libName);
+    String failureTitle = HaxeBundle.message("haxe.toolwindow.install.library.failed", libName);
+    HaxelibMutations.queue(project, progressTitle, failureTitle, indicator -> installShowingOutcome(), null);
+  }
+
+  /** Installs and shows the outcome in the row right away: the sync's EDT callback would wait for the modal editor to close. */
+  @Nullable
+  private String installShowingOutcome() {
+    String failure = HaxelibInstaller.install(project, libName, null, null);
+    onEditorModality(() -> {
+      if (failure == null) {
+        refresh();
+      }
+      else {
+        String firstLine = failure.lines().findFirst().orElse("");
+        statusLabel.setText(HaxeDebuggerBundle.message("hxcpp.runner.editor.server.lib.failed", firstLine));
+        installLink.setVisible(true);
+      }
     });
+    return failure;
   }
 
   // The editor lives in a MODAL dialog, and the first refresh runs while the

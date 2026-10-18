@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
  */
 @DisplayName("HashLink debugger: evaluate expression (integration)")
 public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
-  private static final int DEEP_INSTANCE_LINE = 21; // pkg/Deep.hx readMarker()
 
   @Test
   @DisplayName("class qualified statics combine inside an instance frame")
@@ -36,7 +35,7 @@ public class EvaluateExpressionIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("package qualified statics combine inside an instance frame")
   public void packageQualifiedStaticsCombineInsideAnInstanceFrame() throws Exception {
-    StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_DEEP, FIXTURE_DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     assertEquals("100", evaluated(frameId, "pkg.Deep.marker + 1"), "dotted class path + literal");

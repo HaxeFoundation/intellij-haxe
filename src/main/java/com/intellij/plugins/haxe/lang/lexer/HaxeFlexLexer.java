@@ -19,6 +19,9 @@ package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.openapi.project.Project;
+import java.util.Map;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeFlexLexer extends FlexAdapter {
   /**
@@ -33,8 +36,8 @@ public class HaxeFlexLexer extends FlexAdapter {
    */
   static final int VALUE_CONTEXT_STATE_FLAG = 0x100;
 
-  public HaxeFlexLexer(Project context, boolean remapInactiveToPpbody) {
-    super(new HaxeGeneratedLexerWrapper(context, remapInactiveToPpbody));
+  public HaxeFlexLexer(Project context, @Nullable Supplier<Map<String, String>> definitions, boolean remapInactiveToPpbody) {
+    super(new HaxeGeneratedLexerWrapper(context, definitions, remapInactiveToPpbody));
   }
 
   @Override

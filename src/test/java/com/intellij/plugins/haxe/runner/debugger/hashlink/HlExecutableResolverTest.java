@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -101,12 +102,14 @@ public class HlExecutableResolverTest {
 
   private Path executableIn(String directory) throws IOException {
     Path dir = Files.createDirectories(temp.resolve(directory));
-    Path exe = dir.resolve("hl.exe");
+    Path exe = dir.resolve(HaxeRuntimeTool.HASHLINK.executableName());
     Files.createFile(exe);
+    // a PATH lookup takes only executable files; a new file is one on windows alone
+    exe.toFile().setExecutable(true);
     return exe;
   }
 
-  private static HlExecutableResolver.Environment env(Map<String, String> values) {
+  private static HaxeRuntimeTool.Environment env(Map<String, String> values) {
     return values::get;
   }
 }

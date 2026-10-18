@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
@@ -61,7 +60,7 @@ public class HaxeImportHxFileIndex extends FileBasedIndexExtension<String, Void>
                     if (HaxeStubableFileService.skipFilebasedIndex(haxeFile)) {
                         return Map.of();
                     }
-                    if ("import.hx".equals(haxeFile.getName())) {
+                    if (HaxeFile.isImportHx(haxeFile.getName())) {
                         HashMap<String, Void> map = new HashMap<>();
                         map.put(determinePackage(haxeFile), null);
                         return map;
@@ -72,13 +71,7 @@ public class HaxeImportHxFileIndex extends FileBasedIndexExtension<String, Void>
             }
 
             private static String determinePackage(HaxeFile haxeFile) {
-                if(haxeFile.getPackageStatement() != null) {
-                    return haxeFile.getPackageName();
-                }else {
-                    // import.hx files are based on path and not package, so the package statment is not required.
-                    VirtualFile file = haxeFile.getVirtualFile();
-                    return PackageIndex.getInstance(haxeFile.getProject()).getPackageName(file);
-                }
+                return haxeFile.getPackageStatement() != null ? haxeFile.getPackageName() : HaxeFile.importHxPackage(haxeFile);
             }
         };
     }

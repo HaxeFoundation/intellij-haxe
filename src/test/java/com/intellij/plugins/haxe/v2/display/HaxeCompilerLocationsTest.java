@@ -86,6 +86,14 @@ public class HaxeCompilerLocationsTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("a location inside an expression marks no declaration")
+  public void testALocationInsideAnExpressionMarksNoDeclaration() {
+    PsiFile file = myFixture.configureByText("Main.hx", MAIN_HX_SOURCE);
+
+    assertNull(HaxeCompilerLocations.declarationIn(file, HELPER_CALL));
+  }
+
+  @Test
   @DisplayName("a location past the document is dropped")
   public void testALocationPastTheDocumentIsDropped() {
     PsiFile file = myFixture.configureByText("Main.hx", MAIN_HX_SOURCE);

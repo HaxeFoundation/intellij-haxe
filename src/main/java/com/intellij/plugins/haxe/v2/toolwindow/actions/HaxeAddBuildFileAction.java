@@ -9,7 +9,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeKnownBuildFiles;
@@ -42,7 +41,7 @@ public final class HaxeAddBuildFileAction extends DumbAwareAction {
 
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.singleFile()
       .withTitle(HaxeBundle.message("haxe.toolwindow.add.build.file.chooser.title"))
-      .withFileFilter(HaxeAddBuildFileAction::hasBuildFileExtension);
+      .withFileFilter(file -> HaxeBuildFileScanner.hasBuildFileExtension(file.getPath()));
 
     VirtualFile chosen = FileChooser.chooseFile(descriptor, project, ProjectUtil.guessProjectDir(project));
     if (chosen == null) return;
@@ -54,17 +53,12 @@ public final class HaxeAddBuildFileAction extends DumbAwareAction {
       return;
     }
 
-    HaxeKnownBuildFiles.registerBuildFile(project, containerId, chosen, panel::refreshTree);
+    HaxeKnownBuildFiles.registerBuildFile(project, containerId, chosen, null);
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setEnabledAndVisible(selectedContainerId() != null);
-  }
-
-  private static boolean hasBuildFileExtension(@NotNull VirtualFile file) {
-    String extension = StringUtil.toLowerCase(StringUtil.notNullize(file.getExtension()));
-    return HaxeBuildFileScanner.BUILD_FILE_EXTENSIONS.contains(extension);
   }
 
   @Nullable

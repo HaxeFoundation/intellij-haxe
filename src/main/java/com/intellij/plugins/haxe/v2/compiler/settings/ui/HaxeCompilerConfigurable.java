@@ -8,7 +8,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +66,13 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
            || panel.isDiagnosticsRemovableCodeEnabled() != settings.isDiagnosticsRemovableCodeEnabled()
            || panel.isCompilerDiagnosticsOnly() != settings.isCompilerDiagnosticsOnly()
            || panel.getCompletionMode() != settings.getCompletionMode()
-           || panel.isCompilerIdeFeaturesEnabled() != settings.isCompilerIdeFeaturesEnabled();
+           || panel.isCompilerIdeFeaturesEnabled() != settings.isCompilerIdeFeaturesEnabled()
+           || panel.isCompilerInlaysEnabled() != settings.isCompilerInlaysEnabled()
+           || panel.isCompilerFindUsagesEnabled() != settings.isCompilerFindUsagesEnabled()
+           || panel.isCompilerNavigationEnabled() != settings.isCompilerNavigationEnabled()
+           || panel.isGeneratedMemberPreviewEnabled() != settings.isGeneratedMemberPreviewEnabled()
+           || panel.isCompilerCompletionEnabled() != settings.isCompilerCompletionEnabled()
+           || panel.getDisplayConnectionMode() != settings.getDisplayConnectionMode();
   }
 
   @Override
@@ -81,6 +89,12 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
     settings.setCompilerDiagnosticsOnly(panel.isCompilerDiagnosticsOnly());
     settings.setCompletionMode(panel.getCompletionMode());
     settings.setCompilerIdeFeaturesEnabled(panel.isCompilerIdeFeaturesEnabled());
+    settings.setCompilerInlaysEnabled(panel.isCompilerInlaysEnabled());
+    settings.setCompilerFindUsagesEnabled(panel.isCompilerFindUsagesEnabled());
+    settings.setCompilerNavigationEnabled(panel.isCompilerNavigationEnabled());
+    settings.setGeneratedMemberPreviewEnabled(panel.isGeneratedMemberPreviewEnabled());
+    settings.setCompilerCompletionEnabled(panel.isCompilerCompletionEnabled());
+    applyDisplayConnectionMode(settings, panel.getDisplayConnectionMode());
     HaxeLanguageLevelUtil.notifyLanguageLevelChanged(project);
   }
 
@@ -100,6 +114,21 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
     panel.setCompilerDiagnosticsOnly(settings.isCompilerDiagnosticsOnly());
     panel.setCompletionMode(settings.getCompletionMode());
     panel.setCompilerIdeFeaturesEnabled(settings.isCompilerIdeFeaturesEnabled());
+    panel.setCompilerInlaysEnabled(settings.isCompilerInlaysEnabled());
+    panel.setCompilerFindUsagesEnabled(settings.isCompilerFindUsagesEnabled());
+    panel.setCompilerNavigationEnabled(settings.isCompilerNavigationEnabled());
+    panel.setGeneratedMemberPreviewEnabled(settings.isGeneratedMemberPreviewEnabled());
+    panel.setCompilerCompletionEnabled(settings.isCompilerCompletionEnabled());
+    panel.setDisplayConnectionMode(settings.getDisplayConnectionMode());
+  }
+
+  /** Switching away from the dedicated process stops the processes; switching to it lets the next request start one. */
+  private void applyDisplayConnectionMode(@NotNull HaxeCompilerSettings settings, @NotNull HaxeDisplayConnectionMode mode) {
+    if (settings.getDisplayConnectionMode() == mode) return;
+    settings.setDisplayConnectionMode(mode);
+    if (mode == HaxeDisplayConnectionMode.SHARED_SERVER) {
+      HaxeDisplayProcessManager.getInstance(project).stopAll();
+    }
   }
 
   @Override

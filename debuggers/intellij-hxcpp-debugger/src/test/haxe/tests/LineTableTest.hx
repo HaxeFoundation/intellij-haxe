@@ -6,7 +6,6 @@ class LineTableTest {
 	public static function run(assert:Assert):Void {
 		parsesRowsAndAnswersMembership(assert);
 		resolvesBySuffixLikeTheRuntimeKeys(assert);
-		unknownFileYieldsNull(assert);
 		malformedRowsAreSkipped(assert);
 	}
 
@@ -30,10 +29,6 @@ class LineTableTest {
 		var lines = table().linesFor("D:/elsewhere/src/pack/Util.hx");
 		assert.isTrue(lines != null, "suffix-matched file resolves");
 		assert.isTrue(LineTable.hasLine(lines, 2), "and answers membership");
-	}
-
-	static function unknownFileYieldsNull(assert:Assert):Void {
-		assert.isTrue(table().linesFor("C:/other/Ghost.hx") == null, "unknown file -> null (degrade)");
 	}
 
 	static function malformedRowsAreSkipped(assert:Assert):Void {

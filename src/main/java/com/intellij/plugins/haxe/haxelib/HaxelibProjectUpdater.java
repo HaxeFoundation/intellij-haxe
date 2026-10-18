@@ -115,6 +115,11 @@ public class HaxelibProjectUpdater {
     return INSTANCE;
   }
 
+  /** Whether the legacy engine serves the project: it tracks projects with V1 (HAXE_MODULE) modules and equips their libraries itself. */
+  public static boolean tracksProject(@NotNull Project project) {
+    return getInstance().findProjectTracker(project) != null;
+  }
+
   /**
    * Adds a new project to the manager.  This is normally called in response to a
    * ModuleComponent.openProject() notification.  Multiple modules referencing
@@ -225,7 +230,7 @@ public class HaxelibProjectUpdater {
     toRemove = new HaxeLibraryList(module);
     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
     if (null == moduleSdk) {
-      log.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
+      if (log.isDebugEnabled()) log.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
       NotificationGroupManager.getInstance()
         .getNotificationGroup("haxe.haxelib.warning")
         .createNotification(HaxeBundle.message("haxe.haxelib.module.missing.sdk.message", module.getName()), NotificationType.WARNING)
@@ -748,7 +753,6 @@ public class HaxelibProjectUpdater {
 
     final Project project = tracker.getProject();
 
-    //LOG.debug("Scanning project " + project.getName());
     timeLog.stamp("Scanning project " + project.getName());
 
     Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
@@ -758,7 +762,6 @@ public class HaxelibProjectUpdater {
 
       final int num = ++i;
 
-      //LOG.debug("Scanning module " + (++i) + " of " + count + ": " + module.getName());
       timeLog.stamp("\nScanning module " + (num) + " of " + count + ": " + module.getName());
       syncOneModule(tracker, module, timeLog, forceUpdate);
     }

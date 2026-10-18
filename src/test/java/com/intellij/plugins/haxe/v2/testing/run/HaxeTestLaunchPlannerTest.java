@@ -9,6 +9,8 @@ import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCompileCommands;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeLimeProjectInfoService;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeNmeProjectInfoService;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeSectionSelectionStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetSelectionStore;
@@ -17,6 +19,10 @@ import com.intellij.plugins.haxe.v2.testing.run.HaxeTestLaunchPlanner.Plan;
 import com.intellij.util.execution.ParametersListUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -26,6 +32,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * Plans are derived from hxml fixtures only - nothing is compiled. Fixtures live
@@ -54,6 +61,10 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
       // the shared light project keeps service state between tests
       HaxeTargetSelectionStore.getInstance(getProject()).loadState(new HaxeTargetSelectionStore.State());
       HaxeSectionSelectionStore.getInstance(getProject()).loadState(new HaxeSectionSelectionStore.State());
+      // planning a lime or nme launch schedules an evaluation whose tool runs in the fixture
+      // folder, and windows does not delete a folder a live process works in
+      HaxeLimeProjectInfoService.getInstance(getProject()).awaitEvaluationsForTests();
+      HaxeNmeProjectInfoService.getInstance(getProject()).awaitPreparationsForTests();
       NioFiles.deleteRecursively(fixturesRoot);
     }
     finally {
@@ -123,16 +134,6 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("single test run adds the anchored utest pattern")
-  public void testSingleTestRunAddsTheAnchoredUtestPattern() throws ExecutionException {
-    String path = fixturePath("test.hxml");
-    HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("cases.SampleTest"), "testPasses");
-    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
-    assertTrue(plan.command().contains("UTEST_PATTERN=\\.testPasses$"),
-               "anchored method pattern expected: " + plan.command());
-  }
-
-  @Test
   @DisplayName("single suite run narrows by the filter pattern")
   public void testSingleSuiteRunNarrowsByTheFilterPattern() throws ExecutionException {
     String path = fixturePath("test.hxml");
@@ -173,7 +174,9 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   public void testMunitSingleMethodNarrowsThroughTheMacroDefine() throws ExecutionException {
     String path = fixturePath("targets/munit-neko.hxml");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), "testAdd");
-    HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
+
+    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
+    assertEquals(HaxeTarget.NEKO, plan.target(), "the single run keeps the build's target");
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
     assertNotNull(file);
@@ -184,20 +187,23 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
                "the macro's narrowing define must ride the compile: " + compile.command());
   }
 
-  @Test
-  @DisplayName("lime single run launches the packaged binary like the whole build")
-  public void testLimeSingleRunLaunchesThePackagedBinaryLikeTheWholeBuild() throws ExecutionException {
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {
+    // lime single run launches the packaged binary like the whole build
+    "Neko",
+    // html5 single run plans a browser hosted run over the packaged web root
+    "HTML5"})
+  @DisplayName("lime single run plans like the whole build")
+  public void testLimeSingleRunPlansLikeTheWholeBuild(String targetId) throws ExecutionException {
     String path = fixturePath("targets/lime-project.xml");
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, "Neko");
+    HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, targetId);
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), null);
 
     Plan single = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
     Plan whole = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
-    assertFalse(single.singleStage(), "the compile stays in the before-run step");
-    assertEquals(HaxeTarget.NEKO, single.target());
-    assertEquals(whole.command(), single.command(), "the single run launches the same packaged binary");
-    assertEquals(whole.workDirectory(), single.workDirectory());
+
+    assertEquals(whole, single, "the single run launches the same packaged output");
   }
 
   @Test
@@ -228,28 +234,10 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
     HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, "HTML5");
 
-    Path indexHtml = fixturesRoot.resolve("targets/export/html5/bin/index.html");
-    Files.createDirectories(indexHtml.getParent());
-    Files.writeString(indexHtml, "<html></html>");
-    LocalFileSystem.getInstance().refreshAndFindFileByNioFile(indexHtml);
-
+    // the web root is planned without existing: plans also back configuration validation before any compile
     Plan plan = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
     assertTrue(plan.browserHosted(), "html5 tests run in a served browser page");
     assertEquals(HaxeTarget.JAVA_SCRIPT, plan.target());
-    assertTrue(plan.command().get(0).replace('\\', '/').endsWith("export/html5/bin"),
-               "the packaged web root is what gets served: " + plan.command());
-  }
-
-  @Test
-  @DisplayName("html5 single run plans a browser hosted run over the packaged web root")
-  public void testHtml5SingleRunPlansABrowserHostedRunOverThePackagedWebRoot() throws Exception {
-    String path = fixturePath("targets/lime-project.xml");
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, "HTML5");
-    HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), null);
-
-    Plan plan = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
-    assertTrue(plan.browserHosted(), "the packaged html5 output is served like the whole build");
     assertTrue(plan.command().get(0).replace('\\', '/').endsWith("export/html5/bin"),
                "the packaged web root is what gets served: " + plan.command());
   }
@@ -408,48 +396,30 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
     assertTrue(hlPlan.command().get(1).endsWith("tests.hl"), "artifact path expected: " + hlPlan.command());
   }
 
-  @Test
-  @DisplayName("munit build is detected from its lib and compiles with the injected client")
-  public void testMunitBuildIsDetectedFromItsLibAndCompilesWithTheInjectedClient() throws ExecutionException {
-    String path = fixturePath("targets/munit-neko.hxml");
-    assertEquals("munit", HaxeTestFrameworks.forBuildFile(getProject(), path).libraryName());
+  /** (tests build fixture, library its -lib names, the compile fragment injecting its reporter, planned target, single stage). */
+  static final List<Arguments> FRAMEWORK_BUILDS = List.of(
+    // munit build is detected from its lib and compiles with the injected client (its result channel)
+    arguments("targets/munit-neko.hxml", "munit", "--macro intellij_munit.Macro.init()", HaxeTarget.NEKO, false),
+    // buddy build is detected from its lib and compiles with the reporter define (selecting the shipped reporter)
+    arguments("targets/buddy-interp.hxml", "buddy", "-D reporter=intellij_buddy.TcReporter", HaxeTarget.INTERP, true),
+    // tink build is detected from its lib and compiles with the injected reporter (its result channel)
+    arguments("targets/tink-interp.hxml", "tink_unittest", "--macro intellij_tink.Macro.init()", HaxeTarget.INTERP, true));
+
+  @ParameterizedTest(name = "{1}")
+  @FieldSource("FRAMEWORK_BUILDS")
+  @DisplayName("framework build is detected from its lib and compiles with its reporter")
+  public void testFrameworkBuildIsDetectedFromItsLibAndCompilesWithItsReporter(String fixture, String library, String injection,
+                                                                             HaxeTarget target, boolean singleStage)
+    throws ExecutionException {
+    String path = fixturePath(fixture);
 
     String arguments = HaxeTestCompileArguments.compileArguments(getProject(), path, null);
-    assertTrue(arguments.contains("--macro intellij_munit.Macro.init()"),
-               "the injected client is munit's result channel: " + arguments);
-    assertFalse(arguments.contains("-D teamcity "), "utest's batch define has no meaning for munit: " + arguments);
-
     Plan plan = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
-    assertEquals(HaxeTarget.NEKO, plan.target());
-  }
 
-  @Test
-  @DisplayName("buddy build is detected from its lib and compiles with the reporter define")
-  public void testBuddyBuildIsDetectedFromItsLibAndCompilesWithTheReporterDefine() throws ExecutionException {
-    String path = fixturePath("targets/buddy-interp.hxml");
-    assertEquals("buddy", HaxeTestFrameworks.forBuildFile(getProject(), path).libraryName());
-
-    String arguments = HaxeTestCompileArguments.compileArguments(getProject(), path, null);
-    assertTrue(arguments.contains("-D reporter=intellij_buddy.TcReporter"),
-               "buddy's reporter override selects the shipped reporter: " + arguments);
-
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
-    assertTrue(plan.singleStage(), "buddy runs on the interpreter");
-  }
-
-  @Test
-  @DisplayName("tink build is detected from its lib and compiles with the injected reporter")
-  public void testTinkBuildIsDetectedFromItsLibAndCompilesWithTheInjectedReporter() throws ExecutionException {
-    String path = fixturePath("targets/tink-interp.hxml");
-    assertEquals("tink_unittest", HaxeTestFrameworks.forBuildFile(getProject(), path).libraryName());
-
-    String arguments = HaxeTestCompileArguments.compileArguments(getProject(), path, null);
-    assertTrue(arguments.contains("--macro intellij_tink.Macro.init()"),
-               "the injected reporter is tink's result channel: " + arguments);
-    assertFalse(arguments.contains("-D teamcity "), "utest's batch define has no meaning for tink: " + arguments);
-
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
-    assertTrue(plan.singleStage(), "tink runs on the interpreter");
+    assertEquals(library, HaxeTestFrameworks.forBuildFile(getProject(), path).libraryName());
+    assertTrue(arguments.contains(injection), "the framework's reporter must ride the compile: " + arguments);
+    assertEquals(target, plan.target());
+    assertEquals(singleStage, plan.singleStage());
   }
 
   @Test

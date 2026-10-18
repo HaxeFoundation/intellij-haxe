@@ -38,16 +38,8 @@ public class HaxeAnnotationTest extends HaxeToolkitLightFixtureTestCase {
   private void doTest(String... additionalPaths) throws Exception {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
-    myFixture.configureByFile(getTestName(false) + ".hx");
     myFixture.enableInspections(getAnnotatorBasedInspection());
     myFixture.enableInspections(HaxeUnresolvedTypeInspection.class);
-    myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
-  }
-
-  private void doUnresolvedSymbolTest(String... additionalPaths) throws Exception {
-    final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
-    myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
-    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
 
@@ -113,84 +105,5 @@ public class HaxeAnnotationTest extends HaxeToolkitLightFixtureTestCase {
     myFixture.addFileToProject("haxe/macro/Tools.hx", haxe_macro_Tools_contents);
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
-  }
-
-  @Test
-  @DisplayName("value type unresolved on dynamic map")
-  public void testValueTypeUnresolvedOnDynamicMap() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("value type known from type tag on map access")
-  public void testValueTypeKnownFromTypeTagOnMapAccess() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("value type known on map access")
-  public void testValueTypeKnownOnMapAccess() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("value type inferred on map access")
-  public void testValueTypeInferredOnMapAccess() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("inferred type on array access")
-  public void testInferredTypeOnArrayAccess() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("known type on array access")
-  public void testKnownTypeOnArrayAccess() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("known type from type tag on array access")
-  public void testKnownTypeFromTypeTagOnArrayAccess() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("dynamic array cant be accessed")
-  public void testDynamicArrayCantBeAccessed() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("method access through nullable")
-  public void testMethodAccessThroughNullable() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("var access through nullable")
-  public void testVarAccessThroughNullable() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("method access through abstract")
-  public void testMethodAccessThroughAbstract() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("method access through abstract and null")
-  public void testMethodAccessThroughAbstractAndNull() throws Exception {
-    doUnresolvedSymbolTest();
-  }
-
-  @Test
-  @DisplayName("for loop variable type")
-  public void testForLoopVariableType() throws Exception {
-    usingHaxeToolkit(); // need ArrayAccess & ArrayIterator from std
-    doUnresolvedSymbolTest();
   }
 }

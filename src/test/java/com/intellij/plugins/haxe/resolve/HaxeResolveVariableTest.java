@@ -38,10 +38,6 @@ public class HaxeResolveVariableTest extends HaxeLightFixtureTestCase {
     return "/resolve/variable/";
   }
 
-  private void doTest() throws Exception {
-    myFixture.configureByFile(getTestName(false) + ".hx");
-  }
-
   //https://github.com/TiVo/intellij-haxe/issues/234
   @Test
   @DisplayName("variable")
@@ -63,6 +59,6 @@ public class HaxeResolveVariableTest extends HaxeLightFixtureTestCase {
     HaxeExpression expression1 = assignExpression.getExpressionList().get(0);
     HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)expression1;
     PsiElement resolve = referenceExpression.resolve();
-    assertTrue(resolve instanceof HaxeFieldDeclaration, "list variable should be local var declaration part ");
+    assertTrue(resolve instanceof HaxeFieldDeclaration, "the list reference should resolve to the class field declaration");
   }
 }

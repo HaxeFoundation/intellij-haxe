@@ -49,7 +49,7 @@ public class HaxeClassAssignUtil  {
                 for (ResultHolder specific : toClassReference.getSpecifics()) {
                     if (specific.getType() instanceof SpecificHaxeClassReference classReference) {
                         String className = classReference.getClassName();
-                        if(className != null && className.equals("Rest")) return true;
+                        if (HaxeClassModel.isGenericBuildRestParam(className)) return true;
                     }
                 }
             }

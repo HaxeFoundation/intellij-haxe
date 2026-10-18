@@ -8,13 +8,18 @@ import com.intellij.plugins.haxe.profiler.model.StackSample;
 import com.intellij.plugins.haxe.profiler.timeline.ProfilerTimeline.SeriesPoint;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @DisplayName("Profiler: timeline")
 public class ProfilerTimelineTest {
@@ -46,31 +51,51 @@ public class ProfilerTimelineTest {
     assertEquals(30_000, main.children().get(1).startUs());
   }
 
-  @Test
-  @DisplayName("flame tree never overlaps siblings under timer jitter at full rate")
-  public void testFlameTreeNeverOverlapsSiblingsUnderTimerJitterAtFullRate() {
-    // 10000/s = 100 us period, but the samples arrive 90 us apart with the
-    // leaf changing every sample - the optimistic period tail must give the
-    // overshoot back or children sum past their parent
+  /** (jitter shape, its samples): 10000/s = 100 us period, but the samples arrive off-period. */
+  static Stream<Arguments> jitteredSamples() {
     StackFrame a = new StackFrame("Main.main", "Main.hx", 1);
     StackFrame b = new StackFrame("Game.update", "Game.hx", 10);
     StackFrame c = new StackFrame("Game.render", "Game.hx", 30);
-    List<StackSample> samples = new ArrayList<>();
+    // flame tree never overlaps siblings under timer jitter at full rate: 90 us
+    // apart with the leaf changing every sample - the optimistic period tail
+    // must give the overshoot back or children sum past their parent
+    List<StackSample> leafFlips = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      samples.add(new StackSample(1.0 + i * 0.00009, MAIN_TID, List.of(a, i % 2 == 0 ? b : c), 1, false));
+      leafFlips.add(new StackSample(1.0 + i * 0.00009, MAIN_TID, List.of(a, i % 2 == 0 ? b : c), 1, false));
     }
+    // flame tree children always fit inside their parent for the model
+    // validator: 110 us apart with the stack depth changing, a mixed-shape tree
+    List<StackSample> depthFlips = new ArrayList<>();
+    for (int i = 0; i < 6; i++) {
+      List<StackFrame> frames = i % 3 == 0 ? List.of(a) : List.of(a, b);
+      depthFlips.add(new StackSample(1.0 + i * 0.00011, MAIN_TID, frames, 1, false));
+    }
+    return Stream.of(arguments("leaf flips every 90 us", leafFlips),
+                     arguments("depth flips every 110 us", depthFlips));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("jitteredSamples")
+  @DisplayName("flame tree children tile inside their parent under timer jitter")
+  public void testFlameTreeChildrenTileInsideTheirParentUnderTimerJitter(String shape, List<StackSample> samples) {
+    // the flame component rejects a tree whose children exceed the parent;
+    // siblings must not overlap either, at every level of the tree
     ProfilerSnapshot snapshot = snapshot(10000, samples, List.of());
 
-    ProfilerTimeline.FlameNode main = ProfilerTimeline.flameTree(snapshot, MAIN_TID, 8).children().getFirst();
+    assertChildrenTileInsideParent(ProfilerTimeline.flameTree(snapshot, MAIN_TID, 8));
+  }
 
-    long covered = main.startUs();
+  private static void assertChildrenTileInsideParent(ProfilerTimeline.FlameNode node) {
+    long covered = node.startUs();
     long childSum = 0;
-    for (ProfilerTimeline.FlameNode child : main.children()) {
-      assertTrue(child.startUs() >= covered, "siblings must never overlap");
+    for (ProfilerTimeline.FlameNode child : node.children()) {
+      assertTrue(child.startUs() >= covered, "siblings overlap under " + node);
       covered = child.endUs();
       childSum += child.durationUs();
     }
-    assertTrue(childSum <= main.durationUs(), "children must fit inside their parent");
+    assertTrue(childSum <= node.durationUs(),
+               "children (" + childSum + "us) exceed parent (" + node.durationUs() + "us): " + node);
+    node.children().forEach(ProfilerTimelineTest::assertChildrenTileInsideParent);
   }
 
   @Test
@@ -91,30 +116,6 @@ public class ProfilerTimelineTest {
     assertEquals(a, root.children().get(2).frame());
     ProfilerTimeline.FlameNode secondRun = root.children().get(2);
     assertEquals(List.of(b), secondRun.children().stream().map(ProfilerTimeline.FlameNode::frame).toList());
-  }
-
-  @Test
-  @DisplayName("flame tree children always fit inside their parent for the model validator")
-  public void testFlameTreeChildrenAlwaysFitInsideTheirParentForTheModelValidator() {
-    // the flame component rejects a tree whose children exceed the parent -
-    // walk a mixed-shape tree and check the invariant everywhere
-    StackFrame a = new StackFrame("Main.main", "Main.hx", 1);
-    StackFrame b = new StackFrame("Game.update", "Game.hx", 10);
-    List<StackSample> samples = new ArrayList<>();
-    for (int i = 0; i < 6; i++) {
-      List<StackFrame> frames = i % 3 == 0 ? List.of(a) : List.of(a, b);
-      samples.add(new StackSample(1.0 + i * 0.00011, MAIN_TID, frames, 1, false));
-    }
-    ProfilerSnapshot snapshot = snapshot(10000, samples, List.of());
-
-    assertChildrenFit(ProfilerTimeline.flameTree(snapshot, MAIN_TID, 8));
-  }
-
-  private static void assertChildrenFit(ProfilerTimeline.FlameNode node) {
-    long childSum = node.children().stream().mapToLong(ProfilerTimeline.FlameNode::durationUs).sum();
-    assertTrue(childSum <= node.durationUs(),
-               "children (" + childSum + "us) exceed parent (" + node.durationUs() + "us): " + node);
-    node.children().forEach(ProfilerTimelineTest::assertChildrenFit);
   }
 
   @Test

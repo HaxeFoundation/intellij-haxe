@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.buildsystem.lime;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Iconable;
-import com.intellij.plugins.haxe.buildsystem.ProjectXml;
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileDescription;
 import icons.HaxeIcons;
@@ -14,7 +14,7 @@ import javax.swing.Icon;
 public class LimeXmlFileDescription extends DomFileDescription<LimeProjectXml> {
 
     public LimeXmlFileDescription() {
-        super(LimeProjectXml.class, ProjectXml.TAG_NAME);
+        super(LimeProjectXml.class, ProjectXmlVocabulary.ROOT_ELEMENT);
     }
 
     @Override

@@ -5,15 +5,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildConfigListener;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
+import com.intellij.plugins.haxe.v2.buildtools.context.HaxeResolveContext;
+import com.intellij.plugins.haxe.v2.buildtools.context.HaxeResolveContexts;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.text.SemVer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Locale;
 
 /**
  * The language level editor features assume for a PSI element. An element
@@ -70,6 +75,20 @@ public final class HaxeLanguageLevelUtil {
     return level.getVersionString() + ".0";
   }
 
+  /**
+   * The compiler's {@code haxe_ver} value for a dotted version: the version
+   * number {@code major*1000 + minor*100 + patch} divided by 1000, so 4.3.7
+   * reads 4.307 and 4.0.2 reads 4.002. {@code haxe} keeps the dotted form. A
+   * version that does not parse is returned as it is.
+   */
+  @NotNull
+  public static String haxeVerDefineValue(@NotNull String version) {
+    SemVer semVer = SemVer.parseFromText(version);
+    if (semVer == null) return version;
+    int number = semVer.getMajor() * 1000 + semVer.getMinor() * 100 + semVer.getPatch();
+    return String.format(Locale.ROOT, "%d.%03d", number / 1000, number % 1000);
+  }
+
   @NotNull
   public static HaxeLanguageLevel getLanguageLevel(@NotNull PsiElement element) {
     HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(element.getProject());
@@ -81,11 +100,10 @@ public final class HaxeLanguageLevelUtil {
   /**
    * The element's container id, which is the key level overrides are stored
    * under: a module name, or the project-root container for project files
-   * outside every module. A library or SDK file is analyzed as part of
-   * whatever the ACTIVE build context pulls in, so it gets the active build
-   * file's container. The define context uses the same source, which keeps
-   * level checks consistent with the active {@code #if haxe_ver} block. Null
-   * only for non-physical elements.
+   * outside every module. A library or SDK file takes the container of the
+   * build it is analysed under (its resolve context), else of the active
+   * build - the same build its {@code #if haxe_ver} blocks are evaluated
+   * with. Null only for non-physical elements.
    */
   @Nullable
   private static String containerIdOf(@NotNull PsiElement element) {
@@ -95,6 +113,8 @@ public final class HaxeLanguageLevelUtil {
     if (file == null) return null;
     Project project = element.getProject();
     if (!ProjectFileIndex.getInstance(project).isInContent(file)) {
+      HaxeResolveContext context = HaxeResolveContexts.getInstance(project).contextFor(file);
+      if (context != null) return HaxeContainers.containerIdFor(project, context.buildFile().file());
       String activeContainer = HaxeDefineContextService.getInstance(project).activeContainerId();
       if (activeContainer != null) return activeContainer;
     }
@@ -126,12 +146,11 @@ public final class HaxeLanguageLevelUtil {
 
   /**
    * Refreshes everything that depends on language levels: the tool window's
-   * Language level rows read the settings again (through the build
-   * configuration topic), and highlighting restarts. Every path that changes
-   * a level setting calls this.
+   * Language level rows and the define context read the settings again, and
+   * highlighting restarts. Every path that changes a level setting calls this.
    */
   public static void notifyLanguageLevelChanged(@NotNull Project project) {
-    project.getMessageBus().syncPublisher(HaxeBuildConfigListener.TOPIC).buildConfigurationChanged();
+    HaxeBuildSettingsListener.publisher(project).compilerSettingsChanged();
     DaemonCodeAnalyzer.getInstance(project).restart("haxe: language level changed");
   }
 }

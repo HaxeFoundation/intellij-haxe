@@ -4,14 +4,19 @@ import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Links the {@code path:line} of a compiler message ({@code Main.hx:12: characters 4-9 : ...}) to the file. */
+/**
+ * Links the {@code path:line} of a compiler message ({@code Main.hx:12: characters 4-9 : ...})
+ * to the file. The compiler prints positions relative to the directory it
+ * runs in, so the path resolves inside the console's launch scope first (see
+ * {@link HaxeStackFrameFiles}), the project after.
+ */
 public final class HaxeCompilerMessageFilter implements Filter {
 
   // optional label ("WARNING", "[ERROR]" in the haxe 5 format), the path (an absolute
@@ -26,9 +31,11 @@ public final class HaxeCompilerMessageFilter implements Filter {
     Pattern.CASE_INSENSITIVE);
 
   private final Project project;
+  private final GlobalSearchScope scope;
 
-  public HaxeCompilerMessageFilter(@NotNull Project project) {
+  public HaxeCompilerMessageFilter(@NotNull Project project, @NotNull GlobalSearchScope scope) {
     this.project = project;
+    this.scope = scope;
   }
 
   @Override
@@ -41,7 +48,7 @@ public final class HaxeCompilerMessageFilter implements Filter {
     // a "lines" position carries no column
     int column = matcher.group("type").equalsIgnoreCase("lines") ? 0 : Integer.parseInt(matcher.group("column"));
 
-    VirtualFile file = HaxeFileUtil.locateFile(path, project.getBasePath());
+    VirtualFile file = HaxeStackFrameFiles.find(project, scope, path);
     if (file == null) return null;
     int spanStart = text.indexOf(path);
     int spanEnd = spanStart + path.length() + 1 + line.length(); // path ':' line

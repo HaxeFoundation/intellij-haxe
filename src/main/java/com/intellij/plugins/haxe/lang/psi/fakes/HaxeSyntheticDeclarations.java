@@ -6,15 +6,20 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeModule;
-import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeModuleModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.containers.ContainerUtil;
 import org.intellij.lang.annotations.Language;
 import org.jspecify.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class HaxeSyntheticDeclarations {
     @Language("haxe")
@@ -53,9 +58,13 @@ public class HaxeSyntheticDeclarations {
              @see https://haxe.org/manual/debugging-posinfos.html
            **/
           static function trace(value:Dynamic, ...args:Dynamic):Void;
-      
-      
-      
+      }
+
+      /**
+         The untyped target-syntax calls (`__js__`, `__cpp__`, ...): the compiler accepts
+         them without a declaration; the target's `Syntax.code` replaces them from Haxe 4.
+      **/
+      extern class TargetSyntax {
           /**
       		Inject `code` directly into generated source.
       
@@ -216,24 +225,50 @@ public class HaxeSyntheticDeclarations {
 
     private static final Key<CachedValue<HaxeFile>> LanguageFeatureCache = Key.create("LanguageFeatureFile");
 
-    public static HaxeMethod getTraceDeclaration(Project project) {
-        HaxeBaseMemberModel member = findOrCreateMember(project, "trace");
-        return (HaxeMethod)member.getBasePsi();
+    private static final String LANGUAGE_FEATURE_CLASS = "LanguageFeature";
+    private static final String TARGET_SYNTAX_CLASS = "TargetSyntax";
+    private static final String ANALYZER_OPTIONS_CLASS = "AnalyzerOptions";
+
+    /** The name of the call the compiler accepts without an import. */
+    public static final String TRACE = "trace";
+
+    /** The `trace` the compiler accepts without an import. */
+    public static HaxeMethod traceMethod(Project project) {
+        return methodOf(classModel(project, LANGUAGE_FEATURE_CLASS).getMethod(TRACE, null));
     }
 
-    public static HaxeMethod getTargetSpecificSyntax(Project project, String name) {
-        HaxeBaseMemberModel member = findOrCreateMember(project, name);
-        return (HaxeMethod)member.getBasePsi();
+    /** The untyped target-syntax call declared under `name` (`__js__`, `__cpp__`, ...); null for any other name. */
+    public static @Nullable HaxeMethod targetSyntaxMethod(Project project, String name) {
+        HaxeMethodModel method = classModel(project, TARGET_SYNTAX_CLASS).getMethod(name, null);
+        return method == null ? null : methodOf(method);
+    }
+
+    /** Every untyped target-syntax call. */
+    public static List<HaxeMethod> targetSyntaxMethods(Project project) {
+        return ContainerUtil.map(classModel(project, TARGET_SYNTAX_CLASS).getMethodsSelf(null), HaxeSyntheticDeclarations::methodOf);
+    }
+
+    /** The names declared here, which an identifier in user code would shadow. */
+    public static Set<String> declaredNames(Project project) {
+        Set<String> names = new HashSet<>();
+        names.add(TRACE);
+        for (HaxeMethod method : targetSyntaxMethods(project)) {
+            names.add(method.getName());
+        }
+        return names;
     }
 
     /** The values `@:analyzer(...)` accepts. */
     public static HaxeClassModel getAnalyzerOptions(Project project) {
-        return languageFeaturesModule(project).getClass("AnalyzerOptions");
+        return classModel(project, ANALYZER_OPTIONS_CLASS);
     }
 
-    private static @Nullable HaxeBaseMemberModel findOrCreateMember(Project project, String name) {
-        HaxeClassModel aClass = languageFeaturesModule(project).getClass("LanguageFeature");
-        return aClass.getMember(name, null);
+    private static HaxeMethod methodOf(HaxeMethodModel model) {
+        return (HaxeMethod)model.getBasePsi();
+    }
+
+    private static HaxeClassModel classModel(Project project, String name) {
+        return languageFeaturesModule(project).getClass(name);
     }
 
     private static HaxeModuleModel languageFeaturesModule(Project project) {

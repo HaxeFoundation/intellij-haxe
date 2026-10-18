@@ -6,11 +6,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.display.protocol.server.ServerMemory;
-import com.intellij.plugins.haxe.v2.display.HaxeCompilerDisplayService;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerMetrics;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerProcesses;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
@@ -37,10 +37,13 @@ import java.util.Map;
 final class HaxeServerStatusPanel extends JPanel {
 
   private final JBLabel header = new JBLabel();
+  /** The IDE-side request counters, a label of their own: they move with every request, the selectable text below must not. */
+  private final JBLabel requestStats = new JBLabel();
   private final JBTextArea details = new JBTextArea();
   private boolean failing;
 
   private @Nullable Project project;
+  private @Nullable HaxeServerProcesses manager;
   private @Nullable String serverId;
   private @Nullable String serverStats;
 
@@ -50,7 +53,10 @@ final class HaxeServerStatusPanel extends JPanel {
     details.setEditable(false);
     details.setLineWrap(true);
     details.setWrapStyleWord(true);
-    add(header, BorderLayout.NORTH);
+    JPanel top = new JPanel(new BorderLayout(0, JBUI.scale(2)));
+    top.add(header, BorderLayout.NORTH);
+    top.add(requestStats, BorderLayout.SOUTH);
+    add(top, BorderLayout.NORTH);
     add(new JBScrollPane(details), BorderLayout.CENTER);
 
     JButton refresh = new JButton(HaxeBundle.message("haxe.server.console.stats.refresh"), AllIcons.Actions.Refresh);
@@ -61,8 +67,9 @@ final class HaxeServerStatusPanel extends JPanel {
   }
 
   /** Refreshes from the health store; the server serves every container whose effective SDK resolves to its executable. */
-  void update(@NotNull Project project, @NotNull String serverId) {
+  void update(@NotNull Project project, @NotNull HaxeServerProcesses manager, @NotNull String serverId) {
     this.project = project;
+    this.manager = manager;
     this.serverId = serverId;
 
     Map<String, String> failures = new LinkedHashMap<>();
@@ -82,13 +89,8 @@ final class HaxeServerStatusPanel extends JPanel {
       header.setText(HaxeBundle.message("haxe.server.console.status.ok"));
     }
 
+    updateRequestStats();
     StringBuilder text = new StringBuilder();
-    HaxeServerMetrics.Snapshot requests = HaxeServerMetrics.getInstance(project).snapshot(serverId);
-    if (requests.requests() > 0) {
-      String requestStats = HaxeBundle.message("haxe.server.console.stats.requests", requests.requests(), requests.failures(),
-                                               requests.lastMillis(), requests.averageMillis());
-      text.append(requestStats).append('\n');
-    }
     if (serverStats != null) {
       text.append(serverStats).append('\n');
     }
@@ -100,6 +102,18 @@ final class HaxeServerStatusPanel extends JPanel {
     details.setCaretPosition(0);
   }
 
+  /** Re-renders the request counters; nothing until the first request went out. */
+  void updateRequestStats() {
+    if (project == null || serverId == null) return;
+    HaxeServerMetrics.Snapshot requests = HaxeServerMetrics.getInstance(project).snapshot(serverId);
+    if (requests.requests() == 0 && requests.pending() == 0) {
+      requestStats.setText("");
+      return;
+    }
+    requestStats.setText(HaxeBundle.message("haxe.server.console.stats.requests", requests.requests(), requests.failures(),
+                                            requests.lastMillis(), requests.averageMillis(), requests.pending()));
+  }
+
   boolean hasFailures() {
     return failing;
   }
@@ -109,22 +123,22 @@ final class HaxeServerStatusPanel extends JPanel {
     serverStats = null;
   }
 
-  /** Queries {@code server/memory} in the background and re-renders; no-op while the server is down. */
+  /** Queries {@code server/memory} in the background and re-renders; no-op while the process is down. */
   private void fetchServerStats() {
     Project currentProject = project;
+    HaxeServerProcesses currentManager = manager;
     String currentServerId = serverId;
-    if (currentProject == null || currentServerId == null) return;
-    int port = HaxeCompilationServerManager.getInstance(currentProject).runningPort(currentServerId);
-    if (port <= 0) {
+    if (currentProject == null || currentManager == null || currentServerId == null) return;
+    if (!currentManager.isRunning(currentServerId)) {
       serverStats = HaxeBundle.message("haxe.server.console.stats.unavailable");
-      update(currentProject, currentServerId);
+      update(currentProject, currentManager, currentServerId);
       return;
     }
 
     AppExecutorUtil.getAppExecutorService().execute(() -> {
       String rendered;
       try {
-        ServerMemory memory = HaxeCompilerDisplayService.fetchServerMemory(port);
+        ServerMemory memory = currentManager.fetchMemory(currentServerId);
         rendered = renderMemory(memory);
       }
       catch (DisplayRequestException e) {
@@ -133,9 +147,7 @@ final class HaxeServerStatusPanel extends JPanel {
       String result = rendered;
       ApplicationManager.getApplication().invokeLater(() -> {
         serverStats = result;
-        if (project != null && serverId != null) {
-          update(project, serverId);
-        }
+        update(currentProject, currentManager, currentServerId);
       });
     });
   }

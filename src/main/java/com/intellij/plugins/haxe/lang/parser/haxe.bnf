@@ -162,7 +162,7 @@
       kCATCH="catch"
       tWILDCARD=".*"
       MACRO_ID="regexp:\$[:alpha:]+"
-      UNBOUND_ID="regexp:`[:alpha:]+"
+      UNBOUND_ID="regexp:`[:alpha:]*"
       id="regexp:[:alpha:]+"
       space="regexp:\s+"
     ]
@@ -255,7 +255,7 @@ private normalIdentifier ::= ID | identifierWithKeywordName
 unnameIdentifier ::= "_"
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" extends="identifier"}
 
-identifier ::= macroIdentifier | unnameIdentifier | normalIdentifier
+identifier ::= macroIdentifier | unnameIdentifier | normalIdentifier | compilerInternalIdentifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
 
 thisExpression ::= 'this'
@@ -267,12 +267,14 @@ superExpression ::= 'super'
 abstractExpression ::= 'abstract'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-// A compiler-internal unbound identifier (a typed-AST TIdent bound to no
-// declaration), printed by -D dump=pretty with a backtick prefix no source
-// identifier can contain (e.g. `trace). Only appears in dump previews of
-// generated code - the compiler rejects it in real source.
-unboundIdentifierExpression ::= UNBOUND_ID
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+// A compiler-internal name as -D dump=pretty prints it, with a backtick no
+// source identifier can contain: an unbound identifier (a typed-AST TIdent
+// bound to no declaration, e.g. `trace) or a bare backtick, the name the
+// compiler gives its own temporaries (a map literal's map, a catch-all's
+// exception). Only appears in dump previews of generated code - the compiler
+// rejects it in real source.
+compilerInternalIdentifier ::= UNBOUND_ID
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" extends="identifier"}
 
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
@@ -566,7 +568,7 @@ localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (','
 localVarDeclaration ::= 'static'? componentName typeTag? varInit?
   {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
-private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | ';' |  '{' | '}' | '!'  | '(' | ')' | '++' | ',' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | REG_EXP | XML_TAG_START | ppToken)
+private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | ';' |  '{' | '}' | '!'  | '(' | ')' | '++' | ',' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'macro' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | REG_EXP | XML_TAG_START | ppToken)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')' {pin=1}
 
@@ -1071,7 +1073,7 @@ expressionList ::= forStatement | whileStatement | (expression (',' expression)*
 // '(' is here to prevent call expressions from consuming enum extractor expressions
 private expression_list_recover ::= !(')' | ']' |'('| fatArrowOperator)
 
-private expression_recover ::= !( ';' |'.' | ID |  MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | XML_TAG_START | LONG_TEMPLATE_ENTRY_END  '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' |  '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else'  | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~'  | '=>'| '$'  | 'override' | 'private' | 'public' | 'extern') !metaKeyWord
+private expression_recover ::= !( ';' |'.' | ID |  MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | XML_TAG_START | LONG_TEMPLATE_ENTRY_END  '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' |  '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else'  | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'macro' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~'  | '=>'| '$'  | 'override' | 'private' | 'public' | 'extern') !metaKeyWord
 
 // This list is in reversed operator precedence order -- lowest on top.
 // The things on top are still matched first.
@@ -1271,7 +1273,7 @@ left arrayAccessExpression ::= '[' expression ']'
 identifierOrReferenceAllowedKeyword ::= identifier | 'new'
 {extends= identifier}
 
-private thisSuperAbstractOrReferenceExpression ::= referenceExpression | thisExpression | superExpression | abstractExpression | unboundIdentifierExpression
+private thisSuperAbstractOrReferenceExpression ::= referenceExpression | thisExpression | superExpression | abstractExpression
 
 referenceExpression ::= identifier
 {

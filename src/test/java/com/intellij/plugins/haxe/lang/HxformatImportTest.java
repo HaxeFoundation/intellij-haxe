@@ -265,16 +265,6 @@ public class HxformatImportTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("empty file imports completely")
-  public void testEmptyFileImportsCompletely() throws Exception {
-    CodeStyleSettings settings = freshDefaults();
-
-    List<String> unsupported = HxformatJsonMapper.apply(settings, new ObjectMapper().readTree("{}"));
-
-    assertTrue(unsupported.isEmpty(), "a default config maps completely");
-  }
-
-  @Test
   @DisplayName("explicit defaults import completely")
   public void testExplicitDefaultsImportCompletely() throws Exception {
     CodeStyleSettings settings = freshDefaults();

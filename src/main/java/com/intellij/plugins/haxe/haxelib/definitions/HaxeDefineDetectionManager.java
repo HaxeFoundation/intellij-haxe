@@ -19,6 +19,7 @@ import com.intellij.plugins.haxe.haxelib.definitions.tags.ProjectXmlUndefineValu
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
+import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.text.SemVer;
 import lombok.CustomLog;
@@ -130,7 +131,8 @@ public class HaxeDefineDetectionManager implements Disposable {
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
     // getSDK version and add definition
-    detectedDefines.put("haxe_ver", sdk.getVersionString());
+    String versionString = sdk.getVersionString();
+    detectedDefines.put("haxe_ver", versionString == null ? null : HaxeLanguageLevelUtil.haxeVerDefineValue(versionString));
     SemVer semVer = SemVer.parseFromText(sdk.getVersionString());
     if(semVer != null) {
       if (semVer.getMajor() >= 5) {

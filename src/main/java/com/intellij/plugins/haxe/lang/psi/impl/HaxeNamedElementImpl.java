@@ -86,7 +86,7 @@ public abstract class HaxeNamedElementImpl extends HaxeStubBasedPsiElementBase<H
       return getIdentifier().getText();
     }
     catch(NullPointerException npe) {
-      log.debug(npe.getMessage());
+      if (log.isDebugEnabled()) log.debug(npe.getMessage());
       log.debug("Coercing to empty string");
     }
     return "";

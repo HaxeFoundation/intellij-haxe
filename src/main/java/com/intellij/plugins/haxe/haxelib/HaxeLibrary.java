@@ -64,8 +64,8 @@ public class HaxeLibrary {
       myName = pathInfo == null ? "" : pathInfo.getName();
     }
     HaxelibSemVer semVer = switch (version) {
-      case "git" -> HaxelibSemVer.GIT_VERSION;
-      case "dev" -> HaxelibSemVer.DEVELOPMENT_VERSION;
+      case HaxelibSemVer.GIT_SCM -> HaxelibSemVer.GIT_VERSION;
+      case HaxelibSemVer.DEV -> HaxelibSemVer.DEVELOPMENT_VERSION;
       default -> HaxelibSemVer.create(myMetadata.getVersion());
     };
 

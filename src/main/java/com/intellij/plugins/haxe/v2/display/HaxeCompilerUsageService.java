@@ -14,7 +14,6 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.display.protocol.DisplayMethods;
 import com.intellij.plugins.haxe.display.protocol.FindReferencesKind;
 import com.intellij.plugins.haxe.display.protocol.Location;
-import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
@@ -49,7 +48,7 @@ public final class HaxeCompilerUsageService {
 
   private record Request(@NotNull Key key,
                          @NotNull HaxeCompilerDisplayService.DisplayContext context,
-                         @Nullable String contents,
+                         @NotNull HaxeCompilerDisplayService.FilePayload payload,
                          @NotNull FindReferencesKind kind,
                          long fileStamp) {
   }
@@ -108,13 +107,15 @@ public final class HaxeCompilerUsageService {
     // served above, only new server work waits for valid syntax
     if (!HaxeCompilerDisplayService.isSyntaxClean(project, virtualFile)) return UsageState.UNKNOWN;
 
-    // overriding methods can be reached through a base-typed call
-    FindReferencesKind kind = declaration instanceof HaxeMethod
-                              ? FindReferencesKind.WITH_BASE_AND_DESCENDANTS
-                              : FindReferencesKind.DIRECT;
-    String contents = HaxeCompilerDisplayService.unsavedContents(virtualFile);
-    scheduleHydration(new Request(key, context, contents, kind, fileStamp));
+    HaxeCompilerDisplayService.FilePayload payload = HaxeCompilerDisplayService.payloadOf(virtualFile, key.offset());
+    scheduleHydration(new Request(key, context, payload, referenceKindOf(declaration), fileStamp));
     return UsageState.UNKNOWN;
+  }
+
+  /** How the compiler searches a declaration's references: a method's search includes its base and overriding declarations, since an override can be reached through a base-typed call; anything else is searched directly. */
+  @NotNull
+  public static FindReferencesKind referenceKindOf(@Nullable HaxeNamedComponent declaration) {
+    return declaration instanceof HaxeMethod ? FindReferencesKind.WITH_BASE_AND_DESCENDANTS : FindReferencesKind.DIRECT;
   }
 
   public void clearCaches() {
@@ -158,20 +159,11 @@ public final class HaxeCompilerUsageService {
 
   @NotNull
   private UsageState fetchVerdict(@NotNull Request request) {
-    HaxeCompilerDisplayService.Connected connected =
-      HaxeCompilerDisplayService.getInstance(project).connectFor(request.context(), DisplayMethods.FIND_REFERENCES);
-    if (connected == null) return UsageState.UNKNOWN;
-    try {
-      String filePath = request.key().filePath();
-      if (request.contents() != null) {
-        connected.client().invalidate(connected.args(), filePath);
-      }
-      List<Location> references = connected.client()
-        .references(connected.args(), filePath, request.key().offset(), request.contents(), request.kind());
-      return references.isEmpty() ? UsageState.UNUSED : UsageState.USED;
-    } catch (DisplayRequestException e) {
-      log.info("display/references failed for " + request.key().memberName() + ": " + e.getMessage());
-      return UsageState.UNKNOWN;
-    }
+    HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(project);
+    List<Location> references = displayService.send(
+      request.context(), DisplayMethods.FIND_REFERENCES, request.key().filePath(), request.payload(),
+      (connected, path, payload) -> connected.client().references(connected.args(), path, payload.serverOffset(), payload.contents(), request.kind()));
+    if (references == null) return UsageState.UNKNOWN;
+    return references.isEmpty() ? UsageState.UNUSED : UsageState.USED;
   }
 }

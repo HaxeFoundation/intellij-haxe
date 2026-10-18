@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,17 @@ public final class HaxeCustomToolsStore implements PersistentStateComponent<Haxe
   }
 
   private State state = new State();
+  private final @Nullable Project project;
+
+  public HaxeCustomToolsStore(@NotNull Project project) {
+    this.project = project;
+  }
+
+  /** State tests exercise the store without a project; no events fire then. */
+  @TestOnly
+  public HaxeCustomToolsStore() {
+    this.project = null;
+  }
 
   @NotNull
   public static HaxeCustomToolsStore getInstance(@NotNull Project project) {
@@ -89,10 +101,20 @@ public final class HaxeCustomToolsStore implements PersistentStateComponent<Haxe
       .toList();
   }
 
+  /** The container's custom tool by name, or null. */
+  @Nullable
+  public CustomTool findTool(@NotNull String ownerId, @NotNull String name) {
+    return getTools(ownerId).stream()
+      .filter(tool -> tool.name().equals(name))
+      .findFirst()
+      .orElse(null);
+  }
+
   public void addTool(@NotNull String ownerId, @NotNull CustomTool tool) {
     ContainerTools container = getOrCreate(ownerId);
     container.tools.removeIf(existing -> tool.name().equals(existing.name));
     container.tools.add(toState(tool));
+    HaxeBuildSettingsListener.publisher(project).customToolsChanged(ownerId);
   }
 
   /** Replaces the tool named {@code oldName}, keeping its position. */
@@ -101,10 +123,12 @@ public final class HaxeCustomToolsStore implements PersistentStateComponent<Haxe
     for (int i = 0; i < container.tools.size(); i++) {
       if (oldName.equals(container.tools.get(i).name)) {
         container.tools.set(i, toState(tool));
+        HaxeBuildSettingsListener.publisher(project).customToolsChanged(ownerId);
         return;
       }
     }
     container.tools.add(toState(tool));
+    HaxeBuildSettingsListener.publisher(project).customToolsChanged(ownerId);
   }
 
   public void removeTool(@NotNull String ownerId, @NotNull String name) {
@@ -112,6 +136,7 @@ public final class HaxeCustomToolsStore implements PersistentStateComponent<Haxe
     if (container != null) {
       container.tools.removeIf(tool -> name.equals(tool.name));
     }
+    HaxeBuildSettingsListener.publisher(project).customToolsChanged(ownerId);
   }
 
   @NotNull

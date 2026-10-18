@@ -288,6 +288,17 @@ public interface DapBackend extends Closeable {
     return false;
   }
 
+  /**
+   * Whether the adapter ECHOES the debuggee's program output as stdout and
+   * stderr output events while the real output already arrives on the
+   * process's streams (js-debug on node reports every console call that
+   * way). The debug process then drops the echoes instead of showing each
+   * line twice.
+   */
+  default boolean echoesProgramOutput() {
+    return false;
+  }
+
   /** Appended to the "program exited before the debugger could attach" failure. */
   String startupHint();
 }

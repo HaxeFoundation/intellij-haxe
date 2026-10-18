@@ -12,7 +12,7 @@ include(":debuggers:dap-protocol")
 
 // debuggers
 include(":debuggers:eval-debugger")
-include(":debuggers:browser-debugger")
+include(":debuggers:javascript-debugger")
 include(":debuggers:hashlink-debug-adapter")
 include(":debuggers:intellij-hxcpp-debugger")
 include(":debuggers:vshaxe-hxcpp-debugger-adapter")

@@ -53,6 +53,20 @@ public class ProjectXmlParserTest {
   }
 
   @Test
+  @DisplayName("a raw less than in a condition keeps the parse going")
+  public void testARawLessThanInAConditionKeepsTheParseGoing() {
+    // the tools read attribute values up to the closing quote; XML forbids the raw <
+    HaxeBuildFileInfo info = ProjectXmlParser.parse("""
+      <extension>
+        <log error="Haxe ${haxe_ver} is too old" if="${haxe_ver < 4.0}" />
+        <haxelib name="lime" />
+      </extension>
+      """);
+
+    assertEquals(List.of(new HaxeLibDependency("lime", null)), info.libraries());
+  }
+
+  @Test
   @DisplayName("parses app file attribute")
   public void parsesAppFileAttribute() {
     String appFile = ProjectXmlParser.parseAppFile("""

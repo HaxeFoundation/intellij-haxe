@@ -40,7 +40,9 @@ abstract class HaxeCompilerDiagnosticsAnnotatorBase
   @Nullable
   public final HaxeDiagnosticsFetcher.Request collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
     boolean enabled = isEnabled(file);
-    log.debug(getClass().getSimpleName() + " pass for " + file.getName() + ": enabled=" + enabled);
+    if (log.isDebugEnabled()) {
+      log.debug(getClass().getSimpleName() + " pass for " + file.getName() + ": enabled=" + enabled);
+    }
     return enabled ? HaxeDiagnosticsFetcher.collect(file, editor) : null;
   }
 
@@ -70,8 +72,10 @@ abstract class HaxeCompilerDiagnosticsAnnotatorBase
       annotate(holder, file, document, diagnostic, range);
       annotated++;
     }
-    log.debug(getClass().getSimpleName() + " annotated " + annotated + " of " + diagnostics.size()
-              + " diagnostics in " + file.getName());
+    if (log.isDebugEnabled()) {
+      log.debug(getClass().getSimpleName() + " annotated " + annotated + " of " + diagnostics.size()
+                + " diagnostics in " + file.getName());
+    }
   }
 
   private boolean isEnabled(@NotNull PsiFile file) {

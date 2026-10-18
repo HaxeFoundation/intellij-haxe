@@ -22,7 +22,7 @@ public final class HaxeGotoDeclarationProxy implements GotoDeclarationHandler {
   @Override
   public PsiElement @Nullable [] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
     if (sourceElement == null) return null;
-    boolean useCompiler = HaxeCompilerSettings.getInstance(sourceElement.getProject()).isCompilerIdeFeaturesEnabled();
+    boolean useCompiler = HaxeCompilerSettings.getInstance(sourceElement.getProject()).usesCompilerNavigation();
     GotoDeclarationHandler handler = useCompiler ? compilerHandler : staticHandler;
     return handler.getGotoDeclarationTargets(sourceElement, offset, editor);
   }

@@ -333,7 +333,7 @@ public class HaxeHierarchyUtils {
     }
 
     if (targetElement instanceof HaxeMethod) {
-      log.debug("target element " + targetElement);
+      if (log.isDebugEnabled()) log.debug("target element " + targetElement);
       return ((HaxeMethod) targetElement);
     }
 

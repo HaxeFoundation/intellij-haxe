@@ -1,0 +1,15 @@
+<!--
+  ~ Loaded only when the Diagrams plugin (com.intellij.diagram, an Ultimate
+  ~ plugin) is present. EVERY diagram registration lives here and the
+  ~ v2.diagram classes are referenced from nowhere else, so nothing of it
+  ~ loads on IC; the opener extension below is how the rest of the plugin
+  ~ learns that a diagram can be shown.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <diagram.Provider implementation="com.intellij.plugins.haxe.v2.diagram.HaxeLibraryDiagramProvider"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.intellij.plugins.haxe">
+    <libraryDiagramOpener implementation="com.intellij.plugins.haxe.v2.diagram.HaxeLibraryDiagramOpenerImpl"/>
+  </extensions>
+</idea-plugin>

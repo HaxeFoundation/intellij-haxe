@@ -1,32 +1,42 @@
 package com.intellij.plugins.haxe.v2.display;
 
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeLimeProjectInfoService;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerMetrics;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
+import com.intellij.plugins.haxe.v2.buildtools.settings.*;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeNmeProjectInfoService;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
+import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.client.HaxeDisplayClient;
+import com.intellij.plugins.haxe.display.protocol.Diagnostic;
+import com.intellij.plugins.haxe.display.protocol.DiagnosticSeverity;
 import com.intellij.plugins.haxe.display.protocol.DisplayMethods;
 import com.intellij.plugins.haxe.display.protocol.FileDiagnostics;
 import com.intellij.plugins.haxe.display.protocol.InitializeResult;
-import com.intellij.plugins.haxe.display.protocol.server.ServerMemory;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import com.intellij.plugins.haxe.display.transport.DisplayResponse;
-import com.intellij.plugins.haxe.display.transport.HaxeDisplayTransport;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.buildtools.*;
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.v2.buildtools.context.HaxeResolveContext;
+import com.intellij.plugins.haxe.v2.buildtools.context.HaxeResolveContexts;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.PsiErrorElementUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,18 +65,18 @@ import org.jetbrains.annotations.Nullable;
 /// restarts when the result arrives.
 @Service(Service.Level.PROJECT)
 @CustomLog
-public final class HaxeCompilerDisplayService {
+public final class HaxeCompilerDisplayService implements Disposable {
 
   /**
    * The part of a display request computed under the read lock. Either
    * {@code args} is known already (HXML, NMML), or {@code lime} still has to
-   * run on a background thread. The container's define overrides are applied
+   * run on a background thread. The build file's IDE overrides are applied
    * to whichever argument list results.
    */
   public record DisplayContext(@Nullable List<String> args,
                                @Nullable LimeDisplaySpec lime,
                                @Nullable String sdkName,
-                               @NotNull HaxeDisplayConfiguration.DefineOverrides overrides,
+                               @NotNull HaxeDisplayConfiguration.OverrideArguments overrides,
                                @NotNull String containerId) {
   }
 
@@ -82,25 +92,50 @@ public final class HaxeCompilerDisplayService {
   private record Capability(@NotNull Set<String> methods, @Nullable InitializeResult.SemVer haxeVersion) {
   }
 
-  /** A client for a running server that supports the requested method, with the resolved arguments. */
+  /**
+   * A client for a running server that supports the requested method, with
+   * the resolved arguments. {@code port} identifies the server the per-server
+   * state (capabilities, unsaved files) is kept for: the shared server's port,
+   * or the loopback port a dedicated display process connected to.
+   */
   record Connected(@NotNull HaxeDisplayClient client, @NotNull List<String> args, int port) {
   }
 
-  private record CachedLimeArgs(long fileStamp, @NotNull String targetFlag, @NotNull List<String> args) {
+  /**
+   * The server behind a client, the identity its per-server state is keyed on,
+   * and the console entry its request metrics count under.
+   */
+  private record Endpoint(@NotNull HaxeDisplayClient client, int id, @NotNull String metricsId) {
   }
 
-  private static final int LIME_DISPLAY_TIMEOUT_MS = 60_000;
-  private static final int CONTEXT_COMPILE_TIMEOUT_MS = 120_000;
+  /** The read timeout of a whole-context compile (warm-up, inlay types, dump) on a cold server; a single display answer keeps the client's default. */
+  static final int CONTEXT_COMPILE_TIMEOUT_MS = 120_000;
 
   private final Project project;
-  private final Map<String, CachedLimeArgs> limeArgsCache = new ConcurrentHashMap<>();
   /** Keys of the contexts compiled this session; the server's module cache fills only from a compile. */
   private final Set<String> compiledContexts = ConcurrentHashMap.newKeySet();
   /** What each running server answered on initialize, by port; a server state change empties it. */
   private final Map<Integer, Capability> capabilities = new ConcurrentHashMap<>();
+  private final HaxeServerUnsavedFiles unsavedFiles = new HaxeServerUnsavedFiles();
+
+  /** A file's display context and the {@link #contextInputsStamp} it was computed under. */
+  private record CachedContext(long inputsStamp, @Nullable DisplayContext context) {
+  }
+
+  private final Map<VirtualFile, CachedContext> contextCache = new ConcurrentHashMap<>();
+  /** Bumped by every build setting, build event and resolve-context choice a display context derives from. */
+  private final SimpleModificationTracker contextInputs = new SimpleModificationTracker();
 
   public HaxeCompilerDisplayService(@NotNull Project project) {
     this.project = project;
+    MessageBusConnection connection = project.getMessageBus().connect(this);
+    connection.subscribe(HaxeBuildSettingsListener.TOPIC, HaxeBuildSettingsListener.onAny(contextInputs::incModificationCount));
+    connection.subscribe(HaxeBuildEventListener.TOPIC, HaxeBuildEventListener.onAny(contextInputs::incModificationCount));
+    connection.subscribe(HaxeResolveContextListener.TOPIC, (HaxeResolveContextListener)contextInputs::incModificationCount);
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @NotNull
@@ -114,37 +149,86 @@ public final class HaxeCompilerDisplayService {
   }
 
   /**
+   * The key of the per-server state for the SDK's server (see
+   * {@link Connected#port()}): the listen port of its running display
+   * process in dedicated mode, else the shared server's port; -1 while
+   * nothing runs. Starts nothing, so it may run under the read lock.
+   */
+  int runningEndpointIdFor(@Nullable String sdkName) {
+    boolean dedicated =
+      HaxeCompilerSettings.getInstance(project).getDisplayConnectionMode() == HaxeDisplayConnectionMode.DEDICATED_PROCESS;
+    if (dedicated) {
+      int id = HaxeDisplayProcessManager.getInstance(project).runningIdFor(sdkName);
+      if (id > 0) return id;
+    }
+    return HaxeCompilationServerManager.getInstance(project).runningPortForSdk(sdkName);
+  }
+
+  /**
    * The haxe version of the server serving the given SDK; null while that
    * server does not run or has not answered an initialize yet. Each SDK has
    * its own server, so a mixed-version project asks per context.
    */
   @Nullable
   public InitializeResult.SemVer connectedHaxeVersion(@Nullable String sdkName) {
-    int port = HaxeCompilationServerManager.getInstance(project).runningPortForSdk(sdkName);
-    Capability known = port > 0 ? capabilities.get(port) : null;
+    int endpointId = runningEndpointIdFor(sdkName);
+    Capability known = endpointId > 0 ? capabilities.get(endpointId) : null;
     return known != null ? known.haxeVersion() : null;
   }
 
   /**
-   * The display context of a haxe source file, derived from its module's
-   * current build file. Null when the file has no supported build context.
-   * Call in a read action; does not touch the network or spawn processes.
+   * The display context of a haxe source file, derived from the build the
+   * file is analysed under ({@link HaxeResolveContexts}). Null when the file
+   * has no supported build context. Call in a read action; does not touch
+   * the network or spawn processes.
+   *
+   * Cached per file until {@link #contextInputsStamp} moves: resolve asks
+   * for every reference that fails statically, and working the context out
+   * walks the build files.
    */
   @Nullable
   public DisplayContext contextFor(@NotNull VirtualFile file) {
-    Module module = ModuleUtilCore.findModuleForFile(file, project);
-    return module == null ? null : contextFor(module);
+    long inputsStamp = contextInputsStamp();
+    CachedContext cached = contextCache.get(file);
+    if (cached != null && cached.inputsStamp() == inputsStamp) return cached.context();
+
+    HaxeResolveContext resolveContext = HaxeResolveContexts.getInstance(project).contextFor(file);
+    DisplayContext context = resolveContext == null ? null : contextOfBuildFile(resolveContext.buildFile().file());
+    contextCache.put(file, new CachedContext(inputsStamp, context));
+    return context;
   }
 
   /**
-   * The display context of a module's current build file, for callers
+   * Moves whenever a display context may change: any PSI change (a build
+   * file edit included), a project-root change, or a build setting, build
+   * event or resolve-context choice. Read BEFORE computing, so an input
+   * changing during the computation leaves the result stale-stamped.
+   */
+  long contextInputsStamp() {
+    return PsiModificationTracker.getInstance(project).getModificationCount()
+           + ProjectRootModificationTracker.getInstance(project).getModificationCount()
+           + contextInputs.getModificationCount();
+  }
+
+  /** The build inputs alone (project roots, build settings and events, resolve-context choices): an edit does not move it. */
+  long buildInputsStamp() {
+    return ProjectRootModificationTracker.getInstance(project).getModificationCount() + contextInputs.getModificationCount();
+  }
+
+  /**
+   * The display context of a module's default build file, for callers
    * without a source file (the type catalog works per module). Same contract
    * as {@link #contextFor(VirtualFile)}.
    */
   @Nullable
   public DisplayContext contextFor(@NotNull Module module) {
-    VirtualFile buildFile = currentBuildFile(module);
-    if (buildFile == null || buildFile.getParent() == null) return null;
+    HaxeBuildFile buildFile = HaxeResolveContexts.getInstance(project).defaultBuildFileFor(module);
+    return buildFile == null ? null : contextOfBuildFile(buildFile.file());
+  }
+
+  @Nullable
+  private DisplayContext contextOfBuildFile(@NotNull VirtualFile buildFile) {
+    if (buildFile.getParent() == null) return null;
     HaxeBuildFileType type = HaxeBuildFileScanner.detectType(project, buildFile);
     // a plain hxp script generates its compiler args in code - nothing to derive statically
     if (type == null || type == HaxeBuildFileType.HXP_SCRIPT) return null;
@@ -156,7 +240,8 @@ public final class HaxeCompilerDisplayService {
     if (!environment.isUsingCompilationServer(containerId)) return null;
     String sdkName = environment.getSdkName(containerId);
     String directory = buildFile.getParent().getPath();
-    HaxeDisplayConfiguration.DefineOverrides overrides = HaxeDisplayConfiguration.overridesFor(project, containerId);
+    HaxeBuildFile typedBuildFile = new HaxeBuildFile(buildFile, type);
+    HaxeDisplayConfiguration.OverrideArguments overrides = HaxeDisplayConfiguration.overridesFor(project, typedBuildFile, containerId);
 
     if (type == HaxeBuildFileType.HXML) {
       // hxml paths resolve against the file's work directory, not its folder
@@ -187,13 +272,8 @@ public final class HaxeCompilerDisplayService {
    */
   @NotNull
   private List<String> hxmlContextArgs(@NotNull VirtualFile buildFile, @NotNull String directory) {
-    List<String> sectionArguments = HaxeBuildSections.selectedSectionArguments(project, buildFile);
-    if (sectionArguments == null) {
-      return List.of("--cwd", directory, HaxeBuildWorkDirectories.fileArgument(buildFile, directory));
-    }
-    List<String> args = new ArrayList<>(List.of("--cwd", directory));
-    args.addAll(sectionArguments);
-    return List.copyOf(args);
+    List<String> byReference = List.of(HxmlArguments.CWD_FLAG, directory, HaxeBuildWorkDirectories.fileArgument(buildFile, directory));
+    return List.copyOf(HxmlProjects.scopeToSelectedSection(project, buildFile, byReference));
   }
 
   /**
@@ -206,14 +286,14 @@ public final class HaxeCompilerDisplayService {
   private DisplayContext nmeContext(@NotNull VirtualFile buildFile,
                                     @NotNull String directory,
                                     @Nullable String sdkName,
-                                    @NotNull HaxeDisplayConfiguration.DefineOverrides overrides,
+                                    @NotNull HaxeDisplayConfiguration.OverrideArguments overrides,
                                     @NotNull String containerId) {
     String targetFlag = NmeProjects.selectedTargetFlag(project, buildFile);
     HaxeNmeProjectInfoService.Evaluation evaluation = HaxeNmeProjectInfoService.getInstance(project)
-      .getCachedOrSchedule(new HaxeBuildFile(buildFile, HaxeBuildFileType.NMML), targetFlag, sdkName, () -> { });
+      .getCachedOrSchedule(new HaxeBuildFile(buildFile, HaxeBuildFileType.NMML), targetFlag, sdkName);
     if (evaluation == null) return null;
 
-    List<String> args = new ArrayList<>(List.of("--cwd", directory));
+    List<String> args = new ArrayList<>(List.of(HxmlArguments.CWD_FLAG, directory));
     args.addAll(HxmlArguments.parseLines(evaluation.hxmlContent().lines().toList()));
     return new DisplayContext(List.copyOf(args), null, sdkName, overrides, containerId);
   }
@@ -232,9 +312,7 @@ public final class HaxeCompilerDisplayService {
     Connected connected = connectFor(context, DisplayMethods.DIAGNOSTICS);
     if (connected == null) return null;
     try {
-      if (contents != null) {
-        connected.client().invalidate(connected.args(), filePath);
-      }
+      prepareFile(connected, filePath, contents);
       List<FileDiagnostics> results = connected.client().diagnostics(connected.args(), filePath, contents);
       HaxeContextFailures.getInstance(project).record(context.containerId(), null);
       return results;
@@ -256,7 +334,7 @@ public final class HaxeCompilerDisplayService {
   @NotNull
   private static String explainRequestFailure(@NotNull Connected connected, @NotNull DisplayRequestException failure) {
     String message = StringUtil.notNullize(failure.getMessage());
-    if (!message.endsWith("empty response")) {
+    if (!failure.isUnexplained()) {
       return message;
     }
     try {
@@ -328,79 +406,80 @@ public final class HaxeCompilerDisplayService {
     }
     else {
       LimeDisplaySpec lime = context.lime();
-      base = lime != null ? limeArgsFor(lime, context.sdkName()) : null;
+      base = lime != null ? limeArguments(lime, context.sdkName()) : null;
     }
     return base == null ? null : HaxeDisplayConfiguration.applyOverrides(base, context.overrides());
   }
 
-  // TODO: keyed on the project file's stamp only - an edited library
-  //  include.xml takes effect on Reload Haxe Project or Purge Caches, not by itself.
+  /** The lime-family context's arguments from the info service's display cache; null while the tool fails or the project is untrusted. */
   @Nullable
-  private List<String> limeArgsFor(@NotNull LimeDisplaySpec spec, @Nullable String sdkName) {
-    String cacheKey = spec.directory() + "/" + spec.fileName();
-    CachedLimeArgs cached = limeArgsCache.get(cacheKey);
-    if (cached != null && cached.fileStamp() == spec.fileStamp() && cached.targetFlag().equals(spec.targetFlag())) {
-      return cached.args();
-    }
-    List<String> args = runLimeDisplay(spec, sdkName);
-    if (args != null) {
-      limeArgsCache.put(cacheKey, new CachedLimeArgs(spec.fileStamp(), spec.targetFlag(), args));
-    }
-    return args;
-  }
-
-  @Nullable
-  private List<String> runLimeDisplay(@NotNull LimeDisplaySpec spec, @Nullable String sdkName) {
-    String haxelib = HaxeToolPathResolver.resolveHaxelibExecutable(project, sdkName);
-    List<String> args = LimeProjects.displayArguments(
-      haxelib, spec.tool(), spec.directory(), spec.fileName(), spec.targetFlag(), LIME_DISPLAY_TIMEOUT_MS);
-    if (args == null) {
-      log.info("lime display failed for " + spec.fileName());
-    }
-    return args;
+  private List<String> limeArguments(@NotNull LimeDisplaySpec spec, @Nullable String sdkName) {
+    return HaxeLimeProjectInfoService.getInstance(project)
+      .displayArguments(spec.directory(), spec.fileName(), spec.tool(), spec.targetFlag(), spec.fileStamp(), sdkName);
   }
 
   // --- server connection ---
 
-  /**
-   * Memory statistics of the compilation server already RUNNING on {@code port}.
-   * Unlike the context-based requests, {@code server/memory} needs no build
-   * context: it reports per-context sizes for whatever the server has
-   * compiled. Performs a socket round-trip; call on a background thread.
-   */
-  @NotNull
-  public static ServerMemory fetchServerMemory(int port) throws DisplayRequestException {
-    return new HaxeDisplayClient(HaxeCompilationServerManager.SERVER_HOST, port).serverMemory(List.of());
-  }
 
   /**
    * A client for the context's server, starting the server when needed. Null
-   * when the arguments cannot be resolved, the server does not start, or it
-   * does not support {@code method}. The supported methods are asked once
-   * per server. Background threads only.
+   * when the server is switched off or the project is not trusted, the
+   * arguments cannot be resolved, the server does not start, or it does not
+   * support {@code method}. The supported methods are asked once per server.
+   * Background threads only.
    */
   @Nullable
   Connected connectFor(@NotNull DisplayContext context, @NotNull String method) {
+    if (!mayUseServer()) return null;
     List<String> args = resolveArgs(context);
     if (args == null) return null;
-    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(context.sdkName());
-    if (port <= 0) return null;
-    HaxeDisplayClient client = new HaxeDisplayClient(HaxeCompilationServerManager.SERVER_HOST, port);
-    String serverId = HaxeToolPathResolver.resolveHaxeExecutable(project, context.sdkName());
-    client.setObserver((requestMethod, millis, success) ->
-                         HaxeServerMetrics.getInstance(project).record(serverId, millis, success));
+    Endpoint endpoint = endpointFor(context.sdkName());
+    if (endpoint == null) return null;
+    HaxeDisplayClient client = endpoint.client();
+    client.setObserver(HaxeServerMetrics.getInstance(project).observerFor(endpoint.metricsId()));
 
-    Capability known = capabilities.get(port);
+    Capability known = capabilities.get(endpoint.id());
     if (known == null) {
       InitializeResult initialized = initializeWithRetry(client, args);
       if (initialized == null) return null;
       known = new Capability(Set.copyOf(initialized.methods()), initialized.haxeVersion());
       log.info("haxe display protocol " + initialized.protocolVersion()
-               + " (haxe " + initialized.haxeVersion() + ") on port " + port + ", "
+               + " (haxe " + initialized.haxeVersion() + ") on port " + endpoint.id() + ", "
                + known.methods().size() + " methods");
-      capabilities.put(port, known);
+      capabilities.put(endpoint.id(), known);
     }
-    return known.methods().contains(method) ? new Connected(client, args, port) : null;
+    return known.methods().contains(method) ? new Connected(client, args, endpoint.id()) : null;
+  }
+
+  /**
+   * Whether the server may be used at all: switched on, and the project
+   * trusted. Checked before the arguments are resolved, not only in the
+   * server managers, because resolving them can run project code
+   * ({@code lime display} runs the project's tool). Package-private for tests.
+   */
+  boolean mayUseServer() {
+    return HaxeBuildToolSettings.getInstance(project).isCompilationServerEnabled()
+           && HaxeProjectTrust.checkForBackgroundEvaluation(project);
+  }
+
+  /**
+   * The SDK's dedicated display process when the setting asks for one and
+   * it runs, else the shared {@code --wait} server. A dedicated process that
+   * cannot start (an SDK without {@code --server-connect}, a start failure)
+   * falls back to the shared server, so the feature stays available.
+   */
+  @Nullable
+  private Endpoint endpointFor(@Nullable String sdkName) {
+    String executablePath = HaxeToolPathResolver.resolveHaxeExecutable(project, sdkName);
+    if (HaxeCompilerSettings.getInstance(project).getDisplayConnectionMode() == HaxeDisplayConnectionMode.DEDICATED_PROCESS) {
+      HaxeDisplayProcessManager.Channel channel = HaxeDisplayProcessManager.getInstance(project).channelFor(sdkName);
+      if (channel != null) {
+        return new Endpoint(new HaxeDisplayClient(channel.channel()), channel.id(), HaxeDisplayProcessManager.idFor(executablePath));
+      }
+    }
+    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(sdkName);
+    if (port <= 0) return null;
+    return new Endpoint(new HaxeDisplayClient(HaxeCompilationServerManager.SERVER_HOST, port), port, executablePath);
   }
 
   /** A freshly spawned server needs a moment to bind its port; retry briefly before giving up. */
@@ -411,7 +490,8 @@ public final class HaxeCompilerDisplayService {
       try {
         return client.initialize(args);
       } catch (DisplayRequestException e) {
-        if (System.currentTimeMillis() > deadline) {
+        // a broken framed channel never recovers; only a server still binding its port earns another try
+        if (client.isChannelBroken() || System.currentTimeMillis() > deadline) {
           log.info("display initialize failed: " + e.getMessage());
           return null;
         }
@@ -428,22 +508,23 @@ public final class HaxeCompilerDisplayService {
   // --- context warm-up ---
 
   /**
-   * Compiles the context once per session, because the server's module cache
-   * fills only from a real compile. Returns whether the context compiled. A
-   * FAILED compile (broken code) is not remembered: remembering it would keep
-   * module lookups broken until the caches are purged, even after the code is
-   * fixed. The next call retries instead. The outcome is recorded as the
-   * container's context failure, so a broken build context shows in the tool
-   * window even while compiler diagnostics are off. Background threads only.
+   * Types the whole context once per session, because the server's module
+   * cache fills only when every module is typed. Returns whether the context
+   * typed without errors. A FAILED warm-up (broken code) is not remembered:
+   * remembering it would keep module lookups broken until the caches are
+   * purged, even after the code is fixed. The next call retries instead. The
+   * outcome is recorded as the container's context failure, so a broken
+   * build context shows in the tool window even while compiler diagnostics
+   * are off. Background threads only.
    */
   boolean ensureContextCompiled(@NotNull Connected connected, @NotNull String contextKey, @NotNull String containerId) {
     if (compiledContexts.contains(contextKey)) return true;
     HaxeContextFailures failures = HaxeContextFailures.getInstance(project);
     try {
-      DisplayResponse compiled = compileContext(connected);
-      if (compiled.hasError()) {
-        log.info("context warm-up compile reported errors - will retry: " + compiled.payload());
-        failures.record(containerId, contextCompileFailure(compiled));
+      String failure = typeContext(connected);
+      if (failure != null) {
+        log.info("context warm-up reported errors - will retry: " + failure);
+        failures.record(containerId, failure);
         return false;
       }
       compiledContexts.add(contextKey);
@@ -456,31 +537,125 @@ public final class HaxeCompilerDisplayService {
     }
   }
 
+  /**
+   * Types the connected context and returns the user-facing failure, or null
+   * when it types. A project-wide {@code display/diagnostics} request types
+   * every module like a compile but stops before generation, so build hooks
+   * that run after it - a custom target's tool runs, a macro that expects a
+   * main class - do not run for the IDE. A compiler without that method
+   * (before 4.3.5) gets a {@code --no-output} compile, which does run them.
+   */
+  @Nullable
+  private String typeContext(@NotNull Connected connected) throws DisplayRequestException {
+    Capability known = capabilities.get(connected.port());
+    if (known == null || !known.methods().contains(DisplayMethods.DIAGNOSTICS)) {
+      DisplayResponse compiled = compileContext(connected);
+      return compiled.hasError() ? contextCompileFailure(compiled) : null;
+    }
+    String errors = contextErrors(connected.client().projectDiagnostics(connected.args(), CONTEXT_COMPILE_TIMEOUT_MS));
+    return errors.isEmpty() ? null : HaxeBundle.message("haxe.display.context.compile.failed", errors);
+  }
+
+  /** The error-severity diagnostics of a project-wide request, one {@code file:line: message} per line; warnings are left out. */
+  @NotNull
+  static String contextErrors(@NotNull List<FileDiagnostics> results) {
+    List<String> lines = new ArrayList<>();
+    for (FileDiagnostics fileDiagnostics : results) {
+      for (Diagnostic diagnostic : fileDiagnostics.diagnostics()) {
+        if (diagnostic.severity() != DiagnosticSeverity.ERROR) continue;
+        int line = diagnostic.range().start().line() + 1;
+        lines.add(fileDiagnostics.file() + ":" + line + ": " + HaxeDiagnosticsFetcher.messageOf(diagnostic));
+      }
+    }
+    return String.join("\n", lines);
+  }
+
   /** A plain {@code --no-output} compile of the connected context through the server. */
   @NotNull
   private static DisplayResponse compileContext(@NotNull Connected connected) throws DisplayRequestException {
     List<String> compileArgs = new ArrayList<>(connected.args());
-    compileArgs.add("--no-output");
-    return HaxeDisplayTransport.request(HaxeCompilationServerManager.SERVER_HOST, connected.port(), compileArgs,
-                                        CONTEXT_COMPILE_TIMEOUT_MS);
+    compileArgs.add(HxmlFileParser.NO_OUTPUT_FLAG);
+    return connected.client().exchange(compileArgs, CONTEXT_COMPILE_TIMEOUT_MS);
+  }
+
+  /**
+   * Readies the server for a request about one file, which sends the file's
+   * unsaved {@code contents} or null for the saved file. The file is
+   * invalidated first when the request sends text, since a cached module
+   * would hide it, and when the server last received unsaved text for it,
+   * since that module would otherwise keep answering for text the editor no
+   * longer has ({@link HaxeServerUnsavedFiles}).
+   */
+  void prepareFile(@NotNull Connected connected, @NotNull String filePath, @Nullable String contents)
+    throws DisplayRequestException {
+    boolean sendsText = contents != null;
+    if (unsavedFiles.needsInvalidate(connected.port(), filePath, sendsText)) {
+      connected.client().invalidate(connected.args(), filePath);
+    }
+    unsavedFiles.requestSent(connected.port(), filePath, sendsText);
   }
 
   /**
    * Forgets which contexts were compiled, what each server answered on
-   * initialize and the cached lime display arguments, so the next request
-   * initializes, evaluates and compiles again.
+   * initialize, which files' unsaved text each server holds and the cached
+   * lime display arguments, so the next request initializes, evaluates and
+   * compiles again.
    */
   public void clearCaches() {
     compiledContexts.clear();
     capabilities.clear();
-    limeArgsCache.clear();
+    unsavedFiles.clear();
+    HaxeLimeProjectInfoService.getInstance(project).clearDisplayArguments();
+    contextCache.clear();
   }
 
-  /** The file on disk behind an element; a completion copy maps back to its original. */
+  /** What a per-file request carries: the editor's unsaved text when there is one, and the offset as the server counts it. */
+  public record FilePayload(@Nullable String contents, int serverOffset) {
+  }
+
+  /** The call of a per-file request, on a prepared connection. */
+  @FunctionalInterface
+  interface FileRequest<R> {
+    R send(@NotNull Connected connected, @NotNull String filePath, @NotNull FilePayload payload) throws DisplayRequestException;
+  }
+
+  /** The payload of a request about the file at the offset. Call in a read action. */
+  @NotNull
+  static FilePayload payloadOf(@NotNull VirtualFile file, int offset) {
+    String contents = unsavedContents(file);
+    return new FilePayload(contents, HaxeServerOffsets.serverOffset(file, offset, contents));
+  }
+
+  /**
+   * One per-file request: connects for the method, prepares the file on the
+   * server for the payload's text ({@link #prepareFile}) and sends. Null when
+   * there is no server or the request fails (logged). Background thread, no
+   * read lock.
+   */
+  @Nullable
+  <R> R send(@NotNull DisplayContext context,
+             @NotNull String method,
+             @NotNull String filePath,
+             @NotNull FilePayload payload,
+             @NotNull FileRequest<R> request) {
+    Connected connected = connectFor(context, method);
+    if (connected == null) return null;
+    try {
+      prepareFile(connected, filePath, payload.contents());
+      return request.send(connected, filePath, payload);
+    } catch (DisplayRequestException e) {
+      log.info(method + " failed for " + filePath + ": " + e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * The file on disk behind an element; a completion copy maps back to its
+   * original, and a light file, such as a generated-code preview, has none.
+   */
   @Nullable
   static VirtualFile physicalFileOf(@NotNull PsiElement element) {
-    PsiFile file = element.getContainingFile();
-    return file != null ? file.getOriginalFile().getVirtualFile() : null;
+    return HaxeDefineContextService.physicalFileOf(element.getContainingFile());
   }
 
   /**
@@ -495,26 +670,4 @@ public final class HaxeCompilerDisplayService {
     return document != null && documents.isDocumentUnsaved(document) ? document.getText() : null;
   }
 
-  // --- build file resolution ---
-
-  /**
-   * The module's current build file: the project's active file when this
-   * module owns it, else the module's Build command file.
-   */
-  @Nullable
-  private VirtualFile currentBuildFile(@NotNull Module module) {
-    VirtualFile active = fileIfOwned(HaxeKnownBuildFiles.effectiveActivePath(project), module);
-    if (active != null) return active;
-    HaxeEnvironmentStore.CompileCommand command =
-      HaxeEnvironmentStore.getInstance(project).getCompileCommand(module.getName());
-    return command != null ? fileIfOwned(command.buildFilePath(), module) : null;
-  }
-
-  @Nullable
-  private VirtualFile fileIfOwned(@Nullable String path, @NotNull Module module) {
-    if (path == null || path.isBlank()) return null;
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    if (file == null || !file.isValid()) return null;
-    return HaxeContainers.containerIdFor(project, file).equals(module.getName()) ? file : null;
-  }
 }

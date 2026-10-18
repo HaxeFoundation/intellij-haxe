@@ -1,6 +1,8 @@
 package com.intellij.plugins.haxe.v2.buildsystem;
 
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
@@ -54,14 +56,24 @@ public final class HxmlFileParser {
   public static final Set<String> DEFINE_FLAGS = Set.of("-D", "--define");
 
   /** Haxe 5's {@code --custom-target name[=path]}: the name becomes the platform name. */
-  private static final String CUSTOM_TARGET_FLAG = "--custom-target";
+  public static final String CUSTOM_TARGET_FLAG = "--custom-target";
+  /** {@code --run Main} and {@code -x Main} compile and run the main class on the interpreter, a target of their own. */
+  public static final Set<String> RUN_FLAGS = Set.of("--run", "-x");
+  /** {@code --interp}: the eval target, which writes no output. */
+  public static final String INTERP_FLAG = "--interp";
+  /** A compile that writes nothing - what completion, type and dump runs ask for. */
+  public static final String NO_OUTPUT_FLAG = "--no-output";
+  /** {@code -cmd <shell command>}, run after the compile; the value is the whole command. */
+  public static final Set<String> COMMAND_FLAGS = Set.of("-cmd", "--cmd");
 
   private static final Set<String> LIBRARY_FLAGS = Set.of("-lib", "--library", "-L");
   private static final Set<String> CLASSPATH_FLAGS = Set.of("-cp", "-p", "--class-path");
-  private static final Set<String> DEBUG_FLAGS = Set.of("-debug", "--debug");
-  /** What {@code -debug} defines, as {@code -D debug} would. */
-  private static final HaxeDefine DEBUG_DEFINE = new HaxeDefine("debug", null);
-  private static final Set<String> MAIN_FLAGS = Set.of("-main", "--main", "-m");
+  /** The debug flag's two spellings; the flag defines {@link #DEBUG_DEFINE_NAME} as {@code -D debug} would. */
+  public static final Set<String> DEBUG_FLAGS = Set.of("-debug", "--debug");
+  public static final String DEBUG_DEFINE_NAME = "debug";
+  private static final HaxeDefine DEBUG_DEFINE = new HaxeDefine(DEBUG_DEFINE_NAME, null);
+  /** The main-class flag's spellings; see {@link #isMainFlag}. */
+  public static final Set<String> MAIN_FLAGS = Set.of("-main", "--main", "-m");
 
   private HxmlFileParser() {
   }
@@ -118,7 +130,7 @@ public final class HxmlFileParser {
       appendFlattened(tokens[1], reader, visited, out);
       return;
     }
-    if (isIncludeReference(line)) {
+    if (isHxmlReference(line)) {
       if (!visited.add(line)) return;
       String included = reader.read(line);
       if (included != null) {
@@ -142,7 +154,7 @@ public final class HxmlFileParser {
       String line = rawLine.trim();
       if (line.startsWith(INCLUDE_MARKER)) {
         String reference = line.substring(INCLUDE_MARKER.length()).trim();
-        if (isIncludeReference(reference)) return reference;
+        if (isHxmlReference(reference)) return reference;
         continue;
       }
       if (isSignificantLine(line)) break;
@@ -248,7 +260,7 @@ public final class HxmlFileParser {
         accumulator.defines.add(parseDefine(value));
       }
       else if (LIBRARY_FLAGS.contains(flag) && value != null) {
-        accumulator.libraries.add(parseLibrary(value));
+        accumulator.libraries.add(HaxeLibDependency.parse(value));
       }
       else if (CLASSPATH_FLAGS.contains(flag) && value != null) {
         accumulator.classpaths.add(value);
@@ -298,15 +310,9 @@ public final class HxmlFileParser {
     return new HaxeDefine(parts[0], parts.length > 1 ? parts[1] : null);
   }
 
-  // "name", "name:1.2.0" or "name:git:https://..."
-  @NotNull
-  private static HaxeLibDependency parseLibrary(@NotNull String value) {
-    String[] parts = value.split(":", 2);
-    return new HaxeLibDependency(parts[0], parts.length > 1 ? parts[1] : null);
-  }
-
-  private static boolean isIncludeReference(@NotNull String token) {
-    return !token.startsWith("-") && token.endsWith(".hxml");
+  /** A token naming another hxml - an include line or a command-line argument: a bare path with the hxml extension, never a flag. */
+  public static boolean isHxmlReference(@NotNull String token) {
+    return !token.startsWith("-") && FileUtilRt.extensionEquals(token, HXMLFileType.DEFAULT_EXTENSION);
   }
 
   /** The target a compiler flag selects ({@code -js}, {@code --jvm}, ...), or null for non-target flags. */
@@ -324,16 +330,27 @@ public final class HxmlFileParser {
     return significantLines(content).anyMatch(line -> TARGET_FLAGS.get(line.flag()) == target);
   }
 
-  /** Whether effective (include-merged) content declares a debug compile — hxcpp renames its binary on it. */
-  public static boolean hasDebugFlag(@NotNull String content) {
-    return content.lines()
-      .map(String::trim)
-      .anyMatch(DEBUG_FLAGS::contains);
+  /**
+   * Whether effective (include-merged) content selects any target: a target
+   * flag, Haxe 5's {@code --custom-target}, or {@code --run}. Content without
+   * one compiles for the compiler's default platform.
+   */
+  public static boolean declaresAnyTarget(@NotNull String content) {
+    return significantLines(content).anyMatch(line -> isTargetSelection(line.flag()));
+  }
+
+  private static boolean isTargetSelection(@NotNull String flag) {
+    return TARGET_FLAGS.containsKey(flag) || CUSTOM_TARGET_FLAG.equals(flag) || RUN_FLAGS.contains(flag);
   }
 
   /** Whether the flag declares the build's main class ({@code -main}/{@code --main}/{@code -m}). */
   public static boolean isMainFlag(@NotNull String flag) {
     return MAIN_FLAGS.contains(flag);
+  }
+
+  /** Whether the flag compiles and runs the main class on the interpreter ({@code --run}/{@code -x}). */
+  public static boolean isRunFlag(@NotNull String flag) {
+    return RUN_FLAGS.contains(flag);
   }
 
   /**

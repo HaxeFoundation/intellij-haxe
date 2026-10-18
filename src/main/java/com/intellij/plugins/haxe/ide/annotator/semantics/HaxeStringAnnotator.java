@@ -21,8 +21,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringInterpolationUtil.convertToInterpolationFix;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringInterpolationUtil.stripStringWrapping;
@@ -44,17 +42,6 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
     }
   }
 
-
-  private static boolean templateMatches(String text, Pattern pattern) {
-    // We need an odd number of dollar signs to avoid detecting escaped dollar signs as templates.
-    Matcher matcher = pattern.matcher(text);
-    while (matcher.find()) {
-      if (matcher.groupCount() == 1 && (matcher.end(1) - matcher.start(1)) % 2 != 0) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   private void checkInterpolation(HaxeAdditiveExpression additiveExpression, @NotNull AnnotationHolder holder) {
     List<HaxeExpression> expressionList = additiveExpression.getExpressionList();

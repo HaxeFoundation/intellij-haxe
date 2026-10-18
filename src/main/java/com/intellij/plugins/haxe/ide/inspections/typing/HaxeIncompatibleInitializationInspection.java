@@ -68,7 +68,7 @@ public class HaxeIncompatibleInitializationInspection extends HaxeInspection {
     }
   }
 
-  /** Operand type compatibility of {@code a ?? b}; the 4.3 level gate stays in HaxeNullCoalescingAnnotator. */
+  /** Operand type compatibility of {@code a ?? b}; the 4.3 level gate lives in HaxeLanguageFeatureAnnotator. */
   public static void checkCoalescing(@NotNull HaxeCoalescingExpression coalescingExpression, @NotNull HaxeProblemReporter reporter) {
     List<HaxeExpression> expressionList = coalescingExpression.getExpressionList();
     if (expressionList.size() == 2) {

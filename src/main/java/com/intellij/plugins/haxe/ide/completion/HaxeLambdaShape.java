@@ -8,7 +8,6 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +32,12 @@ public record HaxeLambdaShape(@NotNull List<Parameter> parameters, boolean retur
   public static HaxeLambdaShape fromCompiler(@Nullable JsonTypeRef expected) {
     if (expected == null || !expected.isFunction()) return null;
     List<Parameter> parameters = new ArrayList<>();
-    for (JsonNode argument : expected.args().path("args")) {
-      JsonTypeRef type = JsonTypeRef.of(argument.path("t"));
-      parameters.add(new Parameter(argument.path("name").asString(""), simpleNameOf(type), type != null && type.isFunction()));
+    for (JsonTypeRef.Argument argument : expected.functionArguments()) {
+      JsonTypeRef type = argument.type();
+      parameters.add(new Parameter(argument.name(), type == null ? null : type.typeName(), type != null && type.isFunction()));
     }
-    JsonTypeRef returnType = JsonTypeRef.of(expected.args().path("ret"));
-    return new HaxeLambdaShape(List.copyOf(parameters), returnType != null && "Void".equals(returnType.dotPath()));
+    JsonTypeRef returnType = expected.returnType();
+    return new HaxeLambdaShape(List.copyOf(parameters), returnType != null && returnType.isVoid());
   }
 
   /** The shape of a statically resolved expected type, typedefs followed, or null when it is not a function. */
@@ -66,12 +65,5 @@ public record HaxeLambdaShape(@NotNull List<Parameter> parameters, boolean retur
     if (classType == null) return null;
     SpecificTypeReference unwrapped = classType.fullyResolveTypeDefAndUnwrapNullTypeReference();
     return unwrapped instanceof SpecificFunctionReference function ? function : null;
-  }
-
-  /** The last segment of a wire type's dot path, or null for a type without one. */
-  @Nullable
-  private static String simpleNameOf(@Nullable JsonTypeRef type) {
-    String dotPath = type == null ? null : type.dotPath();
-    return dotPath == null ? null : dotPath.substring(dotPath.lastIndexOf('.') + 1);
   }
 }

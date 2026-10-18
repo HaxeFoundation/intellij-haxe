@@ -21,12 +21,16 @@ import java.util.Map;
 
 /**
  * Configures a container's compile command: which build file compiling runs
- * (None = the container is skipped on project build), optionally one of the file's
- * actions as command override, and extra arguments such as "-clean -debug".
- * OK hands the result to the caller through {@link #selectedCompileCommand()}.
- * The layout lives in the matching .form (labels bind their bundle keys there).
+ * (Default = the container's default build file, None = the container is skipped
+ * on project build), optionally one of the file's actions as command override,
+ * and extra arguments such as "-clean -debug". OK hands the result to the caller
+ * through {@link #selectedCompileCommand()} and {@link #isSkipSelected()}. The
+ * layout lives in the matching .form (labels bind their bundle keys there).
  */
 public final class HaxeCompileCommandDialog extends DialogWrapper {
+
+  // the file combo's "skip on project build" item; no build file path is empty
+  private static final String SKIP_ITEM = "";
 
   private final Project project;
   private final String containerId;
@@ -41,7 +45,8 @@ public final class HaxeCompileCommandDialog extends DialogWrapper {
   public HaxeCompileCommandDialog(@NotNull Project project,
                                   @NotNull String containerId,
                                   @NotNull List<String> candidateFilePaths,
-                                  @NotNull Map<String, List<String>> actionNamesByFile) {
+                                  @NotNull Map<String, List<String>> actionNamesByFile,
+                                  @Nullable String defaultFilePath) {
     super(project);
     this.project = project;
     this.containerId = containerId;
@@ -49,8 +54,8 @@ public final class HaxeCompileCommandDialog extends DialogWrapper {
 
     setTitle(HaxeBundle.message("haxe.compile.command.dialog.title"));
     HaxeDialogHints.style(hintArea);
-    fileCombo.setRenderer(BuilderKt.textListCellRenderer(
-      HaxeBundle.message("haxe.compile.command.dialog.none"), PathUtil::getFileName));
+    String defaultItem = defaultItemText(defaultFilePath);
+    fileCombo.setRenderer(BuilderKt.textListCellRenderer(defaultItem, HaxeCompileCommandDialog::fileItemText));
     commandCombo.setRenderer(BuilderKt.textListCellRenderer(
       HaxeBundle.message("haxe.compile.command.dialog.default.command"), name -> name));
     fillFields(candidateFilePaths);
@@ -63,27 +68,47 @@ public final class HaxeCompileCommandDialog extends DialogWrapper {
     return panel;
   }
 
+  @NotNull
+  private static String defaultItemText(@Nullable String defaultFilePath) {
+    if (defaultFilePath == null) return HaxeBundle.message("haxe.compile.command.dialog.default.none");
+    return HaxeBundle.message("haxe.compile.command.dialog.default", PathUtil.getFileName(defaultFilePath));
+  }
+
+  @NotNull
+  private static String fileItemText(@NotNull String item) {
+    return SKIP_ITEM.equals(item) ? HaxeBundle.message("haxe.compile.command.dialog.none") : PathUtil.getFileName(item);
+  }
+
   private void fillFields(@NotNull List<String> candidateFilePaths) {
     DefaultComboBoxModel<String> fileModel = new DefaultComboBoxModel<>();
     fileModel.addElement(null);
+    fileModel.addElement(SKIP_ITEM);
     candidateFilePaths.forEach(fileModel::addElement);
 
-    CompileCommand stored = HaxeEnvironmentStore.getInstance(project).getCompileCommand(containerId);
+    HaxeEnvironmentStore store = HaxeEnvironmentStore.getInstance(project);
+    CompileCommand stored = store.getCompileCommand(containerId);
     if (stored != null && fileModel.getIndexOf(stored.buildFilePath()) < 0) {
       fileModel.addElement(stored.buildFilePath());
     }
     fileCombo.setModel(fileModel);
-    fileCombo.setSelectedItem(stored == null ? null : stored.buildFilePath());
+    fileCombo.setSelectedItem(selectedFileItem(store, stored));
     fileCombo.addActionListener(e -> refillCommandCombo(null));
 
     refillCommandCombo(stored == null ? null : stored.actionName());
     argumentsField.setText(stored == null ? "" : stored.arguments());
   }
 
+  /** The file item the stored state selects: skip, the command's file, or the default. */
+  @Nullable
+  private String selectedFileItem(@NotNull HaxeEnvironmentStore store, @Nullable CompileCommand stored) {
+    if (store.isBuildSkipped(containerId)) return SKIP_ITEM;
+    return stored == null ? null : stored.buildFilePath();
+  }
+
   private void refillCommandCombo(@Nullable String selectedActionName) {
     DefaultComboBoxModel<String> commandModel = new DefaultComboBoxModel<>();
     commandModel.addElement(null);
-    String selectedFile = (String)fileCombo.getSelectedItem();
+    String selectedFile = selectedBuildFilePath();
     if (selectedFile != null) {
       actionNamesByFile.getOrDefault(selectedFile, List.of()).forEach(commandModel::addElement);
     }
@@ -95,12 +120,24 @@ public final class HaxeCompileCommandDialog extends DialogWrapper {
     commandCombo.setEnabled(selectedFile != null);
   }
 
-  /// The dialog state as a command; null (= clear) when no build file is selected.
+  /// The dialog state as a command; null (= the default, or skipping the build) when no build file is selected.
   @Nullable
   public CompileCommand selectedCompileCommand() {
-    String selectedPath = (String)fileCombo.getSelectedItem();
+    String selectedPath = selectedBuildFilePath();
     if (selectedPath == null) return null;
     String arguments = StringUtil.notNullize(argumentsField.getText()).trim();
     return new CompileCommand(selectedPath, (String)commandCombo.getSelectedItem(), arguments);
+  }
+
+  /// Whether the container is to be skipped on project build.
+  public boolean isSkipSelected() {
+    return SKIP_ITEM.equals(fileCombo.getSelectedItem());
+  }
+
+  /// The selected build file; null for the default and for skipping the build.
+  @Nullable
+  private String selectedBuildFilePath() {
+    String selected = (String)fileCombo.getSelectedItem();
+    return SKIP_ITEM.equals(selected) ? null : selected;
   }
 }
