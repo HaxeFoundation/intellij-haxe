@@ -17,3 +17,6 @@ include(":debuggers:eval-debugger")
 include(":debuggers:browser-debugger")
 include(":debuggers:compat-matrix")
 
+
+// haxe JSON-RPC display protocol (allow the IDE to communicate with Haxe Compiler)
+include(":display-protocol")
