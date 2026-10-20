@@ -1,7 +1,8 @@
 # Unit tests under the Haxe interpreter (no cpp toolchain needed).
 -cp hxcpp-debug-server/src
 -lib intellij-dap-protocol
--lib hscript
+# same pin as hxcpp-debug-server/haxelib.json's dependency block
+-lib hscript:2.7.0
 -cp src/test/haxe
 -main TestMain
 --interp

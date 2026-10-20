@@ -5,17 +5,19 @@ import ijhaxe.debug.values.*;
 import ijhaxe.debug.target.StackFrameLocation;
 
 /**
-	The per-stop state shared across variable inspection: the lazily-walked
-	per-thread frame caches and the variablesReference registry. All threads are
-	frozen at a stop, so any thread's stack is walked on first request and cached
-	until the next resume.
+	The per-stop state of variable inspection: the per-thread frame caches and
+	the variablesReference registry. All threads are frozen at a stop, so a
+	thread's stack is walked on its first request and cached until the next
+	resume.
 
-	Frame ids AND variablesReferences draw from ONE monotonic counter that is
-	never reset: a stale handle from before a resume resolves to nothing, never
-	aliases a new stop's allocation, and the two id spaces can't collide.
+	Frame ids AND variablesReferences come from ONE counter that is never
+	reset. A stale handle from before a resume therefore resolves to nothing
+	instead of naming something from the new stop, and frame ids never collide
+	with references.
 
-	Owned by VariableInspector; cleared on every resume (`invalidate`) so a
-	reference never outlives its stop — the GC can move objects between stops.
+	VariableInspector owns it and clears it on every resume (`invalidate`):
+	the GC can move objects between stops, so a reference must not outlive
+	its stop.
 **/
 class StopState {
 	static inline var REF_BASE = 1000;
@@ -25,7 +27,7 @@ class StopState {
 	final references:Map<Int, RefTarget> = new Map();
 	var nextHandle:Int = REF_BASE;
 
-	// The thread the stop landed in — writes and eval-call run only here.
+	// The thread the stop landed in; writes and eval-calls run only on this thread.
 	public var stoppedThreadId(default, null):Int = 0;
 
 	// Set by the owner: walks a thread's stack (StackWalker) on demand.
@@ -34,9 +36,9 @@ class StopState {
 	public function new() {}
 
 	/**
-		Begins a new stop: drops all per-thread frame caches, frame handles, and
-		references (their NUMBERS are never reused — see nextHandle). `threadId` is
-		the thread the stop landed in, the only one writes/eval-call may touch.
+		Begins a new stop in `threadId`, the only thread that writes and
+		eval-calls may touch. Drops all frame caches, frame handles and
+		references; their NUMBERS are never reused (see nextHandle).
 	**/
 	public function startStop(threadId:Int):Void {
 		frameCaches.clear();
@@ -55,16 +57,9 @@ class StopState {
 	}
 
 	/**
-		True once a stop has produced at least one frame (any thread walked).
-	**/
-	public function hasFrames():Bool {
-		return frameCaches.iterator().hasNext();
-	}
-
-	/**
-		The frames of `threadId` (walked+cached on first request; all threads are
-		frozen at a stop). Each carries the globally-unique frame id the client
-		uses for scopes/variables/evaluate.
+		The frames of `threadId`, walked and cached on the first request. Each
+		carries the globally unique frame id the client uses for scopes,
+		variables and evaluate.
 	**/
 	public function framesFor(threadId:Int):Array<CachedFrame> {
 		var cached = frameCaches.get(threadId);
@@ -83,7 +78,7 @@ class StopState {
 	}
 
 	/**
-		The cached frame with the given id, or null (e.g. a stale handle).
+		The cached frame with the given id, or null (for example a stale handle).
 	**/
 	public inline function frameAt(frameId:Int):Null<CachedFrame> {
 		return frameHandles.get(frameId);

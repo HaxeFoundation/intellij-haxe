@@ -12,32 +12,34 @@ import format.hl.Data.HLType;
 import format.hl.Data.Opcode;
 
 /**
-	Reads a .hl file's embedded debug tables (via the `format` haxelib) and maps
-	between source (file, line) and bytecode (function index, opcode).
+	Reads the debug tables of a .hl file (through the `format` haxelib) and maps
+	between source positions (file, line) and bytecode positions (function
+	index, opcode).
 
-	The function index used here is the position in the code's function array,
-	which matches the per-function order of the handshake (see JitInfo), so a
-	(fidx, op) resolved here can be handed straight to JitInfo.addressOf.
+	Two indexes identify a function. A `findex` is the bytecode's own function
+	id, which calls and bindings refer to. An `fidx` is the position in the
+	module's function array, which is also the order of the handshake's
+	function table, so an (fidx, op) from here goes straight to
+	JitInfo.addressOf. Natives have a findex but no fidx.
 **/
 class ModuleDebugInfo {
 	final data:Data;
 	final isWindows:Bool;
 
-	// findex (global) -> "Class.method" display name
+	// findex -> "Class.method" display name
 	final namesByFindex:Map<Int, String>;
 
-	// "Class.method" -> findex (the reverse of namesByFindex; for resolving
-	// runtime helpers like "String.fromUTF8" to call via the eval-call machinery)
+	// "Class.method" -> findex, for calling runtime helpers such as
+	// "String.fromUTF8" through the eval-call machinery
 	final findexByName:Map<String, Int>;
 
-	// findex (global) -> position in data.functions (the index JitInfo uses)
 	final functionIndexByFindex:Map<Int, Int>;
 
-	// findex (global) -> the "$Class" statics prototype whose bindings own that function
+	// findex -> the "$Class" statics container of the class that owns the function
 	final staticsProtoByFindex:Map<Int, ObjPrototype>;
 
-	// statics-container type name (e.g. "$Config") -> its global index (the slot in
-	// the global data block that holds the class's statics singleton pointer)
+	// statics container type name (e.g. "$Config") -> the index of the global
+	// whose slot holds the class's statics singleton
 	final globalIndexByTypeName:Map<String, Int>;
 
 	// type name -> module HLType, for resolving runtime hl_type names
@@ -48,10 +50,8 @@ class ModuleDebugInfo {
 		try {
 			data = new Reader().read(new BytesInput(bytes));
 		} catch (e:Dynamic) {
-			// The format lib throws raw strings like "HL Version 6 is not supported",
-			// which reads as if the HashLink RUNTIME were the problem. Name the
-			// version kind (the bytecode FORMAT version stored in the .hl file) so
-			// the error tells the user which tool to look at (the Haxe compiler).
+			// The format lib's "HL Version 6 is not supported" reads like a HashLink
+			// runtime problem. It is the bytecode format written by the Haxe compiler.
 			var reason = Std.string(e);
 			if (StringTools.contains(reason, "Version")) {
 				reason += ' - this is the bytecode format version stored in the .hl file, not the HashLink runtime version;'
@@ -79,9 +79,9 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		True when `name` names a module type by its full name (`pkg.Cls`) OR by its
-		simple name (`Cls`) — used to tell a real type from a typo in an `is` check
-		without an import context.
+		True when `name` is the full name (`pkg.Cls`) or the simple name (`Cls`)
+		of a module type. Without imports to consult, this tells a real type in
+		an `is` check from a typo.
 	**/
 	public function typeNameExists(name:String):Bool {
 		if (typesByName.exists(name)) {
@@ -100,9 +100,9 @@ class ModuleDebugInfo {
 		return dot < 0 ? full : full.substr(dot + 1);
 	}
 
-	// dynobj field names are stored as hl_hash values; every hashable name is
-	// somewhere in the module's string table, so hashing all strings once gives
-	// the reverse mapping (same approach as hld Module.reverseHash)
+	// Dynamic objects store field names as hl_hash values. Every such name is in
+	// the module's string table, so hashing all strings once gives the reverse
+	// mapping (as hld Module.reverseHash does).
 	var reversedHashes:Null<Map<Int, String>> = null;
 
 	/**
@@ -119,16 +119,16 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The types of the module's globals, in index order (for the globals table layout).
+		The types of the module's globals, in index order.
 	**/
 	public function globals():Array<HLType> {
 		return data.globals;
 	}
 
 	/**
-		The statics container prototype ("$Class") that owns the function at `fidx`,
-		i.e. the class whose static fields should be shown while stopped in it, or
-		null when the function has no such container (rare) or `fidx` is invalid.
+		The statics container ("$Class") of the class that owns the function at
+		`fidx`: the statics to show while stopped in that function. Null when
+		there is no such container or `fidx` is invalid.
 	**/
 	public function staticsProtoForFunction(fidx:Int):Null<ObjPrototype> {
 		if (fidx < 0 || fidx >= data.functions.length) {
@@ -138,9 +138,9 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The global index whose slot holds the statics singleton for a "$Class"
-		container prototype, or -1 if none. (The singleton's own type is the
-		container, so it appears directly as a global of that type.)
+		The index of the global whose slot holds the statics singleton of a
+		"$Class" container, or -1 if none. The singleton's type is the container
+		itself, so it is the global of that type.
 	**/
 	public function staticsGlobalIndex(proto:ObjPrototype):Int {
 		var index = globalIndexByTypeName.get(proto.name);
@@ -151,15 +151,12 @@ class ModuleDebugInfo {
 		return data.functions.length;
 	}
 
-	/**
-		Opcode count of a function, for aligning against the handshake tables.
-	**/
 	public function opCount(fidx:Int):Int {
 		return data.functions[fidx].ops.length;
 	}
 
 	/**
-		The decoded opcodes of a function (for control-flow / stepping analysis).
+		The decoded opcodes of a function.
 	**/
 	public function opcodes(fidx:Int):Array<Opcode> {
 		return data.functions[fidx].ops;
@@ -180,7 +177,9 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The debug "assigns" table mapping variable names (string index) to opcode positions.
+		The debug "assigns" table: each entry names a variable (a string index)
+		and the opcode position where it is assigned. Arguments have a negative
+		position.
 	**/
 	public function assignsOf(fidx:Int):Array<{varName:Int, position:Int}> {
 		return data.functions[fidx].assigns;
@@ -191,7 +190,7 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		Number of arguments (including an implicit `this` for instance methods).
+		Number of arguments, including the implicit `this` of an instance method.
 	**/
 	public function argCount(fidx:Int):Int {
 		return switch (data.functions[fidx].t) {
@@ -201,9 +200,9 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The destination register written by the opcode at `op`, or -1 if it writes none.
+		The register written by the opcode at `op`, or -1 if it writes none.
 	**/
-	public function dstRegister(fidx:Int, op:Int):Int {
+	public function destinationRegister(fidx:Int, op:Int):Int {
 		var ops = data.functions[fidx].ops;
 		if (op < 0 || op >= ops.length) {
 			return -1;
@@ -255,16 +254,10 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		For a static call opcode (OCall0..4 / OCallN), the callee's function index
-		(the same index space JitInfo uses). Returns -1 for non-calls and for
-		dynamic/virtual/closure calls whose target isn't statically known, in which
-		case step-in falls back to step-over behaviour.
-	**/
-	/**
-		The closure-operand REGISTER of an OCallClosure at `op`, or -1 when the
-		op is not a closure call. The callee of a closure call is only knowable
-		at RUNTIME: step-into reads this register's frame slot (a vclosure
-		pointer) at the stop to resolve the entry address.
+		The register holding the closure that an OCallClosure at `op` calls, or
+		-1 when the op is not a closure call. The callee is only known at run
+		time: step-into reads the vclosure pointer from this register's frame
+		slot to find the entry address.
 	**/
 	public function closureCallRegister(fidx:Int, op:Int):Int {
 		if (fidx < 0 || fidx >= data.functions.length) {
@@ -280,6 +273,12 @@ class ModuleDebugInfo {
 		}
 	}
 
+	/**
+		The fidx of the function that a static call (OCall0..4, OCallN) at `op`
+		calls. Returns -1 for other opcodes and for method and closure calls,
+		whose target is not known statically; step-in then behaves like
+		step-over.
+	**/
 	public function callTargetFunction(fidx:Int, op:Int):Int {
 		if (fidx < 0 || fidx >= data.functions.length) {
 			return -1;
@@ -303,10 +302,10 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		Resolves a source breakpoint to bytecode locations, one per function
-		that has code on exactly that line. Empty result = no code on the line
-		(the usual cause is a stale binary — the planner rejects it so the
-		desync shows as a hollow marker).
+		Resolves a source line to bytecode locations, one per function with code
+		on exactly that line. An empty result means the line has no code,
+		usually because the binary is stale; the breakpoint is then shown as
+		unverified.
 	**/
 	public function resolveLine(file:String, line:Int):Array<{fidx:Int, op:Int, line:Int}> {
 		var fileMatches = matchingFileIndexes(file);
@@ -332,9 +331,9 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		Reverse mapping: bytecode location -> source (file, line).
+		The source position (file, line) of a bytecode location.
 	**/
-	public function lookup(fidx:Int, op:Int):Null<SourceLine> {
+	public function sourceLineAt(fidx:Int, op:Int):Null<SourceLine> {
 		if (fidx < 0 || fidx >= data.functions.length) {
 			return null;
 		}
@@ -345,8 +344,7 @@ class ModuleDebugInfo {
 		var fileIndex = debug[op << 1];
 		var line = debug[(op << 1) + 1];
 		var file = (fileIndex >= 0 && fileIndex < data.debugFiles.length) ? data.debugFiles[fileIndex] : null;
-		// the Haxe compiler records "?" as the file for synthesized/no-position
-		// code; that is not a path, so report it as no-source
+		// the Haxe compiler records "?" as the file of generated code without a position
 		if (file == "?" || file == "") {
 			file = null;
 		}
@@ -354,16 +352,15 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The "Class.method" display name of a function by its (global) findex, or null.
+		The "Class.method" display name of a function by its findex, or null.
 	**/
 	public function functionNameByFindex(findex:Int):Null<String> {
 		return namesByFindex.get(findex);
 	}
 
 	/**
-		The data.functions index (what JitInfo uses) of a function by qualified
-		name ("String.fromUTF8"), or -1 when unknown or the name maps to a native
-		(natives have no jitted body and cannot be called this way).
+		The fidx of a function by its qualified name ("String.fromUTF8"), or -1
+		when the name is unknown or names a native, which has no jitted body.
 	**/
 	public function functionIndexByName(name:String):Int {
 		var findex = findexByName.get(name);
@@ -375,9 +372,9 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		Maps a raw (global) findex — e.g. from a proto method entry — to the
-		position in `data.functions` that functionType/functionEntry expect, or
-		-1 for a native (no jitted body) or an unknown findex.
+		The fidx of a findex (for example from a method entry), which is what
+		functionType and JitInfo.functionEntry expect. Returns -1 for a native,
+		which has no jitted body, or an unknown findex.
 	**/
 	public function functionArrayIndex(findex:Int):Int {
 		var fidx = functionIndexByFindex.get(findex);
@@ -385,10 +382,10 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The findex of an imported C native by its name (e.g. "alloc_bytes"), or -1
-		when the program doesn't import it. Natives have no jitted body — this
-		findex is used to find a jitted CALL site to the native (see NativeResolver),
-		not as a callable index.
+		The findex of an imported C native by its name (e.g. "alloc_bytes"), or
+		-1 when the program does not import it. A native has no jitted body, so
+		this findex cannot be called; NativeResolver uses it to find a jitted
+		call site of the native.
 	**/
 	public function nativeFindexByName(name:String):Int {
 		for (n in data.natives) {
@@ -400,7 +397,7 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		Best-effort display name ("Class.method") for a stack frame, else "fn@<findex>".
+		The display name of the function at `fidx` ("Class.method"), or "fn@<findex>" when it has none.
 	**/
 	public function functionName(fidx:Int):String {
 		if (fidx < 0 || fidx >= data.functions.length) {
@@ -452,10 +449,10 @@ class ModuleDebugInfo {
 	}
 
 	/**
-		The statics container type name of a class: hl `$`-prefixes the LAST
-		path segment, so `pkg.Cls` keeps its statics on `pkg.$Cls` — NOT on
-		`$pkg.Cls`. A top-level class has no dot, which is why the naive
-		prefix happens to work there and only PACKAGED classes broke.
+		The type name of a class's statics container. HashLink keeps a class's
+		static fields and methods on a separate container type, named by
+		putting `$` in front of the LAST path segment: `pkg.Cls` becomes
+		`pkg.$Cls`, not `$pkg.Cls`.
 	**/
 	public static function staticsContainerName(className:String):String {
 		var dot = className.lastIndexOf(".");
@@ -464,17 +461,16 @@ class ModuleDebugInfo {
 			: className.substr(0, dot + 1) + "$" + className.substr(dot + 1);
 	}
 
-	/** Whether a type name IS such a container (its last segment is `$`-prefixed). */
+	/** Whether a type name is a statics container name (its last segment starts with `$`). */
 	public static function isStaticsContainerName(typeName:String):Bool {
 		var dot = typeName.lastIndexOf(".");
 		return dot + 1 < typeName.length && typeName.charCodeAt(dot + 1) == "$".code;
 	}
 
-	// Maps a function's findex to the "$Class" statics container of the class
-	// that owns it, so a stopped frame can find the statics to show:
-	//  - static methods are bindings of the container itself (binding.mid);
-	//  - instance methods live in the INSTANCE type's virtual table (proto.proto);
-	//    their container is resolved by name (staticsContainerName).
+	// Maps each function's findex to the statics container of the class that
+	// owns it. Static methods are bindings of the container itself
+	// (binding.mid). Instance methods live in the virtual table of the instance
+	// type (proto.proto), whose container is found by name.
 	function buildStaticsIndex():Map<Int, ObjPrototype> {
 		var containersByName = new Map<String, ObjPrototype>();
 		for (type in data.types) {
@@ -510,8 +506,8 @@ class ModuleDebugInfo {
 		return byFindex;
 	}
 
-	// A statics container's singleton is itself a global whose type is that
-	// container, so scan the globals for each HObj/HStruct type name.
+	// The statics singleton is the global whose type is the container, so the
+	// first global of each object type name gives its index.
 	function buildGlobalTypeIndex():Map<String, Int> {
 		var byName = new Map<String, Int>();
 		for (g in 0...data.globals.length) {
@@ -556,9 +552,8 @@ class ModuleDebugInfo {
 							names.set(entry.findex, '$className.${entry.name}');
 						}
 					}
-					// static methods live as field bindings; the binding's field id is an
-					// absolute index that counts inherited fields first, so offset by the
-					// super-class field count to index into this type's own fields.
+					// static methods are field bindings; a binding's field id is an
+					// absolute index that counts inherited fields first
 					var inherited = fieldCount(proto.tsuper);
 					for (binding in proto.bindings) {
 						if (binding.mid < 0) {
@@ -567,11 +562,9 @@ class ModuleDebugInfo {
 						var ownIndex = binding.fid - inherited;
 						if (ownIndex >= 0 && ownIndex < proto.fields.length) {
 							names.set(binding.mid, '$className.${proto.fields[ownIndex].name}');
-						} else if (fieldNameAtGlobalFid(proto, binding.fid) == "__constructor__") {
-							// the CONSTRUCTOR is bound on the statics container "$X" at the
-							// INHERITED hl.Class.__constructor__ field (fid past this type's
-							// own fields), so the branch above skips it — a constructor
-							// frame would render as its "fn@N" fallback. Name it "X.new".
+						} else if (fieldNameAtAbsoluteIndex(proto, binding.fid) == "__constructor__") {
+							// the constructor is bound on the statics container at the
+							// __constructor__ field inherited from hl.Class
 							names.set(binding.mid, '$className.new');
 						}
 					}
@@ -581,10 +574,9 @@ class ModuleDebugInfo {
 		return names;
 	}
 
-	// The field name at a GLOBAL field index (inherited fields counted first),
-	// walking the super chain; null when out of range. Used to spot the
-	// inherited hl.Class.__constructor__ binding on a statics container.
-	function fieldNameAtGlobalFid(proto:ObjPrototype, fid:Int):Null<String> {
+	// The field name at an absolute field index, which counts the superclass
+	// chain's fields first; null when out of range.
+	function fieldNameAtAbsoluteIndex(proto:ObjPrototype, fid:Int):Null<String> {
 		var chain:Array<ObjPrototype> = [];
 		var cur:Null<HLType> = HObj(proto);
 		while (cur != null) {
@@ -608,10 +600,8 @@ class ModuleDebugInfo {
 		return null;
 	}
 
-	// Haxe names the static container "$Main"; strip the leading $ for display.
-	// The statics container type of a class "Pkg.Cls" is named "Pkg.$Cls" (the
-	// `$` prefixes the LAST path segment, not the whole qualified name). Strip
-	// it so both display and name lookup use the real class name.
+	// The class name without a statics container's `$` ("Pkg.$Cls" -> "Pkg.Cls"),
+	// so display and name lookup both use the real class name.
 	function displayClassName(name:String):String {
 		if (name == null) {
 			return name;
@@ -625,7 +615,7 @@ class ModuleDebugInfo {
 		return StringTools.startsWith(name, "$") ? name.substr(1) : name;
 	}
 
-	// Total number of fields contributed by a type's super-class chain.
+	// Total number of fields of `type` and its superclasses.
 	function fieldCount(type:HLType):Int {
 		if (type == null) {
 			return 0;

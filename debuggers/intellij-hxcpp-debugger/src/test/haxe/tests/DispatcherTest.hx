@@ -5,8 +5,8 @@ import ijhaxe.hxcpp.debug.DebuggerApi;
 import ijhaxe.hxcpp.debug.Dispatcher;
 
 // An exception hierarchy for the typed-filter tests. SubError inherits its
-// constructor — the case a per-type entry breakpoint could never catch, and
-// exactly what the this-chain matching exists for.
+// constructor, which a per-type entry breakpoint could never catch; matching
+// along the class chain of `this` exists for exactly this case.
 private class BaseError {
 	public var message:String;
 
@@ -73,10 +73,11 @@ class DispatcherTest {
 		aRejectedClassNameIsANoOpStopNotARunaway(assert);
 	}
 
-	// hxcpp validates the class name against its class table and returns -1
-	// for an unknown one, arming NOTHING — stepping anyway could run unchecked
-	// forever (gotcha 8). The server must not resume: it re-reports the
-	// current stop instead.
+	// hxcpp checks the class name against its class table and returns -1 for
+	// an unknown one, arming NOTHING. Stepping anyway could run unchecked to
+	// the end of the program (see "Stepping needs at least one breakpoint
+	// armed" in docs/README.md). The server must not resume; it re-reports
+	// the current stop instead.
 	static function aRejectedClassNameIsANoOpStopNotARunaway(assert:Assert):Void {
 		var t = make();
 		initialize(t);
@@ -95,7 +96,7 @@ class DispatcherTest {
 		}));
 	}
 
-	// simulate a thrown-hook stop with `this` being the given exception object
+	// simulates a stop at the thrown hook, with `this` being the given exception object
 	static function hookStop(t:{api:FakeDebuggerApi, dispatcher:Dispatcher}, hook:Int, self:Dynamic, message:String):Void {
 		t.api.localNames = ["this", "message"];
 		t.api.localValues.set("this", self);
@@ -129,9 +130,9 @@ class DispatcherTest {
 		assert.isTrue(StringTools.endsWith(t.sent[0].body.text, "SubError: kaboom"), "concrete class + message");
 	}
 
-	// SubError INHERITS its constructor (no own `new` frame exists), the case
-	// a per-type entry breakpoint could never catch: matching walks the class
-	// chain read from `this`, so a BaseError filter stops SubError throws.
+	// SubError INHERITS its constructor, so it has no `new` frame of its own
+	// and a per-type entry breakpoint could never catch it. Matching walks the
+	// class chain read from `this`, so a BaseError filter stops SubError throws.
 	static function aBaseClassFilterMatchesSubclassThrows(assert:Assert):Void {
 		var t = make();
 		initialize(t);
@@ -143,9 +144,9 @@ class DispatcherTest {
 		assert.isTrue(StringTools.endsWith(t.sent[0].body.text, "SubError: boom"), "text names the CONCRETE class");
 	}
 
-	// The stack reported for a thrown stop must END at the THROW SITE: the
-	// exception's own ctor chain (haxe.Exception.new + its subclass ctors) is
-	// trimmed, but a USER constructor that itself throws stays visible.
+	// The stack reported for a thrown stop must END at the THROW SITE. The
+	// exception's own constructor chain (haxe.Exception.new and its subclass
+	// constructors) is trimmed, but a USER constructor that throws stays visible.
 	static function aThrownStopTrimsTheExceptionsOwnCtorFramesOnly(assert:Assert):Void {
 		var t = make();
 		initialize(t);
@@ -177,8 +178,8 @@ class DispatcherTest {
 		assert.equals(9, reported[0].line, "at the throw line");
 	}
 
-	// The "thrown" filter: a class-function breakpoint on haxe.Exception.new
-	// (every subclass constructor runs through it via super()).
+	// The "thrown" filter is a class-function breakpoint on haxe.Exception.new,
+	// which every subclass constructor reaches through super().
 	static function theThrownFilterInstallsAndRemovesTheHook(assert:Assert):Void {
 		var t = make();
 		initialize(t);
@@ -282,9 +283,10 @@ class DispatcherTest {
 		assert.isTrue(t.api.deletedBreakpoints.indexOf(temp) >= 0, "the temp still died with the stop");
 	}
 
-	// Real debuggees fault their readers (raw pointers, half-built state in
-	// frames like a thread pool's dispatch loop). One corrupt slot must render
-	// as an error row; the request — and the session — must keep working.
+	// Reading a real debuggee's frames can fault: frames such as a thread
+	// pool's dispatch loop hold raw pointers and half-built state. One corrupt
+	// slot must render as an error row, and the request and the session must
+	// keep working.
 	static function aCorruptLocalPoisonsOneRowNotTheRequest(assert:Assert):Void {
 		var t = make();
 		initialize(t);
@@ -314,8 +316,8 @@ class DispatcherTest {
 		var t = make();
 		initialize(t);
 
-		// no stop happened, so this threads() call is fine — instead fault the
-		// handler itself: threads() over a null canned list throws inside dispatch
+		// make the handler itself fault: threads() over a null canned list
+		// throws inside dispatch
 		t.api.cannedThreads = null;
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({seq: 8, type: "request", command: "threads"}));
@@ -327,9 +329,9 @@ class DispatcherTest {
 		assert.isTrue(t.sent[1].success, "the session lives on after the fault");
 	}
 
-	// Resuming a critical error re-faults on the spot (observed live: null
-	// deref -> fixup -> segv -> stop again), so with the filter off the silent
-	// resumes are capped and the stop is then reported anyway.
+	// Resuming a critical error faults again at once: the runtime re-executes
+	// the null access, which faults and stops again. With the filter off, the
+	// silent resumes are therefore capped and the stop is then reported anyway.
 	static function repeatedSilentCriticalResumesBreakTheLivelock(assert:Assert):Void {
 		var t = make();
 		initialize(t);

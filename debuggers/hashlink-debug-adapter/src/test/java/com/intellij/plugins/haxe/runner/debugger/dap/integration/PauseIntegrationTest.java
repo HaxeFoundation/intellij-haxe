@@ -2,10 +2,8 @@ package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import java.util.Map;
@@ -52,32 +50,11 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
     // it landed IN the Haxe busy loop: top frame is Spin.main and its locals are
     // inspectable — the whole point of being able to pause
     assertEquals("Spin.main", topFrameName(threadId), "paused in Haxe code");
-    Map<String, String> locals = variablesByName(localsScopeReference(topFrameId(threadId)));
+    Map<String, String> locals = localsInTopFrame(threadId);
     assertFalse(locals.isEmpty(), "loop locals are visible while paused (" + locals.keySet() + ")");
 
     // continue resumes the held break-event thread; the debuggee runs to the end
     assertTrue(request(continueRequest(threadId)).isSuccess(), "continue is acknowledged");
-    awaitTerminated();
-  }
-
-  private void awaitOutputContaining(String needle) throws Exception {
-    while (true) {
-      Event event = client.pollEvent(TIMEOUT);
-      assertNotNull(event, "expected output containing '" + needle + "'");
-      if (event instanceof OutputEvent out && out.getBody().getOutput() != null
-          && out.getBody().getOutput().contains(needle)) {
-        return;
-      }
-    }
-  }
-
-  private void awaitTerminated() throws Exception {
-    while (true) {
-      Event event = client.pollEvent(TIMEOUT);
-      assertNotNull(event, "expected termination after continue");
-      if (event instanceof TerminatedEvent) {
-        return;
-      }
-    }
+    awaitEvent(TerminatedEvent.class);
   }
 }

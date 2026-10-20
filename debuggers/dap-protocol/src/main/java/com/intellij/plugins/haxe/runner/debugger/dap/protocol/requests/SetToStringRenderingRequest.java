@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
  * the result of the object's own {@code toString()} (on). Sent at session
  * start when the project setting is enabled, and again whenever the user
  * flips the Variables-view gear toggle — the setting is live, no restart.
+ * HashLink: accepted, not applied yet.
  *
  * toString is USER CODE run by the debugger; the off-default guards against
  * side effects, and on hxcpp a self-recursing toString is fatal to the

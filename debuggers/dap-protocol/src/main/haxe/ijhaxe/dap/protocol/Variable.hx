@@ -1,8 +1,8 @@
 package ijhaxe.dap.protocol;
 
 /**
-	One variable in a "variables" response. `variablesReference` > 0 marks an
-	expandable value (object/array); 0 means a leaf.
+	One variable in a "variables" response. A `variablesReference` above 0
+	marks an expandable value (an object or array); 0 marks a leaf.
 **/
 typedef Variable = {
 	var name:String;
@@ -13,6 +13,6 @@ typedef Variable = {
 	var ?namedVariables:Int;
 	var ?indexedVariables:Int;
 
-	// Classification driving the client's icon (the wire form of ijhaxe.debug.values.VariableKind).
+	// The classification that picks the client's icon ("local", "argument", "field", ...).
 	var ?kind:String;
 }

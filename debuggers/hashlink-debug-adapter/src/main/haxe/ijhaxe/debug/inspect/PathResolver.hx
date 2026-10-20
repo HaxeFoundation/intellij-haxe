@@ -17,22 +17,23 @@ import format.hl.Data.ObjPrototype;
 import haxe.Int64;
 
 /**
-	Resolves a variable PATH (`x`, `obj.field`, `arr[3]`, `MyClass.member`) to a
-	writable location `{name, address, type}` in the stopped debuggee — the
-	SINGLE navigation of the frame layout + object graph shared by reads (the
-	expression interpreter) and writes (setVariable / assignment).
+	Resolves a variable PATH (`x`, `obj.field`, `arr[3]`, `MyClass.member`) to
+	a writable location `{name, address, type}` in the stopped debuggee. It is
+	the ONE place that navigates the frame layout and the object graph, shared
+	by reads (the expression interpreter) and writes (setVariable and
+	assignment).
 
-	Root resolution order: the frame's locals → fields of `this` (implicit
-	member access) → the owning class's statics → a class named by a leading
-	dotted prefix (`MyClass.member`, `pkg.Cls.member`). Object-typed slots are
-	refined to their runtime class so a `Base`-typed slot holding a `Sub`
-	resolves `Sub`'s fields.
+	Roots resolve in this order: the frame's locals, fields of `this`
+	(implicit member access), the statics of the class owning the frame, and
+	finally a class named by a leading dotted prefix (`MyClass.member`,
+	`pkg.Cls.member`). Object-typed slots are refined to their runtime class,
+	so a `Base`-typed slot holding a `Sub` resolves `Sub`'s fields.
 
-	Owns no per-stop caches of its own — it reads through StopState (frames) and
-	ValueChildren (child addresses); everything it returns is an address+type
-	valid only for the current stop.
+	It keeps no per-stop caches of its own: frames come from StopState and
+	child addresses from ValueChildren. Every address it returns is valid only
+	for the current stop.
 **/
-class SymbolResolver {
+class PathResolver {
 	final stops:StopState;
 	final memory:MemoryReader;
 	final module:ModuleDebugInfo;
@@ -43,8 +44,9 @@ class SymbolResolver {
 	final valueChildren:ValueChildren;
 	final runtimeTypes:RuntimeTypes;
 
-	// The frame a resolved target lives in: targetOfPath/targetInReference stash
-	// it so a setVariable RHS (`path = otherPath`) evaluates in the same frame.
+	// The frame of the last resolved target, recorded by targetOfPath and
+	// targetInReference so the right-hand side of a setVariable is evaluated in
+	// the same frame. 0 for a target inside an object or statics reference.
 	public var writeFrame(default, null):Int = 0;
 
 	public function new(stops:StopState, memory:MemoryReader, module:ModuleDebugInfo, jit:JitInfo,
@@ -89,7 +91,7 @@ class SymbolResolver {
 	}
 
 	/**
-		Resolves a full path to a writable target (throws if unresolvable).
+		Resolves a full path to a writable target; throws when it cannot be resolved.
 	**/
 	public function targetOfPath(frameId:Int, path:ValuePath):WriteTarget {
 		writeFrame = frameId;
@@ -97,9 +99,9 @@ class SymbolResolver {
 		var current = tryRootTarget(frameId, path.root);
 
 		if (current == null) {
-			// `MyClass.member` / `pkg.MyClass.member`: a leading path prefix names
-			// a class — its statics container behaves like an object variable
-			// whose slot is the container's global (holding the singleton ptr)
+			// `MyClass.member` or `pkg.MyClass.member`: a leading prefix names a
+			// class. Its statics container then acts as an object variable whose
+			// slot is the container's global, which holds the singleton pointer.
 			var cls = staticsPrefix(path);
 			if (cls != null) {
 				current = {name: cls.className, address: cls.slot, type: HObj(cls.proto)};
@@ -107,8 +109,8 @@ class SymbolResolver {
 			}
 		}
 		if (current == null) {
-			// UnresolvedName + the offending token lets the client resolve it against
-			// its own source (imports) and re-issue a fully-qualified expression.
+			// UnresolvedName with the unknown name lets the client resolve it against
+			// its own source (imports) and retry with a fully qualified expression.
 			throw new DebugError('Unknown variable "' + path.root + '"',
 				DebugErrorCode.UnresolvedName, ["name" => path.root]);
 		}
@@ -165,7 +167,8 @@ class SymbolResolver {
 	}
 
 	// The live statics singleton of the class named `className`, or null when
-	// no such class / no statics global / the singleton isn't allocated yet.
+	// there is no such class, no statics global, or the singleton is not
+	// allocated yet.
 	function staticsByClassName(className:String):Null<StaticsContainer> {
 		var proto = switch (module.typeByName(staticsContainerName(className))) {
 			case HObj(p): p;
@@ -184,11 +187,11 @@ class SymbolResolver {
 	}
 
 	/**
-		Matches a leading dotted prefix of `path` against a class name — the root
+		Matches a leading dotted prefix of `path` against a class name: the root
 		alone (`MyClass`) or the root extended by field accessors (`pkg.MyClass`,
-		`pkg.sub.MyClass`). The FIRST (shortest) match wins; `consumed` is how
-		many accessors the class name swallowed. Callers must try frame-local
-		resolution first so a local can never be shadowed by a class.
+		`pkg.sub.MyClass`). The FIRST (shortest) match wins, and `consumed` counts
+		the accessors that became part of the class name. Callers must try
+		frame-local resolution first, so a class never shadows a local.
 	**/
 	public function staticsPrefix(path:ValuePath):Null<StaticsPrefix> {
 		var name = path.root;
@@ -212,7 +215,7 @@ class SymbolResolver {
 		}
 	}
 
-	// A local/argument slot: ebp + FrameLayout offset, typed by the register.
+	// A local or argument slot: ebp plus its FrameLayout offset, typed by the register.
 	function localTarget(frameId:Int, name:String):Null<WriteTarget> {
 		var handle = stops.frameAt(frameId);
 		if (handle == null) {
@@ -241,7 +244,7 @@ class SymbolResolver {
 	}
 
 	/**
-		Resolves a child of an already-resolved target (throws if it has none).
+		Resolves a child of an already resolved target; throws when it has none.
 	**/
 	public function childTarget(parent:WriteTarget, childName:String):WriteTarget {
 		var child = tryChildTarget(parent, childName);
@@ -251,9 +254,9 @@ class SymbolResolver {
 		return child;
 	}
 
-	// Resolves a child by first finding the parent's object BASE: a struct is
-	// inline (its slot IS the base), a pointer type is dereferenced. Objects
-	// are refined to their runtime class so a Base-typed slot holding a Sub
+	// Resolves a child by first finding the parent's object BASE. A struct is
+	// inline, so its slot IS the base; a pointer type is dereferenced. Objects
+	// are refined to their runtime class, so a Base-typed slot holding a Sub
 	// resolves Sub's fields.
 	function tryChildTarget(parent:WriteTarget, childName:String):Null<WriteTarget> {
 		var base:Pointer;
@@ -263,18 +266,18 @@ class SymbolResolver {
 			case HStruct(_):
 				base = parent.address;
 				effectiveType = parent.type;
-			case HObj(_), HArray, HDynObj, HVirtual(_):
+			case HObj(_), HArray, HDynObj, HVirtual(_), HEnum(_), HFun(_), HMethod(_):
 				base = memory.readPointer(parent.address);
 				if (Int64.eq(base, Int64.ofInt(0))) {
 					throw new DebugError('"' + parent.name + '" is null');
 				}
 				effectiveType = parent.type.match(HObj(_)) ? refineObjectType(base, parent.type) : parent.type;
 			case HDyn:
-				// a Dynamic slot: pointer kinds carry their own type header — refine
-				// and descend as the runtime type, so `dynArray[1].length` reaches the
-				// String fields even though the STATIC element type is Dynamic
-				// (vdynamic-boxed primitives refine to non-object types and fall out
-				// through as a null child like any other memberless value)
+				// A Dynamic slot: pointer kinds carry their own type header, so the
+				// value is refined and descended as its runtime type. That lets
+				// `dynArray[1].length` reach the String fields although the STATIC
+				// element type is Dynamic. A boxed primitive refines to a non-object
+				// type and yields no child, like any other value without members.
 				base = memory.readPointer(parent.address);
 				if (Int64.eq(base, Int64.ofInt(0))) {
 					throw new DebugError('"' + parent.name + '" is null');
@@ -283,11 +286,11 @@ class SymbolResolver {
 			default:
 				return null;
 		}
-		// a genuine PROBE: callers ask "is <childName> a member of this?" while
-		// resolving a root, and an unknown member is an answer (null), not an
-		// error - throwing here made `Cls.member + x` in an instance frame fail
-		// on the "is Cls a field of this?" question instead of falling through
-		// to the class-prefix resolution
+		// This is a PROBE. While resolving a root, callers ask "is childName a
+		// member of this?", and an unknown member answers null instead of
+		// throwing. A throw would make `Cls.member + x` in an instance frame fail
+		// on "is Cls a field of this?" instead of falling through to the
+		// class-prefix resolution.
 		var child = valueChildren.targetOf(base, effectiveType, childName);
 		return child == null
 			? null
@@ -303,7 +306,7 @@ class SymbolResolver {
 	}
 
 	/**
-		Refines an object pointer's static type to its runtime class (via its header).
+		Refines an object pointer's static type to its runtime class, read from the object's header.
 	**/
 	public function refineObjectType(base:Pointer, staticType:HLType):HLType {
 		var runtime = runtimeTypes.typeAt(memory.readPointer(base));
@@ -315,11 +318,11 @@ class SymbolResolver {
 }
 
 /**
-	A class's live statics: the global slot holding it, the singleton pointer, and its proto.
+	A class's live statics: the global slot holding the singleton, the singleton pointer, and the container's prototype.
 **/
 typedef StaticsContainer = {slot:Pointer, singleton:Pointer, proto:ObjPrototype}
 
 /**
-	A StaticsContainer matched by a dotted path prefix: the class name that matched and how many path accessors it consumed.
+	A StaticsContainer found through a dotted path prefix: the matched class name and the number of path accessors it consumed.
 **/
 typedef StaticsPrefix = {>StaticsContainer, className:String, consumed:Int}

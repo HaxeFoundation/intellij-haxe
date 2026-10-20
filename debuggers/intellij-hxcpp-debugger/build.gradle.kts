@@ -115,12 +115,36 @@ tasks.register<Exec>("registerServerHaxelib") {
     commandLine = listOf("haxelib", "dev", "intellij-hxcpp-debug-server", File(projectDir, "hxcpp-debug-server").absolutePath)
 }
 
-// hscript powers watch/hover/condition evaluation.
+// hscript powers watch/hover/condition evaluation. The version pin lives in
+// hxcpp-debug-server/haxelib.json's dependency block - the one user builds
+// resolve through `-lib intellij-hxcpp-debug-server`; test.hxml mirrors it.
+val hscriptVersion: String by lazy {
+    // the dependency pin: "hscript": "2.7.0"
+    Regex("\"hscript\"\\s*:\\s*\"([^\"]+)\"")
+        .find(File(projectDir, "hxcpp-debug-server/haxelib.json").readText())?.groupValues?.get(1)
+        ?: error("hxcpp-debug-server/haxelib.json must pin the hscript dependency version")
+}
+
+// `haxelib path lib:version` is version-exact and never touches the machine's
+// selected ("current") version - the probe that lets an installed lib be left alone
+val hscriptInstalled: Boolean by lazy {
+    try {
+        ProcessBuilder("haxelib", "path", "hscript:$hscriptVersion")
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start().waitFor() == 0
+    } catch (e: Exception) {
+        false
+    }
+}
+
 tasks.register<Exec>("installHscript") {
     group = "hxcpp"
-    description = "Installs the hscript haxelib if it is not already present"
-    onlyIf { haxeAvailable }
-    commandLine = listOf("haxelib", "install", "hscript", "2.7.0",  "--always", "--quiet")
+    description = "Provisions the pinned hscript haxelib when missing; an installed one is left untouched"
+    // `haxelib install` switches the current-version selection as a side effect,
+    // so it must only ever run when the pinned version is absent
+    onlyIf { haxeAvailable && !hscriptInstalled }
+    commandLine = listOf("haxelib", "install", "hscript", hscriptVersion, "--always", "--quiet")
     isIgnoreExitValue = true
 }
 

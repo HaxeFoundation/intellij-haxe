@@ -115,9 +115,9 @@ id. Two server quirks shape the client code:
   only a subset of its own Protocol.hx: `switchFrame`,
   `setExceptionOptions`, `setBreakpoint` and `removeBreakpoint` have NO
   handler, and an unhandled method falls through to a response with a null
-  result and no error. A call to them "succeeds" while doing nothing — this
-  masked a misuse of `switchFrame` for a while. Never rely on a success
-  response as proof a method exists; check the server dispatch first.
+  result and no error. A call to them "succeeds" while doing nothing. Never
+  rely on a success response as proof a method exists; check the server
+  dispatch first.
   Consequence: `setExceptionBreakpoints` is an honest adapter-side no-op.
 
 ### Breakpoint paths: native separators, exact match
@@ -157,9 +157,8 @@ So the adapter recognises top-level assignments in evaluate
 evaluates a non-literal right side first, routes the write through
 `setVariable`, and VERIFIES every write (evaluate + F2 setValue) by
 re-reading the target: an unchanged value becomes an error naming the
-top-frame-only limitation instead of a silent lie. The IDE-side evaluator
-refreshes the variable views after a successful assignment. Only variables
-of the STOPPED function can be modified; anything deeper is refused with the
+top-frame-only limitation instead of a silent lie. Only variables of the
+STOPPED function can be modified; anything deeper is refused with the
 explanatory error.
 
 ### Translation mismatches the adapter absorbs

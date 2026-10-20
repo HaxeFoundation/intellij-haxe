@@ -5,7 +5,9 @@
 # so without this the adapter cannot debug on 32-bit HL at all.
 -D hl-legacy32
 -cp src/main/haxe
--lib format
+# version-pinned: resolves this exact version regardless of the machine's
+# `haxelib set` selection (which stays untouched)
+-lib format:3.7.0
 -lib intellij-dap-protocol
 -main ijhaxe.adapter.Main
 -hl build/hl/hl-debug-adapter.hl

@@ -5,9 +5,8 @@ import ijhaxe.debug.Pointer;
 import format.hl.Data.HLType;
 
 /**
-	An addressable slot: a debuggee memory address and the static HL type stored
-	there. Produced when resolving a container child (object field, array element,
-	...) to the exact location a read or write should land. A WriteTarget is this
-	plus the child's name.
+	A slot in debuggee memory: its address and the static type stored there,
+	such as the location of an object field or array element. A WriteTarget
+	adds the slot's name.
 **/
 typedef AddressedValue = {address:Pointer, type:HLType}

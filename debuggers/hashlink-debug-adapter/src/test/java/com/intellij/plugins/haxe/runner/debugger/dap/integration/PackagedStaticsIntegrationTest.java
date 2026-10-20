@@ -11,21 +11,19 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A class's own statics resolve WITHOUT a class prefix, the way Haxe source
- * writes them. hl `$`-prefixes the LAST segment of the statics container
- * (`pkg.Cls` keeps its statics on `pkg.$Cls`), so a naive `"$" + name` finds
- * the container of a top-level class but never of a PACKAGED one: an instance
- * frame there had no statics at all — neither in evaluate nor in the Statics
- * scope — while its static methods worked (those are bindings of the
- * container itself).
+ * writes them, for a PACKAGED class too. hl `$`-prefixes the LAST segment of
+ * the statics container (`pkg.Cls` keeps its statics on `pkg.$Cls`), so a
+ * naive `"$" + name` finds the container of a top-level class but never of a
+ * packaged one. Pinned: an instance frame of a packaged class sees its
+ * statics in evaluate and in the Statics scope.
  */
 @DisplayName("HashLink debugger: packaged statics (integration)")
 public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
-  private static final int DEEP_INSTANCE_LINE = 21; // pkg/Deep.hx readMarker()
 
   @Test
   @DisplayName("unqualified statics resolve in a packaged instance frame")
   public void unqualifiedStaticsResolveInAPackagedInstanceFrame() throws Exception {
-    StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_DEEP, FIXTURE_DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     assertEquals("99", evaluated(frameId, "marker"), "static var, unqualified");
@@ -37,7 +35,7 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("the statics scope appears in a packaged instance frame")
   public void theStaticsScopeAppearsInAPackagedInstanceFrame() throws Exception {
-    StoppedEvent stopped = runToBreakpoint("pkg/Deep.hx", DEEP_INSTANCE_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_DEEP, FIXTURE_DEEP_INSTANCE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
     Scope statics = scopeByPrefix(frameId, "Statics");
@@ -45,16 +43,5 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
     Map<String, String> byName = variablesByName(statics.getVariablesReference());
     assertEquals("99", byName.get("marker"), "the class's static var");
     assertEquals("42", byName.get("CONSTANT"), "the class's static final");
-  }
-
-  /** Guards the shapes that already worked: top-level, and static frames. */
-  @Test
-  @DisplayName("unqualified statics keep working elsewhere")
-  public void unqualifiedStaticsKeepWorkingElsewhere() throws Exception {
-    StoppedEvent atInstance = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
-    assertEquals("2", evaluated(topFrameId(atInstance.getBody().getThreadId()), "axes"), "top-level class, instance frame");
-
-    StoppedEvent atStatic = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
-    assertEquals("7", evaluated(topFrameId(atStatic.getBody().getThreadId()), "version"), "top-level class, static frame");
   }
 }

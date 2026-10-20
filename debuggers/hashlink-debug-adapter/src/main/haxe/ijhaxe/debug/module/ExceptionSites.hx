@@ -4,19 +4,16 @@ import ijhaxe.debug.Pointer;
 import format.hl.Data.Opcode;
 
 /**
-	A throw site: the machine address of an `OThrow`/`ORethrow` opcode and the HL
-	register holding the value being thrown there.
+	A throw site: an `OThrow`/`ORethrow` opcode, its machine address and the
+	register holding the thrown value.
 **/
 typedef ThrowSite = {address:Pointer, fidx:Int, op:Int, reg:Int};
 
 /**
-	Enumerates every `OThrow`/`ORethrow` opcode in the program to its JIT machine
-	address, so an "exception breakpoint" can plant an INT3 at each one. This is a
-	CODE-only pass: it walks the already-decoded function opcode lists
-	(`data.functions[*].ops`) and never touches the data/constants/bytes sections
-	where embedded assets live. The result is computed once and cached — the loop
-	is over in-memory opcodes (no re-parsing), and nothing is planted until an
-	exception breakpoint is actually enabled.
+	Lists every `OThrow`/`ORethrow` opcode in the program with its machine
+	address, so exception breakpoints can plant an INT3 at each one. It scans
+	only the decoded opcodes, never the data sections that hold embedded
+	assets, and computes the list once, on first use.
 **/
 class ExceptionSites {
 	final module:ModuleDebugInfo;
@@ -50,8 +47,7 @@ class ExceptionSites {
 		return sites;
 	}
 
-	// The thrown-value register of a throw opcode, or -1 when the opcode is not a
-	// throw. ORethrow (re-throw of a caught exception) counts too.
+	// The register a throw or rethrow opcode throws, or -1 for any other opcode.
 	static inline function throwRegister(op:Opcode):Int {
 		return switch (op) {
 			case OThrow(reg): reg;

@@ -30,6 +30,29 @@ class FakeDebugApi implements DebugApi {
 		memory.set(memKey(address), value & 0xFF);
 	}
 
+	/** A little-endian i32 at `at`. **/
+	public function pokeI32(at:Int, value:Int):Void {
+		for (i in 0...4) {
+			poke(Int64.ofInt(at + i), (value >>> (8 * i)) & 0xFF);
+		}
+	}
+
+	/** A pointer slot at `at`: the low dword is `value` (test addresses fit in an Int), the high dword zero. **/
+	public function pokePtr(at:Int, value:Int):Void {
+		pokeI32(at, value);
+		pokeI32(at + 4, 0);
+	}
+
+	/** A NUL-terminated UCS-2 string at `at`, the way the runtime stores type names. **/
+	public function pokeUcs2(at:Int, s:String):Void {
+		for (i in 0...s.length) {
+			poke(Int64.ofInt(at + i * 2), s.charCodeAt(i) & 0xFF);
+			poke(Int64.ofInt(at + i * 2 + 1), s.charCodeAt(i) >> 8);
+		}
+		poke(Int64.ofInt(at + s.length * 2), 0);
+		poke(Int64.ofInt(at + s.length * 2 + 1), 0);
+	}
+
 	public function peek(address:Pointer):Int {
 		var v = memory.get(memKey(address));
 		return v == null ? 0 : v;

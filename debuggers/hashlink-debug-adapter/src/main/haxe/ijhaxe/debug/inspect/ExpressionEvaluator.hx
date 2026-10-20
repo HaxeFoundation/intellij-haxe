@@ -17,20 +17,21 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	The evaluate-expression interpreter. A parsed expression's leaves
-	resolve through the SAME machinery as paths/writes (typed reads at
-	SymbolResolver addresses, calls via DebuggeeCallService, `new` via construct,
-	map brackets via get/set); operators fold ADAPTER-SIDE on EvalValue — no
-	debuggee code runs for arithmetic. Produces either a raw EvalValue (for
-	operands / conditions / call arguments) or a rendered VariableInfo (for
-	display in the watches view).
+	The interpreter for evaluate expressions. The leaves of a parsed
+	expression resolve through the SAME machinery as paths and writes: typed
+	reads at PathResolver addresses, calls through DebuggeeCallService, `new`
+	through its construct, and map brackets through get/set. Operators are
+	computed inside the adapter on EvalValues, so no debuggee code runs for
+	arithmetic. The result is either an EvalValue (for operands, conditions
+	and call arguments) or a rendered VariableInfo (for the watches view).
 
-	A pure variable path keeps the direct reference walk (`evaluatePath`) so a
-	watch renders exactly like the Variables view — map entries, enum params,
-	expandable references and all.
+	A pure variable path is read by walking the variablesReference listings of
+	the Variables view (`evaluatePath`), so a watch renders exactly like the
+	Variables view, with map entries, enum parameters and expandable
+	references.
 **/
 class ExpressionEvaluator {
-	final resolver:SymbolResolver;
+	final resolver:PathResolver;
 	final calls:DebuggeeCallService;
 	final view:VariablesView;
 	final valueReader:ValueReader;
@@ -40,7 +41,7 @@ class ExpressionEvaluator {
 	final runtimeTypes:RuntimeTypes;
 	final stops:StopState;
 
-	public function new(resolver:SymbolResolver, calls:DebuggeeCallService, view:VariablesView,
+	public function new(resolver:PathResolver, calls:DebuggeeCallService, view:VariablesView,
 			valueReader:ValueReader, memory:MemoryReader, module:ModuleDebugInfo, align:Align,
 			runtimeTypes:RuntimeTypes, stops:StopState) {
 		this.resolver = resolver;
@@ -55,93 +56,94 @@ class ExpressionEvaluator {
 	}
 
 	/**
-		Evaluates a NON-assignment expression to a displayed value (the caller
-		handles a top-level assignment before delegating here). A pure path uses
-		the Variables-view reference walk; a call/new returns the decoded result;
+		Evaluates a NON-assignment expression to a displayed value; the caller
+		handles a top-level assignment itself. A pure path uses the
+		Variables-view walk, a call or `new` returns the decoded result, and
 		anything else is interpreted and rendered.
 	**/
-	public function evaluateExpr(frameId:Int, e:Expr, exprText:String):VariableInfo {
+	public function evaluateForDisplay(frameId:Int, e:Expr, exprText:String):VariableInfo {
 		switch (e) {
 			case ECall(callee, args):
 				var calleePath = chainToPath(callee);
 				if (calleePath == null) {
 					throw new DebugError("The callee must be a function name or a variable path");
 				}
-				var values = [for (a in args) evalExpr(frameId, a)];
+				var values = [for (a in args) valueOf(frameId, a)];
 				return evaluateCall(frameId, calleePath, values);
 			case ENew(className, args):
-				var values = [for (a in args) evalExpr(frameId, a)];
+				var values = [for (a in args) valueOf(frameId, a)];
 				return decodeReturn('new $className()', calls.construct(frameId, className, values), constructedType(className));
 			case EIndex(_, _):
-				// the interpreter decides map-get vs array element (incl. computed keys)
-				return renderValue(exprText, evalExpr(frameId, e));
+				// the interpreter decides between a map get and an array element,
+				// including computed keys
+				return renderValue(exprText, valueOf(frameId, e));
 			default:
 		}
-		// a pure variable path keeps the direct reference walk: it renders
-		// exactly like the Variables view (map entries, enum params, ...)
+		// a pure variable path renders exactly like the Variables view
 		var path = chainToPath(e);
 		if (path != null) {
 			try {
 				return evaluatePath(frameId, path);
 			} catch (walkError:DebugError) {
-				// The view renders some REAL objects as childless leaves (a String
-				// shows its content, not bytes/length), so the walk cannot descend
-				// into them even though the typed resolver can (`s.length` is a real
-				// I32 field of the String HObj). A pure path has no side effects, so
-				// retrying through the interpreter is safe; if that fails too, the
-				// walk's error (including its UnresolvedName code, which the client
-				// uses to qualify class names) is the one to surface.
+				// The view shows some REAL objects as leaves without children (a
+				// String shows its content, not bytes and length), so the walk
+				// cannot descend into them. The typed resolver can: `s.length` is a
+				// real I32 field of the String object. A pure path has no side
+				// effects, so retrying through the interpreter is safe. When that
+				// fails too, the walk's error is surfaced, because its UnresolvedName
+				// code lets the client qualify class names.
 				try {
-					return renderValue(exprText, evalExpr(frameId, e));
+					return renderValue(exprText, valueOf(frameId, e));
 				} catch (_:DebugError) {
 					throw walkError;
 				}
 			}
 		}
 		// anything else is an operator expression: interpret it
-		return renderValue(exprText, evalExpr(frameId, e));
+		return renderValue(exprText, valueOf(frameId, e));
 	}
 
 	/**
-		Evaluates a breakpoint condition to a Bool in the given frame. The
-		expression must yield a Bool — a number/string/object condition is a user
-		error, surfaced with a clear message so the caller can fail safe (stop).
+		Evaluates a breakpoint condition to a Bool in the given frame. Any other
+		result is a user error with a clear message, so the caller can fail safe
+		and stop.
 	**/
 	public function evaluateBool(frameId:Int, expression:String):Bool {
 		var e = ExprParser.parse(StringTools.trim(expression));
 		if (e.match(EAssign(_, _))) {
 			throw new DebugError("A breakpoint condition cannot be an assignment");
 		}
-		return switch (evalExpr(frameId, e)) {
+		return switch (valueOf(frameId, e)) {
 			case VBool(b): b;
 			case other: throw new DebugError("A breakpoint condition must be true/false, got "
 				+ Operators.describe(other));
 		}
 	}
 
-	// The direct path walk: resolves the root, then follows accessors through
-	// the same variablesReference listings the Variables view uses.
+	// The Variables-view walk: resolves the root, then follows each accessor
+	// through the same variablesReference listings the Variables view uses.
 	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {
 		var start = 0;
 		var current = resolveRoot(frameId, path.root);
 
 		if (current == null) {
-			// `MyClass.member`: a leading prefix naming a class resolves to its
-			// statics container (locals/this/frame statics were tried first)
+			// `MyClass.member`: a leading prefix that names a class resolves to the
+			// class's statics container. Locals, `this` and the frame's statics
+			// were tried first.
 			var cls = resolver.staticsPrefix(path);
 			if (cls != null) {
 				current = {
 					name: cls.className,
 					value: 'class ${cls.className}',
-					type: SymbolResolver.staticsContainerName(cls.className),
+					type: PathResolver.staticsContainerName(cls.className),
 					reference: stops.allocReference(RefStatics(cls.singleton, cls.proto)),
 				};
 				start = cls.consumed;
 			}
 		}
 		if (current == null) {
-			// UnresolvedName + the offending token lets the client resolve it against
-			// its own source (imports) and re-issue a fully-qualified expression.
+			// UnresolvedName with the unknown name lets the client resolve it against
+			// its own source (imports) and retry with a fully qualified expression.
 			throw new DebugError('Unknown variable "' + path.root + '"',
 				DebugErrorCode.UnresolvedName, ["name" => path.root]);
 		}
@@ -201,9 +203,9 @@ class ExpressionEvaluator {
 	// --- the expression interpreter ---
 
 	/**
-		Evaluates an expression node to a typed adapter-side value.
+		Evaluates an expression node to a typed value.
 	**/
-	public function evalExpr(frameId:Int, e:Expr):EvalValue {
+	public function valueOf(frameId:Int, e:Expr):EvalValue {
 		return switch (e) {
 			case EInt(v): VInt(v);
 			case EFloat(f): VFloat(f);
@@ -223,43 +225,43 @@ class ExpressionEvaluator {
 				if (path == null) {
 					throw new DebugError("The callee must be a function name or a variable path");
 				}
-				var values = [for (a in args) evalExpr(frameId, a)];
+				var values = [for (a in args) valueOf(frameId, a)];
 				var ret = calls.callRaw(frameId, path, values);
 				if (ret.type.match(HVoid)) {
 					throw new DebugError('"' + path.display() + '" returns Void and cannot be used inside an expression');
 				}
 				toEvalValue(ret.raw, ret.type);
 			case ENew(className, args):
-				var values = [for (a in args) evalExpr(frameId, a)];
+				var values = [for (a in args) valueOf(frameId, a)];
 				VObject(calls.construct(frameId, className, values), constructedType(className));
 			case EUnop(op, inner):
-				Operators.unop(op, evalExpr(frameId, inner));
+				Operators.unop(op, valueOf(frameId, inner));
 			case EBinop("&&", l, r):
-				// Haxe && / || short-circuit natively, so the right side only runs when needed
-				VBool(Operators.asBool(evalExpr(frameId, l), "&&")
-					&& Operators.asBool(evalExpr(frameId, r), "&&"));
+				// the adapter's own && and || short-circuit, so the right side runs only when needed
+				VBool(Operators.asBool(valueOf(frameId, l), "&&")
+					&& Operators.asBool(valueOf(frameId, r), "&&"));
 			case EBinop("||", l, r):
-				VBool(Operators.asBool(evalExpr(frameId, l), "||")
-					|| Operators.asBool(evalExpr(frameId, r), "||"));
+				VBool(Operators.asBool(valueOf(frameId, l), "||")
+					|| Operators.asBool(valueOf(frameId, r), "||"));
 			case EBinop(op, l, r):
-				Operators.binop(op, evalExpr(frameId, l), evalExpr(frameId, r));
+				Operators.binop(op, valueOf(frameId, l), valueOf(frameId, r));
 			case ETernary(cond, thenE, elseE):
 				// only the taken branch runs (a branch may call a function)
-				Operators.asBool(evalExpr(frameId, cond), "?:")
-					? evalExpr(frameId, thenE) : evalExpr(frameId, elseE);
+				Operators.asBool(valueOf(frameId, cond), "?:")
+					? valueOf(frameId, thenE) : valueOf(frameId, elseE);
 			case EIs(inner, typeName):
-				VBool(valueIsOfType(evalExpr(frameId, inner), typeName));
+				VBool(valueIsOfType(valueOf(frameId, inner), typeName));
 			case EAssign(_, _):
 				throw new DebugError("Assignment is only allowed at the top level of an expression");
 		}
 	}
 
-	// `value is Type` (Haxe Std.isOfType semantics, the supported subset):
-	// null is never an instance; Int/Float/Bool/String/Dynamic match by kind
-	// (an Int satisfies Float, as in Haxe); a class/enum/struct name matches an
-	// object whose runtime class equals it or descends from it (tsuper chain,
-	// by full or simple name). Interfaces are not resolved. A type name that
-	// names nothing is a user error (so a typo isn't a silent false).
+	// `value is Type`, following Haxe's Std.isOfType for a supported subset.
+	// null is never an instance. Int, Float, Bool, String and Dynamic match by
+	// kind, and an Int also satisfies Float, as in Haxe. A class, enum or struct
+	// name matches an object whose runtime class is that class or a subclass of
+	// it, by full or simple name. Interfaces are not resolved. A type name that
+	// names nothing is a user error, so a typo does not silently yield false.
 	function valueIsOfType(v:EvalValue, typeName:String):Bool {
 		if (v.match(VNull)) {
 			return false;
@@ -283,15 +285,13 @@ class ExpressionEvaluator {
 				}
 				ClassChain.matches(runtime, typeName);
 			default:
-				false; // a primitive/string against a (real) class name
+				false; // a primitive or string against a (real) class name
 		}
 	}
 
-	// (subtype matching moved to ClassChain — shared with exception
-	// breakpoint type filters)
-
 	/**
-		A chain of EIdent/EField/EIndex(constant int) is exactly a ValuePath.
+		The ValuePath spelled by a chain of identifiers, fields and constant
+		non-negative indexes; null for any other expression.
 	**/
 	public static function chainToPath(e:Expr):Null<ValuePath> {
 		var accessors:Array<PathAccessor> = [];
@@ -319,10 +319,10 @@ class ExpressionEvaluator {
 	}
 
 	/**
-		Evaluates an index expression to a non-negative Int (for array elements).
+		Evaluates `key` to an array index, a non-negative Int.
 	**/
-	public function intKey(frameId:Int, key:Expr):Int {
-		return switch (evalExpr(frameId, key)) {
+	public function arrayIndex(frameId:Int, key:Expr):Int {
+		return switch (valueOf(frameId, key)) {
 			case VInt(v):
 				var i = Int64.toInt(v);
 				if (i < 0) {
@@ -334,8 +334,8 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// `recv[key]`: a map routes to get(key); anything else is an indexed element
-	// (constant or computed key).
+	// `recv[key]`: on a map this calls get(key); on anything else it reads the
+	// element at a constant or computed index.
 	function indexValue(frameId:Int, recv:Expr, key:Expr):EvalValue {
 		var recvPath = chainToPath(recv);
 		if (recvPath == null) {
@@ -343,10 +343,10 @@ class ExpressionEvaluator {
 		}
 		var target = resolver.targetOfPath(frameId, recvPath);
 		if (mapTypeOfTarget(target) != null) {
-			var ret = calls.callRaw(frameId, recvPath.plus("get"), [evalExpr(frameId, key)]);
+			var ret = calls.callRaw(frameId, recvPath.plus("get"), [valueOf(frameId, key)]);
 			return toEvalValue(ret.raw, ret.type);
 		}
-		var element = resolver.childTarget(target, Std.string(intKey(frameId, key)));
+		var element = resolver.childTarget(target, Std.string(arrayIndex(frameId, key)));
 		return evalValueAt(element.address, element.type);
 	}
 
@@ -355,7 +355,7 @@ class ExpressionEvaluator {
 		return evalValueAt(target.address, target.type);
 	}
 
-	// Typed read of a slot into the interpreter's currency.
+	// Reads the slot at `address` as type `t`.
 	function evalValueAt(address:Pointer, t:HLType):EvalValue {
 		return switch (t) {
 			case HUi8: VInt(Int64.ofInt(memory.readU8(address)));
@@ -366,7 +366,7 @@ class ExpressionEvaluator {
 			case HF64: VFloat(memory.readF64(address));
 			case HBool: VBool(memory.readU8(address) != 0);
 			case HVoid: VNull;
-			case HStruct(_), HPacked(_): VObject(address, t); // inline: the slot IS the base
+			case HStruct(_), HPacked(_): VObject(address, t); // stored inline: the slot IS the struct
 			default: pointerValue(memory.readPointer(address), t);
 		}
 	}
@@ -376,7 +376,7 @@ class ExpressionEvaluator {
 			return VNull;
 		}
 		return switch (t) {
-			case HNull(inner): evalValueAt(ptr.offset(align.dynPayload), inner); // box payload (@ +8 on BOTH bitnesses)
+			case HNull(inner): evalValueAt(ptr.offset(align.dynPayload), inner); // the box payload sits at +8 on BOTH bitnesses
 			case HDyn: dynamicValue(ptr);
 			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
 			case HObj(_): VObject(ptr, resolver.refineObjectType(ptr, t));
@@ -384,9 +384,9 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// A Dynamic value: primitives live in a vdynamic box (hl_type* @0, payload
-	// union @ +8 on BOTH bitnesses); pointer kinds ARE the value (their own
-	// header says so).
+	// Reads a Dynamic. A primitive lives in a vdynamic box: hl_type* at +0, the
+	// payload at +8 on BOTH bitnesses. For a pointer kind the pointer IS the
+	// value, and its own header carries the type.
 	function dynamicValue(ptr:Pointer):EvalValue {
 		var runtime = runtimeTypes.typeAt(memory.readPointer(ptr));
 		if (runtime == null) {
@@ -405,7 +405,7 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// A call's raw return (RAX bits) into the interpreter's currency.
+	// Converts the raw return bits of a call into an EvalValue.
 	function toEvalValue(raw:Pointer, t:HLType):EvalValue {
 		return switch (t) {
 			case HVoid: VNull;
@@ -419,7 +419,7 @@ class ExpressionEvaluator {
 	}
 
 	/**
-		Renders an evaluated value (displayed VariableInfo).
+		Renders an EvalValue as a displayed VariableInfo named `name`.
 	**/
 	public function renderValue(name:String, v:EvalValue):VariableInfo {
 		return switch (v) {
@@ -437,14 +437,15 @@ class ExpressionEvaluator {
 		return decodeReturn(callee.display() + "()", call.raw, call.type);
 	}
 
-	// The module HLType of a construction result (the class named).
+	// The HLType of the class `new` constructed; HDyn when the module has no such type.
 	function constructedType(className:String):HLType {
 		var t = module.typeByName(className);
 		return t == null ? HDyn : t;
 	}
 
 	/**
-		Decodes a raw call/pointer result (RAX, or XMM0-as-RAX for a float) for display.
+		Decodes raw bits of type `retType` for display: a call's return value
+		(RAX, or XMM0 copied to RAX for a float) or a pointer.
 	**/
 	public function decodeReturn(name:String, raw:Pointer, retType:HLType):VariableInfo {
 		return switch (retType) {
@@ -465,9 +466,9 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// The map type of a resolved receiver if it is one of the map classes
-	// (StringMap/IntMap/ObjectMap or a BalancedTree), else null — the signal to
-	// route `[]` to get/set rather than treat it as an array index.
+	// The runtime type of `target` when it is a map class (StringMap, IntMap,
+	// ObjectMap or a BalancedTree), else null. A non-null result routes `[]` to
+	// get/set instead of an array index.
 	public function mapTypeOfTarget(target:WriteTarget):Null<HLType> {
 		var t = target.type;
 		switch (t) {

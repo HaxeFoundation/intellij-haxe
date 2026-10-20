@@ -62,6 +62,16 @@ public class EvaluationPathTest {
   }
 
   @Test
+  @DisplayName("synthetic and map children follow the adapter's names")
+  public void syntheticAndMapChildrenFollowTheAdaptersNames() {
+    assertEquals("f.captured", EvaluationPath.child("f", "captured"));       // a bound closure's environment
+    assertEquals("shade[1]", EvaluationPath.child("shade", "1"));             // an enum constructor parameter
+    assertEquals("intMap[2]", EvaluationPath.child("intMap", "2"));          // an int-keyed map entry
+    assertNull(EvaluationPath.child("stringMap", "\"a2\""));                // a string key is quoted
+    assertNull(EvaluationPath.child("enumMap", "Tinted(2, \"x\")"));        // an enum-valued key
+  }
+
+  @Test
   @DisplayName("child of null is null")
   public void childOfNullIsNull() {
     assertNull(EvaluationPath.child(null, "field"));

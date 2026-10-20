@@ -17,9 +17,9 @@ import java.util.stream.Stream;
  * suite per toolchain, and writes the HTML report. Entry point of
  * {@code gradlew debuggerCompatibilityReport}; see README.md.
  *
- * The lane mechanics encode hard-won lessons from the runs that certified
- * the version support policy — see the comments at the decision points and
- * in {@link GradleRunner} before "simplifying" any of them.
+ * The lane mechanics carry constraints that are easy to break — read the
+ * comments at the decision points and in {@link GradleRunner} before
+ * "simplifying" any of them.
  */
 public final class MatrixMain {
   private final Path root;
@@ -265,7 +265,7 @@ public final class MatrixMain {
    * One thread per gradle MODULE, not per lane: threads must be disjoint —
    * separate gradle build dirs, separate fixtures, separate debugger
    * binaries, each child build carrying its own environment. The firefox and
-   * chromium lanes both drive the browser-debugger module (one build dir,
+   * chromium lanes both drive the javascript-debugger module (one build dir,
    * ONE test-results dir), so they share a thread and run sequentially;
    * concurrent, the faster lane rewrites the shared results dir between the
    * slower lane's test run and its collection, and cells collect the OTHER
@@ -332,8 +332,8 @@ public final class MatrixMain {
    * once and the results merged — a test that fails then passes is reported
    * as FLAKY (machine load, not a version incompatibility) instead of
    * failing the cell. The debugger ITs drive real debuggees against wait
-   * timeouts, so contention flakes are a fact of life; the certified-green
-   * combos kept "failing surprisingly" on busy machines without this.
+   * timeouts, so contention flakes are a fact of life; without the rerun,
+   * green combos fail on busy machines.
    *
    * {@code resultFilter} (nullable): only XMLs whose filename contains it are
    * collected as this cell's evidence. Lanes sharing a module's results dir
@@ -386,12 +386,6 @@ public final class MatrixMain {
     return new SuiteRun(status, merged, flaky);
   }
 
-  /**
-   * Copies the first attempt's failure XMLs into {@code evidence/first-attempt}
-   * before the retry overwrites them — a flake that "passed on retry" is
-   * undiagnosable without the stack traces (and adapter output) that first
-   * failed it.
-   */
   /** "ClassName::testName" for every failed test of one class result. */
   private static Stream<String> failedTestIds(Results.ClassResult result) {
     return result.failed()
@@ -399,6 +393,12 @@ public final class MatrixMain {
       .map(failure -> result.name() + "::" + failure.test());
   }
 
+  /**
+   * Copies the first attempt's failure XMLs into {@code evidence/first-attempt}
+   * before the retry overwrites them — a flake that "passed on retry" is
+   * undiagnosable without the stack traces (and adapter output) that first
+   * failed it.
+   */
   private void preserveFirstAttempt(List<Results.ClassResult> failing, Path evidence) throws IOException {
     Path firstAttempt = evidence.resolve("first-attempt");
     Files.createDirectories(firstAttempt);
@@ -488,11 +488,11 @@ public final class MatrixMain {
   }
 
   private void firefoxLane() throws IOException {
-    webLane("firefox", "FirefoxAdapterLiveProbe");
+    webLane("firefox", "FirefoxAdapterLiveTest");
   }
 
   private void chromiumLane() throws IOException {
-    webLane("chromium", "JsDebugAdapterLiveProbe");
+    webLane("chromium", "JsDebugAdapterLiveTest");
   }
 
   // both web lanes on one thread in parallel mode — see runLanesInParallel
@@ -506,7 +506,7 @@ public final class MatrixMain {
   }
 
   /**
-   * One web-family lane: the browser-debugger module's live probe for that
+   * One web-family lane: the javascript-debugger module's live probe for that
    * family, per haxe toolchain (the probes compile their fixtures with the
    * lane's haxe) x per PROVISIONED node runtime (the adapters run on node;
    * the manifest pins the active LTS and the current release, hash-verified
@@ -518,7 +518,7 @@ public final class MatrixMain {
   private void webLane(String lane, String probeClass) throws IOException {
     log.line(lane.toUpperCase(Locale.ROOT) + " LANE (browser live probe)");
     Map<String, String> browserEnv = discoveredBrowserEnv(lane);
-    Path moduleResults = root.resolve("debuggers/browser-debugger/build/test-results/test");
+    Path moduleResults = root.resolve("debuggers/javascript-debugger/build/test-results/test");
 
     // no provisioned node (downloads failed?): one cell per haxe on the
     // probes' default node discovery rather than no coverage at all
@@ -542,7 +542,7 @@ public final class MatrixMain {
         }
         // the module's results dir is shared with the OTHER web lane: collect
         // only this lane's probe suite as evidence
-        SuiteRun run = runSuite(":debuggers:browser-debugger", extra,
+        SuiteRun run = runSuite(":debuggers:javascript-debugger", extra,
                                 env, out.resolve("logs/" + lane + "-" + cellName + ".log"), 1200,
                                 moduleResults, out.resolve("results/" + lane + "_" + cellName), probeClass);
         addCell(lane, haxe, node, run.status().name().toLowerCase(Locale.ROOT),
@@ -626,8 +626,8 @@ public final class MatrixMain {
 
   /**
    * Reads a failed fixture build's error output for KNOWN toolchain problems
-   * and logs an actionable hint — "compile-fail" alone sent the first user
-   * hunting through log files for what was an environment issue.
+   * and logs an actionable hint — "compile-fail" alone does not tell an
+   * environment issue from a code problem.
    */
   private void diagnoseCompileFail(Path buildLog) {
     try {

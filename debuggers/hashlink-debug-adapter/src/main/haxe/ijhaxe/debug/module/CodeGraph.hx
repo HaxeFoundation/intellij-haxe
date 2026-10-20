@@ -3,25 +3,22 @@ package ijhaxe.debug.module;
 import format.hl.Data.Opcode;
 
 /**
-	Control-flow graph over one HashLink function's opcodes, used to compute where
-	a source-level step should plant temporary breakpoints.
+	The control-flow graph of one HashLink function's opcodes. Stepping uses it
+	to decide where to plant temporary breakpoints.
 
-	Successor arithmetic (verified against hashlink and vshaxe/hashlink-debugger):
-	a jump's target opcode is `opIndex + 1 + offset`. Returns are terminal; a
-	throw inside a `try` transfers to the enclosing OTrap's catch handler (the VM
-	longjmps there — it does NOT leave the function), so its successors are the
-	enclosing handlers and it is terminal only when unguarded. Successor sets are
-	deliberately over-approximated (an unreachable target only costs a temporary
-	breakpoint that is cleaned up), never under-approximated.
-
-	Pure and dependency-light: operates on an opcode array plus a `lineOf` callback,
-	so it is exercised with synthetic opcodes under the interpreter.
+	A jump's target opcode is `opIndex + 1 + offset`, as in hashlink and
+	vshaxe/hashlink-debugger. A return ends the function. A throw inside a
+	`try` does not: the VM jumps (longjmp) to the enclosing OTrap's catch
+	handler, so the handlers are its successors, and only an unguarded throw
+	ends the function. Successor sets may contain too many targets, never too
+	few; an unreachable target only costs a temporary breakpoint that is
+	removed again.
 **/
 class CodeGraph {
 	final ops:Array<Opcode>;
-	// OTrap protection ranges (same derivation as TryRegions): OTrap at `start`
-	// with offset `d` guards ops start < op <= start+d; its catch handler is at
-	// start+d+1. Lazily built on the first throw-successor query.
+	// The `try` ranges, derived as in TryRegions: an OTrap at `start` with
+	// offset `d` guards the ops start < op <= start+d, and its catch handler is
+	// at start+d+1. Built on the first query about a throw.
 	var trapRegions:Null<Array<{start:Int, end:Int}>> = null;
 
 	public function new(ops:Array<Opcode>) {
@@ -44,8 +41,7 @@ class CodeGraph {
 			case ORet(_):
 				[];
 			case OThrow(_), ORethrow(_):
-				// caught by an enclosing try: control resumes at its catch
-				// handler(s); with none, the throw leaves the function (terminal)
+				// continues at the catch handlers of the enclosing trys; none means it leaves the function
 				catchHandlers(op);
 			case OJAlways(d):
 				[next + d];
@@ -87,7 +83,7 @@ class CodeGraph {
 	}
 
 	/**
-		True if opcode `op` ends the function (a return, or an UNguarded throw).
+		True if opcode `op` ends the function: a return, or a throw outside any `try`.
 	**/
 	public function isTerminal(op:Int):Bool {
 		if (op < 0 || op >= ops.length) {
@@ -100,9 +96,9 @@ class CodeGraph {
 		}
 	}
 
-	// Catch-handler ops of every try region enclosing `op`. The runtime truth is
-	// the VM's trap STACK (innermost active handler); taking every statically
-	// enclosing region over-approximates, which stepping tolerates.
+	// The catch handlers of every `try` range enclosing `op`. At run time only
+	// the innermost active handler catches; returning all of them is a safe
+	// over-approximation for stepping.
 	function catchHandlers(op:Int):Array<Int> {
 		if (trapRegions == null) {
 			trapRegions = [];
@@ -118,16 +114,16 @@ class CodeGraph {
 	}
 
 	/**
-		Walks the CFG from `startOp` collecting step targets. `lineOf(op)` gives the
-		source line of an opcode (0/negative = unknown). The walk stops expanding at
-		any opcode whose known line differs from `startLine` (that opcode is a
-		line-change target) and at terminals; it is guarded against loops.
+		Walks the graph from `startOp` and collects the step targets. `lineOf(op)`
+		gives an opcode's source line, 0 or negative when unknown. The walk does
+		not continue past an opcode on a different known line (it becomes a
+		line-change target) or past an opcode that ends the function. Each
+		opcode is visited once, so loops terminate.
 
-		`startOpCallDone`: the debuggee is parked MID-op (at a return address
-		inside `startOp`'s generated code), so if `startOp` is a call it has
-		already executed and must not be offered/planted as an enterable target
-		again — without this, stepping out of a call landed back "on" the call
-		op and smart step offered the just-finished call a second time.
+		`startOpCallDone` is true when the debuggee stopped in the middle of
+		`startOp`, at a return address inside its machine code. If `startOp` is
+		a call, that call has already run and is not a step-in target again.
+		This happens after stepping out of a call.
 	**/
 	public function stepTargets(startOp:Int, startLine:Int, lineOf:Int->Int,
 			startOpCallDone:Bool = false):StepTargets {
@@ -148,7 +144,7 @@ class CodeGraph {
 				var line = lineOf(op);
 				if (line > 0 && line != startLine) {
 					lineChangeOps.push(op);
-					continue; // a new line: stop here, don't walk past it
+					continue;
 				}
 			}
 

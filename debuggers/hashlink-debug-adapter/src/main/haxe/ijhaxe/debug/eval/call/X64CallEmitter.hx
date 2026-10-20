@@ -7,23 +7,24 @@ import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 
 /**
-	Emits a self-contained x86-64 machine-code trampoline that calls a function
-	in the debuggee and traps (INT3) on return — a port of the assembly in
-	vshaxe/hashlink-debugger `hld/Eval.evalCall` (the 32-bit cdecl counterpart is
-	`X86CallEmitter`). The trampoline is written OVER the code at the
-	stopped thread's instruction pointer (which is guaranteed executable); the
-	caller saves and restores the original bytes.
+	Emits the x86-64 eval-call trampoline: self-contained machine code that
+	calls a function in the debuggee and traps with an INT3 when it returns.
+	It ports the assembly in vshaxe/hashlink-debugger `hld/Eval.evalCall`;
+	`X86CallEmitter` is the 32-bit counterpart.
 
-	We cannot write the argument registers from outside (the debug native only
-	exposes Esp/Eip/Rax), so the trampoline loads them itself: it saves the
-	scratch/argument registers, moves each argument into its calling-convention
-	register, `mov rax, <addr>` / `call rax`, captures the return (RAX, or XMM0
-	copied to RAX for a float return), restores the saved registers, and `int3`.
+	The debug natives can write only Esp, Eip and Rax, so the argument
+	registers cannot be set from outside. The trampoline sets them itself:
 
-	Pure and unit-tested against exact byte sequences.
+	1. save the scratch and argument registers,
+	2. move each argument into its calling-convention register,
+	3. `mov rax, <addr>` and `call rax`,
+	4. capture the return value (RAX, or XMM0 copied to RAX for a float),
+	5. restore the saved registers and execute `int3`.
+
+	Pure; unit tests pin the exact byte sequences.
 **/
 class X64CallEmitter implements CallTrampoline {
-	// x86-64 register encodings (hardware numbers).
+	// x86-64 register numbers, as encoded in instructions
 	static inline var RAX = 0;
 	static inline var RCX = 1;
 	static inline var RDX = 2;
@@ -35,8 +36,9 @@ class X64CallEmitter implements CallTrampoline {
 	static inline var RDI = 7;
 
 	final winCall:Bool;
-	// Scratch registers saved around the call (a superset of the argument
-	// registers), matching hld: they may hold live values mid-function.
+	// Registers saved around the call, as in hld: the argument registers plus
+	// the other scratch registers. The interrupted function may hold live
+	// values in them.
 	final scratch:Array<Int>;
 
 	public function new(winCall:Bool) {
@@ -45,31 +47,23 @@ class X64CallEmitter implements CallTrampoline {
 	}
 
 	/**
-		The number of arguments the register-only calling path supports.
-	**/
-	public function maxArgs():Int {
-		return winCall ? 4 : 6; // win64: 4 positional; SysV: 6 int / (8 float, capped here)
-	}
-
-	/**
-		The trampoline bytes for calling `funcAddr` with `args` (already lowered
-		to raw 64-bit register values), capturing a float return through XMM0
-		when `floatBits` is nonzero (both widths sit in XMM0's low bits, so 32 and
-		64 are handled identically here). Throws when an argument cannot be placed
-		in a register (no stack-argument support yet).
+		The trampoline bytes that call `funcAddr` with `args`. A nonzero
+		`floatBits` copies XMM0 into RAX after the call; F32 and F64 both sit in
+		XMM0's low bits, so both widths take the same path. Throws when an
+		argument does not fit in a register.
 	**/
 	public function build(funcAddr:Int64, args:Array<CallArg>, floatBits:Int):Bytes {
 		var out = new BytesBuffer();
 
-		// save the scratch registers (both the integer reg and its XMM peer)
+		// save each scratch register, plus one XMM register per scratch register from XMM0 up
 		for (i in 0...scratch.length) {
 			pushCpu(out, scratch[i]);
 			pushXmm(out, i);
 		}
 		// place each argument in its calling-convention register
 		var placements = placeArgs(args);
-		// load in reverse so an argument register used as scratch for an
-		// earlier load is not clobbered (matches hld)
+		// load in reverse order, as hld does, so a register used as scratch by
+		// one load cannot overwrite an argument loaded before it
 		for (i in 0...args.length) {
 			var idx = args.length - 1 - i;
 			var p = placements[idx];
@@ -96,15 +90,16 @@ class X64CallEmitter implements CallTrampoline {
 		return out.getBytes();
 	}
 
-	// Which register each argument goes in.
+	// The register each argument goes in.
+	// TODO: stack-passed arguments, beyond 4 on win64 and 6 integer / 8 float on SysV.
 	function placeArgs(args:Array<CallArg>):Array<ArgRegister> {
 		var result:Array<ArgRegister> = [];
 		if (winCall) {
-			// positional: argument i uses slot i (RCX/RDX/R8/R9 or XMM0..3)
+			// by position: argument i uses slot i (RCX/RDX/R8/R9 or XMM0..3)
 			var cpu = [RCX, RDX, R8, R9];
 			for (i in 0...args.length) {
-				if (i >= 4) {
-					throw new DebugError("Too many arguments to call (max " + maxArgs() + ")");
+				if (i >= cpu.length) {
+					throw new DebugError("Too many arguments to call (max " + cpu.length + ")");
 				}
 				result.push(args[i].isFloat ? {reg: i, xmm: true} : {reg: cpu[i], xmm: false});
 			}
@@ -122,7 +117,7 @@ class X64CallEmitter implements CallTrampoline {
 				result.push({reg: nextFloat++, xmm: true});
 			} else {
 				if (nextInt >= intRegs.length) {
-					throw new DebugError("Too many arguments to call (max " + maxArgs() + ")");
+					throw new DebugError("Too many arguments to call (max " + intRegs.length + ")");
 				}
 				result.push({reg: intRegs[nextInt++], xmm: false});
 			}
@@ -174,13 +169,13 @@ class X64CallEmitter implements CallTrampoline {
 	}
 
 	/**
-		A minimal stub for the linux float-register-write workaround: loads
-		Xmm0 with `bits` and traps. hl's linux debug natives cannot WRITE
-		float registers (the ptrace write path never handled the FP
-		pseudo-offsets its own read path defines), but they can inject code —
-		which is how eval-calls already run — so the register write becomes a
-		two-instruction injected stub. RAX is clobbered here; the injector
-		saves and restores it around every injected run.
+		A stub that loads XMM0 with `bits` and traps, for the linux
+		float-register write workaround. hl's linux debug natives cannot WRITE
+		float registers: their ptrace write path does not handle the FP
+		pseudo-offsets their read path defines. They can inject code, as every
+		eval-call does, so the register write runs as a small injected stub. The
+		stub clobbers RAX; the injector saves and restores RAX around every
+		injected run.
 	**/
 	public static function buildXmm0Load(bits:Int64):Bytes {
 		var out = new BytesBuffer();
@@ -189,10 +184,10 @@ class X64CallEmitter implements CallTrampoline {
 		return out.getBytes();
 	}
 
-	// load an XMM register: stage the value through RAX and an 8-byte stack
-	// slot. NOTE: `push rax` pushes 8 bytes, so this pops exactly 8 (add rsp,8)
-	// — NOT popXmm's `add rsp,16`, which would leave the stack unbalanced and
-	// corrupt the scratch-register restore for every float argument.
+	// Loads an XMM register through RAX and an 8-byte stack slot. `push rax`
+	// moves RSP by 8, so the slot is released with `add rsp,8`, not popXmm's
+	// `add rsp,16`. An unbalanced stack corrupts the restore of the scratch
+	// registers.
 	static function setXmm(out:BytesBuffer, reg:Int, value:Int64):Void {
 		setCpu(out, RAX, value);
 		pushCpu(out, RAX); // rsp -= 8
@@ -252,6 +247,6 @@ class X64CallEmitter implements CallTrampoline {
 }
 
 /**
-	Where an argument goes: the target register, and whether it's an XMM (float) register.
+	Where an argument goes: the register number, and whether it is an XMM (float) register.
 **/
 typedef ArgRegister = {reg:Int, xmm:Bool}

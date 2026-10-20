@@ -7,11 +7,11 @@ import ijhaxe.debug.inspect.ScopeInfo;
 import ijhaxe.debug.values.VariableInfo;
 
 /**
-	An event emitted by the DebugSession thread, consumed by the worker/dispatcher
-	and turned into DAP responses or events.
+	An event from the DebugSession thread. The dispatcher on the worker thread
+	turns it into DAP responses or events.
 **/
 enum DebugEvent {
-	// deferred-response completions (carry the originating request seq)
+	// completions of deferred responses, carrying the request seq
 	EvLaunched(requestSeq:Int);
 	EvLaunchFailed(requestSeq:Int, message:String);
 	EvBreakpoints(requestSeq:Int, results:Array<BreakpointResult>);
@@ -21,7 +21,7 @@ enum DebugEvent {
 	EvStepStarted(requestSeq:Int); // ack for a next/stepIn/stepOut request; the stop follows
 	EvPaused(requestSeq:Int); // ack for a pause request; the stopped(reason:"pause") event follows
 	EvExceptionBreakpointsSet(requestSeq:Int); // ack for a setExceptionBreakpoints request
-	EvToStringRenderingSet(requestSeq:Int); // ack for an custom/setToStringRendering request
+	EvToStringRenderingSet(requestSeq:Int); // ack for a custom/setToStringRendering request
 
 	EvThreads(requestSeq:Int, threads:Array<ThreadInfo>);
 	EvStepInTargets(requestSeq:Int, targets:Array<StepInTargetInfo>);
@@ -31,8 +31,9 @@ enum DebugEvent {
 	EvVariableSet(requestSeq:Int, result:VariableInfo);
 	EvEvaluated(requestSeq:Int, result:VariableInfo);
 
-	// `code`/`variables` carry the DAP Message.id + Message.variables so the client
-	// can branch on a stable code (e.g. UnresolvedName) rather than the message text.
+	// `code` and `variables` become the DAP Message.id and Message.variables, so
+	// the client can branch on a stable code (UnresolvedName, for example)
+	// instead of the message text.
 	EvRejected(requestSeq:Int, message:String, code:DebugErrorCode, variables:Null<Map<String, String>>);
 	EvSessionEnded(requestSeq:Int);
 
@@ -43,9 +44,9 @@ enum DebugEvent {
 	EvStoppedException(threadId:Int, description:String);
 	EvStoppedPause(threadId:Int); // the debuggee was interrupted by a user pause
 
-	// The debuggee resumed on its own after a step that had no user-code landing
-	// (e.g. stepping past a thread entry's last statement): tell the client it is
-	// running so it stops waiting for a step stop that can never arrive.
+	// A step found no landing in user code (stepping past the last statement of
+	// a thread's entry function, for example) and the debuggee runs on. Tells the
+	// client it is running, so it stops waiting for a step stop that cannot come.
 	EvResumed(threadId:Int);
 
 	EvOutput(category:String, text:String);

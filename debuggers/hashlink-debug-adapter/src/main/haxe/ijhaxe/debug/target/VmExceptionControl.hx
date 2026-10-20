@@ -5,15 +5,16 @@ import ijhaxe.debug.layout.Align;
 
 /**
 	Drives HashLink's built-in break-on-throw support. hl_throw (src/std/error.c)
-	stores the thrown vdynamic in hl_thread_info.exc_value and THEN — when
-	HL_EXC_CATCH_ALL is set in that thread's flags — executes hl_debug_break()
-	with HL_EXC_IS_THROW set: an int3 the debugger receives at a point where the
-	thrown value is finally readable (it is unreadable at hl_throw's ENTRY — the
-	argument registers are not exposed by HL's debug API).
+	stores the thrown vdynamic in hl_thread_info.exc_value. Then, when
+	HL_EXC_CATCH_ALL is set in that thread's flags, it sets HL_EXC_IS_THROW and
+	executes hl_debug_break(): an int3 the debugger receives where the thrown
+	value can be read. At hl_throw's entry it cannot, because HL's debug API
+	does not expose the argument registers.
 
-	All struct offsets come from the `ijhaxe.debug.layout.Align` arch descriptor
-	(thread id @ +0, exc_value/flags in the ptr-relative tail); the flags word is
-	an i32 whose two bits both live in its first little-endian byte.
+	All struct offsets come from the `ijhaxe.debug.layout.Align` descriptor
+	(thread id @ +0, exc_value and flags in the pointer-sized tail). The flags
+	word is an i32 whose two exception bits both sit in its first
+	little-endian byte.
 **/
 class VmExceptionControl {
 	static inline var HL_EXC_CATCH_ALL = 2;

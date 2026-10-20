@@ -8,22 +8,19 @@ import ijhaxe.debug.target.MemoryReader;
 import haxe.Int64;
 
 /**
-	Resolves the runtime address of HashLink's `hl_throw(vdynamic*)` — the single
-	C function through which EVERY exception passes, whether a bytecode `OThrow`
-	or a runtime error raised inside the VM (null access, array-out-of-bounds,
-	invalid cast, division by zero). Trapping `hl_throw` therefore catches the
-	runtime errors that have no bytecode throw site and would otherwise escape
-	the OThrow-based exception breakpoints (see ExceptionSites).
+	Finds the address of HashLink's `hl_throw(vdynamic*)`, the C function that
+	every exception passes through. That includes errors the VM raises itself
+	(null access, index out of bounds, invalid cast, division by zero), which
+	have no bytecode throw site for ExceptionSites to trap.
 
-	The debug handshake exposes addresses for bytecode functions only, so — like
-	NativeResolver mining a native from an OCall — we disassemble an `OThrow`
-	jitted site: hashlink `jit.c` compiles OThrow to a `call_native(hl_throw)`,
-	i.e. the fixed `mov (r/e)ax, <hl_throw> ; call` sequence (MachineCode picks
-	the x86-64 or x86 form), so the immediate IS hl_throw's absolute address.
+	The handshake only gives addresses of bytecode functions, so the address is
+	mined, that is, read out of the JIT's machine code, like NativeResolver does
+	for other natives. hashlink `jit.c` compiles an `OThrow` into
+	`mov (r/e)ax, <hl_throw> ; call`, so the immediate operand of that `mov` is
+	the address. MachineCode handles both the x86-64 and the x86 form.
 
-	When no OThrow site exists (a program that never throws) or the pattern is
-	absent, resolution fails and the caller degrades gracefully (the VM-exception
-	breakpoint simply cannot arm).
+	A program without an OThrow site, or with a different code pattern, yields
+	no address; the VM-exception breakpoint then cannot be armed.
 **/
 class NativeThrowResolver {
 	final module:ModuleDebugInfo;
@@ -42,7 +39,7 @@ class NativeThrowResolver {
 	}
 
 	/**
-		hl_throw's runtime address, or null when it can't be mined (cached).
+		The address of hl_throw, or null when no throw site yields it. Cached after the first call.
 	**/
 	public function resolve():Null<Pointer> {
 		if (resolved) {
@@ -59,9 +56,8 @@ class NativeThrowResolver {
 		return null;
 	}
 
-	// Reads an OThrow site's machine code and pulls hl_throw's address out of the
-	// `mov rax, imm64 ; call rax` the JIT emitted for it (`mov eax, imm32 ;
-	// call eax` on a 32-bit VM).
+	// Reads the machine code of one throw site and extracts hl_throw's address
+	// from its `mov rax, imm64 ; call rax` (`mov eax, imm32 ; call eax` on 32-bit).
 	function mineCallSite(site:ThrowSite):Null<Pointer> {
 		var start = jit.addressOf(site.fidx, site.op);
 		var end = jit.addressOf(site.fidx, site.op + 1);

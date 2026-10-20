@@ -3,9 +3,9 @@ package ijhaxe.debug.layout;
 import format.hl.Data.HLType;
 
 /**
-	Where a bytecode register lives relative to the frame base (`ebp`): a signed
-	byte offset (negative = locals/spilled args below ebp, positive = stack-passed
-	args above ebp) plus the register's type.
+	Where a bytecode register lives, as a signed byte offset from the frame base
+	(`ebp`), plus the register's type. Locals and spilled arguments have
+	negative offsets; stack-passed arguments have positive ones.
 **/
 typedef RegisterSlot = {
 	var t:HLType;

@@ -36,42 +36,42 @@ import ijhaxe.dap.protocol.responses.ThreadsResponseBody;
 import haxe.Json;
 
 /**
-	Translates incoming DAP requests into session commands and outgoing DAP
-	responses/events, and turns DebugEvents from the session back into responses
-	and events.
+	Translates DAP requests into session commands, and session DebugEvents into
+	DAP responses and events.
 
-	Performs no I/O and owns the adapter-side `seq` counter. Requests handled on
-	the session thread get deferred responses: the command carries the request
-	seq, and the matching DebugEvent produces the response later (preserving
-	total ordering because only the single worker thread calls in here).
+	It performs no I/O and owns the `seq` counter of the adapter's outgoing
+	messages. A request that the session thread handles gets a deferred
+	response: the command carries the request seq, and the matching DebugEvent
+	completes the response later. Only the worker thread calls into this class,
+	so messages keep their order.
 **/
 class RequestDispatcher {
 	static inline var ERROR_UNRECOGNIZED_COMMAND = 1000;
 	static inline var ERROR_INVALID_REQUEST = 1001;
 	static inline var ERROR_LAUNCH_FAILED = 1002;
 
-	final sink:ProtocolMessage->Void;
-	final sessionCommands:SessionCommand->Void;
+	final sendToClient:ProtocolMessage->Void;
+	final sendToSession:SessionCommand->Void;
 
 	var nextSeq:Int = 1;
 	var nextBreakpointId:Int = 1;
 	var launched:Bool = false;
 	var currentThreadId:Int = 1;
 
-	// requests answered on the session thread: seq -> command, so completion
-	// events can echo the right command on the response
+	// the command name of each request awaiting a deferred response, by request
+	// seq: the response has to echo it
 	final deferredCommands:Map<Int, String> = new Map();
 	// breakpoints requested before launch, replayed for re-verification afterwards
 	final preLaunchBreakpoints:Array<{sourceKey:String, sourcePath:String, requested:Array<RequestedBreakpoint>}> = [];
 
 	/**
-		Set once the session has ended (or disconnect handled without a session).
+		Set once the session has ended, or a disconnect arrived before any launch.
 	**/
 	public var shutdownRequested(default, null):Bool = false;
 
-	public function new(sink:ProtocolMessage->Void, sessionCommands:SessionCommand->Void) {
-		this.sink = sink;
-		this.sessionCommands = sessionCommands;
+	public function new(sendToClient:ProtocolMessage->Void, sendToSession:SessionCommand->Void) {
+		this.sendToClient = sendToClient;
+		this.sendToSession = sendToSession;
 	}
 
 	/**
@@ -178,8 +178,8 @@ class RequestDispatcher {
 			attachPid: args.attachPid,
 			debugPort: args.debugPort
 		};
-		defer(request);
-		sessionCommands(CmdLaunch(request.seq, config));
+		deferResponse(request);
+		sendToSession(CmdLaunch(request.seq, config));
 	}
 
 	function handleSetBreakpoints(request:Request):Void {
@@ -200,30 +200,28 @@ class RequestDispatcher {
 			sendSuccess(request.seq, request.command, setBreakpointsBody(provisional));
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdSetBreakpoints(request.seq, sourceKey, sourcePath, requested, false));
+		deferResponse(request);
+		sendToSession(CmdSetBreakpoints(request.seq, sourceKey, sourcePath, requested, false));
 	}
 
 	function handleSetExceptionBreakpoints(request:Request):Void {
 		var args:SetExceptionBreakpointsArguments = request.arguments;
 		var filters = (args != null && args.filters != null) ? args.filters : [];
 		var filterTypes = (args != null && args.filterTypes != null) ? args.filterTypes : [];
-		// Forwarded pre- or post-launch: the session stores the intent and arms the
-		// throw sites once (or immediately, if already launched).
-		defer(request);
-		sessionCommands(CmdSetExceptionBreakpoints(request.seq, filters, filterTypes));
+		// Forwarded before and after launch alike: the session stores the filters
+		// and arms the throw sites as soon as it has launched.
+		deferResponse(request);
+		sendToSession(CmdSetExceptionBreakpoints(request.seq, filters, filterTypes));
 	}
 
-	// Custom request: the user's opt-in for toString object labels (a live
-	// IDE toggle). The session stores the flag; labels only actually switch
-	// once the fault-proof (hl_dyn_call_safe) rendering lands — a plain
-	// injected toString that faults is unrecoverable, so until then objects
-	// keep their class-name labels either way.
+	// Custom request: the user's live opt-in for toString object labels. The
+	// session only stores the flag; objects keep their class-name labels either
+	// way (see DebugSession).
 	function handleSetToStringRendering(request:Request):Void {
 		var args:Dynamic = request.arguments;
 		var enabled = args != null && args.enabled == true;
-		defer(request);
-		sessionCommands(CmdSetToStringRendering(request.seq, enabled));
+		deferResponse(request);
+		sendToSession(CmdSetToStringRendering(request.seq, enabled));
 	}
 
 	function handleConfigurationDone(request:Request):Void {
@@ -231,8 +229,8 @@ class RequestDispatcher {
 			sendSuccess(request.seq, request.command, null);
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdConfigurationDone(request.seq));
+		deferResponse(request);
+		sendToSession(CmdConfigurationDone(request.seq));
 	}
 
 	function handleContinue(request:Request):Void {
@@ -242,8 +240,8 @@ class RequestDispatcher {
 		}
 		var args:ContinueArguments = request.arguments;
 		var threadId = args != null ? args.threadId : currentThreadId;
-		defer(request);
-		sessionCommands(CmdContinue(request.seq, threadId));
+		deferResponse(request);
+		sendToSession(CmdContinue(request.seq, threadId));
 	}
 
 	function handleStep(request:Request, mode:StepMode):Void {
@@ -251,8 +249,8 @@ class RequestDispatcher {
 			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot step: nothing is running");
 			return;
 		}
-		// next/stepIn/stepOut all carry {threadId}; stepIn may carry a targetId
-		// (a call-opcode id from stepInTargets — enter that specific call)
+		// stepIn may also carry a targetId: the opcode id of one call listed by
+		// stepInTargets, which the step then enters
 		var threadId = request.arguments != null && Reflect.hasField(request.arguments, "threadId") ? request.arguments.threadId : currentThreadId;
 		var targetId:Null<Int> = null;
 		if (mode == StepIn && request.arguments != null) {
@@ -261,8 +259,8 @@ class RequestDispatcher {
 				targetId = raw;
 			}
 		}
-		defer(request);
-		sessionCommands(CmdStep(request.seq, threadId, mode, targetId));
+		deferResponse(request);
+		sendToSession(CmdStep(request.seq, threadId, mode, targetId));
 	}
 
 	function handleStepInTargets(request:Request):Void {
@@ -275,8 +273,8 @@ class RequestDispatcher {
 			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Missing frameId");
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdStepInTargets(request.seq, args.frameId));
+		deferResponse(request);
+		sendToSession(CmdStepInTargets(request.seq, args.frameId));
 	}
 
 	function handlePause(request:Request):Void {
@@ -286,18 +284,18 @@ class RequestDispatcher {
 		}
 		var args:PauseArguments = request.arguments;
 		var threadId = args != null ? args.threadId : currentThreadId;
-		defer(request);
-		sessionCommands(CmdPause(request.seq, threadId));
+		deferResponse(request);
+		sendToSession(CmdPause(request.seq, threadId));
 	}
 
 	function handleThreads(request:Request):Void {
 		if (!launched) {
-			// pre-launch: DAP clients still poll threads; give them the placeholder
+			// clients poll threads before launch too: answer with a placeholder
 			sendSuccess(request.seq, request.command, {threads: [{id: 1, name: "main"}]});
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdThreads(request.seq));
+		deferResponse(request);
+		sendToSession(CmdThreads(request.seq));
 	}
 
 	function handleStackTrace(request:Request):Void {
@@ -307,8 +305,8 @@ class RequestDispatcher {
 		}
 		var args:StackTraceArguments = request.arguments;
 		var threadId = args != null ? args.threadId : currentThreadId;
-		defer(request);
-		sessionCommands(CmdStackTrace(request.seq, threadId));
+		deferResponse(request);
+		sendToSession(CmdStackTrace(request.seq, threadId));
 	}
 
 	function handleScopes(request:Request):Void {
@@ -317,8 +315,8 @@ class RequestDispatcher {
 			return;
 		}
 		var args:ScopesArguments = request.arguments;
-		defer(request);
-		sessionCommands(CmdScopes(request.seq, args != null ? args.frameId : 0));
+		deferResponse(request);
+		sendToSession(CmdScopes(request.seq, args != null ? args.frameId : 0));
 	}
 
 	function handleVariables(request:Request):Void {
@@ -327,8 +325,8 @@ class RequestDispatcher {
 			return;
 		}
 		var args:VariablesArguments = request.arguments;
-		defer(request);
-		sessionCommands(CmdVariables(request.seq, args != null ? args.variablesReference : 0));
+		deferResponse(request);
+		sendToSession(CmdVariables(request.seq, args != null ? args.variablesReference : 0));
 	}
 
 	function handleSetVariable(request:Request):Void {
@@ -341,8 +339,8 @@ class RequestDispatcher {
 			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Missing name or value");
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdSetVariable(request.seq, args.variablesReference, args.name, args.value));
+		deferResponse(request);
+		sendToSession(CmdSetVariable(request.seq, args.variablesReference, args.name, args.value));
 	}
 
 	function handleEvaluate(request:Request):Void {
@@ -355,8 +353,8 @@ class RequestDispatcher {
 			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Missing expression");
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdEvaluate(request.seq, args.frameId != null ? args.frameId : 0, args.expression));
+		deferResponse(request);
+		sendToSession(CmdEvaluate(request.seq, args.frameId != null ? args.frameId : 0, args.expression));
 	}
 
 	function handleDisconnect(request:Request):Void {
@@ -365,8 +363,8 @@ class RequestDispatcher {
 			shutdownRequested = true;
 			return;
 		}
-		defer(request);
-		sessionCommands(CmdDisconnect(request.seq));
+		deferResponse(request);
+		sendToSession(CmdDisconnect(request.seq));
 	}
 
 	// --- session events -> responses/events ---
@@ -443,14 +441,14 @@ class RequestDispatcher {
 
 	function flushPreLaunchBreakpoints():Void {
 		for (entry in preLaunchBreakpoints) {
-			sessionCommands(CmdSetBreakpoints(-1, entry.sourceKey, entry.sourcePath, entry.requested, true));
+			sendToSession(CmdSetBreakpoints(-1, entry.sourceKey, entry.sourcePath, entry.requested, true));
 		}
 		preLaunchBreakpoints.resize(0);
 	}
 
 	// --- response/event helpers ---
 
-	function defer(request:Request):Void {
+	function deferResponse(request:Request):Void {
 		deferredCommands.set(request.seq, request.command);
 	}
 
@@ -477,7 +475,7 @@ class RequestDispatcher {
 		if (body != null) {
 			response.body = body;
 		}
-		sink(response);
+		sendToClient(response);
 	}
 
 	function sendError(requestSeq:Int, command:String, errorId:Int, message:String, ?variables:Null<Map<String, String>>):Void {
@@ -500,7 +498,7 @@ class RequestDispatcher {
 			message: message,
 			body: body
 		};
-		sink(response);
+		sendToClient(response);
 	}
 
 	function sendEvent(name:String, ?body:Dynamic):Void {
@@ -512,7 +510,7 @@ class RequestDispatcher {
 		if (body != null) {
 			event.body = body;
 		}
-		sink(event);
+		sendToClient(event);
 	}
 
 	function threadsBody(threads:Array<ThreadInfo>):ThreadsResponseBody {
@@ -574,11 +572,10 @@ class RequestDispatcher {
 		};
 	}
 
-	// The HL runtime (hl.exe) running THIS adapter — the VM the debuggee is
-	// launched with when the client doesn't override it. Sys.executablePath()'s
-	// deprecation points at Sys.programPath(), but on HL that returns the
-	// adapter's own .hl file, not the runtime, so executablePath stays and the
-	// warning is silenced for just this function.
+	// The HashLink VM running this adapter; the debuggee runs on it unless the
+	// client names another. The deprecated Sys.executablePath() points at
+	// Sys.programPath(), but on HL that returns the adapter's .hl file instead
+	// of the VM, so the warning is silenced for this function only.
 	@:haxe.warning("-WDeprecated")
 	static function defaultHlExecutable():String {
 		return Sys.executablePath();

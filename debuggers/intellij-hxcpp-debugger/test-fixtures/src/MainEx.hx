@@ -150,8 +150,8 @@ class ChainTarget {
 }
 
 // The multi-threaded shape real apps (lime ThreadPool) have: worker threads
-// that never opt into debugging keep RUNNING while main is paused — worker
-// heartbeats must keep flowing during a pause, and pause/resume must stay
+// self-enable debugging as they attach, so worker breakpoints hit and a
+// pause freezes workers together with main — and pause/resume must stay
 // healthy with them around.
 class Workers {
 	public static function run():Void {

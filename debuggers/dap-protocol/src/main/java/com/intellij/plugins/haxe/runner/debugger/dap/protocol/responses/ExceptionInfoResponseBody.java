@@ -4,8 +4,8 @@ import lombok.Data;
 
 /**
  * Body of the "exceptionInfo" response: what the debuggee is stopped on.
- * {@code breakMode} is "unhandled" (an uncatchable throw) or "always"
- * (a critical error, which stops regardless of try/catch).
+ * {@code breakMode} is "unhandled" (an uncatchable throw) or "always" (a
+ * stop regardless of try/catch: a thrown exception, or a critical error).
  */
 @Data
 public class ExceptionInfoResponseBody {

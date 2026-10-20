@@ -4,16 +4,17 @@ import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 
 /**
-	DAP wire framing: `Content-Length: N\r\n\r\n` followed by N bytes of JSON.
-	The decoder is incremental — feed() arbitrary chunks as they arrive off the
-	socket and take complete payloads out — because TCP has no message
-	boundaries. A malformed header is unrecoverable (there is no way to resync
-	on a byte stream), so it throws and the caller drops the connection.
+	DAP message framing: `Content-Length: N\r\n\r\n` followed by N bytes of
+	JSON. TCP has no message boundaries, so the decoder is incremental: feed()
+	takes chunks of any size as they arrive from the socket and returns the
+	complete payloads. A malformed header is unrecoverable, because a byte
+	stream offers no way to find the next message start. feed() then throws,
+	and the caller drops the connection.
 **/
 class DapFraming {
-	// sanity cap: no legitimate DAP request is this big; a huge length is a
-	// corrupt header and must not allocate gigabytes
-	static inline var MAX_PAYLOAD = 16 * 1024 * 1024;
+	// No legitimate DAP request is this big. A larger length means a corrupt
+	// header, which must not allocate gigabytes.
+	static inline var MAX_PAYLOAD_BYTES = 16 * 1024 * 1024;
 
 	static inline var HEADER_END = "\r\n\r\n";
 	static inline var LENGTH_PREFIX = "Content-Length:";
@@ -49,7 +50,7 @@ class DapFraming {
 			}
 			var header = buffered.getString(0, headerEnd);
 			var length = contentLength(header);
-			if (length < 0 || length > MAX_PAYLOAD) {
+			if (length < 0 || length > MAX_PAYLOAD_BYTES) {
 				throw "Invalid DAP header: " + header;
 			}
 			var bodyStart = headerEnd + HEADER_END.length;
@@ -62,8 +63,8 @@ class DapFraming {
 		return messages;
 	}
 
-	// The Content-Length value from the header block (other header lines are
-	// permitted by the spec and ignored); -1 when absent/garbage.
+	// The Content-Length value of the header block, or -1 when it is missing
+	// or unparsable. The spec permits other header lines; they are ignored.
 	static function contentLength(header:String):Int {
 		for (line in header.split("\r\n")) {
 			if (StringTools.startsWith(line, LENGTH_PREFIX)) {

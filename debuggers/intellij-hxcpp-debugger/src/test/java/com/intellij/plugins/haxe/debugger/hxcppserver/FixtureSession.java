@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * connection. Fixture locations come from the {@code hxcpp.server.fixture.*}
  * system properties the gradle test task sets (with a build-relative
  * fallback so single tests run from the IDE too); a missing fixture skips
- * the test via {@link Assume}.
+ * the test via {@link Assumptions}.
  */
 final class FixtureSession implements AutoCloseable {
   static final long TIMEOUT_MILLIS = 15_000;
@@ -64,6 +64,8 @@ final class FixtureSession implements AutoCloseable {
   static final int CLOSURE_CALL_LINE = 304;
   static final int CLOSURE_ARRAY_CALL_LINE = 306;
   static final int CLOSURE_BODY_LINE = 310;
+
+  static final int EX_WORKER_PRINT_LINE = 165; // Workers.run(): the worker thread's println
 
   private final ServerSocket listener;
   private final Process debuggee;
