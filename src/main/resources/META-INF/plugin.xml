@@ -384,6 +384,7 @@
     <internalFileTemplate name="Haxe Module"/>
     <internalFileTemplate name="NMML Project File"/>
 
+    <fileTemplateGroup implementation="com.intellij.plugins.haxe.v2.wizard.HaxeProjectTemplatesFactory"/>
 
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeArrayVariableMacro"/>
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestIndexNameMacro"/>
@@ -492,6 +493,7 @@
 
 
     <!-- V2 build system: "Haxe" entry in the New Project / New Module wizard, creating plain modules -->
+    <newProjectWizard.languageGenerator implementation="com.intellij.plugins.haxe.v2.wizard.HaxeNewProjectWizard"/>
     <moduleBuilder builderClass="com.intellij.plugins.haxe.v2.wizard.HaxeProjectGeneratorBuilder"/>
     <projectConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeBuildToolsConfigurable"
                          parentId="build.tools"

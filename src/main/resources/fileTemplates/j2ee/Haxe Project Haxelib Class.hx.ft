@@ -1,0 +1,3 @@
+class ${CLASS_NAME} {
+    public function new() {}
+}
