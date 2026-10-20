@@ -164,6 +164,10 @@
     <programRunner implementation="com.intellij.plugins.haxe.runner.neko.NekoRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.FlashRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.FlashDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.AirRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.flash.AirDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppRunner"/>
     <programRunner  implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionRunner"/>
