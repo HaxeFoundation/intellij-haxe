@@ -326,6 +326,7 @@
     <completion.confidence language="Haxe" id="haxeSetValueConfidence" implementationClass="com.intellij.plugins.haxe.runner.debugger.HaxeSetValueCompletionConfidence" order="first"/>
 
 
+    <completion.contributor id="DocFenceBlocker" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.injection.HaxeDocFenceCompletionBlocker" order="FIRST"/>
     <!-- compiler-only mode: answers from the compilation server and stops the chain before the IDE's contributors -->
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST, after DocTagCompletion"/>
     <!-- early so the expected values are in the lookup's first shown frame; late arrivals sort below frozen items -->
@@ -477,6 +478,10 @@
     <!-- Settings | Languages & Frameworks | Haxe | Frameworks | Lime/OpenFL/NME:
          the configurable target lists (application-level - targets describe
          the machine's toolchains). The two group pages carry no UI. -->
+    <applicationConfigurable instance="com.intellij.plugins.haxe.ide.documentation.settings.HaxeDocSettingsConfigurable"
+                             parentId="settings.haxe"
+                             id="settings.haxe.docs"
+                             key="haxe.settings.docs.name" bundle="messages.HaxeBundle"/>
     <applicationConfigurable instance="com.intellij.plugins.haxe.ide.conditional.settings.HaxeConditionalCompilationSettingsConfigurable"
                              parentId="settings.haxe"
                              id="settings.haxe.cc"
@@ -498,6 +503,9 @@
     <!-- metadata is its own PSI language; without this registration dead @:meta
          stays uncolored (its lexer-layer yellow only exists in active code) -->
     <annotator language="HaxeMetadata" id="inactiveDimMeta" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator"/>
+    <multiHostInjector implementation="com.intellij.plugins.haxe.ide.injection.HaxeDocFenceInjector"/>
+    <highlightErrorFilter implementation="com.intellij.plugins.haxe.ide.injection.HaxeExemptCodeErrorFilter"/>
+    <lang.inspectionSuppressor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.injection.HaxeStaticAnalysisSuppressor"/>
 
     <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeDocCommentManipulator"/>
     <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.impl.HaxeStringLiteralImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeStringLiteralManipulator"/>
@@ -526,6 +534,18 @@
     <!-- opt-in (Haxe Compiler settings): problems from the compilation server's display/diagnostics.
          Each annotator pairs with a batch inspection below so Inspect Code runs it and files its
          findings under the Haxe group. -->
+    <localInspection language="Haxe" shortName="HaxeCompilerDiagnostics" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.compiler.diagnostics.name"
+                     groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="ERROR"
+                     implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsBatchInspections$Errors"/>
+    <localInspection language="Haxe" shortName="HaxeCompilerUnusedImport" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.compiler.unused.import.name"
+                     groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsBatchInspections$UnusedImport"/>
+    <localInspection language="Haxe" shortName="HaxeCompilerRemovableCode" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.compiler.removable.code.name"
+                     groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsBatchInspections$RemovableCode"/>
 
     <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
     <!-- opts haxe files into problem-file tracking (wavy file names in the Project view) -->
