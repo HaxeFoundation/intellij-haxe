@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.profiler.tracy.TracyZoneTrees;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,6 +31,11 @@ import java.util.TreeMap;
 record HaxeZoneChartData(@NotNull HxtZoneStore store) implements HaxeChartData {
 
   private static final Logger LOG = Logger.getInstance(HaxeZoneChartData.class);
+
+  @Override
+  public Path captureFile() {
+    return store.file();
+  }
 
   @Override
   public List<ProfilerThread> threads() {

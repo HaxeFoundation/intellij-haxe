@@ -202,6 +202,7 @@ tasks {
         if (!liveCompilerTests) {
             logger.lifecycle("SKIPPING live compiler integration tests (opt in with -PliveCompilerTests=true)")
             filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.display.HaxeLiveCompilerIntegrationTest")
+            filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.display.HaxeLiveHaxe3IntegrationTest")
         }
     }
 

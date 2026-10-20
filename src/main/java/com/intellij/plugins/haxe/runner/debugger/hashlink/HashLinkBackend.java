@@ -63,10 +63,6 @@ public class HashLinkBackend implements DapBackend {
     this.sourceDirectories = List.copyOf(sourceDirectories);
   }
 
-  public int getDebugPort() {
-    return debugPort;
-  }
-
   /** The debuggee's command line: the HashLink VM runs the program with {@code --debug-wait}, holding it at its first instruction until the adapter attaches on the debug port. */
   @NotNull
   public GeneralCommandLine debuggeeCommandLine(@Nullable String workDirectory) {

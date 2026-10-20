@@ -46,7 +46,8 @@ import tools.jackson.databind.JsonNode;
  * the IDE-side {@code DapClient} and translates every request into the haxe
  * compiler's eval-debugger JSON-RPC protocol (and its notifications back into
  * DAP events). Reference: vshaxe/eval-debugger's Main.hx; the wire behaviour
- * this relies on is covered by {@code EvalLiveTest} / docs.
+ * this relies on is pinned by the live tests ({@code EvalLiveTest} and its
+ * {@code Eval*LiveTest} siblings).
  *
  * Lifecycle: construct (binds the VM listener socket), let the caller spawn
  * {@code haxe <args> -D eval-debugger=127.0.0.1:<port> --interp} (or any
@@ -75,8 +76,6 @@ public class EvalDebugAdapter implements Closeable {
 
   private DapConnection dap;
   private EvalConnection vmConnection;
-  private Thread acceptThread;
-  private Thread requestThread;
   private volatile boolean closed = false;
 
   /** ON = raw sub-expression steps + exact expression spans in stack frames. */
@@ -98,7 +97,7 @@ public class EvalDebugAdapter implements Closeable {
    * Runtime type by variablesReference, remembered as values are handed out.
    * Consulted before a setVariable: writing a String's derived rows
    * (length/byteLength) CRASHES the eval VM ("Cannot run Haxe code in a
-   * non-Haxe thread" assert, live-reproduced), so those are refused here.
+   * non-Haxe thread" assert), so those are refused here.
    * References die with each resume.
    */
   private final Map<Integer, String> referenceTypes =
@@ -123,7 +122,7 @@ public class EvalDebugAdapter implements Closeable {
    * exception dispatch, where the step-coalescing heuristics are meaningless
    * (positions barely move, stacks unwind or wedge) — a coalescing loop there
    * can spin its whole cap in futile RPCs, freezing the IDE for tens of
-   * seconds (reported live). While unwinding, every step press is ONE raw
+   * seconds. While unwinding, every step press is ONE raw
    * verb: it visibly walks the unwind chain one position at a time and is
    * bounded by construction.
    */
@@ -158,8 +157,8 @@ public class EvalDebugAdapter implements Closeable {
   /** Starts the adapter threads against an established DAP connection. */
   public void start(DapConnection dapConnection) {
     this.dap = dapConnection;
-    acceptThread = daemon("eval-vm-accept", this::acceptVm);
-    requestThread = daemon("eval-dap-requests", this::requestLoop);
+    daemon("eval-vm-accept", this::acceptVm);
+    daemon("eval-dap-requests", this::requestLoop);
   }
 
   private static Thread daemon(String name, Runnable body) {
@@ -406,9 +405,9 @@ public class EvalDebugAdapter implements Closeable {
    * The VM stopped answering (request timeout, or the socket reset under a
    * write) without closing its socket, so no disconnect — and thus no
    * terminated event — would ever come on its own. Left alone, the session
-   * sits "sort of stuck" while every queued request burns a full timeout (the
-   * reported 25-50s IDE freezes). Close the connection ourselves — pending
-   * and future requests fail fast — and end the session with ONE terminated.
+   * sits stuck while every queued request burns a full timeout (25-50s IDE
+   * freezes). Closing the connection here makes pending and future requests
+   * fail fast, and the session ends with ONE terminated.
    */
   private void endSessionWithUnresponsiveVm() {
     if (vmConnection != null) {
@@ -622,8 +621,8 @@ public class EvalDebugAdapter implements Closeable {
     }
     if (unwindingException && !caughtExceptionFilterActive) {
       // stepping at an uncaught exception stop only re-runs the throw
-      // expression forever (the user reported stepping in circles through the
-      // exception constructor); the sole way forward is the program's death
+      // expression forever (stepping in circles through the exception
+      // constructor); the sole way forward is the program's death
       letUncaughtExceptionKillTheProgram();
       sendResponse(request, stepResponseFor(request));
       return; // the terminated event follows from the process's disconnect
@@ -674,7 +673,8 @@ public class EvalDebugAdapter implements Closeable {
    * line, or enter a function" — so keep single-stepping while the top frame
    * stays on the SAME function AND the SAME line (pure column moves), and stop
    * the moment the function or line changes. Bounded so a pathological program
-   * cannot spin. Returns true when the program ran to completion mid-step.
+   * cannot spin. Returns {@code PROGRAM_ENDED} when the program ran to
+   * completion mid-step.
    */
   private StepOutcome coalescedStepIn(int thread) throws IOException {
     try {
@@ -756,9 +756,9 @@ public class EvalDebugAdapter implements Closeable {
           endSessionWithUnresponsiveVm();
           outcome = StepOutcome.PROGRAM_ENDED;
         }
-        // NOTE: a non-target callee is skipped by WALKING THROUGH it with raw
+        // a non-target callee is skipped by WALKING THROUGH it with raw
         // sub-steps, never stepOut — eval's stepOut resumes at the caller's NEXT
-        // LINE, which abandons the line the target still sits on (observed live).
+        // LINE, which abandons the line the target still sits on.
         for (int step = 0; step < MAX_SMART_STEP_SUBSTEPS && outcome == StepOutcome.STEPPED; step++) {
           try {
             vm().stepIn();
@@ -869,7 +869,7 @@ public class EvalDebugAdapter implements Closeable {
   /**
    * Step out with CHAIN-HOPPING: on {@code a.f().g().h()} the interpreter has
    * NO caller-position stop between the calls (after f returns, the very next
-   * stop is inside g — verified live), so a literal "back to the caller
+   * stop is inside g), so a literal "back to the caller
    * mid-line" cannot exist. Instead, step-out stops at the ENTRY of the next
    * sibling call — one press per chain element (f -> g -> h -> next line),
    * never silently running the rest of the chain like the VM's raw stepOut
@@ -1149,7 +1149,7 @@ public class EvalDebugAdapter implements Closeable {
    * which rejects a trailing {@code ;} ("Unexpected ;") - a statement
    * terminator, not part of an expression. IDE evaluate/watch input commonly
    * carries one (copied from source, or typed by habit), so drop trailing
-   * semicolons and surrounding whitespace. Verified against the VM.
+   * semicolons and surrounding whitespace.
    */
   public static String stripTrailingSemicolons(String expression) {
     if (expression == null) {

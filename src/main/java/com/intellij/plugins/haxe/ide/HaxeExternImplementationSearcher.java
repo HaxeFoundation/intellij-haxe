@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.model.HaxeSourceRootModel;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
@@ -36,8 +37,6 @@ import java.util.Objects;
  * source and shows the post-macro truth.
  */
 public class HaxeExternImplementationSearcher extends QueryExecutorBase<PsiElement, DefinitionsScopedSearch.SearchParameters> {
-
-  private static final String STD_OVERRIDE_DIR = "_std";
 
   public HaxeExternImplementationSearcher() {
     super(true);
@@ -92,7 +91,7 @@ public class HaxeExternImplementationSearcher extends QueryExecutorBase<PsiEleme
     String externQName = externClass.getQualifiedName();
     PsiManager psiManager = externPsiFile.getManager();
     for (VirtualFile targetDir : sdkRoot.root.getChildren()) {
-      VirtualFile overridesDir = targetDir.isDirectory() ? targetDir.findChild(STD_OVERRIDE_DIR) : null;
+      VirtualFile overridesDir = targetDir.isDirectory() ? targetDir.findChild(HaxeIndexUtil.STD_OVERRIDE_DIR) : null;
       if (overridesDir == null) continue;
       VirtualFile candidate = overridesDir.findFileByRelativePath(modulePath);
       if (candidate == null) continue;

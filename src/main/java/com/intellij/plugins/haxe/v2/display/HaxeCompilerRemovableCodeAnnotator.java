@@ -42,7 +42,9 @@ public class HaxeCompilerRemovableCodeAnnotator extends HaxeCompilerDiagnosticsA
   protected void annotate(@NotNull AnnotationHolder holder, @NotNull PsiFile file, @NotNull Document document,
                           @NotNull Diagnostic diagnostic, @NotNull TextRange range) {
     TextRange removal = removalRange(document, diagnostic, range);
-    holder.newAnnotation(HaxeDiagnosticsFetcher.severityOf(diagnostic), messageOf(diagnostic))
+    String message = messageOf(diagnostic);
+    holder.newAnnotation(HaxeDiagnosticsFetcher.severityOf(diagnostic), HaxeCompilerMessages.plainText(message))
+      .tooltip(HaxeCompilerMessages.html(message))
       .range(range)
       .highlightType(ProblemHighlightType.LIKE_UNUSED_SYMBOL)
       .withFix(fixFor(diagnostic, document, removal))

@@ -1,12 +1,12 @@
 package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.plugins.haxe.display.protocol.JsonTypeRef;
+import com.intellij.plugins.haxe.display.protocol.ProtocolJson;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +41,7 @@ public class HaxeInlayTypeTextTest {
   @FieldSource("TEXTS")
   @DisplayName("renders wire types")
   public void testRendersWireTypes(String wireType, String expected) {
-    JsonTypeRef type = JsonTypeRef.of(JsonMapper.builder().build().readTree(wireType));
+    JsonTypeRef type = ProtocolJson.MAPPER.readValue(wireType, JsonTypeRef.class);
 
     HaxeInlayTypeText text = HaxeInlayTypeText.of(type);
 
@@ -53,7 +53,7 @@ public class HaxeInlayTypeTextTest {
   public void testTypeNamesAreThePartsThatCarryAWireType() {
     String map = "{\"kind\":\"TInst\",\"args\":{\"path\":{\"pack\":[\"haxe\",\"ds\"],\"typeName\":\"Map\"},\"params\":[" + STRING + "," + INT + "]}}";
 
-    HaxeInlayTypeText text = HaxeInlayTypeText.of(JsonTypeRef.of(JsonMapper.builder().build().readTree(map)));
+    HaxeInlayTypeText text = HaxeInlayTypeText.of(ProtocolJson.MAPPER.readValue(map, JsonTypeRef.class));
 
     assertNotNull(text);
     List<String> texts = text.parts().stream().map(HaxeInlayTypeText.Part::text).toList();

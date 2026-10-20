@@ -39,8 +39,9 @@ import java.util.regex.Matcher;
  *       stops, and a cached stale app.js would desync every breakpoint.</li>
  * </ul>
  *
- * Owned by the debug backend; {@link #close()} runs on session teardown
- * (backend.close() is invoked on every teardown path, including failed starts).
+ * Owned by whoever started it (a debug backend, or a plain or profiling
+ * run); {@link #close()} runs on its teardown (a debug backend's close() is
+ * invoked on every teardown path, including failed starts).
  */
 public final class ContentHttpServer implements Closeable {
 
@@ -67,7 +68,7 @@ public final class ContentHttpServer implements Closeable {
   private final HttpServer server;
   private final ExecutorService executor;
 
-  /** Optional observer of served requests ("GET /app.js -> 200"); for tests/diagnostics. */
+  /** Observer of served requests ("GET /app.js -> 200"): a seam the live probes set; production sets none. */
   private volatile Consumer<String> requestListener;
 
   public void setRequestListener(Consumer<String> listener) {

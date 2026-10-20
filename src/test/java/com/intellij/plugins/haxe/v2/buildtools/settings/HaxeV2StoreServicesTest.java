@@ -20,13 +20,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @DisplayName("Build tools: store services")
 public class HaxeV2StoreServicesTest extends HaxeLightFixtureTestCase {
 
-  // every project-level store in the settings and libraries packages belongs here
+  // every persisted project-level store of the settings and libraries packages, plus the tool window's UI state
   static final List<Class<?>> STORE_CLASSES = List.of(
     HaxeTargetSelectionStore.class,
     HaxeSectionSelectionStore.class,
     HaxeActiveBuildFileStore.class,
     HaxeTestsBuildFileStore.class,
     HaxeEnvironmentStore.class,
+    HaxeIdeOverridesStore.class,
+    HaxeResolveContextStore.class,
     HaxeCustomActionsStore.class,
     HaxeCustomToolsStore.class,
     HaxeBuildFilesStore.class,

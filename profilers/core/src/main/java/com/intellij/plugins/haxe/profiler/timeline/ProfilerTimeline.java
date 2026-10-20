@@ -20,10 +20,6 @@ import java.util.List;
  */
 public final class ProfilerTimeline {
 
-  /** One chart point. */
-  public record SeriesPoint(long timeMs, double value) {
-  }
-
   /**
    * A node of the time-ordered flame tree: one function's contiguous run,
    * its callee runs as children in time order. Times are MICROSECONDS —
@@ -65,19 +61,6 @@ public final class ProfilerTimeline {
       start = Math.min(start, event.time());
     }
     return start == Double.MAX_VALUE ? 0 : start;
-  }
-
-  /** The capture's total extent in milliseconds. */
-  public static long durationMs(@NotNull ProfilerSnapshot snapshot) {
-    double start = captureStartSeconds(snapshot);
-    double end = start;
-    for (StackSample sample : snapshot.samples()) {
-      end = Math.max(end, sample.time());
-    }
-    for (ProfilerEvent event : snapshot.events()) {
-      end = Math.max(end, event.time());
-    }
-    return Math.round((end - start) * 1000);
   }
 
   /**
@@ -358,10 +341,6 @@ public final class ProfilerTimeline {
     return Math.round((timeSeconds - startSeconds) * 1_000_000);
   }
 
-  private static long millisSince(double startSeconds, double timeSeconds) {
-    return Math.round((timeSeconds - startSeconds) * 1000);
-  }
-
   private static long periodUs(int samplesPerSecond) {
     return samplesPerSecond > 0 ? Math.max(1, Math.round(1_000_000.0 / samplesPerSecond)) : 1000;
   }
@@ -383,26 +362,6 @@ public final class ProfilerTimeline {
       List<FlameNode> frozenChildren = children.stream().map(NodeBuilder::freeze).toList();
       return flameNode(frame, startUs, endUs, samples, frozenChildren);
     }
-  }
-
-  /** Samples per second across ALL threads, bucketed; GC-flagged samples only when {@code gcOnly}. */
-  @NotNull
-  public static List<SeriesPoint> activitySeries(@NotNull ProfilerSnapshot snapshot, long bucketMs, boolean gcOnly) {
-    if (snapshot.samples().isEmpty() || bucketMs <= 0) return List.of();
-    double start = captureStartSeconds(snapshot);
-    int bucketCount = (int)(durationMs(snapshot) / bucketMs) + 1;
-    int[] counts = new int[bucketCount];
-    for (StackSample sample : snapshot.samples()) {
-      if (gcOnly && !sample.inGc()) continue;
-      int bucket = (int)(millisSince(start, sample.time()) / bucketMs);
-      if (bucket >= 0 && bucket < bucketCount) counts[bucket]++;
-    }
-
-    List<SeriesPoint> series = new ArrayList<>(bucketCount);
-    for (int i = 0; i < bucketCount; i++) {
-      series.add(new SeriesPoint(i * bucketMs, counts[i] * 1000.0 / bucketMs));
-    }
-    return series;
   }
 
 }

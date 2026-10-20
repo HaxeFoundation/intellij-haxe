@@ -38,10 +38,10 @@ public interface HaxeTestFramework {
     return true;
   }
 
-  /** Whether the class is a runnable test case of this framework. Detection only - false in dumb mode. */
+  /** Whether the class is a runnable test case of this framework. Detection only - may answer false in dumb mode. */
   boolean isTestClass(@NotNull HaxeClass haxeClass);
 
-  /** Whether the method is an individual test of this framework. Detection only - false in dumb mode. */
+  /** Whether the method is an individual test of this framework. Detection only - may answer false in dumb mode. */
   boolean isTestMethod(@NotNull HaxeMethod method);
 
   /** The framework's extracted shipped-reporter classpath root (the value {@link #reportingArgs} takes), or null when extraction failed. */

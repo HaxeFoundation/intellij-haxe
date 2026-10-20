@@ -2,14 +2,11 @@ package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeLimeProjectInfoService;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerMetrics;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.*;
 import com.intellij.plugins.haxe.v2.buildtools.settings.*;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
-import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeServerGeneration;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeNmeProjectInfoService;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.editor.Document;
@@ -20,21 +17,27 @@ import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.client.HaxeDisplayClient;
+import com.intellij.plugins.haxe.display.client.HaxeVersionProbe;
+import com.intellij.plugins.haxe.display.client.JsonRpcDisplayClient;
+import com.intellij.plugins.haxe.display.haxe3.Haxe3DisplayClient;
 import com.intellij.plugins.haxe.display.protocol.Diagnostic;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticSeverity;
 import com.intellij.plugins.haxe.display.protocol.DisplayMethods;
 import com.intellij.plugins.haxe.display.protocol.FileDiagnostics;
 import com.intellij.plugins.haxe.display.protocol.InitializeResult;
+import com.intellij.plugins.haxe.display.transport.DisplayChannel;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import com.intellij.plugins.haxe.display.transport.DisplayResponse;
+import com.intellij.plugins.haxe.display.transport.HaxeDisplayTransport;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.buildtools.*;
 import com.intellij.plugins.haxe.v2.buildtools.context.HaxeResolveContext;
 import com.intellij.plugins.haxe.v2.buildtools.context.HaxeResolveContexts;
+import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
+import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.PsiErrorElementUtil;
@@ -88,8 +91,13 @@ public final class HaxeCompilerDisplayService implements Disposable {
                                 long fileStamp) {
   }
 
-  /** The methods and haxe version a running server reported on initialize; kept per port. */
-  private record Capability(@NotNull Set<String> methods, @Nullable InitializeResult.SemVer haxeVersion) {
+  /** The display interface a server's haxe speaks: JSON-RPC from haxe 4 on, {@code --display <file>@<offset>} in haxe 3. */
+  private enum DisplayProtocol { JSON_RPC, HAXE_3 }
+
+  /** The methods and haxe version a running server reported on initialize, and its protocol; kept per port. */
+  private record Capability(@NotNull Set<String> methods,
+                            @Nullable InitializeResult.SemVer haxeVersion,
+                            @NotNull DisplayProtocol protocol) {
   }
 
   /**
@@ -105,11 +113,20 @@ public final class HaxeCompilerDisplayService implements Disposable {
    * The server behind a client, the identity its per-server state is keyed on,
    * and the console entry its request metrics count under.
    */
-  private record Endpoint(@NotNull HaxeDisplayClient client, int id, @NotNull String metricsId) {
+  private record Endpoint(@NotNull DisplayChannel channel, int id, @NotNull String metricsId) {
   }
 
   /** The read timeout of a whole-context compile (warm-up, inlay types, dump) on a cold server; a single display answer keeps the client's default. */
   static final int CONTEXT_COMPILE_TIMEOUT_MS = 120_000;
+  /** How long a freshly spawned server may take to bind its port before a first request gives up. */
+  private static final int STARTUP_RETRY_MS = 10_000;
+  private static final int VERSION_PROBE_TIMEOUT_MS = 10_000;
+
+  /** A first request to a server, which {@link #withStartupRetry} sends again while the server is not listening yet. */
+  @FunctionalInterface
+  private interface StartupRequest<T> {
+    T send() throws DisplayRequestException;
+  }
 
   private final Project project;
   /** Keys of the contexts compiled this session; the server's module cache fills only from a compile. */
@@ -149,31 +166,48 @@ public final class HaxeCompilerDisplayService implements Disposable {
   }
 
   /**
-   * The key of the per-server state for the SDK's server (see
-   * {@link Connected#port()}): the listen port of its running display
-   * process in dedicated mode, else the shared server's port; -1 while
-   * nothing runs. Starts nothing, so it may run under the read lock.
+   * The key of the per-server state for the context's server (see
+   * {@link Connected#port()}): the id of its running display process in
+   * dedicated mode, else the compilation server's port; -1 while nothing
+   * runs. Starts nothing, so it may run under the read lock.
    */
-  int runningEndpointIdFor(@Nullable String sdkName) {
-    boolean dedicated =
-      HaxeCompilerSettings.getInstance(project).getDisplayConnectionMode() == HaxeDisplayConnectionMode.DEDICATED_PROCESS;
-    if (dedicated) {
-      int id = HaxeDisplayProcessManager.getInstance(project).runningIdFor(sdkName);
+  int runningEndpointIdFor(@NotNull DisplayContext context) {
+    HaxeServerGeneration generation = HaxeServerGenerations.known(project, context.sdkName());
+    HaxeServerAssignment assignment = HaxeServerAssignment.forContainer(project, context.containerId());
+    if (HaxeCompilerSettings.getInstance(project).usesDedicatedDisplayProcess(generation)) {
+      int id = HaxeDisplayProcessManager.getInstance(project).runningIdFor(assignment);
       if (id > 0) return id;
     }
-    return HaxeCompilationServerManager.getInstance(project).runningPortForSdk(sdkName);
+    return HaxeCompilationServerManager.getInstance(project).runningPort(assignment.id());
   }
 
   /**
-   * The haxe version of the server serving the given SDK; null while that
-   * server does not run or has not answered an initialize yet. Each SDK has
-   * its own server, so a mixed-version project asks per context.
+   * The haxe version of the server serving the context; null while that
+   * server does not run or has not answered an initialize yet. Each SDK, and
+   * each container with a server of its own, has its own server, so a
+   * mixed-version project asks per context.
    */
   @Nullable
-  public InitializeResult.SemVer connectedHaxeVersion(@Nullable String sdkName) {
-    int endpointId = runningEndpointIdFor(sdkName);
-    Capability known = endpointId > 0 ? capabilities.get(endpointId) : null;
+  public InitializeResult.SemVer connectedHaxeVersion(@NotNull DisplayContext context) {
+    Capability known = knownCapabilityOf(context);
     return known != null ? known.haxeVersion() : null;
+  }
+
+  /**
+   * Whether the server serving the context is known to lack the method: it
+   * runs and its initialize answer did not list it. False while that is
+   * unknown; starts nothing, so it may run under the read lock.
+   */
+  boolean lacksMethod(@NotNull DisplayContext context, @NotNull String method) {
+    Capability known = knownCapabilityOf(context);
+    return known != null && !known.methods().contains(method);
+  }
+
+  /** What the context's running server answered on initialize; null while none runs or it has not answered. */
+  @Nullable
+  private Capability knownCapabilityOf(@NotNull DisplayContext context) {
+    int endpointId = runningEndpointIdFor(context);
+    return endpointId > 0 ? capabilities.get(endpointId) : null;
   }
 
   /**
@@ -433,22 +467,71 @@ public final class HaxeCompilerDisplayService implements Disposable {
     if (!mayUseServer()) return null;
     List<String> args = resolveArgs(context);
     if (args == null) return null;
-    Endpoint endpoint = endpointFor(context.sdkName());
+    Endpoint endpoint = endpointFor(context);
     if (endpoint == null) return null;
-    HaxeDisplayClient client = endpoint.client();
-    client.setObserver(HaxeServerMetrics.getInstance(project).observerFor(endpoint.metricsId()));
 
     Capability known = capabilities.get(endpoint.id());
     if (known == null) {
-      InitializeResult initialized = initializeWithRetry(client, args);
-      if (initialized == null) return null;
-      known = new Capability(Set.copyOf(initialized.methods()), initialized.haxeVersion());
-      log.info("haxe display protocol " + initialized.protocolVersion()
-               + " (haxe " + initialized.haxeVersion() + ") on port " + endpoint.id() + ", "
-               + known.methods().size() + " methods");
+      known = capabilityOf(endpoint, args, context.sdkName());
+      if (known == null) return null;
       capabilities.put(endpoint.id(), known);
     }
+    HaxeDisplayClient client = clientFor(endpoint, known.protocol());
     return known.methods().contains(method) ? new Connected(client, args, endpoint.id()) : null;
+  }
+
+  /**
+   * What the endpoint's server answers on initialize, in the protocol its
+   * haxe speaks; null when it does not answer. The handshake is not counted
+   * in the server's request metrics: a fresh server refuses connections until
+   * it has bound its port, and those retried attempts are no failures of it.
+   */
+  @Nullable
+  private Capability capabilityOf(@NotNull Endpoint endpoint, @NotNull List<String> args, @Nullable String sdkName) {
+    DisplayProtocol protocol = protocolOf(endpoint, sdkName);
+    if (protocol == null) return null;
+    HaxeDisplayClient client = handshakeClientFor(endpoint, protocol);
+    InitializeResult initialized = withStartupRetry(endpoint.channel(), () -> client.initialize(args));
+    if (initialized == null) return null;
+    log.info(protocol + " display (haxe " + initialized.haxeVersion() + ") on port " + endpoint.id() + ", "
+             + initialized.methods().size() + " methods");
+    return new Capability(Set.copyOf(initialized.methods()), initialized.haxeVersion(), protocol);
+  }
+
+  /**
+   * The protocol the endpoint's server speaks: the SDK's version tells, and
+   * for an SDK of unknown version the server's own {@code -version} answer
+   * does. Null when the server does not answer.
+   */
+  @Nullable
+  private DisplayProtocol protocolOf(@NotNull Endpoint endpoint, @Nullable String sdkName) {
+    HaxeLanguageLevel level = HaxeLanguageLevelUtil.fromSdkName(project, sdkName);
+    if (level != null) return level.isAtLeast(HaxeLanguageLevel.HAXE_4_0) ? DisplayProtocol.JSON_RPC : DisplayProtocol.HAXE_3;
+    DisplayChannel channel = endpoint.channel();
+    return withStartupRetry(channel, () -> protocolOf(HaxeVersionProbe.versionOf(channel, VERSION_PROBE_TIMEOUT_MS)));
+  }
+
+  /** The protocol of a server whose {@code -version} answered the version; haxe 5 answers none and speaks JSON-RPC. */
+  @NotNull
+  private static DisplayProtocol protocolOf(@Nullable InitializeResult.SemVer version) {
+    return version != null && version.major() < 4 ? DisplayProtocol.HAXE_3 : DisplayProtocol.JSON_RPC;
+  }
+
+  /** A client for the endpoint in the protocol, whose requests count toward the server's console metrics. */
+  @NotNull
+  private HaxeDisplayClient clientFor(@NotNull Endpoint endpoint, @NotNull DisplayProtocol protocol) {
+    HaxeDisplayClient client = handshakeClientFor(endpoint, protocol);
+    client.setObserver(HaxeServerMetrics.getInstance(project).observerFor(endpoint.metricsId()));
+    return client;
+  }
+
+  /** A client for the endpoint in the protocol whose requests no metrics see. */
+  @NotNull
+  private static HaxeDisplayClient handshakeClientFor(@NotNull Endpoint endpoint, @NotNull DisplayProtocol protocol) {
+    return switch (protocol) {
+      case JSON_RPC -> new JsonRpcDisplayClient(endpoint.channel());
+      case HAXE_3 -> new Haxe3DisplayClient(endpoint.channel());
+    };
   }
 
   /**
@@ -463,36 +546,42 @@ public final class HaxeCompilerDisplayService implements Disposable {
   }
 
   /**
-   * The SDK's dedicated display process when the setting asks for one and
-   * it runs, else the shared {@code --wait} server. A dedicated process that
-   * cannot start (an SDK without {@code --server-connect}, a start failure)
-   * falls back to the shared server, so the feature stays available.
+   * The context's server instance ({@link HaxeServerAssignment}): its
+   * dedicated display process when the setting asks for one and it runs,
+   * else the compilation server. A display process that fails to start
+   * falls back to the compilation server, so the feature stays available.
    */
   @Nullable
-  private Endpoint endpointFor(@Nullable String sdkName) {
-    String executablePath = HaxeToolPathResolver.resolveHaxeExecutable(project, sdkName);
-    if (HaxeCompilerSettings.getInstance(project).getDisplayConnectionMode() == HaxeDisplayConnectionMode.DEDICATED_PROCESS) {
-      HaxeDisplayProcessManager.Channel channel = HaxeDisplayProcessManager.getInstance(project).channelFor(sdkName);
+  private Endpoint endpointFor(@NotNull DisplayContext context) {
+    HaxeServerAssignment assignment = HaxeServerAssignment.forContainer(project, context.containerId());
+    HaxeServerGeneration generation = HaxeServerGenerations.of(project, context.sdkName());
+    if (HaxeCompilerSettings.getInstance(project).usesDedicatedDisplayProcess(generation)) {
+      HaxeDisplayProcessManager.Channel channel = HaxeDisplayProcessManager.getInstance(project).channelFor(assignment);
       if (channel != null) {
-        return new Endpoint(new HaxeDisplayClient(channel.channel()), channel.id(), HaxeDisplayProcessManager.idFor(executablePath));
+        return new Endpoint(channel.channel(), channel.id(), HaxeDisplayProcessManager.idFor(assignment));
       }
     }
-    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(sdkName);
+    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(assignment);
     if (port <= 0) return null;
-    return new Endpoint(new HaxeDisplayClient(HaxeCompilationServerManager.SERVER_HOST, port), port, executablePath);
+    DisplayChannel socket = HaxeDisplayTransport.socketPerRequest(HaxeCompilationServerManager.SERVER_HOST, port);
+    return new Endpoint(socket, port, assignment.id());
   }
 
-  /** A freshly spawned server needs a moment to bind its port; retry briefly before giving up. */
+  /**
+   * The answer to a first request on a server that may still be binding its
+   * port: a connection failure is retried for a while. The compiler's own
+   * answer and a broken framed channel do not change on a retry. Null when
+   * the request failed.
+   */
   @Nullable
-  private static InitializeResult initializeWithRetry(@NotNull HaxeDisplayClient client, @NotNull List<String> args) {
-    long deadline = System.currentTimeMillis() + 10_000;
+  private static <T> T withStartupRetry(@NotNull DisplayChannel channel, @NotNull StartupRequest<T> request) {
+    long deadline = System.currentTimeMillis() + STARTUP_RETRY_MS;
     while (true) {
       try {
-        return client.initialize(args);
+        return request.send();
       } catch (DisplayRequestException e) {
-        // a broken framed channel never recovers; only a server still binding its port earns another try
-        if (client.isChannelBroken() || System.currentTimeMillis() > deadline) {
-          log.info("display initialize failed: " + e.getMessage());
+        if (e.isCompilerAnswered() || channel.isBroken() || System.currentTimeMillis() > deadline) {
+          log.info("display server request failed: " + e.getMessage());
           return null;
         }
         try {

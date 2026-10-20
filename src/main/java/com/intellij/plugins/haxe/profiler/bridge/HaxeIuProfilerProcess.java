@@ -92,7 +92,7 @@ final class HaxeIuProfilerProcess extends FileBasedProfilerProcess<HaxeIuProfile
 
   @Override
   public boolean canBeStopped() {
-    // every lane writes its data at process exit - there is nothing to stop early
+    // the capture ends with the process; there is no hook to stop it early
     return false;
   }
 

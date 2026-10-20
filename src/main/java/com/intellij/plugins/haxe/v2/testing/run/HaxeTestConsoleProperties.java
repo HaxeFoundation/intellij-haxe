@@ -9,9 +9,10 @@ import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Console properties for Haxe unit-test runs: the {@code haxe:test} locator for
- * click-through, and the converter injecting location hints into utest's
- * hint-less TeamCity stream.
+ * Console properties for Haxe unit-test runs: the {@link HaxeTestLocator} for
+ * click-through ({@code haxe:test}, {@code haxe:tink} and {@code haxe:buddy}
+ * hints), and the converter injecting location hints into utest's hint-less
+ * TeamCity stream.
  */
 public final class HaxeTestConsoleProperties extends SMTRunnerConsoleProperties implements SMCustomMessagesParsing {
 

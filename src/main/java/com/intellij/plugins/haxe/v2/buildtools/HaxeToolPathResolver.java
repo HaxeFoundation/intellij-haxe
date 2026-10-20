@@ -29,13 +29,11 @@ public final class HaxeToolPathResolver {
   private HaxeToolPathResolver() {
   }
 
-  /** Absolute path to the haxe compiler when resolvable, otherwise the bare executable name for PATH lookup. */
-  @NotNull
-  public static String resolveHaxeExecutable(@NotNull Project project) {
-    return resolveHaxeExecutable(project, null);
-  }
-
-  /** Like {@link #resolveHaxeExecutable(Project)}, preferring the named SDK (a container's environment SDK). */
+  /**
+   * Absolute path to the haxe compiler of the named SDK (a container's
+   * environment SDK; null names the project default), otherwise the bare
+   * executable name for a PATH lookup.
+   */
   @NotNull
   public static String resolveHaxeExecutable(@NotNull Project project, @Nullable String preferredSdkName) {
     Sdk sdk = findSdk(project, preferredSdkName);
@@ -48,15 +46,9 @@ public final class HaxeToolPathResolver {
     return HaxeSdkUtilBase.getExecutableName("haxe");
   }
 
-  /** Absolute path to haxelib for the project default SDK; see {@link #resolveHaxelibExecutable(Project, String)}. */
-  @NotNull
-  public static String resolveHaxelibExecutable(@NotNull Project project) {
-    return resolveHaxelibExecutable(project, null);
-  }
-
   /**
-   * Absolute path to haxelib, preferring the named SDK (a container's
-   * environment SDK), through {@link HaxeRuntimeTool#HAXELIB}; the bare name
+   * Absolute path to haxelib of the named SDK (a container's environment
+   * SDK; null names the project default), through {@link HaxeRuntimeTool#HAXELIB}; the bare name
    * when nothing resolves, for a PATH lookup at launch. Every v2 haxelib call
    * resolves through here, so installs, the installed-library list and
    * {@code haxelib path} agree on the haxelib.

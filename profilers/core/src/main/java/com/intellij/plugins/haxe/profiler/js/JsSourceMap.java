@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class JsSourceMap {
 
-  /** A generated-line's mappings: sorted generated columns with their source index and 0-based source line. */
+  /** One mapping of a generated line: its column, source index and 0-based source line. */
   private record Entry(int generatedColumn, int sourceIndex, int sourceLine) {}
 
   /** A mapped source position; {@code line} is 1-based, matching the model's convention. */

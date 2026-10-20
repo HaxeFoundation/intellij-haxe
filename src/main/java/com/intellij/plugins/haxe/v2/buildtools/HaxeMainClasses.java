@@ -8,7 +8,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInspector;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import com.intellij.plugins.haxe.v2.buildsystem.HxmlFileParser;
+import com.intellij.plugins.haxe.v2.buildsystem.ProjectXmlParser;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -20,32 +22,47 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The class an hxml build starts from: its {@code -main} type path looked up
- * in the class paths of the section that declares it, in the order the
- * compiler searches them. A project-wide lookup by name would take whichever
- * module's class of that name it met first.
+ * The class a build starts from: an hxml's {@code -main} type path looked up
+ * in the class paths of the section that declares it, a Lime project's
+ * {@code <app main>} in its declared sources, in the order the compiler
+ * searches them. A project-wide lookup by name would take whichever module's
+ * class of that name it met first.
  */
 public final class HaxeMainClasses {
 
   private HaxeMainClasses() {
   }
 
+  /** The class the build's selected section or target starts from; null when it names none or no class path holds it. Read action. */
+  @Nullable
+  public static HaxeClass mainClassOf(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    String typePath = mainTypePath(project, buildFile);
+    if (typePath == null) return null;
+    return find(project, buildFile, -1, typePath) instanceof HaxeClass mainClass ? mainClass : null;
+  }
+
+  /** The type path the build starts from: an hxml section's {@code -main}, a Lime project's {@code <app main>}; else null. */
+  @Nullable
+  private static String mainTypePath(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    String content = HaxeBuildSections.selectedSectionContent(project, buildFile);
+    if (content == null) return null;
+    if (buildFile.type() == HaxeBuildFileType.HXML) return HxmlFileParser.mainClass(content);
+    return LimeProjects.isLimeFamily(buildFile.type()) ? ProjectXmlParser.parseAppMain(content) : null;
+  }
+
   /**
    * The class {@code typePath} names in the hxml section with the given
-   * index (-1: the selected section), else the module file of that path;
-   * null when no class path of the section holds it. Call in a read action.
+   * index (-1: the selected section), or in a project file's declared
+   * sources, else the module file of that path; null when no class path
+   * holds it. Call in a read action.
    */
   @Nullable
   public static PsiElement find(@NotNull Project project,
                                 @NotNull HaxeBuildFile buildFile,
                                 int sectionIndex,
                                 @NotNull String typePath) {
-    List<String> sections = HaxeBuildFileInspector.sectionContents(project, buildFile.file());
-    if (sections.isEmpty()) return null;
-    int index = sectionIndex >= 0 && sectionIndex < sections.size()
-                ? sectionIndex
-                : HaxeBuildSections.selectedIndex(project, buildFile.file(), sections);
-    List<String> classpaths = HxmlFileParser.parse(sections.get(index)).classpaths();
+    List<String> classpaths = classpathsOf(project, buildFile, sectionIndex);
+    if (classpaths == null) return null;
 
     PsiManager psiManager = PsiManager.getInstance(project);
     for (String directory : searchOrder(project, buildFile, classpaths)) {
@@ -53,6 +70,18 @@ public final class HaxeMainClasses {
       if (type != null) return type;
     }
     return null;
+  }
+
+  /** The declared class paths: the hxml section's (-1: the selected one), a project file's sources; null when unreadable. */
+  @Nullable
+  private static List<String> classpathsOf(@NotNull Project project, @NotNull HaxeBuildFile buildFile, int sectionIndex) {
+    if (buildFile.type() != HaxeBuildFileType.HXML) return HaxeBuildSections.inspectSelected(project, buildFile).classpaths();
+    List<String> sections = HaxeBuildFileInspector.sectionContents(project, buildFile.file());
+    if (sections.isEmpty()) return null;
+    int index = sectionIndex >= 0 && sectionIndex < sections.size()
+                ? sectionIndex
+                : HaxeBuildSections.selectedIndex(project, buildFile.file(), sections);
+    return HxmlFileParser.parse(sections.get(index)).classpaths();
   }
 
   /**

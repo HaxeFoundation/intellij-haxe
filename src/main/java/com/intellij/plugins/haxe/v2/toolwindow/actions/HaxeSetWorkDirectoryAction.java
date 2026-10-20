@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Tree context menu: overrides an hxml build file's working directory. By
- * default an hxml anchors at its content root (the vshaxe convention its
- * relative paths usually follow); the override serves files whose paths are
- * relative to some other folder.
+ * default an hxml runs in its own folder, or in its content root when its
+ * classpaths resolve only there (the vshaxe convention); the override serves
+ * files whose paths are relative to some other folder.
  */
 public final class HaxeSetWorkDirectoryAction extends HaxeSelectedNodeAction<BuildFileRow> {
 

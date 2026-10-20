@@ -23,7 +23,8 @@ public final class HaxeCompilerCaches {
   /**
    * Clears every compiler-derived cache (compiled contexts, server
    * capabilities, lime display arguments, type catalog, metadata registry,
-   * blueprints, usage verdicts, hover types, compiler inlay members, dumps,
+   * blueprints, usage verdicts, hover types, converted evaluator types,
+   * compiler inlay members, dumps,
    * preview files and diagnostics), then
    * drops the PSI caches and restarts the daemon. The order matters: the
    * services empty first, the PSI drop removes results derived from them, and

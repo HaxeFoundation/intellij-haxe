@@ -39,7 +39,7 @@ public class ErrorClassificationTest {
   public void compilerErrorPayloadReportsTheRequestAsFailed() {
     String reply = "Main.hx:7: characters 3-15 : Unknown identifier : unknownIdent\n" + ERROR_MARK + "\n";
     server.replyOnce(reply.getBytes(StandardCharsets.UTF_8));
-    HaxeDisplayClient client = new HaxeDisplayClient("127.0.0.1", server.port());
+    HaxeDisplayClient client = new JsonRpcDisplayClient("127.0.0.1", server.port());
 
     DisplayRequestException e =
       assertThrows(DisplayRequestException.class, () -> client.projectDiagnostics(List.of("Main")));
@@ -55,7 +55,7 @@ public class ErrorClassificationTest {
   @DisplayName("unparseable payload without the error flag stays malformed")
   public void unparseablePayloadWithoutTheErrorFlagStaysMalformed() {
     server.replyOnce("not json at all\n".getBytes(StandardCharsets.UTF_8));
-    HaxeDisplayClient client = new HaxeDisplayClient("127.0.0.1", server.port());
+    HaxeDisplayClient client = new JsonRpcDisplayClient("127.0.0.1", server.port());
 
     DisplayRequestException e =
       assertThrows(DisplayRequestException.class, () -> client.projectDiagnostics(List.of("Main")));

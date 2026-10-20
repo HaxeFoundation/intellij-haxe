@@ -62,8 +62,8 @@ public final class DapStackFrame extends XStackFrame {
    * source path (independent of the current line, so a step within a method
    * restores) plus the THREAD: two worker threads paused in the same function
    * must never be "the same frame" — the platform resolves frame selection by
-   * this identity, and a cross-thread collision routed evaluation to the
-   * other thread's frame and revived stale variable handles.
+   * this identity, and a cross-thread collision routes evaluation to the
+   * other thread's frame and revives stale variable handles.
    * Null name → no stable identity, let the platform rebuild.
    */
   @Override

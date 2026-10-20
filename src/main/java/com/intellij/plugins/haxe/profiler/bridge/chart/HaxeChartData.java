@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -23,6 +24,11 @@ interface HaxeChartData {
 
   /** Deeper frames fold into their ancestor; the flamegraph tab still shows full depth. */
   int MAX_DEPTH = 64;
+
+  /** The capture file the data came from; frame navigation prefers the sources nearest it. Null when there is none. */
+  default @Nullable Path captureFile() {
+    return null;
+  }
   /** Buckets of a derived thread-activity series across the session. */
   int ACTIVITY_BUCKETS = 512;
 
@@ -99,7 +105,12 @@ interface HaxeChartData {
     return List.of();
   }
 
-  /** A small screenshot of the frame for the details panel; null until a lane can supply one. */
+  /**
+   * A small screenshot of the frame for the details panel; null until a lane
+   * can supply one.
+   * TODO: a lane producing frame images (the tracy wire's FrameImage events
+   *  are the candidate)
+   */
   default @Nullable Image frameImage(UsSpan frame) {
     return null;
   }

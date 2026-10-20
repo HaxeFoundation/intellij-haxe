@@ -52,11 +52,9 @@ public final class HxtSessionTranslator {
 
   /**
    * Reads any HXTS file: a v1 header dispatches to the sampled-capture path,
-   * v5 and v6 to the disk-served zone store ({@link HxtZoneStore}; zone
-   * captures are too big to load whole, so they need the file rather than a
-   * stream, and v5 differs only in carrying its small series pre-rebased).
-   * v2 to v4 are zone captures in abandoned development layouts and must be
-   * captured again.
+   * the zone-capture version to the disk-served zone store
+   * ({@link HxtZoneStore}; zone captures are too big to load whole, so they
+   * need the file rather than a stream).
    */
   @NotNull
   public static HxtCapture translateCapture(@NotNull Path file) throws IOException {
@@ -70,8 +68,7 @@ public final class HxtSessionTranslator {
           yield new HxtCapture.Samples(translate(in));
         }
       }
-      case HxtZoneStore.OLDEST_VERSION, HxtZoneWriter.VERSION -> new HxtCapture.Zones(HxtZoneStore.open(file));
-      case 2, 3, 4 -> throw new ProfilerFormatException("this zone capture uses an older in-progress layout - capture it again");
+      case HxtZoneWriter.VERSION -> new HxtCapture.Zones(HxtZoneStore.open(file));
       default -> throw new ProfilerFormatException("unsupported HXTS version " + version);
     };
   }

@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * compilation to run on the eval VM — an hxml file ({@code build.hxml}) or
  * plain arguments ({@code -cp src -main Main}).
  *
- * Two modes, per the eval design (docs in debuggers/eval-debugger):
+ * Two modes:
  * with "run as interpreter" set (the default), {@code --interp} is appended
  * unless the arguments already select it, and the program's own code is
  * debugged; without it the arguments are a regular build, and what is

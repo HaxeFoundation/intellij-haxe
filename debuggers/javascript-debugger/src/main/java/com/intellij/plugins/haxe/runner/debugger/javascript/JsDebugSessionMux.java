@@ -186,8 +186,8 @@ public final class JsDebugSessionMux implements DapEndpoint {
       }
       case ContinueRequest resume -> {
         // routed to the owning session ONLY: another session paused at its own
-        // breakpoint stays paused - the IDE holds its stop back and presents
-        // it after this resume (DapDebugProcess.pendingStops)
+        // breakpoint stays paused; the IDE's Resume releases every thread
+        // (see DapDebugProcess.pauseOnScreen)
         return routeByThread(resume, resume.getArguments() != null ? resume.getArguments().getThreadId() : null,
                              raw -> resume.getArguments().setThreadId(raw), timeoutMillis);
       }
@@ -628,13 +628,8 @@ public final class JsDebugSessionMux implements DapEndpoint {
           mergedEvents.offer(initialized); // workers' handshakes are mux-internal
         }
       }
-      default -> {
-        if (k == 0) {
-          mergedEvents.offer(event); // output etc. from the page as-is
-        } else {
-          mergedEvents.offer(event); // worker output flows too
-        }
-      }
+      // output and the rest flow as-is, from the page and from every worker
+      default -> mergedEvents.offer(event);
     }
   }
 

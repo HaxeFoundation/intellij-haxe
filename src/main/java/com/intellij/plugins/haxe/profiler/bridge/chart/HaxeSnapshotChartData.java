@@ -14,7 +14,9 @@ import com.intellij.plugins.haxe.profiler.timeline.ProfilerTimeline.FlameNode;
 import com.intellij.plugins.haxe.profiler.timeline.ProfilerTimeline.UsSpan;
 import com.intellij.plugins.haxe.profiler.tracy.TracySession;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -26,7 +28,7 @@ import java.util.Map;
  * Sampled captures: runs reconstructed from the samples, GC from sample flags
  * (per-frame GC events as fallback), frames from the frame events.
  */
-record HaxeSnapshotChartData(@NotNull ProfilerSnapshot snapshot) implements HaxeChartData {
+record HaxeSnapshotChartData(@NotNull ProfilerSnapshot snapshot, @Nullable Path captureFile) implements HaxeChartData {
 
   @Override
   public List<ProfilerThread> threads() {

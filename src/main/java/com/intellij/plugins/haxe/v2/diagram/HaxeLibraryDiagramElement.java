@@ -5,8 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What a node of the library diagram stands for: the build file the diagram
- * is rooted at, by path, or one library, by name. The qualified name is how
+ * What a node of the library diagram stands for: a file, by path (the build
+ * file the diagram is rooted at, an hxml it includes, or a library's include
+ * file), or one library, by name. The qualified name is how
  * the Diagrams plugin remembers an open diagram across restarts.
  */
 public record HaxeLibraryDiagramElement(@NotNull Kind kind, @NotNull String key) {

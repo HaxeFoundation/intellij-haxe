@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link BrowserRunConfiguration} only. Unlike the sibling runners it spawns
  * NO debuggee — the adapter launches the browser itself during the launch
  * request — so the command line is null and the session runs on a no-op
- * process handler. All heavy lifting (adapter download, node checks, content
+ * process handler. All heavy lifting (adapter lookup, node checks, content
  * server) happens inside {@link BrowserDebugBackend#connect()} off the EDT.
  */
 public class BrowserDebugRunner extends DapDebugRunnerBase<BrowserRunConfiguration, BrowserDebugBackend> {

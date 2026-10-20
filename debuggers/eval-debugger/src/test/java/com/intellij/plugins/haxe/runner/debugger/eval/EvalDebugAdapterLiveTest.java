@@ -117,7 +117,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   @Test
   @DisplayName("chained calls step out returns mid line for the next pick")
   public void chainedCallsStepOutReturnsMidLineForTheNextPick() throws Exception {
-    // `cfg.test1(1).test2().test3().test1(2);` — the user-reported flow:
+    // `cfg.test1(1).test2().test3().test1(2);` — the flow:
     // smart-step into test2, step OUT, and be back ON THE CHAIN LINE (not
     // dragged through test3/test1) to pick the next call or leave the line.
     int threadId = runToBreakpoint(FIXTURE, CHAIN_LINE).getBody().getThreadId();
@@ -251,7 +251,7 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
   public void settingAStringsDerivedRowsIsRefusedWithoutTouchingTheVm() throws Exception {
     // a String expands to length/byteLength; WRITING those crashes the eval
     // VM ("Cannot run Haxe code in a non-Haxe thread" assert, then a 10s
-    // timeout killed the session — user-reported). The adapter must refuse
+    // timeout kills the session). The adapter must refuse
     // fast, and the VM must stay healthy afterwards.
     int threadId = runToBreakpoint(FIXTURE, BREAK_LINE).getBody().getThreadId();
     StackFrame top = topFrame(threadId);

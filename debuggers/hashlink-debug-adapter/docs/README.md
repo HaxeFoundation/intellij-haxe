@@ -1095,7 +1095,7 @@ matrix (adapter + fixtures compiled with the current Haxe):
 |---|---|
 | 1.15.0 win64 (pinned) | all pass |
 | 1.16 nightly win64 | all pass (its stack capture adds C frames that stay opaque `hl_symbol @ 0x..` — allowed) |
-| 1.16 nightly win32 | pass; x86-64-only features skip (eval-calls, register-arg caveat) |
+| 1.16 nightly win32 | pass; x86-64-only behaviour skips (register-passed argument writes) |
 | 1.13.0 win64 | all pass |
 | 1.9.0 | VM refuses to LOAD current-Haxe bytecode (`Failed to load function std@exception_stack_raw`) — clean fatal, nothing to degrade to |
 

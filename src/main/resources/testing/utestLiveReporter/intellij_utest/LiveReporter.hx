@@ -28,7 +28,7 @@ import intellij_haxe_test.FlashSupport;
 	so both IDEs show the same verdict.
 **/
 class LiveReporter {
-	final rootSuite:String;
+	#if (haxe_ver >= 4.0) final #else @:final var #end rootSuite:String; // haxe 3 does not enforce @:final on a field
 	var rootOpen:Bool = false;
 	var openSuite:Null<String> = null;
 	var testStartTime:Float = 0;

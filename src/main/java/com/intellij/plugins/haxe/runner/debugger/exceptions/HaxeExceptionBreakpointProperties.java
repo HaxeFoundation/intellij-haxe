@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * them onto its own wire filters). A user-added per-class breakpoint carries
  * the exception class (FQN or simple name) and means "stop when this class or
  * a subclass is thrown, caught or not" — the flags are not consulted for it
- * (neither runtime can type-filter an uncaught or critical stop).
+ * (the backends cannot type-filter an uncaught or critical stop).
  */
 public class HaxeExceptionBreakpointProperties
   extends XBreakpointProperties<HaxeExceptionBreakpointProperties> {

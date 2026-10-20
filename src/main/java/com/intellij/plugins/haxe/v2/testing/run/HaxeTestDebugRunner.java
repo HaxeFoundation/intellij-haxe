@@ -37,7 +37,8 @@ import org.jetbrains.annotations.NotNull;
  * (compiled in by the before-run step's debug additions, connecting out via
  * the HXCPP_DEBUG_HOST/PORT env vars); a js artifact runs under
  * {@code node --inspect-brk} with the pinned vscode-js-debug adapter attached
- * to the inspector port. In every lane {@code DapDebugProcess} makes the
+ * to the inspector port, and a browser-hosted Lime html5 package debugs
+ * through the browser lane. In every lane {@code DapDebugProcess} makes the
  * session console an SM test console (see {@code DapTestConsoles}) — the
  * TeamCity messages on the debuggee's stdout drive the test tree while
  * breakpoints work. For artifact targets, the before-run compile step attached
@@ -168,14 +169,13 @@ public class HaxeTestDebugRunner extends DapDebugRunnerBase<HaxeTestRunConfigura
 
   /**
    * The launch plan, required to be a debuggable shape: an HL artifact or lime
-   * HL package, a desktop C++ binary, a node-hosted js artifact, or a
-   * single-stage interp build.
+   * HL package, a desktop C++ binary, a js artifact (node-hosted, or a
+   * browser-hosted Lime html5 package), or a single-stage interp build.
    */
   @NotNull
   private static Plan debuggablePlan(HaxeTestRunConfiguration configuration) throws ExecutionException {
     Plan plan = ReadAction.computeBlocking(() -> HaxeTestLaunchPlanner.planForDebug(configuration));
-    // every js tests plan that materializes is node-hosted ([node, artifact]);
-    // browser-hosted html5 builds are refused at PLAN time with their own message
+    // a js plan debugs under node or, browser-hosted, through the browser lane (jsBackend)
     boolean debuggable = plan.singleStage()
       || plan.target() == HaxeTarget.CPP
       || plan.target() == HaxeTarget.JAVA_SCRIPT

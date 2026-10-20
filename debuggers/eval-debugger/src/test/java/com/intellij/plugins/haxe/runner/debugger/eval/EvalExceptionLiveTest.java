@@ -23,8 +23,8 @@ public class EvalExceptionLiveTest extends EvalLiveTestBase {
   @Test
   @DisplayName("uncaught exception stop carries the description and the throwing line")
   public void uncaughtExceptionStopCarriesTheDescriptionAndTheThrowingLine() throws Exception {
-    // the IDE sends exception filters (the backend reports it can't honor
-    // them, but the request must still not wedge the session)
+    // the IDE sends exception filters (the adapter maps them onto the VM's
+    // exception options); the request must not wedge the session
     startSession(List.of("uncaught"));
 
     StoppedEvent stopped = awaitStopped();

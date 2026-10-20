@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * must not be overwritten; see {@link #generatedDirectory} for why short),
  * and the generated main's classpath appended. A lime-family build instead
  * compiles through its tool with the generated main overriding the app's
- * (see {@code HaxeTestLaunchPlanner}); only {@link #generatedDirectory}
+ * (see {@code HaxeTestCompileArguments}); only {@link #generatedDirectory}
  * serves it. Templates live under {@code resources/testFrameworks/<framework>/};
  * the suite list is substituted at generation time as {@code ${NEW_SUITES}}
  * ({@code new A(), new B()}) or {@code ${ADD_SUITES}} ({@code add(A); add(B);}),
@@ -50,6 +50,8 @@ final class HaxeTestSingleRuns {
 
   /** The generated entry point's class name (hxcpp names its binary after it). */
   static final String MAIN_CLASS = "IjSingleRun";
+  /** -main, not --main: haxe 3.x knows only the single-dash form, and haxe 5 still accepts it. */
+  static final String MAIN_FLAG = "-main";
 
   private HaxeTestSingleRuns() {
   }
@@ -81,7 +83,7 @@ final class HaxeTestSingleRuns {
     List<String> command = new ArrayList<>(spliced);
     command.add("-cp");
     command.add(generated.toString());
-    command.add("--main");
+    command.add(MAIN_FLAG);
     command.add(MAIN_CLASS);
     return new HaxeCompileCommands.Resolved(resolved.containerId(), command, resolved.workDirectory(), resolved.presentable(),
                                             resolved.connectEligible());
@@ -151,8 +153,14 @@ final class HaxeTestSingleRuns {
    * The directory holding the generated {@code IjSingleRun.hx} (and the
    * redirected {@code out/}), keyed by a content hash of the substituted
    * source plus the build file path — a changed template, selection or
-   * build lands in a fresh directory, an unchanged one is reused. Null when
-   * the template is missing or the write fails.
+   * build lands in a fresh directory, an unchanged one is reused. The root
+   * sits in the system temp directory, not the IDE system directory: hxcpp
+   * nests deep type paths under {@code out/} (src/... plus
+   * obj/&lt;toolchain&gt;/..., with generic instantiation names running 30+
+   * characters) and its msvc toolchain still lives with MAX_PATH - the IDE
+   * system directory alone can eat 150+ characters, and haxe then silently
+   * fails to write the longest files. Null when the template is missing or
+   * the write fails.
    */
   @Nullable
   static Path generatedDirectory(@NotNull String buildFilePath,
@@ -166,11 +174,7 @@ final class HaxeTestSingleRuns {
       String contentHash = HaxeSystemPaths.shortHash(buildFilePath.getBytes(StandardCharsets.UTF_8),
                                                      source.getBytes(StandardCharsets.UTF_8));
 
-      // the system TEMP dir, not the IDE system dir: hxcpp nests deep type
-      // paths under out/ (src/... plus obj/<toolchain>/..., with generic
-      // instantiation names running 30+ characters) and its msvc toolchain
-      // still lives with MAX_PATH - the IDE system dir alone can eat 150+
-      // characters and haxe then silently fails to write the longest files
+      // the system TEMP dir, kept short (see the method doc)
       Path root = Path.of(System.getProperty("java.io.tmpdir"), "haxe-single-run-" + contentHash);
       Path main = root.resolve(MAIN_CLASS + ".hx");
       if (!Files.exists(main)) {

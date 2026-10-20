@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.profiler.model.ProfilerFormatException;
 import com.intellij.plugins.haxe.profiler.model.TimelineEvent;
 import com.intellij.plugins.haxe.profiler.tracy.wire.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.DataInputStream;
@@ -62,7 +63,7 @@ public final class TracyEventReader {
   private final TracyQueueTable table;
 
   private Hooks hooks = NO_HOOKS;
-  /** Null = collect zones into the session (small captures and tests). */
+  /** Null = collect zones into the session (the fixture tests' form; live captures always pass a sink). */
   private @Nullable ZoneSink zoneSink;
   /** Live captures: a torn stream ends the read and keeps what was decoded, instead of failing the capture. */
   private boolean salvageTornStream;
@@ -140,8 +141,8 @@ public final class TracyEventReader {
    * Live-capture callbacks: first sight of a plot, thread or memory pool
    * lets the caller request its name over the query channel (the answers
    * integrate as ordinary stream items), and Terminate drives the shutdown
-   * handshake — returning true stops the read. Replays pass none (a replay
-   * ends at EOF, so its Terminates never stop it).
+   * handshake — returning true stops the read. The fixture tests' reads pass
+   * none (a fixture ends at EOF, so its Terminates never stop it).
    */
   public interface Hooks {
     default void plotSeen(long namePointer) {
@@ -206,15 +207,11 @@ public final class TracyEventReader {
     }
   }
 
+  /** The strict collecting form the fixture tests read zones with; a corrupt stream fails loud. */
+  @TestOnly
   @NotNull
   public static TracySession read(@NotNull InputStream decompressed, @NotNull TracyWelcome welcome) throws IOException {
-    return read(decompressed, welcome, NO_HOOKS);
-  }
-
-  @NotNull
-  public static TracySession read(@NotNull InputStream decompressed, @NotNull TracyWelcome welcome,
-                                  @NotNull Hooks hooks) throws IOException {
-    return readSession(decompressed, welcome, hooks, null, false);
+    return readSession(decompressed, welcome, NO_HOOKS, null, false);
   }
 
   /**
@@ -234,8 +231,8 @@ public final class TracyEventReader {
    * mid-run, or dead without the shutdown handshake (tracy's client exit
    * wedges when system tracing is active) — ends the read and keeps
    * everything decoded before the tear, instead of failing the whole
-   * capture. Replays use the strict {@code read} forms so corrupt files
-   * still fail loud.
+   * capture. The strict {@code read} forms exist for the fixture tests,
+   * where a corrupt stream must fail loud.
    */
   @NotNull
   public static TracySession readSalvaging(@NotNull InputStream decompressed, @NotNull TracyWelcome welcome,

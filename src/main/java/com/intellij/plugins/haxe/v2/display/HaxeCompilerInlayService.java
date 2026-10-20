@@ -56,7 +56,9 @@ import java.util.concurrent.ExecutorService;
  * work. A member answer describes what is on disk, because a compile reads
  * the files, so it is refreshed per context after a Haxe source was saved or
  * a build input changed, and a file with unsaved edits takes every one of its
- * declarations by hover with the editor text until it is saved. Each landed
+ * declarations by hover with the editor text until it is saved. A server
+ * without {@code typer/compiledTypes} (Haxe 3) hands every member to the
+ * hovers as well. Each landed
  * answer restarts highlighting once, when the inlay pass re-collects. A
  * compiler error suspends the context until the next save or input change; a
  * transport failure is retried by the next lookup. The server-wide clear
@@ -126,9 +128,10 @@ public final class HaxeCompilerInlayService implements Disposable {
     VirtualFile file = HaxeCompilerDisplayService.physicalFileOf(declaration);
     if (file == null || !HaxeCompilerFeatureAvailability.isAvailable(project, file)) return null;
 
-    boolean unsaved = isUnsaved(file);
-    JsonTypeRef type = HaxeCompilerHoverTypes.isLocal(declaration) || unsaved
-                       ? HaxeCompilerHoverTypes.getInstance(project).wireTypeOf(declaration, unsaved ? Scope.ALL : Scope.LOCALS)
+    boolean membersByHover = isUnsaved(file) || lacksCompiledTypes(file);
+    Scope hoverScope = membersByHover ? Scope.ALL : Scope.LOCALS;
+    JsonTypeRef type = HaxeCompilerHoverTypes.isLocal(declaration) || membersByHover
+                       ? HaxeCompilerHoverTypes.getInstance(project).wireTypeOf(declaration, hoverScope)
                        : memberTypeOf(file, declaration);
     return HaxeInlayTypeText.of(isFunction(declaration) ? returnTypeOf(type) : type);
   }
@@ -140,6 +143,13 @@ public final class HaxeCompilerInlayService implements Disposable {
   @Nullable
   private static JsonTypeRef returnTypeOf(@Nullable JsonTypeRef functionType) {
     return functionType == null ? null : functionType.returnType();
+  }
+
+  /** Whether the file's server cannot list the compiled members (Haxe 3); its members are hovered then. */
+  private boolean lacksCompiledTypes(@NotNull VirtualFile file) {
+    HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(project);
+    DisplayContext context = displayService.contextFor(file);
+    return context != null && displayService.lacksMethod(context, DisplayMethods.COMPILED_TYPES);
   }
 
   /** Whether the editor holds text for the file that is not on disk yet; a compile would read the older file. */
@@ -194,14 +204,18 @@ public final class HaxeCompilerInlayService implements Disposable {
     }
   }
 
-  /** One compiledTypes request for the context; whether an answer was stored. Background thread, no read lock. */
+  /**
+   * One compiledTypes request for the context; whether the members' lookup
+   * changed: an answer was stored, or the server turned out to have no such
+   * request and the members go to the hovers. Background thread, no read lock.
+   */
   private boolean refresh(@NotNull String key, @NotNull DisplayContext context) {
     // read BEFORE the request: a change during it leaves the answer stale-stamped
     long buildStamp = buildInputsStamp();
     long saved = savedSourcesStamp();
     HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(project);
     Connected connected = displayService.connectFor(context, DisplayMethods.COMPILED_TYPES);
-    if (connected == null) return false;
+    if (connected == null) return displayService.lacksMethod(context, DisplayMethods.COMPILED_TYPES);
     List<String> args = new ArrayList<>(connected.args());
     args.add(HxmlFileParser.NO_OUTPUT_FLAG);
     long started = System.currentTimeMillis();
@@ -251,7 +265,7 @@ public final class HaxeCompilerInlayService implements Disposable {
     }
   }
 
-  /** A saved, created, deleted or externally changed Haxe source: a compile reads it differently now. */
+  /** The declaration's name text, or null when it has none. */
   @Nullable
   private static String nameOf(@NotNull PsiElement declaration) {
     HaxeComponentName name = HaxeTypeHintAnchors.componentNameOf(declaration);

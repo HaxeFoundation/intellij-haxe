@@ -21,7 +21,9 @@ package com.intellij.plugins.haxe.lang.psi.indexes.utils;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
+import com.intellij.plugins.haxe.model.HaxeSourceRootModel;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.psi.PsiFile;
@@ -38,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 @CustomLog
 public class HaxeIndexUtil {
   public static int BASE_INDEX_VERSION = 143;
+  /** The folder under {@code std/<target>/} holding the target's overrides of std types. */
+  public static final String STD_OVERRIDE_DIR = "_std";
 
   static {
       log.setLevel(LogLevel.WARNING);
@@ -52,9 +56,25 @@ public class HaxeIndexUtil {
     if (file == null)  return false;
     HaxeProjectModel project = HaxeProjectModel.fromElement(file);
     if (project.getSdkRoot().contains(file)) {
-      return file.getVirtualFile().getPath().contains("_std");
+      return file.getVirtualFile().getPath().contains(STD_OVERRIDE_DIR);
     }
     return false;
+  }
+
+  /**
+   * The target whose {@code _std} override the file belongs to - the
+   * {@code hl} of {@code std/hl/_std/Math.hx} - or null for any other file.
+   */
+  @Nullable
+  public static String platformSpecificStdTargetOf(@Nullable PsiFile file) {
+    if (file == null || file.getVirtualFile() == null) return null;
+    HaxeSourceRootModel sdkRoot = HaxeProjectModel.fromElement(file).getSdkRoot();
+    if (sdkRoot.root == null) return null;
+    String relativePath = VfsUtilCore.getRelativePath(file.getVirtualFile(), sdkRoot.root);
+    if (relativePath == null) return null;
+    // the path segments of <target>/_std/<module path>
+    String[] segments = relativePath.split("/");
+    return segments.length > 2 && STD_OVERRIDE_DIR.equals(segments[1]) ? segments[0] : null;
   }
   public static boolean isStdTypeFile(@Nullable PsiFile file) {
     if (file == null)  return false;

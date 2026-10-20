@@ -1,175 +1,245 @@
 package com.intellij.plugins.haxe.display.protocol;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-import tools.jackson.databind.JsonNode;
 
 /**
- * A {@code haxe.display.JsonModuleTypes.JsonType}, kept as raw JSON. The
- * accessors cover the kinds the plugin renders and converts: named types with
- * their parameters, function types with their arguments, dot paths. The full
- * typedef family is large and recursive, so anything else is read from
- * {@link #args()} directly.
+ * A {@code haxe.display.JsonModuleTypes.JsonType}: {@code {kind, args}},
+ * where {@code args} has the shape of the {@code kind}. Each kind the plugin
+ * renders and converts is a record; any other kind reads as an
+ * {@link OtherType} that keeps only its kind.
  */
-public record JsonTypeRef(String kind, JsonNode args) {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "kind", visible = true, defaultImpl = JsonTypeRef.OtherType.class)
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = JsonTypeRef.NamedType.class, names = {"TInst", "TEnum", "TType", "TAbstract"}),
+  @JsonSubTypes.Type(value = JsonTypeRef.FunctionType.class, name = "TFun"),
+  @JsonSubTypes.Type(value = JsonTypeRef.AnonymousType.class, name = "TAnonymous"),
+  @JsonSubTypes.Type(value = JsonTypeRef.DynamicType.class, name = "TDynamic"),
+  @JsonSubTypes.Type(value = JsonTypeRef.Monomorph.class, name = "TMono")})
+public sealed interface JsonTypeRef {
 
-  /** One parameter of a function type; {@code name} is null when the signature declares none. */
-  public record Argument(String name, boolean optional, JsonTypeRef type) {
+  /** One parameter of a function type, as the wire names its parts; {@code name} is null when the signature declares none. */
+  record Argument(String name, @JsonProperty("opt") boolean optional, @JsonProperty("t") JsonTypeRef type) {
+    public Argument {
+      name = name == null || name.isEmpty() ? null : name;
+    }
   }
 
-  /** The kinds that name a declaration: class, enum, typedef, abstract. */
-  private static final Set<String> NAMED_KINDS = Set.of("TInst", "TEnum", "TType", "TAbstract");
+  /** The wire kind: TInst, TEnum, TType, TAbstract, TFun, TAnonymous, TDynamic, TMono, ... */
+  String kind();
 
-  public static JsonTypeRef of(JsonNode node) {
-    if (node == null || node.isNull()) return null;
-    return new JsonTypeRef(node.path("kind").asString(""), node.path("args"));
-  }
+  /** A human-readable rendering: dot path, function signature, monomorph/dynamic placeholders. */
+  String presentable();
 
   /** Whether the type names a declaration (TInst, TEnum, TType, TAbstract). */
-  public boolean isNamedType() {
-    return NAMED_KINDS.contains(kind);
+  default boolean isNamedType() {
+    return this instanceof NamedType;
   }
 
-  public boolean isFunction() {
-    return "TFun".equals(kind);
+  /** Whether this is a function type (TFun). */
+  default boolean isFunction() {
+    return this instanceof FunctionType;
   }
 
-  public boolean isDynamic() {
-    return "TDynamic".equals(kind);
+  /** Whether this is {@code Dynamic} (TDynamic). */
+  default boolean isDynamic() {
+    return this instanceof DynamicType;
   }
 
   /** Whether the compiler has not bound the type (TMono). */
-  public boolean isMonomorph() {
-    return "TMono".equals(kind);
+  default boolean isMonomorph() {
+    return this instanceof Monomorph;
   }
 
-  public boolean isAnonymous() {
-    return "TAnonymous".equals(kind);
+  /** Whether this is an anonymous structure (TAnonymous). */
+  default boolean isAnonymous() {
+    return this instanceof AnonymousType;
   }
 
   /** Whether this is the {@code Void} type. */
-  public boolean isVoid() {
+  default boolean isVoid() {
     return "Void".equals(dotPath());
   }
 
   /** The declared name of a named type without its package; null for other kinds and when the wire omits it. */
-  public String typeName() {
-    if (!isNamedType()) return null;
-    String typeName = args.path("path").path("typeName").asString("");
-    return typeName.isEmpty() ? null : typeName;
+  default String typeName() {
+    return null;
   }
 
   /** The type parameters of a named type in declaration order; empty for other kinds. */
-  public List<JsonTypeRef> typeParameters() {
-    return isNamedType() ? typesOf(args.path("params")) : List.of();
+  default List<JsonTypeRef> typeParameters() {
+    return List.of();
   }
 
   /** The parameters of a function type in declaration order; empty for other kinds. */
-  public List<Argument> functionArguments() {
-    if (!isFunction()) return List.of();
-    List<Argument> arguments = new ArrayList<>();
-    for (JsonNode argument : args.path("args")) {
-      String name = argument.path("name").asString("");
-      boolean optional = argument.path("opt").asBoolean(false);
-      arguments.add(new Argument(name.isEmpty() ? null : name, optional, of(argument.path("t"))));
-    }
-    return arguments;
+  default List<Argument> functionArguments() {
+    return List.of();
   }
 
   /** The return type of a function type; null for any other kind. */
-  public JsonTypeRef returnType() {
-    return isFunction() ? of(args.path("ret")) : null;
+  default JsonTypeRef returnType() {
+    return null;
   }
 
   /** The type of a function type's parameter by name; null when the type is no function or has no such parameter. */
-  public JsonTypeRef parameterType(String name) {
+  default JsonTypeRef parameterType(String name) {
     for (Argument argument : functionArguments()) {
       if (name.equals(argument.name())) return argument.type();
     }
     return null;
   }
 
-  /**
-   * The dot path of a TInst, TEnum, TType or TAbstract as Haxe prints it: the
-   * package plus the type name ({@code haxe.ds.StringMap}, {@code Void}).
-   * Null for other kinds.
-   */
-  public String dotPath() {
-    JsonNode path = args.path("path");
-    if (path.isMissingNode()) return null;
-    String typeName = path.path("typeName").asString("");
-    if (typeName.isEmpty()) return null;
-    return packagePrefix(path) + typeName;
+  /** The dot path of a named type as Haxe prints it ({@code haxe.ds.StringMap}, {@code Void}); null for other kinds. */
+  default String dotPath() {
+    return null;
   }
 
-  /**
-   * The qualified name of a wire {@code JsonTypePath} ({@code pack},
-   * {@code moduleName}, {@code typeName}), in the form the plugin's
-   * class-name indexes use. A module's main type is {@code pack.Module}, and
-   * any other type the module declares is {@code pack.Module.SubType}. For
-   * example, {@code Void} is declared in {@code StdTypes}, so its name is
-   * {@code StdTypes.Void}. A module-private type is named like any other,
-   * although the compiler files it under an extra package segment. Empty when
-   * the type name is missing.
-   */
-  public static String qualifiedNameOf(JsonNode typePath) {
-    String typeName = typePath.path("typeName").asString("");
-    if (typeName.isEmpty()) return "";
-    String moduleName = typePath.path("moduleName").asString(typeName);
-    String moduleSegment = moduleName.equals(typeName) ? "" : moduleName + ".";
-    return withoutPrivateSegment(packagePrefix(typePath), moduleName) + moduleSegment + typeName;
+  /** The {@link JsonTypePath#qualifiedName() qualified name} of a named type; empty for other kinds. */
+  default String qualifiedName() {
+    return "";
   }
 
-  // the compiler files a module-private type under an extra last package segment, "_" plus the
-  // module name (hxparse._ParserBuilderImpl.ParserCase); no real package looks like that, as a
-  // package name must start lowercase after its underscores and a module name never does
-  private static String withoutPrivateSegment(String packagePrefix, String moduleName) {
-    String segment = "_" + moduleName + ".";
-    boolean marked = packagePrefix.equals(segment) || packagePrefix.endsWith("." + segment);
-    return marked ? packagePrefix.substring(0, packagePrefix.length() - segment.length()) : packagePrefix;
-  }
+  /** A class, enum, typedef or abstract, with its type parameters. */
+  record NamedType(String kind, PathWithParams args) implements JsonTypeRef {
 
-  /** The {@code pack} segments of a type path, each followed by a dot. */
-  private static String packagePrefix(JsonNode typePath) {
-    StringBuilder prefix = new StringBuilder();
-    for (JsonNode pack : typePath.path("pack")) {
-      prefix.append(pack.asString("")).append('.');
+    /** The {@code args} of a named type: where it is declared and its parameters. */
+    public record PathWithParams(JsonTypePath path, List<JsonTypeRef> params) {
     }
-    return prefix.toString();
-  }
 
-  /** A human-readable rendering: dot path, function signature, monomorph/dynamic placeholders. */
-  public String presentable() {
-    if (isNamedType()) {
-      String path = dotPath();
-      return path != null ? path : "?";
+    @Override
+    public String typeName() {
+      String typeName = path().typeName();
+      return typeName.isEmpty() ? null : typeName;
     }
-    if (isFunction()) return functionSignature();
-    if (isDynamic()) return "Dynamic";
-    if (isAnonymous()) return "{ ... }";
-    return "?";
-  }
 
-  private String functionSignature() {
-    String parameters = functionArguments().stream()
-      .map(JsonTypeRef::argumentSignature)
-      .collect(Collectors.joining(", "));
-    JsonTypeRef ret = returnType();
-    return "(" + parameters + ") -> " + (ret != null ? ret.presentable() : "?");
-  }
-
-  private static String argumentSignature(Argument argument) {
-    String typeText = argument.type() != null ? argument.type().presentable() : "?";
-    return argument.name() == null ? typeText : argument.name() + ":" + typeText;
-  }
-
-  private static List<JsonTypeRef> typesOf(JsonNode nodes) {
-    List<JsonTypeRef> types = new ArrayList<>();
-    for (JsonNode node : nodes) {
-      types.add(of(node));
+    @Override
+    public List<JsonTypeRef> typeParameters() {
+      return args == null ? List.of() : args.params();
     }
-    return types;
+
+    @Override
+    public String dotPath() {
+      return path().dotPath();
+    }
+
+    @Override
+    public String qualifiedName() {
+      return path().qualifiedName();
+    }
+
+    @Override
+    public String presentable() {
+      String dotPath = dotPath();
+      return dotPath != null ? dotPath : "?";
+    }
+
+    /** Where the type is declared; {@link JsonTypePath#NONE} when the wire names nothing. */
+    private JsonTypePath path() {
+      return args == null || args.path() == null ? JsonTypePath.NONE : args.path();
+    }
+  }
+
+  /** A function type (TFun): its parameters and return type. */
+  record FunctionType(Signature args) implements JsonTypeRef {
+
+    /** The {@code args} of a function type: its arguments and return type. */
+    public record Signature(List<Argument> args, JsonTypeRef ret) {
+    }
+
+    @Override
+    public String kind() {
+      return "TFun";
+    }
+
+    @Override
+    public List<Argument> functionArguments() {
+      return args == null ? List.of() : args.args();
+    }
+
+    @Override
+    public JsonTypeRef returnType() {
+      return args == null ? null : args.ret();
+    }
+
+    @Override
+    public String presentable() {
+      String parameters = functionArguments().stream()
+        .map(FunctionType::argumentSignature)
+        .collect(Collectors.joining(", "));
+      JsonTypeRef ret = returnType();
+      return "(" + parameters + ") -> " + (ret != null ? ret.presentable() : "?");
+    }
+
+    private static String argumentSignature(Argument argument) {
+      String typeText = argument.type() != null ? argument.type().presentable() : "?";
+      return argument.name() == null ? typeText : argument.name() + ":" + typeText;
+    }
+  }
+
+  /** An anonymous structure (TAnonymous): its fields and their types. */
+  record AnonymousType(Fields args) implements JsonTypeRef {
+
+    /** The {@code args} of an anonymous structure: its fields. */
+    public record Fields(List<Field> fields) {
+    }
+
+    /** One field of an anonymous structure. */
+    public record Field(String name, JsonTypeRef type) {
+    }
+
+    @Override
+    public String kind() {
+      return "TAnonymous";
+    }
+
+    /** The structure's fields in declaration order. */
+    public List<Field> fields() {
+      return args == null ? List.of() : args.fields();
+    }
+
+    @Override
+    public String presentable() {
+      return "{ ... }";
+    }
+  }
+
+  /** {@code Dynamic}; {@code args} is the {@code T} of {@code Dynamic<T>}, null for a plain {@code Dynamic}. */
+  record DynamicType(JsonTypeRef args) implements JsonTypeRef {
+
+    @Override
+    public String kind() {
+      return "TDynamic";
+    }
+
+    @Override
+    public String presentable() {
+      return "Dynamic";
+    }
+  }
+
+  /** A type the compiler has not bound yet. */
+  record Monomorph() implements JsonTypeRef {
+
+    @Override
+    public String kind() {
+      return "TMono";
+    }
+
+    @Override
+    public String presentable() {
+      return "?";
+    }
+  }
+
+  /** A kind the plugin does not read, such as TLazy. */
+  record OtherType(String kind) implements JsonTypeRef {
+
+    @Override
+    public String presentable() {
+      return "?";
+    }
   }
 }

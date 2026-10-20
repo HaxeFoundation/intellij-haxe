@@ -21,7 +21,7 @@ public class HaxeDisplayClientTimeoutTest {
   private static final List<String> ARGS = List.of("-main", "Main");
 
   private final List<Integer> timeouts = new ArrayList<>();
-  private final HaxeDisplayClient client = new HaxeDisplayClient(timeoutRecordingChannel(), DEFAULT_TIMEOUT_MS);
+  private final HaxeDisplayClient client = new JsonRpcDisplayClient(timeoutRecordingChannel(), DEFAULT_TIMEOUT_MS);
 
   @Test
   @DisplayName("project diagnostics pass the caller's timeout")
@@ -48,11 +48,6 @@ public class HaxeDisplayClientTimeoutTest {
       public DisplayResponse request(List<String> args, int readTimeoutMs) throws DisplayRequestException {
         timeouts.add(readTimeoutMs);
         throw new DisplayRequestException("recording channel answers nothing");
-      }
-
-      @Override
-      public String describe() {
-        return "recording channel";
       }
     };
   }

@@ -9,7 +9,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.module.Module;
-import com.intellij.plugins.haxe.runner.debugger.flash.HaxeFlashDebuggingUtil;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

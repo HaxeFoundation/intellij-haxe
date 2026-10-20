@@ -163,7 +163,7 @@ public class HaxeCompilerHoverTypesTest extends HaxeLightFixtureTestCase {
   }
 
   private static HoverInfo answerFor(Target target) {
-    return new HoverInfo(target.expectedRange(), "Local", new JsonTypeRef("TAbstract", null));
+    return new HoverInfo(target.expectedRange(), "Local", new JsonTypeRef.NamedType("TAbstract", null));
   }
 
   private static HoverInfo failWithCompilerError() throws DisplayRequestException {

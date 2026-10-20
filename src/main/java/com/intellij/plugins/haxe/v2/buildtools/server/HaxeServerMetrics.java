@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.v2.buildtools.server;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.display.client.HaxeDisplayClient.RequestObserver;
+import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -56,8 +57,11 @@ public final class HaxeServerMetrics {
       }
 
       @Override
-      public void afterRequest(String method, long millis, boolean success) {
-        requestFinished(serverId, millis, success);
+      public void afterRequest(String method, long millis, DisplayRequestException failure) {
+        requestFinished(serverId, millis, failure == null);
+        if (failure != null) {
+          announceFailure(serverId, method, millis, failure);
+        }
       }
     };
   }
@@ -107,5 +111,11 @@ public final class HaxeServerMetrics {
   private void announce() {
     if (project.isDisposed()) return;
     project.getMessageBus().syncPublisher(HaxeServerMetricsListener.TOPIC).metricsChanged();
+  }
+
+  private void announceFailure(@NotNull String serverId, @NotNull String method, long millis, @NotNull DisplayRequestException failure) {
+    if (project.isDisposed()) return;
+    String reason = failure.getMessage() != null ? failure.getMessage() : failure.toString();
+    project.getMessageBus().syncPublisher(HaxeServerMetricsListener.TOPIC).requestFailed(serverId, method, millis, reason);
   }
 }

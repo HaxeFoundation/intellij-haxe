@@ -76,10 +76,6 @@ public class HxcppDebugAdapter implements Closeable {
 
   private DapConnection dap;
 
-  private Thread acceptThread;
-  private Thread requestThread;
-  private Thread pumpThread;
-
   private volatile boolean closed = false;
   /** Thread the server last reported stopped; null while running. */
   private volatile Integer stoppedThreadId;
@@ -103,9 +99,9 @@ public class HxcppDebugAdapter implements Closeable {
   /** Starts the adapter threads against an established DAP connection. */
   public void start(DapConnection dapConnection) {
     this.dap = dapConnection;
-    acceptThread = daemon("hxcpp-debuggee-accept", this::acceptDebuggee);
-    requestThread = daemon("hxcpp-dap-requests", this::requestLoop);
-    pumpThread = daemon("hxcpp-event-pump", this::pumpLoop);
+    daemon("hxcpp-debuggee-accept", this::acceptDebuggee);
+    daemon("hxcpp-dap-requests", this::requestLoop);
+    daemon("hxcpp-event-pump", this::pumpLoop);
   }
 
   private static Thread daemon(String name, Runnable body) {
@@ -628,9 +624,7 @@ public class HxcppDebugAdapter implements Closeable {
   /**
    * The index of a top-level assignment {@code =} in the expression, or -1.
    * Top-level means outside quotes and brackets; {@code ==}, {@code !=},
-   * {@code <=} and {@code >=} are comparisons, not assignments. Public so
-   * the IDE-side evaluator can recognize assignments too (it refreshes the
-   * variable views after one succeeds).
+   * {@code <=} and {@code >=} are comparisons, not assignments.
    */
   public static int topLevelAssignment(String expression) {
     int depth = 0;

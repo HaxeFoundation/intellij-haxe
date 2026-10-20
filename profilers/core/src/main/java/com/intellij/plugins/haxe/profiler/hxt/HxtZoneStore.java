@@ -35,15 +35,11 @@ import static com.intellij.plugins.haxe.profiler.io.LittleEndian.*;
  * the query, so a minutes-long capture never loads whole. Zones stream in
  * close order (per thread a post-order walk of the zone tree, depth
  * included) with times rebased to the session's zero. Series records may
- * repeat, since a live writer streams increments, and append; v6 files carry
- * their stamps RAW like the zones (rebased here), v5 wrote them pre-rebased.
+ * repeat, since a live writer streams increments, and append; their stamps
+ * are RAW like the zones and rebased here.
  */
 public final class HxtZoneStore {
 
-  /** The oldest zone-capture layout this store reads. */
-  static final int OLDEST_VERSION = 5;
-  /** Files from this version on carry their series stamps RAW; older ones wrote them pre-rebased. */
-  private static final int RAW_SERIES_VERSION = 6;
   // TODO: record the protocol version in the HXTS header; a stored session is never decoded through the wire reader again
   private static final TracyProtocolVersion STORED_SESSION_PROTOCOL = TracyProtocolVersion.V74;
 
@@ -113,7 +109,7 @@ public final class HxtZoneStore {
       CountingStream in = new CountingStream(raw);
       DataInputStream data = new DataInputStream(in);
       version = HxtFormat.readHeader(data).version();
-      if (version < OLDEST_VERSION || version > HxtZoneWriter.VERSION) {
+      if (version != HxtZoneWriter.VERSION) {
         throw new ProfilerFormatException("unsupported HXTS zone version " + version);
       }
       while (true) {
@@ -198,8 +194,7 @@ public final class HxtZoneStore {
             durationNs = readLongLe(payload);
             unmatched = readIntLe(payload);
             baseNs = readLongLe(payload);
-            // optional trailing field - files written before it stay readable
-            if (payload.available() > 0) compressionLevel = payload.readUnsignedByte();
+            compressionLevel = payload.readUnsignedByte();
           }
           default -> {
             // future record types skip by their length
@@ -208,15 +203,11 @@ public final class HxtZoneStore {
       }
     }
 
-    boolean rawSeries = version >= RAW_SERIES_VERSION;
     if (!infoSeen) {
-      // a LIVE read of a growing capture: INFO lands only at finish, so
-      // the raw bounds of the chunks - and, on raw-series files, of the
-      // series - stand in for the rebase base and duration
-      RawBounds series = rawSeries
-                         ? seriesBounds(frames, List.of(plots, memoryCurves), List.of(cpu, processCpu),
-                                        gcSweeps, events)
-                         : RawBounds.NONE;
+      // a LIVE read of a growing capture: INFO lands only at finish, so the
+      // raw bounds of the chunks and the series stand in for the rebase
+      // base and duration
+      RawBounds series = seriesBounds(frames, List.of(plots, memoryCurves), List.of(cpu, processCpu), gcSweeps, events);
       long rawMin = Math.min(chunks.isEmpty() ? Long.MAX_VALUE : minChunkStartNs, series.minNs());
       long rawMax = Math.max(chunks.isEmpty() ? Long.MIN_VALUE : maxChunkEndNs, series.maxNs());
       if (rawMin != Long.MAX_VALUE) {
@@ -224,7 +215,7 @@ public final class HxtZoneStore {
         durationNs = Math.max(rawMax - rawMin, 0);
       }
     }
-    long seriesShiftNs = rawSeries ? baseNs : 0;
+    long seriesShiftNs = baseNs;
     plots.replaceAll((name, points) -> rebasedPoints(points, seriesShiftNs));
     memoryCurves.replaceAll((name, points) -> rebasedPoints(points, seriesShiftNs));
     frames = rebasedFrames(frames, seriesShiftNs);
@@ -325,7 +316,7 @@ public final class HxtZoneStore {
     return zoneCount;
   }
 
-  /** The deflate level the zone chunks were written at, or -1 for a file that predates the field. Provenance only — reading never needs it. */
+  /** The deflate level the zone chunks were written at, or -1 while a live capture has no INFO record yet. Provenance only — reading never needs it. */
   public int compressionLevel() {
     return compressionLevel;
   }

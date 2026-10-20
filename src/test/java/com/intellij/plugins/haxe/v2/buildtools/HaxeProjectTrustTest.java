@@ -5,6 +5,7 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerAssignment;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeLimeProjectInfoService;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeNmeProjectInfoService;
 import com.intellij.openapi.project.Project;
@@ -51,7 +52,7 @@ public class HaxeProjectTrustTest extends HaxeCodeInsightFixtureTestCase {
   @DisplayName("untrusted project refuses the compilation server")
   public void testUntrustedProjectRefusesTheCompilationServer() {
     withDistrustedProject(getProject(), () -> {
-      int port = HaxeCompilationServerManager.getInstance(getProject()).ensureRunning(null);
+      int port = HaxeCompilationServerManager.getInstance(getProject()).ensureRunning(HaxeServerAssignment.shared(getProject(), null));
       assertEquals(-1, port, "an untrusted project must not start a compilation server");
     });
   }

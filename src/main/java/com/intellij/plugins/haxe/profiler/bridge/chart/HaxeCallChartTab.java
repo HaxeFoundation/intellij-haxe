@@ -73,7 +73,7 @@ public final class HaxeCallChartTab {
     this.project = project;
     data = initialData;
     viewSettings = HaxeChartViewSettings.getInstance(project);
-    detailPanel = new HaxeChartDetailsPanel(project);
+    detailPanel = new HaxeChartDetailsPanel(project, initialData.captureFile());
     details = new HaxeChartSelectionDetails(detailPanel);
     chart = createChart();
     minimap = new HaxeChartMinimapPanel(chart::setView);
@@ -90,8 +90,8 @@ public final class HaxeCallChartTab {
   }
 
   @NotNull
-  public static JComponent create(@NotNull Project project, @NotNull ProfilerSnapshot snapshot) {
-    return new HaxeCallChartTab(project, new HaxeSnapshotChartData(snapshot)).component();
+  public static JComponent create(@NotNull Project project, @NotNull ProfilerSnapshot snapshot, @Nullable Path captureFile) {
+    return new HaxeCallChartTab(project, new HaxeSnapshotChartData(snapshot, captureFile)).component();
   }
 
   @NotNull
@@ -108,7 +108,7 @@ public final class HaxeCallChartTab {
   public static JComponent createLive(@NotNull Project project, @NotNull ProfilerSnapshot initial,
                                       @NotNull Path sessionFile, HaxeLiveCaptures.@NotNull Entry live,
                                       @NotNull Disposable parent) {
-    HaxeCallChartTab tab = new HaxeCallChartTab(project, new HaxeSnapshotChartData(initial));
+    HaxeCallChartTab tab = new HaxeCallChartTab(project, new HaxeSnapshotChartData(initial, sessionFile));
     tab.followLive(HaxeChartLiveReader.forSamples(sessionFile), live, parent);
     return tab.component();
   }
@@ -123,7 +123,7 @@ public final class HaxeCallChartTab {
   }
 
   private HaxeCallChartPanel createChart() {
-    HaxeCallChartPanel panel = new HaxeCallChartPanel(frame -> HaxeCallStackElement.navigateToFrame(project, frame),
+    HaxeCallChartPanel panel = new HaxeCallChartPanel(frame -> HaxeCallStackElement.navigateToFrame(project, frame, data.captureFile()),
                                                       path -> details.showRun(data, path),
                                                       (lane, span) -> details.showSpan(lanes.frameImage(), lane, span),
                                                       details::showCurve,

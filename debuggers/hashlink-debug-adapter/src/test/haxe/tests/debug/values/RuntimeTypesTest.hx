@@ -18,6 +18,36 @@ class RuntimeTypesTest {
 		guidReadsAsInt64(assert);
 		unknownReturnsNull(assert);
 		funKindReconstructsTheSignature(assert);
+		anonymousEnumReadsItsConstructorsFromTheRuntime(assert);
+	}
+
+	// a closure's capture environment: an enum the runtime names "" with one
+	// constructor named "", whose parameters are the captured values; it
+	// resolves to an enum WITHOUT a name, as the bytecode reader gives it
+	static function anonymousEnumReadsItsConstructorsFromTheRuntime(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		api.pokeI32(0x100, 3); // HI32
+		api.pokeI32(0x600, 18); // hl_type @0x600: kind=18 (HENUM), data @0x608 -> hl_type_enum @0x700
+		api.pokePtr(0x608, 0x700);
+		api.pokePtr(0x700, 0x7f0); // name -> ""
+		api.pokeUcs2(0x7f0, "");
+		api.pokeI32(0x708, 1); // nconstructs
+		api.pokePtr(0x710, 0x800); // constructs -> hl_enum_construct @0x800
+		api.pokePtr(0x800, 0x7f0); // construct name -> ""
+		api.pokeI32(0x808, 2); // nparams
+		api.pokePtr(0x810, 0x900); // params -> hl_type* @0x900
+		api.pokePtr(0x900, 0x100); // param[0] = i32
+		api.pokePtr(0x908, 0x100); // param[1] = i32
+		var named = HEnum({name: "", globalValue: null, constructs: [{name: "", params: [HBool]}]});
+
+		var resolved = types(api, name -> name == "" ? named : null).typeAt(addr(0x600));
+
+		var ok = switch (resolved) {
+			case HEnum(p) if (p != null): p.name == null && p.constructs.length == 1 && p.constructs[0].params.length == 2
+				&& p.constructs[0].params[0].match(HI32) && p.constructs[0].params[1].match(HI32);
+			default: false;
+		}
+		assert.isTrue(ok, "an unnamed enum is read from the runtime, not looked up by name (was " + Std.string(resolved) + ")");
 	}
 
 	static function funKindReconstructsTheSignature(assert:Assert):Void {

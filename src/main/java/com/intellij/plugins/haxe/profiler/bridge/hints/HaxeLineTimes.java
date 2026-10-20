@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +29,7 @@ import java.util.Set;
 
 /**
  * A capture's time aggregated per source line, for the editor gutter
- * hints. Every capture kind attributes per FUNCTION today, one line per
+ * hints. Every capture kind attributes per FUNCTION, one line per
  * function: tracy zones carry only the callee's declaration line (the
  * caller's current line never reaches the wire); the HL translator merges
  * a function's sampled lines onto its earliest one; V8 positions are
@@ -170,7 +171,7 @@ final class HaxeLineTimes {
    * project cannot name (player builtins, "(unknown)") get no chip.
    */
   @NotNull
-  static HaxeLineTimes fromDeclarations(@NotNull Project project, @NotNull ProfilerSnapshot snapshot) {
+  static HaxeLineTimes fromDeclarations(@NotNull Project project, @NotNull ProfilerSnapshot snapshot, @Nullable Path capture) {
     long periodNs = HaxeSamplingProfilerData.samplePeriodUs(snapshot) * 1000;
     Map<String, Accumulator> bySymbol = new HashMap<>();
     long sessionNs = 0;
@@ -192,7 +193,7 @@ final class HaxeLineTimes {
     }
 
     Map<String, Declaration> declarations =
-      ReadAction.nonBlocking(() -> resolveDeclarations(project, bySymbol.keySet()))
+      ReadAction.nonBlocking(() -> resolveDeclarations(project, bySymbol.keySet(), capture))
         .inSmartMode(project)
         .executeSynchronously();
     Map<String, Map<Integer, Accumulator>> byFile = new HashMap<>();
@@ -213,11 +214,14 @@ final class HaxeLineTimes {
   private record Declaration(String path, int line) {
   }
 
-  /** Runs inside the read action: each symbol's declaration position, resolved via the project's classes. */
-  private static Map<String, Declaration> resolveDeclarations(Project project, Collection<String> symbols) {
+  /**
+   * Runs inside the read action: each symbol's declaration position, resolved via the project's classes, preferring
+   * those nearest the capture.
+   */
+  private static Map<String, Declaration> resolveDeclarations(Project project, Collection<String> symbols, @Nullable Path capture) {
     Map<String, Declaration> resolved = new HashMap<>();
     for (String symbol : symbols) {
-      NavigatablePsiElement declaration = HaxeCallStackElement.declarationOf(project, symbol);
+      NavigatablePsiElement declaration = HaxeCallStackElement.declarationOf(project, symbol, capture);
       if (declaration == null) continue;
       PsiFile psiFile = declaration.getContainingFile();
       VirtualFile virtualFile = psiFile == null ? null : psiFile.getVirtualFile();

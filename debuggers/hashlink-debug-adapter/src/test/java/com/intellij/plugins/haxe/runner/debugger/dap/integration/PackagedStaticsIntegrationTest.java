@@ -11,12 +11,11 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A class's own statics resolve WITHOUT a class prefix, the way Haxe source
- * writes them. hl `$`-prefixes the LAST segment of the statics container
- * (`pkg.Cls` keeps its statics on `pkg.$Cls`), so a naive `"$" + name` finds
- * the container of a top-level class but never of a PACKAGED one: an instance
- * frame there had no statics at all — neither in evaluate nor in the Statics
- * scope — while its static methods worked (those are bindings of the
- * container itself).
+ * writes them, for a PACKAGED class too. hl `$`-prefixes the LAST segment of
+ * the statics container (`pkg.Cls` keeps its statics on `pkg.$Cls`), so a
+ * naive `"$" + name` finds the container of a top-level class but never of a
+ * packaged one. Pinned: an instance frame of a packaged class sees its
+ * statics in evaluate and in the Statics scope.
  */
 @DisplayName("HashLink debugger: packaged statics (integration)")
 public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {

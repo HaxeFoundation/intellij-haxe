@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * The single dispatch every unit-test entry point (tool window tree, container
  * context actions, gutter markers) converges on: find or create
- * the tests build file's run configuration, update its filter, and launch it
+ * the tests build file's run configuration, update its suite/test selection, and launch it
  * through the run-configuration machinery so it lands in the dropdown and can
  * be rerun from the main UI.
  */
@@ -113,7 +113,7 @@ public final class HaxeTestRunConfigurations {
     HaxeConfigurationLaunches.runSelected(project, settings, executor);
   }
 
-  /** Whether the tests build's target has a debug lane (interp, HL, desktop C++ - see {@code HaxeTestDebugRunner}). */
+  /** Whether the tests build's target has a debug lane (see {@code HaxeDebugSupport.supportsTestDebug}). */
   public static boolean isDebugSupported(@NotNull Project project, @NotNull String buildFilePath) {
     return HaxeTestLaunchPlanner.isDebuggableTarget(project, buildFilePath);
   }

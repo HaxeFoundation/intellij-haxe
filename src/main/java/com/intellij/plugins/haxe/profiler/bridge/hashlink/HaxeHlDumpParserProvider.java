@@ -42,6 +42,6 @@ public class HaxeHlDumpParserProvider implements SignatureBasedProfilerDumpParse
 
   @Override
   public @NotNull ProfilerDumpFileParser createParser(@NotNull Project project) {
-    return new HaxeStreamDumpParser(in -> HaxeSamplingProfilerData.from(HlProfDumpTranslator.translate(in)));
+    return new HaxeStreamDumpParser((in, file) -> HaxeSamplingProfilerData.from(HlProfDumpTranslator.translate(in), file));
   }
 }

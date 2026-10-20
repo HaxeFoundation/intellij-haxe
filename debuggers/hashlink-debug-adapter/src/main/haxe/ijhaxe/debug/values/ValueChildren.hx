@@ -108,10 +108,37 @@ class ValueChildren {
 				varrayElementTarget(pointer, childName);
 			case HVirtual(fields):
 				virtualFieldTarget(pointer, fields, childName);
+			case HEnum(proto) if (proto != null && enumLayout != null):
+				enumParamTarget(pointer, proto, childName);
+			case HFun(_), HMethod(_):
+				closureCaptureTarget(pointer, childName);
 
 			default:
 				null;
 		}
+	}
+
+	// the "captured" child of a bound vclosure, typed as its function's environment
+	function closureCaptureTarget(pointer:Pointer, name:String):Null<AddressedValue> {
+		if (name != "captured" || !isBoundClosure(pointer)) {
+			return null;
+		}
+		return {address: Int64.add(pointer, Int64.ofInt(align.ptr * 3)), type: reader.closureEnvironmentType(pointer)};
+	}
+
+	function isBoundClosure(pointer:Pointer):Bool {
+		return mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2))) == 1;
+	}
+
+	// venum: the constructor parameter the index names ("0", "1", ...), as the children list names them
+	function enumParamTarget(pointer:Pointer, proto:EnumPrototype, name:String):Null<AddressedValue> {
+		var index = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		for (param in enumLayout.params(proto, index)) {
+			if (param.name == name) {
+				return {address: Int64.add(pointer, Int64.ofInt(param.offset)), type: param.type};
+			}
+		}
+		return null;
 	}
 
 	function objectFieldTarget(pointer:Pointer, t:HLType, name:String):Null<AddressedValue> {
@@ -295,13 +322,12 @@ class ValueChildren {
 	}
 
 	// A bound vclosure (hasValue @ +ptr*2 == 1) has one "captured" child: its
-	// bound object or capture environment, read as Dynamic.
+	// bound object or capture environment, typed as its function's environment.
 	function closureCapture(pointer:Pointer):Array<VariableInfo> {
-		var hasValue = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
-		if (hasValue != 1) {
+		if (!isBoundClosure(pointer)) {
 			return [];
 		}
-		var decoded = reader.read(Int64.add(pointer, Int64.ofInt(align.ptr * 3)), HDyn);
+		var decoded = reader.read(Int64.add(pointer, Int64.ofInt(align.ptr * 3)), reader.closureEnvironmentType(pointer));
 		return [{name: "captured", value: decoded.value, type: decoded.type, reference: decoded.reference}];
 	}
 

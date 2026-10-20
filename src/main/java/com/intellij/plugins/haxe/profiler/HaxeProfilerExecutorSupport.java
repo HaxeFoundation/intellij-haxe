@@ -57,9 +57,10 @@ public interface HaxeProfilerExecutorSupport {
   boolean hxcppTracyElevatedFor(@NotNull Executor executor);
 
   /**
-   * The compile additions a FLASH/AIR profiling build must carry (the
-   * injected flash.sampler collector and its boot macro), or null when the
-   * executor is not the flash profiler one.
+   * The compile additions a FLASH/AIR profiling build must carry
+   * ({@code -D advanced-telemetry}: the runtime then streams its own Scout
+   * telemetry; no collector is injected), or null when the executor is not
+   * the flash profiler one.
    */
   @Nullable
   List<String> flashProfilingAdditionsFor(@NotNull Executor executor);

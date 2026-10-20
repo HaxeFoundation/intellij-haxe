@@ -35,8 +35,9 @@ import java.util.concurrent.TimeUnit;
  * hxcpp collector already speaks HXTS, so its bytes land verbatim; the
  * flash lane receives the runtime's own Scout telemetry (pointed here via
  * {@code ~/.telemetry.cfg}) and transcodes it to HXTS on the way to disk.
- * The exit notification offers to open the session in the profiler, or
- * explains that nothing arrived.
+ * The session opens in its profiler tab once the collector connects; when
+ * the stream ends the tab swaps to the complete data, or reports that nothing
+ * arrived.
  */
 public class HaxeIuTelemetryCapture implements HaxeTelemetryCapture {
 
@@ -217,13 +218,8 @@ public class HaxeIuTelemetryCapture implements HaxeTelemetryCapture {
         HaxeProfilingNotifier.reportNothingCaptured(project, session, noneMessageFor(lane));
         return;
       }
-      if (session != null) {
-        session.dataReady();
-        return;
-      }
-      long receivedKb = receivedBytes / 1024;
-      String content = HaxeProfilerBundle.message("haxe.profiler.telemetry.captured", sessionFile.toString(), receivedKb);
-      HaxeProfilingNotifier.notifySnapshotReady(project, content, sessionFile);
+      // the tab opened when the collector connected, before the first byte counted
+      session.dataReady();
     }
   }
 }

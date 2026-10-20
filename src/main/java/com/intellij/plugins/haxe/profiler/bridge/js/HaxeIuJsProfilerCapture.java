@@ -153,7 +153,7 @@ public class HaxeIuJsProfilerCapture implements HaxeJsProfilerCapture {
       }
     }
 
-    /** The parsed source map beside a served script, cached per url; null when the script has none we can reach. */
+    /** The parsed source map beside a served script, cached per url; null when there is none or it is unreachable. */
     private @Nullable JsSourceMap sourceMapFor(@NotNull String scriptUrl) {
       return scriptSourceMaps.computeIfAbsent(scriptUrl, this::loadSourceMap).orElse(null);
     }

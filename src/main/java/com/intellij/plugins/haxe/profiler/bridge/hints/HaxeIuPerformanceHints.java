@@ -148,7 +148,7 @@ public class HaxeIuPerformanceHints implements PerformanceHintsManagerListener {
         // project declarations instead (per-function chips, like tracy)
         return HaxeLineTimes.carriesPositions(sampled.snapshot())
                ? HaxeLineTimes.fromSnapshot(sampled.snapshot())
-               : HaxeLineTimes.fromDeclarations(project, sampled.snapshot());
+               : HaxeLineTimes.fromDeclarations(project, sampled.snapshot(), sampled.sourceFile());
       }
     }
     catch (IOException e) {

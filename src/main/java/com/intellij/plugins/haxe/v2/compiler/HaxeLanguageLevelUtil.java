@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
@@ -24,7 +25,8 @@ import java.util.Locale;
  * The language level editor features assume for a PSI element. An element
  * gets the effective level of its container, usually its module, as set in
  * Settings | Compiler | Haxe Compiler or in the tool window's Language level
- * row. Library and SDK elements use the level of the active build container.
+ * row. Library and SDK elements use the level of the container of the build
+ * they are analysed under (their resolve context), else of the active build.
  * Project files outside every module use the project-root container, which
  * follows the project default unless it has an override. Call in a read
  * action.
@@ -45,6 +47,17 @@ public final class HaxeLanguageLevelUtil {
   @Nullable
   public static HaxeLanguageLevel fromCompiler(@NotNull Project project, @Nullable String containerId) {
     Sdk sdk = sdkFor(project, containerId);
+    return sdk == null ? null : HaxeLanguageLevel.fromVersionString(sdk.getVersionString());
+  }
+
+  /**
+   * The level implied by the named SDK's compiler, the configured SDK for a
+   * null name, as {@link #fromCompiler} reads it. Null when no SDK is
+   * registered or its version is unparsable.
+   */
+  @Nullable
+  public static HaxeLanguageLevel fromSdkName(@NotNull Project project, @Nullable String sdkName) {
+    Sdk sdk = HaxeToolPathResolver.findSdk(project, sdkName);
     return sdk == null ? null : HaxeLanguageLevel.fromVersionString(sdk.getVersionString());
   }
 
@@ -87,6 +100,25 @@ public final class HaxeLanguageLevelUtil {
     if (semVer == null) return version;
     int number = semVer.getMajor() * 1000 + semVer.getMinor() * 100 + semVer.getPatch();
     return String.format(Locale.ROOT, "%d.%03d", number / 1000, number % 1000);
+  }
+
+  /**
+   * The label of the level a container takes without an override of its own:
+   * the project's explicit default, else its SDK's level, else the newest
+   * level while no SDK is registered.
+   */
+  @NotNull
+  public static String defaultLevelLabel(@Nullable HaxeLanguageLevel explicitDefault, @Nullable HaxeLanguageLevel sdkLevel) {
+    if (explicitDefault != null) return HaxeBundle.message("haxe.compiler.project.default.level", explicitDefault.getPresentableText());
+    if (sdkLevel != null) return HaxeBundle.message("haxe.compiler.sdk.level", sdkLevel.getPresentableText());
+    return HaxeBundle.message("haxe.compiler.no.sdk.level", HaxeLanguageLevel.latest().getPresentableText());
+  }
+
+  /** {@link #defaultLevelLabel(HaxeLanguageLevel, HaxeLanguageLevel)} for a container under the project's settings. */
+  @NotNull
+  public static String defaultLevelLabel(@NotNull Project project, @NotNull String containerId) {
+    HaxeLanguageLevel explicitDefault = HaxeCompilerSettings.getInstance(project).getExplicitDefaultLanguageLevel();
+    return defaultLevelLabel(explicitDefault, fromCompiler(project, containerId));
   }
 
   @NotNull

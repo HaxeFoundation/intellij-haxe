@@ -10,20 +10,15 @@ import java.util.Map;
  * The library defines the compiler receives per {@code -lib}: {@code haxelib
  * path} prints {@code -D name=version} for the library and each transitive
  * dependency, and the compiler defines all of them. The library sync records
- * that output per container and dependency; the define context overlays the
- * entries of the active build file's libraries. In-memory only: a fresh
+ * that output per container and dependency; the define context overlays, for
+ * each build file, the entries of that build file's libraries. In-memory only: a fresh
  * session has no library defines until the first sync lands.
  */
 @Service(Service.Level.PROJECT)
 public final class HaxeLibraryDefinesStore {
 
-  private final Project project;
   /** container id -> dependency name -> (define name -> value: the version, or {@code 1} when haxelib printed none). */
   private volatile Map<String, Map<String, Map<String, String>>> byContainer = Map.of();
-
-  public HaxeLibraryDefinesStore(@NotNull Project project) {
-    this.project = project;
-  }
 
   @NotNull
   public static HaxeLibraryDefinesStore getInstance(@NotNull Project project) {
@@ -32,8 +27,9 @@ public final class HaxeLibraryDefinesStore {
 
   /**
    * The container's recorded defines per dependency name (each entry: the
-   * dependency itself plus its transitives); empty until synced. Immutable -
-   * cheap to hold as a cache key.
+   * dependency itself plus its transitives); empty until synced. Only the
+   * container level is copied: the returned maps are the sync's own and must
+   * stay unmodified, since define contexts hold them as part of a cache key.
    */
   @NotNull
   public Map<String, Map<String, String>> definesByDependency(@NotNull String containerId) {

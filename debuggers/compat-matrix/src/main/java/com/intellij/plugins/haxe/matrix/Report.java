@@ -14,7 +14,8 @@ import tools.jackson.databind.node.ObjectNode;
 /**
  * Injects the run's results into report-template.html as a JSON payload
  * (replacing the {@code /*__DATA__*}{@code /null} placeholder) and writes
- * the self-contained index.html.
+ * the self-contained report to the given file (the run's stamped
+ * {@code matrix-<startedAt>.html}, which {@code MatrixMain} copies to index.html).
  *
  * The tree is built field by field rather than serialized straight off the
  * records: this shape is the contract with the template's JS, so it is stated

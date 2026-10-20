@@ -109,17 +109,16 @@ public final class HxtZoneRecompressor {
   }
 
   /**
-   * The INFO payload carries an optional u8 deflate level after its fixed
-   * fields; sets it (patching or appending) so the file names the level its
-   * rewritten chunks actually carry. A payload too short for its own fixed
-   * fields is left alone.
+   * The INFO payload carries a u8 deflate level after its fixed fields;
+   * patches it so the file names the level its rewritten chunks actually
+   * carry. A payload too short to hold it is left alone.
    */
   private static byte[] withLevelByte(byte[] payload, int level) {
     if (payload.length < 2) return payload;
     int nameLength = payload[0] & 0xFF | (payload[1] & 0xFF) << 8;
     int levelOffset = 2 + nameLength + INFO_FIELDS_BEFORE_LEVEL;
-    if (payload.length < levelOffset) return payload;
-    byte[] patched = Arrays.copyOf(payload, Math.max(payload.length, levelOffset + 1));
+    if (payload.length <= levelOffset) return payload;
+    byte[] patched = payload.clone();
     patched[levelOffset] = (byte)level;
     return patched;
   }

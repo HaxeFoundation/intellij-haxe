@@ -135,19 +135,9 @@ public final class HaxeNmeProjectInfoService implements Disposable {
    * failed tool — the raw xml parse serves with the selected target, its
    * conditions unevaluated. The prepared hxml flattens libs into classpaths,
    * so a run whose derived library list is empty keeps the declared one.
-   * Call in a read action.
-   */
-  @NotNull
-  public HaxeBuildFileInfo effectiveInfo(@NotNull HaxeBuildFile buildFile,
-                                         @NotNull HaxeBuildFileInfo raw,
-                                         @Nullable String preferredSdkName) {
-    return effectiveInfo(buildFile, raw, preferredSdkName, HaxeProjectInfoCache.NO_CALLBACK);
-  }
-
-  /**
-   * {@link #effectiveInfo(HaxeBuildFile, HaxeBuildFileInfo, String)} with
-   * {@code onUpdated} as in
+   * {@code onUpdated} is as in
    * {@link #getCachedOrSchedule(HaxeBuildFile, String, String, Runnable)}.
+   * Call in a read action.
    */
   @NotNull
   public HaxeBuildFileInfo effectiveInfo(@NotNull HaxeBuildFile buildFile,

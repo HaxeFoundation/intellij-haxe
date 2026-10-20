@@ -54,7 +54,10 @@ public interface HaxeBuildToolSettings {
 
   void setFlexSdkName(@NotNull String name);
 
-  /** Whether the project keeps a haxe compilation server (`haxe --wait`) for faster compiles. */
+  /**
+   * Whether the project keeps a haxe compilation server ({@code --server-listen},
+   * {@code --wait} on Haxe 3) for faster compiles.
+   */
   boolean isCompilationServerEnabled();
 
   void setCompilationServerEnabled(boolean enabled);

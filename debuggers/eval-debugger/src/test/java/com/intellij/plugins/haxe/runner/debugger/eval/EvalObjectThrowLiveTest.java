@@ -23,8 +23,8 @@ import org.junit.jupiter.params.provider.FieldSource;
  * the eval VM in a state it can never leave forward: at the exceptionStop,
  * every continue/step RE-EXECUTES the whole throw expression — constructor,
  * stack collection, toString, then the same exceptionStop again, forever
- * (the debugger stepped in circles through the constructor and
- * could not let the program die). The adapter's way out, pinned here: clear
+ * (stepping circles through the constructor and never lets the
+ * program die). The adapter's way out, pinned here: clear
  * the VM's exception options, then resume — the program dies NATURALLY with
  * its own uncaught-exception stderr and exit code 1. Also pinned: a session
  * whose exception breakpoints are disabled (empty filters) never stops on

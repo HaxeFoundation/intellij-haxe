@@ -37,10 +37,15 @@ public class InterpDapBackend implements DapBackend {
     return adapter.getVmPort();
   }
 
-  /** The compiler arguments that make the spawned haxe's eval VM connect to this backend before running main. */
+  /**
+   * The compiler arguments of the spawned haxe: {@code -debug}, which every
+   * lane's debug build compiles with (the {@code debug} define selects the
+   * program's debug branches), and the define that makes the eval VM connect
+   * to this backend before running main.
+   */
   @NotNull
   public List<String> debuggeeArguments() {
-    return List.of("-D", "eval-debugger=127.0.0.1:" + getVmPort());
+    return List.of("-debug", "-D", "eval-debugger=127.0.0.1:" + getVmPort());
   }
 
   @Override

@@ -86,8 +86,8 @@ public final class HaxeCompilerMetadataService {
     HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(project);
     HaxeCompilerDisplayService.DisplayContext context = displayService.contextFor(contextFile);
     if (context == null) return null;
-    // only the registry of this SDK's running server applies
-    int endpointId = displayService.runningEndpointIdFor(context.sdkName());
+    // only the registry of the context's running server applies
+    int endpointId = displayService.runningEndpointIdFor(context);
     Registry known = endpointId > 0 ? registries.get(endpointId) : null;
     if (known != null) {
       return known;

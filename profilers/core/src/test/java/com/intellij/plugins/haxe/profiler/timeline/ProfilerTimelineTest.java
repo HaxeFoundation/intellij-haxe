@@ -5,7 +5,6 @@ import com.intellij.plugins.haxe.profiler.model.ProfilerSnapshot;
 import com.intellij.plugins.haxe.profiler.model.ProfilerThread;
 import com.intellij.plugins.haxe.profiler.model.StackFrame;
 import com.intellij.plugins.haxe.profiler.model.StackSample;
-import com.intellij.plugins.haxe.profiler.timeline.ProfilerTimeline.SeriesPoint;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -245,46 +244,6 @@ public class ProfilerTimelineTest {
     List<ProfilerTimeline.UsSpan> spans = ProfilerTimeline.frameSpans(snapshot, MAIN_TID);
 
     assertEquals(List.of(new ProfilerTimeline.UsSpan(0, 16_000), new ProfilerTimeline.UsSpan(16_000, 50_000)), spans);
-  }
-
-  @Test
-  @DisplayName("activity series buckets samples into rates")
-  public void testActivitySeriesBucketsSamplesIntoRates() {
-    // 4 samples inside the first 100 ms bucket, none in the second
-    List<StackSample> samples = new ArrayList<>();
-    for (int i = 0; i < 4; i++) samples.add(sample(1.0 + i * 0.02, MAIN_TID, false));
-    samples.add(sample(1.25, MAIN_TID, false));
-    ProfilerSnapshot snapshot = snapshot(100, samples, List.of());
-
-    List<SeriesPoint> series = ProfilerTimeline.activitySeries(snapshot, 100, false);
-
-    assertEquals(new SeriesPoint(0, 40.0), series.get(0), "4 samples in 100 ms = 40/s");
-    assertEquals(new SeriesPoint(100, 0.0), series.get(1));
-    assertEquals(new SeriesPoint(200, 10.0), series.get(2));
-  }
-
-  @Test
-  @DisplayName("gc series counts only flagged samples")
-  public void testGcSeriesCountsOnlyFlaggedSamples() {
-    List<StackSample> samples = List.of(sample(1.0, MAIN_TID, false),
-                                        sample(1.01, MAIN_TID, true),
-                                        sample(1.02, MAIN_TID, true));
-    ProfilerSnapshot snapshot = snapshot(100, samples, List.of());
-
-    List<SeriesPoint> series = ProfilerTimeline.activitySeries(snapshot, 100, true);
-
-    assertEquals(new SeriesPoint(0, 20.0), series.getFirst(), "2 GC samples in 100 ms = 20/s");
-  }
-
-  @Test
-  @DisplayName("duration spans samples and events")
-  public void testDurationSpansSamplesAndEvents() {
-    ProfilerSnapshot snapshot = snapshot(100,
-                                         List.of(sample(1.0, MAIN_TID, false)),
-                                         List.of(new ProfilerEvent(2.5, MAIN_TID, 0, "")));
-
-    assertEquals(1500, ProfilerTimeline.durationMs(snapshot));
-    assertTrue(ProfilerTimeline.captureStartSeconds(snapshot) == 1.0, "the earliest timestamp is the epoch");
   }
 
   private static StackSample sample(double time, int threadId, boolean inGc) {

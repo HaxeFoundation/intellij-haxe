@@ -21,8 +21,8 @@ public class HaxeLibraryHierarchyTest {
   public void testADependencyLoopYieldsEachLibraryOnceAndEveryEdge() {
     HaxeLibraryGraph graph = new HaxeLibraryGraph();
     graph.replaceAll(Map.of(
-      "a", new Library("a", "1.0.0", false, List.of(new Requirement("b", "2.0.0")), List.of(), null),
-      "b", new Library("b", "2.0.0", false, List.of(new Requirement("A", null)), List.of(), null)), Map.of());
+      "a", new Library("a", "1.0.0", List.of(new Requirement("b", "2.0.0")), List.of(), null),
+      "b", new Library("b", "2.0.0", List.of(new Requirement("A", null)), List.of(), null)), Map.of());
 
     HaxeLibraryHierarchy hierarchy = HaxeLibraryHierarchy.of(graph, List.of(new HaxeLibDependency("a", null)));
 
@@ -34,7 +34,7 @@ public class HaxeLibraryHierarchyTest {
   @DisplayName("a requirement no sync resolved is a node without children")
   public void testARequirementNoSyncResolvedIsANodeWithoutChildren() {
     HaxeLibraryGraph graph = new HaxeLibraryGraph();
-    graph.replaceAll(Map.of("app", new Library("app", "0.1.0", false, List.of(new Requirement("missing", null)), List.of(), null)), Map.of());
+    graph.replaceAll(Map.of("app", new Library("app", "0.1.0", List.of(new Requirement("missing", null)), List.of(), null)), Map.of());
 
     HaxeLibraryHierarchy hierarchy = HaxeLibraryHierarchy.of(graph, List.of(new HaxeLibDependency("app", null), new HaxeLibDependency("unknown", "3.0.0")));
 

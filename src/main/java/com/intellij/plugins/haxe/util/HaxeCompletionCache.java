@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,14 +46,20 @@ public final class HaxeCompletionCache {
 
   /** One cache per compiler executable, complete before it is published; modules on different SDKs see their own lists. */
   private static final Map<String, HaxeCompletionCache> INSTANCES = new ConcurrentHashMap<>();
-  private static final HaxeCompletionCache EMPTY = new HaxeCompletionCache(List.of(), List.of());
+  // executables whose listings a pooled thread is reading
+  private static final Set<String> LOADING = ConcurrentHashMap.newKeySet();
+  private static final HaxeCompletionCache EMPTY = new HaxeCompletionCache(List.of(), List.of(), List.of());
 
   private final List<HXMLCompletionItem> metaTags;
   private final List<HXMLCompletionItem> defines;
+  private final List<String> compilerHelp;
 
-  private HaxeCompletionCache(@NotNull List<HXMLCompletionItem> metaTags, @NotNull List<HXMLCompletionItem> defines) {
+  private HaxeCompletionCache(@NotNull List<HXMLCompletionItem> metaTags,
+                              @NotNull List<HXMLCompletionItem> defines,
+                              @NotNull List<String> compilerHelp) {
     this.metaTags = metaTags;
     this.defines = defines;
+    this.compilerHelp = compilerHelp;
   }
 
   public List<HXMLCompletionItem> getMetaTags() {
@@ -63,26 +70,54 @@ public final class HaxeCompletionCache {
     return defines;
   }
 
+  /** The lines of {@code haxe --help} after its banner; the hxml argument completion parses them. */
+  public List<String> getCompilerHelp() {
+    return compilerHelp;
+  }
+
+  /**
+   * The listings of the module's compiler, or empty ones until they are read.
+   * Completion runs under the read lock, where waiting for a process is not
+   * allowed, so the first request reads them on a pooled thread and later
+   * requests get them.
+   */
   @NotNull
   public static HaxeCompletionCache getInstance(@NotNull Module module) {
     if (ApplicationManager.getApplication().isUnitTestMode()) return EMPTY;
     String haxePath = HaxeHelpUtil.getHaxePath(module);
-    HaxeSdkAdditionalDataBase haxeSdkData = HaxeSdkUtilBase.getSdkData(module);
-    return INSTANCES.computeIfAbsent(haxePath, path -> load(path, haxeSdkData));
+    HaxeCompletionCache cached = INSTANCES.get(haxePath);
+    if (cached != null) return cached;
+
+    if (LOADING.add(haxePath)) {
+      HaxeSdkAdditionalDataBase haxeSdkData = HaxeSdkUtilBase.getSdkData(module);
+      ApplicationManager.getApplication().executeOnPooledThread(() -> loadInBackground(haxePath, haxeSdkData));
+    }
+    return EMPTY;
+  }
+
+  private static void loadInBackground(@NotNull String haxePath, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    try {
+      INSTANCES.put(haxePath, load(haxePath, haxeSdkData));
+    }
+    finally {
+      LOADING.remove(haxePath);
+    }
   }
 
   @NotNull
   private static HaxeCompletionCache load(@NotNull String haxePath, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     List<HXMLCompletionItem> metaTags = probe(haxePath, "--help-metas", META_TAG_PATTERN, haxeSdkData);
     List<HXMLCompletionItem> defines = probe(haxePath, "--help-defines", DEFINE_PATTERN, haxeSdkData);
-    return new HaxeCompletionCache(metaTags, defines);
+    List<String> help = helpListing(haxePath, "--help", haxeSdkData);
+    List<String> compilerHelp = help.isEmpty() ? List.of() : List.copyOf(help.subList(1, help.size()));
+    return new HaxeCompletionCache(metaTags, defines, compilerHelp);
   }
 
   /** The items of one help listing: each line the pattern matches, as (name, description). */
   @NotNull
   private static List<HXMLCompletionItem> probe(@NotNull String haxePath, @NotNull String helpFlag, @NotNull Pattern linePattern,
                                                 @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
-    List<String> lines = HaxelibCommandUtils.getProcessStdout(new ArrayList<>(List.of(haxePath, helpFlag)), haxeSdkData);
+    List<String> lines = helpListing(haxePath, helpFlag, haxeSdkData);
     List<HXMLCompletionItem> items = new ArrayList<>();
     for (String line : lines) {
       Matcher matcher = linePattern.matcher(line);
@@ -91,5 +126,12 @@ public final class HaxeCompletionCache {
       }
     }
     return List.copyOf(items);
+  }
+
+  /** The output of one help flag; haxe 3 prints {@code --help} on stderr, so both streams count. */
+  @NotNull
+  private static List<String> helpListing(@NotNull String haxePath, @NotNull String helpFlag,
+                                          @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    return HaxelibCommandUtils.getProcessStdout(new ArrayList<>(List.of(haxePath, helpFlag)), haxeSdkData);
   }
 }

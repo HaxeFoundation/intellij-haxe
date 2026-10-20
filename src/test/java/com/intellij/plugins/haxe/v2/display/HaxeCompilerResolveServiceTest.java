@@ -27,4 +27,20 @@ public class HaxeCompilerResolveServiceTest {
   public void modulePathOfAType(String dotPath, String modulePath) {
     assertEquals(modulePath, HaxeCompilerResolveService.modulePathOf(dotPath));
   }
+
+  /** (dot path, whether it names a type parameter, which no module declares). */
+  static final List<Arguments> TYPE_PARAMETER_PATHS = List.of(
+    arguments("haxe.iterators.ArrayIterator", false),
+    arguments("pack.Shapes.Circle", false),
+    // a class's type parameter, as the PSI qualifies it
+    arguments("haxe.iterators.ArrayIterator:T", true),
+    // a method's type parameter
+    arguments("pack.Owner#method:T", true));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("TYPE_PARAMETER_PATHS")
+  @DisplayName("a type parameter's path asks for no blueprint")
+  public void aTypeParametersPathAsksForNoBlueprint(String dotPath, boolean typeParameter) {
+    assertEquals(typeParameter, HaxeCompilerResolveService.namesTypeParameter(dotPath));
+  }
 }

@@ -50,18 +50,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The shared XDebugger process for every DAP-based debugger: a DAP client
- * over a {@link DapBackend} (the in-process vshaxe adapter, the debuggee's
- * embedded intellij-hxcpp-debug-server, or the eval adapter), bridging its
- * events into the IDE. Mirrors the HashLink debug process, but simpler in two
- * ways: the peer is reached over a loopback socket (no external process to
- * manage), and the debuggee is a plain child process (no OS-level debug
- * attachment, so killing it needs no special ceremony).
+ * The shared XDebugger process for every DAP-based debugger: a generic DAP
+ * client over any {@link DapBackend}, bridging its events into the IDE. The
+ * backend supplies the adapter connection (a spawned adapter, a connection to
+ * a running one, or a listening socket the debuggee connects to) and, where
+ * there is one, takes part in the debuggee's lifecycle: some backends attach
+ * to the OS process (HashLink), some have no runner-spawned debuggee at all
+ * (browser - the adapter launches the browser itself).
  *
- * The debuggee is spawned by the debug runner; its {@link ProcessHandler} is
- * the session's process handler, so console output, stdin and the exit code
- * flow through the normal run machinery, and the session ends when the
- * debuggee does.
+ * A runner-spawned debuggee's {@link ProcessHandler} is the session's process
+ * handler, so console output, stdin and the exit code flow through the normal
+ * run machinery, and the session ends when the debuggee does. Without one the
+ * session runs on a no-op handler.
  *
  * Threading: the IDE calls resume/step/stop on the EDT — those only submit
  * work to a single-thread request executor. A dedicated event-pump thread is
@@ -249,7 +249,7 @@ public class DapDebugProcess extends XDebugProcess {
     // Exception filters go IN-PHASE (before configurationDone), built by
     // reading the breakpoint manager: a breakpoint already enabled from a
     // previous IDE run arms here — the registerBreakpoint callbacks alone
-    // fire on the EDT and would race startup (the HashLink lesson).
+    // fire on the EDT and would race startup.
     if (backend.supportsExceptionFilters()) {
       sendRequest(exceptionFiltersRequest());
     }
@@ -358,8 +358,7 @@ public class DapDebugProcess extends XDebugProcess {
     // tempting: the firefox adapter's actor proxies answer requests through a
     // per-thread FIFO queue, and firefox never answers an interrupt that
     // RACES a breakpoint pause - the unanswered request wedges that thread's
-    // queue FOREVER (every later stackTrace/evaluate for it times out;
-    // verified in the adapter's base actor proxy source).
+    // queue FOREVER (every later stackTrace/evaluate for it times out).
     // Threads that pause independently therefore also keep RUNNING
     // independently while one of them is on screen.
   }

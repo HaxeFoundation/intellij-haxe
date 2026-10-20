@@ -5,8 +5,6 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +38,6 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
   }
 
   private final @Nullable Project project;
-  // cached consumers (the gutter marker context) key on this; bumped on
-  // every mutation and on state load
-  private final SimpleModificationTracker modificationTracker = new SimpleModificationTracker();
   private State state = new State();
 
   public HaxeTestsBuildFileStore(@NotNull Project project) {
@@ -60,12 +55,6 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
     return project.getService(HaxeTestsBuildFileStore.class);
   }
 
-  /** Bumped on every marked-set change - cache dependencies use it. */
-  @NotNull
-  public ModificationTracker getModificationTracker() {
-    return modificationTracker;
-  }
-
   @Override
   public @NotNull State getState() {
     return state;
@@ -80,7 +69,6 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
       state.excludedFiles = new ArrayList<>();
     }
     this.state = state;
-    modificationTracker.incModificationCount();
     HaxeBuildSettingsListener.publisher(project).stateLoaded();
   }
 
@@ -224,7 +212,6 @@ public final class HaxeTestsBuildFileStore implements PersistentStateComponent<H
   }
 
   private void notifyChanged(@NotNull String containerId) {
-    modificationTracker.incModificationCount();
     HaxeBuildSettingsListener.publisher(project).testsMarkChanged(containerId);
   }
 }

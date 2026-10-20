@@ -31,13 +31,6 @@ public interface HaxeCompilerSettings {
   @NotNull
   HaxeLanguageLevel getDefaultLanguageLevel();
 
-  /**
-   * The effective default for one container: same as {@link #getDefaultLanguageLevel()},
-   * except that "use compiler level" mode resolves the CONTAINER's SDK, so
-   * containers with different Environment SDKs get different levels.
-   */
-  @NotNull
-  HaxeLanguageLevel getDefaultLanguageLevel(@NotNull String containerId);
 
   /** The explicitly chosen default level, or null in "use compiler level" mode. */
   @Nullable
@@ -58,6 +51,11 @@ public interface HaxeCompilerSettings {
   /** Sets or clears (when {@code level} is null) the override for a single container. */
   void setContainerLanguageLevelOverride(@NotNull String containerId, @Nullable HaxeLanguageLevel level);
 
+  /**
+   * The container's level: its override, else the default - where "use
+   * compiler level" resolves the CONTAINER's SDK, so containers with different
+   * Environment SDKs get different levels.
+   */
   @NotNull
   HaxeLanguageLevel getEffectiveLanguageLevel(@NotNull String containerId);
 
@@ -105,8 +103,8 @@ public interface HaxeCompilerSettings {
   }
 
   /**
-   * Whether conditional compilation (`#if haxe_ver` and friends) evaluates
-   * against the module's LANGUAGE LEVEL rather than the container's actual
+   * Whether conditional compilation ({@code #if haxe_ver} and friends)
+   * evaluates against the container's LANGUAGE LEVEL rather than its actual
    * compiler version.
    */
   boolean isUseLanguageLevelForConditionals();
@@ -186,9 +184,14 @@ public interface HaxeCompilerSettings {
     return getEffectiveCompletionMode().usesCompiler();
   }
 
-  /** How display requests reach the compiler; see {@link HaxeDisplayConnectionMode}. */
+  /** How display requests reach the compiler of an SDK of the generation; see {@link HaxeDisplayConnectionMode}. */
   @NotNull
-  HaxeDisplayConnectionMode getDisplayConnectionMode();
+  HaxeDisplayConnectionMode getDisplayConnectionMode(@NotNull HaxeServerGeneration generation);
 
-  void setDisplayConnectionMode(@NotNull HaxeDisplayConnectionMode mode);
+  void setDisplayConnectionMode(@NotNull HaxeServerGeneration generation, @NotNull HaxeDisplayConnectionMode mode);
+
+  /** Whether an SDK of the generation sends its compiler requests to a dedicated display process rather than the shared server. */
+  default boolean usesDedicatedDisplayProcess(@NotNull HaxeServerGeneration generation) {
+    return getDisplayConnectionMode(generation) == HaxeDisplayConnectionMode.DEDICATED_PROCESS;
+  }
 }

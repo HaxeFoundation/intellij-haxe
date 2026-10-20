@@ -27,12 +27,10 @@ public final class HaxeLibraryHierarchy {
   public record Edge(@NotNull String from, @NotNull String to, @Nullable String requiredVersion) {
   }
 
-  private final List<HaxeLibDependency> declared;
   private final List<String> nodes;
   private final List<Edge> edges;
 
-  private HaxeLibraryHierarchy(@NotNull List<HaxeLibDependency> declared, @NotNull List<String> nodes, @NotNull List<Edge> edges) {
-    this.declared = List.copyOf(declared);
+  private HaxeLibraryHierarchy(@NotNull List<String> nodes, @NotNull List<Edge> edges) {
     this.nodes = List.copyOf(nodes);
     this.edges = List.copyOf(edges);
   }
@@ -56,13 +54,7 @@ public final class HaxeLibraryHierarchy {
         if (visited.add(HaxeLibDependency.key(requirement.name()))) pending.add(requirement.name());
       }
     }
-    return new HaxeLibraryHierarchy(declared, nodes, edges);
-  }
-
-  /** What the build file declares, in its order. */
-  @NotNull
-  public List<HaxeLibDependency> declared() {
-    return declared;
+    return new HaxeLibraryHierarchy(nodes, edges);
   }
 
   /** Every reached library name once, as first reached: declared ones first, then by distance. */

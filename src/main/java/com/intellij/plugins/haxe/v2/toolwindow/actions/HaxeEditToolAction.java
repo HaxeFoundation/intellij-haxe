@@ -8,7 +8,7 @@ import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.ToolNode
 import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeCustomActionDialog;
 import org.jetbrains.annotations.NotNull;
 
-/** Tree context menu on a custom tool row: edits its name and command. */
+/** Tree context menu on a custom tool row: edits its name, command and work directory. */
 public final class HaxeEditToolAction extends HaxeSelectedNodeAction<ToolNode> {
 
   public HaxeEditToolAction(@NotNull HaxeToolWindowPanel panel) {

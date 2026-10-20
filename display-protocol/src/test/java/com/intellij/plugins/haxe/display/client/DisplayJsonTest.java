@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.display.protocol.server.HaxeServerContext;
 import com.intellij.plugins.haxe.display.protocol.server.ModuleInfo;
 import com.intellij.plugins.haxe.display.protocol.server.TypeBlueprint;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
+import com.intellij.plugins.haxe.display.transport.MalformedPayloadException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -307,5 +308,37 @@ public class DisplayJsonTest {
     assertNotNull(count);
     assertEquals(new JsonPos("src/Main.hx", 20, 36), count.pos());
     assertEquals("Int", count.type().dotPath());
+  }
+
+  @Test
+  @DisplayName("diagnostic args of a kind the plugin does not read are left aside")
+  public void diagnosticArgsOfAKindThePluginDoesNotReadAreLeftAside() throws Exception {
+    String payload = """
+      {"jsonrpc":"2.0","id":1,"result":{"result":[{"file":"src/Main.hx","diagnostics":[
+        {"kind":6,"severity":4,"range":{"start":{"line":3,"character":0},"end":{"line":5,"character":6}},"args":{"inactive":true}},
+        {"kind":0,"severity":2,"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":10}}},
+        {"kind":42,"severity":9,"range":{"start":{"line":1,"character":0},"end":{"line":1,"character":1}},"args":"later"}]}],
+        "timestamp":1.0}}""";
+
+    List<Diagnostic> diagnostics = DisplayJson.decodeDiagnostics(DisplayJson.unwrap(payload)).getFirst().diagnostics();
+
+    assertEquals(DiagnosticKind.INACTIVE_BLOCK, diagnostics.getFirst().kind());
+    assertInstanceOf(DiagnosticArgs.Other.class, diagnostics.getFirst().args());
+    assertNull(diagnostics.get(1).args(), "an unused import carries no args");
+    assertEquals(DiagnosticKind.UNKNOWN, diagnostics.get(2).kind());
+    assertEquals(DiagnosticSeverity.UNKNOWN, diagnostics.get(2).severity());
+    assertEquals("", diagnostics.get(2).messageArg(), "an unknown kind's args are not its message");
+  }
+
+  @Test
+  @DisplayName("data of another shape fails as a malformed payload")
+  public void dataOfAnotherShapeFailsAsAMalformedPayload() throws Exception {
+    String payload = """
+      {"jsonrpc":"2.0","id":1,"result":{"result":{"file":"src/Main.hx"},"timestamp":1.0}}""";
+    JsonNode data = DisplayJson.unwrap(payload);
+
+    MalformedPayloadException failure = assertThrows(MalformedPayloadException.class, () -> DisplayJson.decodeLocations(data));
+
+    assertTrue(failure.getMessage().contains("Location"), failure.getMessage());
   }
 }

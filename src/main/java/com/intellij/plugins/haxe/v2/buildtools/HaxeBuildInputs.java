@@ -5,7 +5,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootModificationTracker;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener;
@@ -38,12 +37,6 @@ public final class HaxeBuildInputs implements Disposable {
   @NotNull
   public static HaxeBuildInputs getInstance(@NotNull Project project) {
     return project.getService(HaxeBuildInputs.class);
-  }
-
-  /** Bumps whenever a build input changed; a cache keyed on it alone stays valid across edits of Haxe sources. */
-  @NotNull
-  public ModificationTracker tracker() {
-    return tracker;
   }
 
   /** The dependencies of a cache deriving facts from the build files: this tracker, the project roots, the hxml and xml PSI. */

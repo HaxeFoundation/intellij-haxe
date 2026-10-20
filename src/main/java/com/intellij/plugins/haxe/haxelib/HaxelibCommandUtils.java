@@ -157,8 +157,7 @@ public class HaxelibCommandUtils {
       return List.of();
     }
     List<String> stdout = new ArrayList<String>();
-    int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, true, workDir, sdkData,
-                                               stdout, null, null, false);
+    int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, workDir, sdkData, stdout, null, null);
 
     if (0 != exitvalue) {
       // At least throw a warning into idea.log so we have some clue as to what is going on.

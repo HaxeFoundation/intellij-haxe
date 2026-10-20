@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * toString renders through it, and a THROWING toString degrades back to the
  * class name without harming the session. A self-recursing toString is
  * deliberately untested against the real runtime - on hxcpp that stack
- * overflow kills the process before any handler runs (probe-verified),
+ * overflow kills the process before any handler runs,
  * which is exactly the risk the off-default guards; the eval-target unit
  * tests (ValuesTest) cover the recursion path where it IS catchable.
  */
@@ -67,9 +67,8 @@ public class ToStringRenderingIT {
   @Test
   @DisplayName("maps list their entries")
   public void mapsListTheirEntries() throws Exception {
-    // A haxe.ds map's raw fields are its native hash handle ("h = Dynamic"),
-    // which is what used to render — entries must list instead, like the
-    // HashLink adapter's map handling (found live on an OpenFL StringMap).
+    // A haxe.ds map's raw fields are its native hash handle ("h = Dynamic");
+    // entries must list instead, like the HashLink adapter's map handling.
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
       int threadId = stopAtToStringLine(session);
       int frameId = session.topFrame(threadId).getId();

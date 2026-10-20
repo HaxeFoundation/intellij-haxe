@@ -9,6 +9,10 @@ compiles; `HaxeTestReporterFiles` extracts this directory into the IDE
 system path together with the shared sources
 (`../sharedLiveReporter/intellij_haxe_test/`).
 
+The sources compile with every haxe from 3.4.7 on: anything newer sits behind
+`#if (haxe_ver >= 4.0)`, with the haxe 3 form in the `#else` branch where one
+exists (`@:final` for `final`).
+
 buddy has no TeamCity output of its own, so the reporter is the result
 channel, not an optional enhancement. Events are emitted as one BATCH from
 `done`: buddy's per-spec `progress` callback carries no suite context, and

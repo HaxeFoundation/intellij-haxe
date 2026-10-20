@@ -15,7 +15,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -148,7 +147,7 @@ public class HxtZoneStoreTest {
     assertEquals(total, seen[0]);
     assertEquals(total, store.zoneCount());
     long rawZoneBytes = (long)total * HxtZoneWriter.ZONE_BYTES;
-    assertTrue(Files.size(file) < rawZoneBytes, "delta + LZ4 must beat the raw zone encoding");
+    assertTrue(Files.size(file) < rawZoneBytes, "delta + DEFLATE must beat the raw zone encoding");
   }
 
   /** A LIVE reader catches the file between chunk flushes: no finish(), no INFO — flushed chunks must still serve. */
@@ -207,33 +206,6 @@ public class HxtZoneStoreTest {
                  "non-zone records survive the rewrite verbatim");
     assertEquals(HxtZoneWriter.FINAL_LEVEL, store.compressionLevel(),
                  "the rewrite updates the stored level to match its chunks");
-  }
-
-  @Test
-  @DisplayName("a file without the level byte reads as unknown and gains it on recompress")
-  public void testAFileWithoutTheLevelByteReadsAsUnknownAndGainsItOnRecompress() throws IOException {
-    Path file = directory.resolve("levelless.hxtsession");
-    try (OutputStream out = Files.newOutputStream(file)) {
-      HxtZoneWriter writer = new HxtZoneWriter(out, 0, HxtZoneWriter.LIVE_LEVEL);
-      writer.zone(1, 0, 0, 10, BURN);
-      writer.finished(0);
-      writer.finish(emptySmallSession());
-    }
-    // strip the trailing level byte and shrink the INFO length field to
-    // reproduce a capture written before the field existed; INFO is the
-    // last record and emptySmallSession's one-char program name makes its
-    // payload a fixed 40 bytes (u16+1 name, 36 fixed, 1 level)
-    byte[] bytes = Files.readAllBytes(file);
-    bytes[bytes.length - 40 - 4] = 39;
-    Files.write(file, Arrays.copyOf(bytes, bytes.length - 1));
-    HxtZoneStore levelless = assertInstanceOf(HxtCapture.Zones.class, HxtSessionTranslator.translateCapture(file)).store();
-    assertEquals(-1, levelless.compressionLevel(), "no level byte reads as unknown");
-
-    HxtZoneRecompressor.recompress(file, HxtZoneWriter.FINAL_LEVEL);
-
-    HxtZoneStore store = assertInstanceOf(HxtCapture.Zones.class, HxtSessionTranslator.translateCapture(file)).store();
-    assertEquals(HxtZoneWriter.FINAL_LEVEL, store.compressionLevel(), "the rewrite appends the level byte");
-    assertEquals(1, store.zoneCount());
   }
 
   @Test

@@ -40,12 +40,10 @@ public final class HxmlFileParser {
   // file it came from (--next chains are typically one include per section)
   private static final String INCLUDE_MARKER = "# include ";
 
-  /**
-   * The section separators. A trailing token on their line is ONE argument of
-   * the FOLLOWING content — an hxml reference or a dot path; the compiler
-   * takes the whole rest as a single argument and rejects flags there
-   * ({@code --next -js out.js} fails as "unknown option").
-   */
+  // The section separators. A trailing token on their line is ONE argument of
+  // the FOLLOWING content — an hxml reference or a dot path; the compiler
+  // takes the whole rest as a single argument and rejects flags there
+  // (`--next -js out.js` fails as "unknown option").
   private static final String NEXT_SEPARATOR = "--next";
   private static final String EACH_SEPARATOR = "--each";
   private static final Set<String> SECTION_FLAGS = Set.of(NEXT_SEPARATOR, EACH_SEPARATOR);
@@ -371,7 +369,8 @@ public final class HxmlFileParser {
   private static Map<String, HaxeTarget> buildTargetFlagMap() {
     Map<String, HaxeTarget> map = new HashMap<>();
     for (HaxeTarget target : HaxeTarget.values()) {
-      // INTERP's flag is "-interp", so both spellings below already yield "--interp".
+      // INTERP's flag carries its own dash ("-interp"): the first put yields
+      // "--interp", the second a harmless "---interp" key
       map.put("-" + target.getFlag(), target);
       map.put("--" + target.getFlag(), target);
     }

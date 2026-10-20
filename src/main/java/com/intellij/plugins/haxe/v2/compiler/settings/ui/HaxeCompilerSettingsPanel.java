@@ -3,14 +3,17 @@ package com.intellij.plugins.haxe.v2.compiler.settings.ui;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
+import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompletionMode;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeServerGeneration;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,7 +28,7 @@ import java.util.function.Function;
 
 /**
  * Swing panel for the Haxe compiler settings page: the default language
- * level, the completion source, the connection mode, the compiler-backed IDE
+ * level, the completion source, the connection mode per server generation, the compiler-backed IDE
  * features with their per-feature toggles, the compiler-diagnostics toggles
  * and a per-module level override table. The layout lives in the matching
  * .form; the combos and the table panel are the form's custom-created
@@ -35,13 +38,17 @@ import java.util.function.Function;
  */
 public final class HaxeCompilerSettingsPanel {
 
-  /** One table row: a module and its (optional) language level override. */
+  /** What the page shows about a module's SDK: its language level, null without an SDK. */
+  public record ModuleSdk(@NotNull String moduleName, @Nullable HaxeLanguageLevel level) {
+  }
+
+  /** One table row: a module's SDK and the module's (optional) language level override. */
   static final class ModuleLevelRow {
-    final String moduleName;
+    final ModuleSdk sdk;
     @Nullable HaxeLanguageLevel override;
 
-    ModuleLevelRow(@NotNull String moduleName, @Nullable HaxeLanguageLevel override) {
-      this.moduleName = moduleName;
+    ModuleLevelRow(@NotNull ModuleSdk sdk, @Nullable HaxeLanguageLevel override) {
+      this.sdk = sdk;
       this.override = override;
     }
   }
@@ -49,7 +56,8 @@ public final class HaxeCompilerSettingsPanel {
   /**
    * Combo item wrapper so the "no explicit level" choice does not need a null
    * entry in the combo model. In the default combo the null choice means
-   * "use compiler level"; in a module row it means "project default".
+   * "use each module's SDK level"; in a module row it means no override, the
+   * default the module takes.
    */
   private record LevelChoice(@Nullable HaxeLanguageLevel level) {
     static final LevelChoice NO_EXPLICIT_LEVEL = new LevelChoice(null);
@@ -62,7 +70,8 @@ public final class HaxeCompilerSettingsPanel {
   private JPanel mainPanel;
   private ComboBox<LevelChoice> defaultLevelCombo;
   private ComboBox<HaxeCompletionMode> completionModeCombo;
-  private ComboBox<HaxeDisplayConnectionMode> displayConnectionCombo;
+  private ComboBox<HaxeDisplayConnectionMode> connectionModeCombo;
+  private ComboBox<HaxeDisplayConnectionMode> haxe3ConnectionModeCombo;
   private JCheckBox useLevelForConditionalsCheckBox;
   private JCheckBox compilerIdeFeaturesCheckBox;
   private JCheckBox featureInlaysCheckBox;
@@ -79,11 +88,9 @@ public final class HaxeCompilerSettingsPanel {
   // created in createUIComponents: the form's setup runs before the field initializers
   private ListTableModel<ModuleLevelRow> tableModel;
   private TableView<ModuleLevelRow> table;
-  /** Level resolved from the SDK, shown in the "use compiler level" labels; null when no SDK. */
-  private @Nullable HaxeLanguageLevel compilerLevel;
 
   public HaxeCompilerSettingsPanel() {
-    // "Project default (x.y)" cells display the selected default, keep them in sync.
+    // a row without an override shows the default the combo gives it
     defaultLevelCombo.addActionListener(e -> table.repaint());
     compilerIdeFeaturesCheckBox.addItemListener(e -> updateFeatureChildEnablement());
     featureNavigationCheckBox.addItemListener(e -> updateFeatureChildEnablement());
@@ -97,8 +104,8 @@ public final class HaxeCompilerSettingsPanel {
     defaultLevelCombo = createLevelChoiceCombo(this::defaultChoiceText);
     completionModeCombo = new ComboBox<>(HaxeCompletionMode.values());
     completionModeCombo.setRenderer(BuilderKt.textListCellRenderer("", HaxeCompletionMode::getPresentableText));
-    displayConnectionCombo = new ComboBox<>(HaxeDisplayConnectionMode.values());
-    displayConnectionCombo.setRenderer(BuilderKt.textListCellRenderer("", HaxeDisplayConnectionMode::getPresentableText));
+    connectionModeCombo = createConnectionModeCombo(HaxeServerGeneration.HAXE_4);
+    haxe3ConnectionModeCombo = createConnectionModeCombo(HaxeServerGeneration.HAXE_3);
     tableModel = new ListTableModel<>(new ModuleColumn(), new LevelColumn());
     table = new TableView<>(tableModel);
     table.setShowGrid(false);
@@ -193,13 +200,18 @@ public final class HaxeCompilerSettingsPanel {
   }
 
   @NotNull
-  public HaxeDisplayConnectionMode getDisplayConnectionMode() {
-    HaxeDisplayConnectionMode selected = displayConnectionCombo.getItem();
-    return selected != null ? selected : HaxeDisplayConnectionMode.SHARED_SERVER;
+  public HaxeDisplayConnectionMode getDisplayConnectionMode(@NotNull HaxeServerGeneration generation) {
+    HaxeDisplayConnectionMode selected = connectionModeComboFor(generation).getItem();
+    return selected != null ? selected : HaxeDisplayConnectionMode.DEFAULT;
   }
 
-  public void setDisplayConnectionMode(@NotNull HaxeDisplayConnectionMode mode) {
-    displayConnectionCombo.setSelectedItem(mode);
+  public void setDisplayConnectionMode(@NotNull HaxeServerGeneration generation, @NotNull HaxeDisplayConnectionMode mode) {
+    connectionModeComboFor(generation).setSelectedItem(mode);
+  }
+
+  @NotNull
+  private ComboBox<HaxeDisplayConnectionMode> connectionModeComboFor(@NotNull HaxeServerGeneration generation) {
+    return generation == HaxeServerGeneration.HAXE_3 ? haxe3ConnectionModeCombo : connectionModeCombo;
   }
 
   public boolean isCompilerIdeFeaturesEnabled() {
@@ -251,11 +263,13 @@ public final class HaxeCompilerSettingsPanel {
   }
 
   /** Whether the completion source combo takes input: only while completion is a compiler feature. */
+  @TestOnly
   boolean isCompletionModeChoiceEnabled() {
     return completionModeCombo.isEnabled();
   }
 
   /** Whether the generated-member preview toggle takes input: only while navigation is a compiler feature. */
+  @TestOnly
   boolean isGeneratedMemberPreviewChoiceEnabled() {
     return featureGeneratedMemberPreviewCheckBox.isEnabled();
   }
@@ -265,15 +279,13 @@ public final class HaxeCompilerSettingsPanel {
     return mainPanel;
   }
 
-  /** A null {@code explicitDefault} selects "use compiler level"; {@code compilerLevel} feeds its label. */
+  /** A null {@code explicitDefault} selects "use each module's SDK level". */
   public void reset(@Nullable HaxeLanguageLevel explicitDefault,
-                    @Nullable HaxeLanguageLevel compilerLevel,
                     @NotNull Map<String, HaxeLanguageLevel> overrides,
-                    @NotNull List<String> moduleNames) {
-    this.compilerLevel = compilerLevel;
+                    @NotNull List<ModuleSdk> modules) {
     defaultLevelCombo.setSelectedItem(LevelChoice.of(explicitDefault));
-    List<ModuleLevelRow> rows = moduleNames.stream()
-      .map(name -> new ModuleLevelRow(name, overrides.get(name)))
+    List<ModuleLevelRow> rows = modules.stream()
+      .map(module -> new ModuleLevelRow(module, overrides.get(module.moduleName())))
       .toList();
     tableModel.setItems(rows);
   }
@@ -292,10 +304,26 @@ public final class HaxeCompilerSettingsPanel {
     Map<String, HaxeLanguageLevel> result = new LinkedHashMap<>();
     for (ModuleLevelRow row : tableModel.getItems()) {
       if (row.override != null) {
-        result.put(row.moduleName, row.override);
+        result.put(row.sdk.moduleName(), row.override);
       }
     }
     return result;
+  }
+
+  /** The level cell's text in the module's row. */
+  @TestOnly
+  @NotNull
+  String moduleLevelText(@NotNull String moduleName) {
+    ModuleLevelRow row = rowOf(moduleName);
+    return levelText(row, row.override);
+  }
+
+  @NotNull
+  private ModuleLevelRow rowOf(@NotNull String moduleName) {
+    return tableModel.getItems().stream()
+      .filter(row -> row.sdk.moduleName().equals(moduleName))
+      .findFirst()
+      .orElseThrow();
   }
 
   private void stopTableEditing() {
@@ -312,7 +340,7 @@ public final class HaxeCompilerSettingsPanel {
 
     @Override
     public String valueOf(ModuleLevelRow row) {
-      return row.moduleName;
+      return row.sdk.moduleName();
     }
   }
 
@@ -341,20 +369,20 @@ public final class HaxeCompilerSettingsPanel {
       return new DefaultTableCellRenderer() {
         @Override
         protected void setValue(Object value) {
-          setText(levelText((HaxeLanguageLevel)value));
+          setText(levelText(row, (HaxeLanguageLevel)value));
         }
       };
     }
 
     @Override
     public TableCellEditor getEditor(ModuleLevelRow row) {
-      return new LevelCellEditor();
+      return new LevelCellEditor(row);
     }
   }
 
   private final class LevelCellEditor extends DefaultCellEditor {
-    LevelCellEditor() {
-      super(createLevelChoiceCombo(choice -> levelText(choice.level())));
+    LevelCellEditor(@NotNull ModuleLevelRow row) {
+      super(createLevelChoiceCombo(choice -> levelText(row, choice.level())));
     }
 
     @Override
@@ -370,6 +398,14 @@ public final class HaxeCompilerSettingsPanel {
       LevelChoice choice = (LevelChoice)((JComboBox<?>)editorComponent).getSelectedItem();
       return choice == null ? null : choice.level();
     }
+  }
+
+  /** The connection modes, named by the flags a server of the generation starts with. */
+  @NotNull
+  private static ComboBox<HaxeDisplayConnectionMode> createConnectionModeCombo(@NotNull HaxeServerGeneration generation) {
+    ComboBox<HaxeDisplayConnectionMode> combo = new ComboBox<>(HaxeDisplayConnectionMode.values());
+    combo.setRenderer(BuilderKt.textListCellRenderer("", (HaxeDisplayConnectionMode mode) -> mode.getPresentableText(generation)));
+    return combo;
   }
 
   @NotNull
@@ -389,24 +425,16 @@ public final class HaxeCompilerSettingsPanel {
     if (choice.level() != null) {
       return choice.level().getPresentableText();
     }
-    return compilerLevel != null
-           ? HaxeBundle.message("haxe.compiler.use.compiler.level", compilerLevel.getPresentableText())
-           : HaxeBundle.message("haxe.compiler.use.compiler.level.no.sdk");
+    return HaxeBundle.message("haxe.compiler.use.sdk.level");
   }
 
+  /** The row's level as shown: the override, else the default the row's module takes. */
   @NotNull
-  private String levelText(@Nullable HaxeLanguageLevel level) {
+  private String levelText(@NotNull ModuleLevelRow row, @Nullable HaxeLanguageLevel level) {
     if (level != null) {
       return level.getPresentableText();
     }
-    return HaxeBundle.message("haxe.compiler.project.default.level", effectiveDefaultLevel().getPresentableText());
+    return HaxeLanguageLevelUtil.defaultLevelLabel(getSelectedDefaultLevel(), row.sdk.level());
   }
 
-  /** Mirrors the settings' fallback: explicit choice, else compiler level, else latest. */
-  @NotNull
-  private HaxeLanguageLevel effectiveDefaultLevel() {
-    HaxeLanguageLevel selected = getSelectedDefaultLevel();
-    if (selected != null) return selected;
-    return compilerLevel != null ? compilerLevel : HaxeLanguageLevel.latest();
-  }
 }

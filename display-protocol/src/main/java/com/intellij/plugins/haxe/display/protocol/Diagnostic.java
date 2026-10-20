@@ -1,26 +1,26 @@
 package com.intellij.plugins.haxe.display.protocol;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
- * One entry of a {@code display/diagnostics} result.
- *
- * {@code args} stays raw JSON because its shape depends on the
- * {@link DiagnosticKind}. The {@code ...Arg} accessors read the common shapes.
- * {@code code} is the diagnostic's LSP-style identifier. It is null when the
- * compiler sends none, and haxe 4 never sends one.
+ * One entry of a {@code display/diagnostics} result. Its {@code args} take
+ * the shape of its {@link DiagnosticKind} ({@link DiagnosticArgs}); the
+ * {@code ...Arg} accessors read the shapes the plugin uses. {@code code} is
+ * the diagnostic's LSP-style identifier. It is null when the compiler sends
+ * none, and haxe 4 never sends one.
  */
 public record Diagnostic(DiagnosticKind kind,
                          Range range,
                          DiagnosticSeverity severity,
-                         JsonNode args,
-                         String code) {
-
-  /** The message of a COMPILER_ERROR, PARSER_ERROR or DEPRECATION_WARNING, whose args are a plain string. */
-  public String messageArg() {
-    return args != null && args.isString() ? args.asString() : "";
-  }
+                         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,
+                                       include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
+                                       property = "kind",
+                                       defaultImpl = DiagnosticArgs.Other.class)
+                         DiagnosticArgs args,
+                         @JsonSetter(nulls = Nulls.SET) String code) {
 
   /** One suggestion of an UNRESOLVED_IDENTIFIER: {@code kind} 0 is an import candidate, 1 a typo correction. */
   public record IdentifierSuggestion(int kind, String name) {
@@ -29,22 +29,29 @@ public record Diagnostic(DiagnosticKind kind,
     }
   }
 
-  /** The suggestions of an UNRESOLVED_IDENTIFIER, whose args are an array of them. */
+  public Diagnostic {
+    kind = kind == null ? DiagnosticKind.UNKNOWN : kind;
+    severity = severity == null ? DiagnosticSeverity.UNKNOWN : severity;
+  }
+
+  /** The message of a COMPILER_ERROR, PARSER_ERROR or DEPRECATION_WARNING. */
+  public String messageArg() {
+    return args instanceof DiagnosticArgs.Message(String text) ? text : "";
+  }
+
+  /** The suggestions of an UNRESOLVED_IDENTIFIER. */
   public List<IdentifierSuggestion> suggestionArgs() {
-    if (args == null || !args.isArray()) return List.of();
-    return args.valueStream()
-      .map(node -> new IdentifierSuggestion(node.path("kind").asInt(-1), node.path("name").asString("")))
-      .toList();
+    return args instanceof DiagnosticArgs.Suggestions(List<IdentifierSuggestion> suggestions1) ? suggestions1 : List.of();
   }
 
-  /** The typed args of a MISSING_FIELDS entry; null for any other shape. */
+  /** The missing fields of a MISSING_FIELDS entry; null for any other kind. */
   public MissingFields missingFieldsArg() {
-    return MissingFields.fromJson(args);
+    return args instanceof MissingFields.Args missing ? missing.toMissingFields() : null;
   }
 
-  /** The description of a REMOVABLE_CODE entry; empty when absent. */
+  /** The description of a REMOVABLE_CODE entry; empty for any other kind. */
   public String descriptionArg() {
-    return args != null ? args.path("description").asString("") : "";
+    return args instanceof DiagnosticArgs.RemovableCode removable ? removable.description() : "";
   }
 
   /**
@@ -52,10 +59,7 @@ public record Diagnostic(DiagnosticKind kind,
    * highlighted {@link #range()}. Null when the compiler supplies none.
    */
   public Range removableRangeArg() {
-    if (args == null) return null;
-    JsonNode range = args.path("range");
-    if (range.isMissingNode() || range.isNull()) return null;
-    return Range.fromJson(range);
+    return args instanceof DiagnosticArgs.RemovableCode removable ? removable.range() : null;
   }
 
   /**
@@ -64,8 +68,7 @@ public record Diagnostic(DiagnosticKind kind,
    * simply removed.
    */
   public String newCodeArg() {
-    if (args == null) return null;
-    String newCode = args.path("newCode").asString("");
+    String newCode = args instanceof DiagnosticArgs.RemovableCode removable ? removable.newCode() : "";
     return newCode.isEmpty() ? null : newCode;
   }
 }

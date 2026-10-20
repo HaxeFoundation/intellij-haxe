@@ -147,8 +147,8 @@ abstract class HxcppIntegrationTestBase {
 
   /**
    * Awaits a stop whose TOP frame is at {@code line} of the fixture source.
-   * Stops elsewhere — observed on slow CI runners as the debuggee's startup
-   * hold surfacing late, with a stack of only debugger-internal frames — are
+   * Stops elsewhere — on a slow machine the debuggee's startup hold can
+   * surface late, with a stack of only debugger-internal frames — are
    * released with a continue and waiting resumes, so a test never mistakes
    * such a stray stop for its breakpoint hit.
    */

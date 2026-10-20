@@ -20,7 +20,7 @@ using tink.CoreApi;
 	runner's result types carry no timing, so durations stay unreported.
 **/
 class TcReporter implements Reporter {
-	final rootSuite:String;
+	#if (haxe_ver >= 4.0) final #else @:final var #end rootSuite:String; // haxe 3 does not enforce @:final on a field
 	var rootOpen:Bool = false;
 
 	public function new(rootSuite:String) {

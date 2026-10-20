@@ -15,9 +15,8 @@ import org.junit.jupiter.params.provider.FieldSource;
  * knowable at runtime. cpp.vm.Debugger's STEP_INTO is line-based and
  * depth-agnostic — the runtime instruments every Haxe line, so entering the
  * closure's target needs no server-side callee resolution; this pins that it
- * actually lands in the body (the HashLink adapter needed a real fix for the
- * same shape: its step-in plants entry breakpoints, and a closure call has
- * no static entry).
+ * actually lands in the body (unlike the HashLink adapter, whose step-in
+ * plants entry breakpoints, where a closure call has no static entry).
  */
 @DisplayName("HXCPP debugger: closure step (integration)")
 public class ClosureStepIT {

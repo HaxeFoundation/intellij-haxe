@@ -60,7 +60,7 @@ public final class EvalConnection implements AutoCloseable {
   /**
    * Registers a callback for the VM ending the connection (its process — the
    * interpreted program or the compilation being macro-debugged — finished).
-   * Not invoked when WE close the connection.
+   * Not invoked when the IDE side closes the connection.
    */
   public void setOnDisconnected(Runnable listener) {
     this.onDisconnected = listener;

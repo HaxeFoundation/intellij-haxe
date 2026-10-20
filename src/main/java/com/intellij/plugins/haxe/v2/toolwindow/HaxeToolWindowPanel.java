@@ -22,6 +22,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.vcs.changes.issueLinks.TreeLinkMouseListener;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeInstalledLibraries;
@@ -38,7 +39,6 @@ import com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurations;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.treeStructure.Tree;
@@ -54,7 +54,6 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
@@ -69,9 +68,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Content panel of the Haxe tool window: a toolbar (sync, purge caches, execute
- * command, settings) above a tree of modules, their build files and each file's
- * target, defines and library dependencies.
+ * Content panel of the Haxe tool window: a toolbar above the container tree
+ * (the project root and the modules, with their build files, settings and
+ * tools).
  */
 @CustomLog
 public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements Disposable {
@@ -97,10 +96,12 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
 
     tree.setRootVisible(false);
     tree.setShowsRootHandles(true);
-    tree.setCellRenderer(new HaxeToolWindowTreeRenderer());
+    HaxeToolWindowTreeRenderer renderer = new HaxeToolWindowTreeRenderer();
+    tree.setCellRenderer(renderer);
     // per-row tooltips come from the renderer; a plain JTree never shows them unless registered
     ToolTipManager.sharedInstance().registerComponent(tree);
-    tree.addMouseListener(new TreeClickHandler());
+    new TreeClickListener(renderer).installOn(tree);
+    tree.addMouseListener(new PopupRowSelector());
     PopupHandler.installPopupMenu(tree, createTreePopupGroup(), TREE_POPUP_PLACE);
     TreeSpeedSearch.installOn(tree, true, HaxeToolWindowPanel::speedSearchText);
     new TreeEnterAction().registerCustomShortcutSet(CommonShortcuts.ENTER, tree, this);
@@ -245,7 +246,7 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     });
   }
 
-  /** The hide-empty-modules toggle removes module rows with no build files and no user configuration. */
+  /** The hide-empty-modules toggle removes module rows with no build files, no tools and no user configuration. */
   @NotNull
   private List<ContainerEntry> visibleContainers(@NotNull List<ContainerEntry> scan) {
     if (!HaxeToolWindowUiState.getInstance(project).isHiding(EmptyRows.MODULES)) return scan;
@@ -484,7 +485,7 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     return userObject instanceof HaxeToolWindowNode node ? node.expansionKey() : String.valueOf(userObject);
   }
 
-  private final class TreeClickHandler extends MouseAdapter {
+  private final class PopupRowSelector extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent e) {
       selectRowForPopup(e);
@@ -509,35 +510,40 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
         tree.setSelectionPath(path);
       }
     }
+  }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      if (!SwingUtilities.isLeftMouseButton(e)) return;
-      TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-      if (path == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return;
-
-      int clicks = e.getClickCount();
-      Object userObject = node.getUserObject();
-      RelativePoint point = new RelativePoint(e.getComponent(), e.getPoint());
-
-      if (clicks == 1) {
-        interactWithNode(userObject, point, fragmentTagAt(e, path));
-      } else if (clicks == 2) {
-        activateNode(userObject);
-      }
+  /**
+   * Left clicks on a row. A tagged fragment (a row's value, the server
+   * failure link) answers a single click and shows the hand cursor; the rest
+   * of the row only selects, and a double-click acts on the row like Enter.
+   */
+  private final class TreeClickListener extends TreeLinkMouseListener {
+    TreeClickListener(@NotNull HaxeToolWindowTreeRenderer renderer) {
+      super(renderer);
     }
 
-    /** The renderer fragment tag under the click — tags mark clickable fragments (the server failure link). */
-    @Nullable
-    private Object fragmentTagAt(@NotNull MouseEvent e, @NotNull TreePath path) {
-      Rectangle bounds = tree.getPathBounds(path);
-      if (bounds == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return null;
-      Component renderer = tree.getCellRenderer()
-        .getTreeCellRendererComponent(tree, node, tree.isPathSelected(path), tree.isExpanded(path),
-                                      node.isLeaf(), tree.getRowForPath(path), false);
-      if (!(renderer instanceof SimpleColoredComponent colored)) return null;
-      renderer.setSize(bounds.width, bounds.height);
-      return colored.getFragmentTagAt(e.getX() - bounds.x);
+    @Override
+    public boolean onClick(@NotNull MouseEvent e, int clickCount) {
+      if (!SwingUtilities.isLeftMouseButton(e)) return false;
+      TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+      Rectangle bounds = path == null ? null : tree.getPathBounds(path);
+      if (bounds == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return false;
+
+      Object userObject = node.getUserObject();
+      // drops down under the row like a combo box, so the click does not land inside the popup it opens
+      RelativePoint below = new RelativePoint(tree, new Point(e.getX(), bounds.y + bounds.height));
+      Object fragmentTag = getTagAt(e);
+      if (fragmentTag != null) {
+        if (clickCount == 1) followFragment(fragmentTag, userObject, below);
+        return true;
+      }
+      return clickCount == 2 && actOnNode(userObject, below);
+    }
+
+    @Override
+    protected boolean doCacheLastNode() {
+      // the tree paints every row with the same renderer, so a cached hit-test row goes stale
+      return false;
     }
   }
 
@@ -546,7 +552,21 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     HaxeServerConsoleWindowFactory.open(project, HaxeCompilationServerManager.serverIdFor(project, containerId));
   }
 
-  /** The row's ACTIVATION — double-click and Enter share it. False when the row has none. */
+  /** What a double-click or Enter does to a row: its activation (run, launch, open), else its chooser or toggle. */
+  private boolean actOnNode(@Nullable Object userObject, @NotNull RelativePoint point) {
+    return activateNode(userObject) || interactWithNode(userObject, point);
+  }
+
+  /** A click on a tagged fragment: the server failure text opens the server console, a row's value its chooser. */
+  private void followFragment(@NotNull Object fragmentTag, @Nullable Object userObject, @NotNull RelativePoint point) {
+    switch (fragmentTag) {
+      case ServerFailureLink link -> openServerConsole(link.containerId());
+      case RowValueLink ignored -> interactWithNode(userObject, point);
+      default -> { }
+    }
+  }
+
+  /** The row's ACTIVATION, the first thing a double-click and Enter try. False when the row has none. */
   private boolean activateNode(@Nullable Object userObject) {
     switch (userObject) {
       case BuildFileRow row when row.buildFile().file().isValid() ->
@@ -562,25 +582,18 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     return true;
   }
 
-  /** The row's chooser/toggle INTERACTION — single-click and Enter share it. False when the row has none. */
-  private boolean interactWithNode(@Nullable Object userObject, @NotNull RelativePoint point, @Nullable Object fragmentTag) {
+  /** The row's chooser/toggle INTERACTION: a click on its value, or a double-click/Enter on a row without an activation. */
+  private boolean interactWithNode(@Nullable Object userObject, @NotNull RelativePoint point) {
     switch (userObject) {
       case TargetNode targetNode when targetNode.selectable() -> HaxeToolWindowEditors.showTargetPopup(project, targetNode, point);
       case SectionNode sectionNode -> HaxeToolWindowEditors.showSectionPopup(project, sectionNode, point);
       case EnvSdkNode sdkNode -> HaxeToolWindowEditors.showEnvironmentSdkPopup(project, sdkNode, point);
       case EnvLanguageLevelNode levelNode -> HaxeToolWindowEditors.showLanguageLevelPopup(project, levelNode, point);
+      case ServerInstanceNode serverInstance -> HaxeToolWindowEditors.showServerInstancePopup(project, serverInstance, point);
+      case ConnectionModeNode connectionMode -> HaxeToolWindowEditors.showConnectionModePopup(project, connectionMode, point);
       case IdeCustomTargetNode customTargetNode -> HaxeToolWindowEditors.editCustomTarget(project, customTargetNode);
       case EnvCompileCommandNode compileCommand -> HaxeToolWindowEditors.configureCompileCommand(project, compileCommand);
-      case CompilationServerNode serverNode -> {
-        // the red failure text links to the server console's status view;
-        // the rest of the row keeps the participation toggle
-        if (fragmentTag instanceof HaxeToolWindowNodes.ServerFailureLink link) {
-          openServerConsole(link.containerId());
-        }
-        else {
-          HaxeToolWindowEditors.toggleCompilationServer(project, serverNode);
-        }
-      }
+      case CompilationServerNode serverNode -> HaxeToolWindowEditors.toggleCompilationServer(project, serverNode);
       case null, default -> {
         return false;
       }
@@ -596,8 +609,7 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       Object selected = getSelectedUserObject();
-      if (activateNode(selected)) return;
-      if (interactWithNode(selected, getSelectionPopupPoint(), null)) return;
+      if (actOnNode(selected, getSelectionPopupPoint())) return;
       toggleSelectedExpansion();
     }
 

@@ -18,13 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 /**
- * Regression for the uncaught-exception STEP lock-up: the user stepped onto a
- * throw and pressed step over / step in, and the session wedged (the IDE had to
- * be killed). The eval VM does not raise an exceptionStop for a step (only for
- * continue); it unwinds the stack and leaves the process pending, so the
- * adapter's step-coalescing loops used to loop on / error out of the vanished
- * stack. The fix resumes the VM off the uncaught exception, ending the session
- * cleanly. These tests would HANG (and hit the method timeout) if it regressed.
+ * Stepping onto an uncaught throw (step over / step in) must not wedge the
+ * session. The eval VM does not raise an exceptionStop for a step (only for
+ * continue); it unwinds the stack and leaves the process pending, so a
+ * step-coalescing loop would loop on / error out of the vanished stack. The
+ * adapter resumes the VM off the uncaught exception instead, ending the
+ * session cleanly. A wedge shows as a HANG (the method timeout).
  */
 @DisplayName("Eval debugger: step exception (live)")
 public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
@@ -45,9 +44,9 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   }
 
   /**
-   * From the exception stop, every step press must be answered PROMPTLY (the
-   * reported stall was ~50s per press: a coalescing loop spinning its 4096
-   * cap against a VM that cannot advance) and the session must wind down to
+   * From the exception stop, every step press must be answered PROMPTLY (a
+   * coalescing loop spinning its 4096 cap against a VM that cannot advance
+   * stalls ~50s per press) and the session must wind down to
    * terminated within a few presses. Mirrors the IDE: after each stop it also
    * asks for threads, like reportStopped does.
    */
@@ -106,7 +105,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
       assertTrue(step.isSuccess(), "step press #" + press + " answered (success)");
       Event event = dapClient.pollEvent(1_500);
       if (event instanceof TerminatedEvent) {
-        return; // wound down before we even resumed - fine
+        return; // wound down before the resume - fine
       }
       if (event instanceof StoppedEvent stopped) {
         threadId = stopped.getBody().getThreadId();
@@ -143,8 +142,8 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    * additionally survives the recovery resume as a zombie that the adapter
    * must detect and end. In EVERY case each press must be answered PROMPTLY
    * (no 10s VM-timeout stall) and the session must wind down within the
-   * budget. Before the fix this wedged (the adapter looped on / blocked
-   * against the vanished stack), which is what forced the user to kill the IDE.
+   * budget. An adapter looping on / blocking against the vanished stack
+   * wedges the session for good.
    */
   private void stepUntilTerminated(IntFunction<Request> stepFor) throws Exception {
     int threadId = stopOnThrowLine();
@@ -196,7 +195,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
 
   // ---- the EXCEPTION-STOP flavour: uncaught filter armed, the VM stops with
   // ---- reason "exception", and the user then steps / resumes FROM that stop
-  // ---- (the exact IDE flow that stalled the session for ~50s per press)
+  // ---- (the IDE's flow; a wedge there stalls every press for ~50s)
 
   /** Arms the uncaught filter, runs into the throw, returns the exception stop. */
   private StoppedEvent runIntoExceptionStop() throws Exception {
@@ -210,7 +209,7 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
    * Everything the IDE requests on a stop (reportStopped + the variables
    * view): threads, stackTrace, scopes of the top frame, variables of every
    * scope. Each must answer promptly — a single wedged one burns a 10s VM
-   * timeout, and a handful queued back-to-back is the reported 25-50s freeze.
+   * timeout, and a handful queued back-to-back freezes the IDE for 25-50s.
    */
   private void hydrateStopLikeTheIde(int threadId, String label) throws Exception {
     long before = System.currentTimeMillis();
@@ -234,8 +233,8 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
         }
       }
       // watches / inline values: the IDE re-EVALUATES these on every stop —
-      // a wedged evaluate burns a full VM timeout per watch, which is the
-      // multi-10s freeze shape the user reported
+      // a wedged evaluate burns a full VM timeout per watch, freezing the
+      // IDE for tens of seconds
       EvaluateRequest watch = evaluateRequest(frames.get(0).getId(), "1 + 1");
       request(watch); // success optional; promptness is the contract
     }

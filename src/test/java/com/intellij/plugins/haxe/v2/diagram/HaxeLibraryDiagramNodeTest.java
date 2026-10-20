@@ -30,7 +30,7 @@ public class HaxeLibraryDiagramNodeTest extends HaxeLightFixtureTestCase {
     HaxeLibraryDiagramNode node = new HaxeLibraryDiagramNode(new HaxeLibraryDiagramProvider(), graph, HaxeLibraryDiagramElement.library("hxparse"));
     assertSame(AllIcons.General.Warning, node.getIcon(), "nothing synced yet");
 
-    graph.replaceAll(Map.of("hxparse", new Library("hxparse", "4.3.0", true, List.of(), List.of(), null)), Map.of());
+    graph.replaceAll(Map.of("hxparse", new Library("hxparse", "4.3.0", List.of(), List.of(), null)), Map.of());
 
     assertSame(AllIcons.Nodes.PpLib, node.getIcon());
     assertEquals("hxparse 4.3.0", node.getTooltip());

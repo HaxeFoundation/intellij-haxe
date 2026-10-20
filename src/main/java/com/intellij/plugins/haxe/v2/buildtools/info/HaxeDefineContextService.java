@@ -165,6 +165,8 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
 
   @Override
   public void environmentChanged(@NotNull String containerId, @NotNull EnvironmentAspect aspect) {
+    // the server choice changes no define
+    if (aspect == EnvironmentAspect.COMPILATION_SERVER) return;
     invalidateAndRefresh();
   }
 
@@ -522,16 +524,27 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
   }
 
   /**
-   * The compiler's identity defines, mirrored so {@code #if (haxe_ver >= 4.307)}
-   * blocks activate correctly: {@code haxe_ver} in the compiler's numeric form,
-   * {@code haxe} and the major-version flags as the dotted version. Sourced
-   * from the language level or the container's compiler version per the
-   * compiler settings; wins over a build-tool-reported value (the point of
+   * The compiler's identity defines ({@link #compilerIdentityDefines}),
+   * sourced from the language level or the container's compiler version per
+   * the compiler settings; wins over a build-tool-reported value (the point of
    * choosing the level), while the build file's IDE overrides still apply on
    * top.
    */
   private void putCompilerIdentityDefines(@NotNull Map<String, String> defines, @NotNull String containerId) {
     String version = HaxeLanguageLevelUtil.getHaxeVersion(project, containerId);
+    defines.putAll(compilerIdentityDefines(version));
+  }
+
+  /**
+   * The defines a compiler of the dotted version sets about itself, mirrored
+   * so {@code #if (haxe_ver >= 4.307)} blocks activate correctly:
+   * {@code haxe_ver} in the compiler's numeric form, {@code haxe} and one
+   * flag per major version up to its own ({@code haxe3}, {@code haxe4},
+   * {@code haxe5}) as the dotted version.
+   */
+  @NotNull
+  public static Map<String, String> compilerIdentityDefines(@NotNull String version) {
+    Map<String, String> defines = new LinkedHashMap<>();
     defines.put("haxe_ver", HaxeLanguageLevelUtil.haxeVerDefineValue(version));
     defines.put("haxe", version);
     SemVer semVer = SemVer.parseFromText(version);
@@ -540,6 +553,7 @@ public final class HaxeDefineContextService implements Disposable, HaxeBuildSett
       if (semVer.getMajor() >= 4) defines.put("haxe4", version);
       if (semVer.getMajor() >= 5) defines.put("haxe5", version);
     }
+    return defines;
   }
 
   /**

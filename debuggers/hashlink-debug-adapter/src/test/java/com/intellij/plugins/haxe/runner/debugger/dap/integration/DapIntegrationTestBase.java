@@ -42,8 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
  * {@link HlExecutableResolver}.
  *
  * The FIXTURE_* constants are load-bearing: they mirror the marked lines in
- * test-fixtures/src/ (Main.hx, Config.hx, Rich.hx) and must be updated
- * together with those files.
+ * test-fixtures/src/ and must be updated together with those files.
  */
 public abstract class DapIntegrationTestBase {
   protected static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
@@ -68,6 +67,7 @@ public abstract class DapIntegrationTestBase {
 
   protected static final String FIXTURE_RICH = "Rich.hx";
   protected static final int FIXTURE_RICH_LINE = 42; // Rich.demo(): arrays/dyn/enum/anon/closure/ref/dynobj/maps/structs
+  protected static final int FIXTURE_RICH_CAPTURES_LINE = 56; // Rich.captures(): shiftFixed/shift/scale close over read-only locals
 
   protected static final String FIXTURE_IFACE = "Iface.hx";
   protected static final int FIXTURE_IFACE_LINE = 54; // Iface.demo(): task + asIface in scope
@@ -121,9 +121,10 @@ public abstract class DapIntegrationTestBase {
 
   /**
    * True when the resolved hl executable is a 32-bit (x86) build, read from its
-   * PE header. Some debugger features are x86-64 only — eval-calls inject
-   * x86-64 machine code — and the adapter refuses them with a clear error on a
-   * 32-bit VM; their tests skip there instead of failing.
+   * PE header. Some debugger behaviour is x86-64 only — a write to a
+   * register-passed argument meets the x86-64 calling convention's arrival
+   * register, while 32-bit HL passes arguments on the stack — so tests pinning
+   * it skip there instead of failing.
    */
   protected boolean isX86Hl() throws IOException {
     try (var exe = new RandomAccessFile(hlExecutable, "r")) {
@@ -190,8 +191,8 @@ public abstract class DapIntegrationTestBase {
    * Extra environment for the adapter process (inherited by the debuggee it
    * spawns). Suites whose scenario needs the fixture's slow call at its full
    * 3s length override this with {@code FIXTURE_SLOW=1}; by default the
-   * fixture's {@code slowDemo()} sleep is near-instant, because ~20
-   * run-to-completion tests per suite run were each paying the full 3s.
+   * fixture's {@code slowDemo()} sleep is near-instant, so the ~20
+   * run-to-completion tests per suite run stay fast.
    */
   protected Map<String, String> adapterEnv() {
     return Map.of();
@@ -278,11 +279,7 @@ public abstract class DapIntegrationTestBase {
     return haveMajor > major || (haveMajor == major && haveMinor >= minor);
   }
 
-  // The trace breadcrumbs (DAP_ADAPTER_TRACE) can exceed the OS pipe buffer, so
-  // a background thread must drain the adapter's merged stdout/stderr for the
-  // whole test — otherwise the adapter blocks mid-write and the test hangs for a
-  // reason that has nothing to do with what it covers. The captured output is
-  // printed on teardown so a failed run self-diagnoses.
+  // The captured adapter output, printed on teardown so a failed run self-diagnoses.
   private void printAdapterOutput() {
     String output;
     synchronized (adapterOutput) {
@@ -296,7 +293,7 @@ public abstract class DapIntegrationTestBase {
   // Reads until the port line, then keeps draining into adapterOutput. Guarded
   // by a watchdog: if the port has not appeared within PORT_TIMEOUT_MS the
   // adapter is presumed wedged (e.g. a modal HL error dialog on an unsupported
-  // VM), so we kill its process tree — that closes stdout, unblocks the
+  // VM), so the watchdog kills its process tree — that closes stdout, unblocks the
   // readLine below, and surfaces as the IOException instead of a forever-hang.
   private int awaitListeningPort() throws IOException {
     BufferedReader stdout = new BufferedReader(
@@ -330,6 +327,10 @@ public abstract class DapIntegrationTestBase {
                           + "(waited up to " + PORT_TIMEOUT_MS + "ms)");
   }
 
+  // The trace breadcrumbs (DAP_ADAPTER_TRACE) can exceed the OS pipe buffer, so
+  // this background drain of the adapter's merged stdout/stderr runs for the
+  // whole test — otherwise the adapter blocks mid-write and the test hangs for a
+  // reason that has nothing to do with what it covers.
   private void gobble(BufferedReader stdout) {
     try {
       String line;

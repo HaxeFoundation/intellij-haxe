@@ -60,7 +60,7 @@ final class HashLinkExpressionQualifier {
    * Returns {@code expression} with each bare class reference replaced by its
    * fully-qualified name; returns it unchanged when there is no usable context or
    * nothing needs qualifying. Never throws — a rewrite failure falls back to the
-   * original text (the adapter then reports a clear UNRESOLVED_NAME as before).
+   * original text (the adapter then reports a clear UNRESOLVED_NAME).
    */
   static @NotNull String qualify(@NotNull Project project, @Nullable XSourcePosition position,
                                  @NotNull String expression) {

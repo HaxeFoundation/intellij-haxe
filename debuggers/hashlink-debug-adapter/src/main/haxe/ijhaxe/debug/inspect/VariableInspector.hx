@@ -130,6 +130,14 @@ class VariableInspector {
 			var location = jit.resolveAddress(funPtr);
 			return location == null ? null : module.functionName(location.fidx);
 		};
+		valueReader.closureEnvironmentTypeResolver = funPtr -> {
+			var location = jit.resolveAddress(funPtr);
+			if (location == null) return null;
+			return switch (module.functionType(location.fidx)) {
+				case HFun(fun) if (fun != null && fun.args.length > 0): fun.args[0];
+				default: null;
+			}
+		};
 		valueReader.symbolResolver = codePtr -> {
 			var location = jit.resolveAddress(codePtr);
 			if (location == null) return null;

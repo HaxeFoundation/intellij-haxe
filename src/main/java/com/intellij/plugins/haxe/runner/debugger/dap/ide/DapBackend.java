@@ -34,6 +34,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@code HashLinkBackend} — the bundled external {@code
  *       hl-debug-adapter.hl} process, spoken to over TCP; it attaches to the
  *       runner-spawned debuggee by pid.</li>
+ *   <li>{@code BrowserDebugBackend} — a pinned vscode debug adapter (firefox
+ *       or js-debug) spawned on node; the adapter launches the browser
+ *       itself, so the runner spawns no debuggee.</li>
+ *   <li>{@code NodeDebugBackend} — the pinned vscode-js-debug adapter spawned
+ *       on node and attached to the inspector port of the runner-spawned
+ *       {@code node --inspect-brk} debuggee.</li>
  * </ul>
  *
  * A backend is created by the debug runner BEFORE the debuggee is spawned (a

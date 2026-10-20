@@ -35,7 +35,7 @@ class LiveClient implements ITestResultClient {
 	function get_completionHandler():ITestResultClient->Void return handler;
 	function set_completionHandler(value:ITestResultClient->Void):ITestResultClient->Void return handler = value;
 
-	final rootSuite:String;
+	#if (haxe_ver >= 4.0) final #else @:final var #end rootSuite:String; // haxe 3 does not enforce @:final on a field
 	var rootOpen:Bool = false;
 	var openSuite:Null<String> = null;
 	var traceBuffer:Array<String> = [];
@@ -50,8 +50,21 @@ class LiveClient implements ITestResultClient {
 		// immediate print no longer happens, so the text appears exactly
 		// once, on the right node.
 		haxe.Log.trace = function(value:Dynamic, ?info:haxe.PosInfos) {
-			traceBuffer.push(haxe.Log.formatOutput(value, info));
+			traceBuffer.push(formatTrace(value, info));
 		};
+	}
+
+	/** The line the running haxe's own trace prints for the value. */
+	static function formatTrace(value:Dynamic, info:haxe.PosInfos):String {
+		#if (haxe_ver >= 4.0)
+		return haxe.Log.formatOutput(value, info);
+		#else
+		// haxe 3 has no formatOutput; this is its sys targets' trace line
+		var text = Std.string(value);
+		if (info == null) return text;
+		if (info.customParams != null) for (param in info.customParams) text += "," + Std.string(param);
+		return info.fileName + ":" + info.lineNumber + ": " + text;
+		#end
 	}
 
 	public function addPass(result:TestResult):Void {

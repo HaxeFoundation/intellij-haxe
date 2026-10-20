@@ -81,7 +81,7 @@ public record HaxeTestContext(@NotNull HaxeTestFramework framework, @NotNull Str
       if (testsBuild == null) continue;
       // lime-family ownership/detection reads the project xml's DECLARED
       // sources and haxelibs (no tool run) - precise enough to claim a file
-      // TODO single runs for nmml tests builds: nme's app-main override is unverified
+      // TODO: single runs for nmml tests builds (see the TODO in HaxeTestLaunchPlanner.plan)
       boolean supported = testsBuild.type() == HaxeBuildFileType.HXML || LimeProjects.isLimeFamily(testsBuild.type());
       if (!supported) continue;
       // ONE inspection per candidate: its classpaths decide ownership, its

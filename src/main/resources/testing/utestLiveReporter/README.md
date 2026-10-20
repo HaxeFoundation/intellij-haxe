@@ -10,6 +10,10 @@ framework's reporter shares (`../sharedLiveReporter/intellij_haxe_test/`:
 TeamCity escaping, line printing, the hosted-run sentinel and the flash
 shims) — one classpath root serves both.
 
+The sources compile with every haxe from 3.4.7 on: anything newer sits behind
+`#if (haxe_ver >= 4.0)`, with the haxe 3 form in the `#else` branch where one
+exists (`@:final` for `final`).
+
 `Macro.init()` registers a `@:build` macro on `utest.Runner` that appends a
 `LiveReporter.attach(this, <root suite name>)` call to the constructor. The
 reporter rides the runner's public `onTestStart`/`onTestComplete`

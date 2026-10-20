@@ -20,6 +20,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiTarget;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -73,6 +74,7 @@ public final class HaxeGeneratedPreviewTarget implements PsiTarget, PomNamedTarg
     return PomService.convertToPsi(previewedElement.getProject(), target);
   }
 
+  @TestOnly
   @NotNull
   HaxeGeneratedPreviewSpot spot() {
     return spot;

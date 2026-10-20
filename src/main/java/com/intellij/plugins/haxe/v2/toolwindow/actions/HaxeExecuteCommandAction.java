@@ -27,6 +27,8 @@ import java.util.List;
 public final class HaxeExecuteCommandAction extends DumbAwareAction {
 
   private static final String LAST_COMMAND_KEY = "haxe.v2.toolwindow.last.command";
+  /** -version, not --version: haxe 3.x knows only the single-dash form, and haxe 5 still accepts it. */
+  private static final String DEFAULT_ARGUMENTS = "-version";
 
   public HaxeExecuteCommandAction() {
     super(HaxeBundle.message("haxe.toolwindow.execute.text"),
@@ -40,11 +42,12 @@ public final class HaxeExecuteCommandAction extends DumbAwareAction {
     if (project == null) return;
 
     PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    String lastArguments = properties.getValue(LAST_COMMAND_KEY, DEFAULT_ARGUMENTS);
     String arguments = Messages.showInputDialog(project,
                                                 HaxeBundle.message("haxe.toolwindow.execute.prompt"),
                                                 HaxeBundle.message("haxe.toolwindow.execute.title"),
                                                 HaxeIcons.HAXE_LOGO,
-                                                properties.getValue(LAST_COMMAND_KEY, "--version"),
+                                                lastArguments,
                                                 null);
     if (StringUtil.isEmptyOrSpaces(arguments)) return;
     properties.setValue(LAST_COMMAND_KEY, arguments);

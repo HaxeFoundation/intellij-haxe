@@ -79,16 +79,6 @@ public class HxcppProfileTranslatorTest {
     assertEquals(List.of(), HxcppProfileTranslator.translate(stream("")).entries());
   }
 
-  @Test
-  @DisplayName("looks like report line sniffs entries and rejects everything else")
-  public void testLooksLikeReportLineSniffsEntriesAndRejectsEverythingElse() {
-    assertTrue(HxcppProfileTranslator.looksLikeReportLine("hxcpp.__hxcpp_main 100.00%/0.00%"));
-    assertTrue(HxcppProfileTranslator.looksLikeReportLine("ProfMain.work 0.00%/85.61%"));
-
-    assertTrue(!HxcppProfileTranslator.looksLikeReportLine("   ProfMain.main 100.0%"), "a callee line is no entry");
-    assertTrue(!HxcppProfileTranslator.looksLikeReportLine("PROF binary header"), "the HL dump must not match");
-  }
-
   private static InputStream stream(String text) {
     return new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
   }

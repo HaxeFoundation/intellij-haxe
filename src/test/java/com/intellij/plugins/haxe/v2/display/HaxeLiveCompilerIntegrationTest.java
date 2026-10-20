@@ -5,15 +5,23 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
+import com.intellij.plugins.haxe.display.protocol.DisplayMethods;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.fqn.HaxeFullyQualifiedClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerAssignment;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerTypeCatalogService.GeneratedType;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
+import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeServerGeneration;
+import com.intellij.plugins.haxe.v2.display.HaxeCompilerDisplayService.Connected;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerDisplayService.DisplayContext;
 import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
@@ -81,6 +89,7 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
   @AfterEach
   void stopCompilationServer() {
     HaxeCompilationServerManager.getInstance(getProject()).stopAll();
+    HaxeCompilerSettings.getInstance(getProject()).setDisplayConnectionMode(HaxeServerGeneration.HAXE_4, HaxeDisplayConnectionMode.DEFAULT);
   }
 
   @Test
@@ -179,6 +188,32 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
     assertEquals("width", sourceField.getName());
   }
 
+  @Test
+  @Timeout(60)
+  @DisplayName("sdk detection reads the compiler version")
+  public void testSdkDetectionReadsTheCompilerVersion() throws Exception {
+    HaxeSdkData sdkData = HaxeSdkUtil.testHaxeSdk(haxeHomeOnPath());
+
+    assertNotNull(sdkData, "the folder of the haxe on the PATH is an SDK home");
+    assertEquals(haxeVersionOnPath(), sdkData.getVersion());
+  }
+
+  @Test
+  @Timeout(180)
+  @DisplayName("the build server answers when it is the connection mode")
+  public void testTheBuildServerAnswersWhenItIsTheConnectionMode() throws Exception {
+    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
+    settings.setDisplayConnectionMode(HaxeServerGeneration.HAXE_4, HaxeDisplayConnectionMode.SHARED_SERVER);
+    HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(getProject());
+    DisplayContext context = HaxeReadActions.compute(() -> displayService.contextFor(mainFile));
+
+    Connected completion = onPooledThread(() -> displayService.connectFor(context, DisplayMethods.COMPLETION));
+
+    assertNotNull(completion, "the build server, started with --server-listen, answers completion");
+    boolean buildServerRuns = HaxeCompilationServerManager.getInstance(getProject()).runningPort(sharedServer().id()) > 0;
+    assertTrue(buildServerRuns, "the requests went to the build server");
+  }
+
   /**
    * The FIRST fill spawns the compilation server, whose start event queues a
    * cache invalidation on the EDT (correct in production: caches die with
@@ -186,6 +221,11 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
    * again against the now-running server so the catalog stays stable for the
    * test's assertions.
    */
+  /** The project default SDK's shared server instance. */
+  private HaxeServerAssignment sharedServer() {
+    return HaxeServerAssignment.shared(getProject(), null);
+  }
+
   private void fillCatalogStably() {
     HaxeCompilerTypeCatalogService catalog = HaxeCompilerTypeCatalogService.getInstance(getProject());
     catalog.fillNowForTests();

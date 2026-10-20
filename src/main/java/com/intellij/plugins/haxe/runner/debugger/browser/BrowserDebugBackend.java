@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration.BrowserFamily;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
@@ -53,11 +52,10 @@ import com.intellij.plugins.haxe.runner.debugger.javascript.NodeLocator;
  * multi-session dance. The child's launch response is deferred past
  * configurationDone, hence {@link #awaitsLaunchResponse()} = false.
  *
- * All heavy work (download, server, spawns) happens in {@link #connect()} on
+ * All heavy work (adapter lookup, server, spawns) happens in {@link #connect()} on
  * the debug process's request thread — never the EDT.
  */
 public class BrowserDebugBackend implements DapBackend {
-  private static final Logger LOG = Logger.getInstance(BrowserDebugBackend.class);
   /** Serve mode (firefox only): delay of the one-shot first-page refresh. */
   private static final int FIRST_PAGE_REFRESH_SECONDS = 2;
 
@@ -79,7 +77,6 @@ public class BrowserDebugBackend implements DapBackend {
   private volatile DapClient parentClient;
   /** Chromium only: the page+workers multiplexer (owns parent + all children). */
   private volatile JsDebugSessionMux sessionMux;
-  private volatile boolean closed;
 
   public BrowserDebugBackend(BrowserFamily family,
                              String configuredNodePath,
@@ -110,7 +107,7 @@ public class BrowserDebugBackend implements DapBackend {
         // is only born when scripts first execute): the first load binds the
         // map + breakpoints and this one-shot refresh re-runs it armed.
         // js-debug pre-registers breakpoints through CDP and needs none.
-        // Known cost (see the module README): a WORKER breakpoint hitting
+        // Known cost (pinned by FirefoxAdapterLiveTest.workerThreadsAcrossRefresh): a WORKER breakpoint hitting
         // before the refresh leaves that paused worker behind as an inert
         // zombie thread - firefox worker debugging has deeper quirks anyway
         // and Chromium is the recommended family for worker-heavy sessions.
@@ -206,7 +203,7 @@ public class BrowserDebugBackend implements DapBackend {
   /**
    * Drains the adapter's buffered stdout (the launch reader must be consumed
    * or the adapter can block on a full pipe) and routes the mux's attach/exit
-   * notes into [sink] — tagged {@code [adapter]}/{@code [js-debug]} lines.
+   * notes into {@code sink} — tagged {@code [adapter]}/{@code [js-debug]} lines.
    * Called once after {@link #connect()}, by the debug process or the test
    * run host.
    */
@@ -329,7 +326,6 @@ public class BrowserDebugBackend implements DapBackend {
 
   @Override
   public void close() {
-    closed = true;
     ContentHttpServer server = contentServer;
     contentServer = null;
     if (server != null) {

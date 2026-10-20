@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/// Tests our mini http content server used to serve project output for browser targets
+/// Tests the mini http content server that serves project output for browser targets
 @DisplayName("Browser debugger: content http server")
 public class ContentHttpServerTest {
 

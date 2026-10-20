@@ -15,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Type inlays from the compilation server only, for the declarations the
- * IDE's own type-hint providers cover: variables, captures, extracted values,
+ * IDE's own type-hint providers cover: variables ({@code case var} captures
+ * among them), extracted values,
  * loop variables, untyped parameters and fields, and the return types of
  * methods and local functions. The texts come from
  * {@link HaxeCompilerInlayService}; a declaration without an answer shows

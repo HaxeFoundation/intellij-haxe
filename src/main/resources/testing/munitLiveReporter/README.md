@@ -7,6 +7,10 @@ compiles; `HaxeTestReporterFiles` extracts this directory into the IDE
 system path together with the shared sources
 (`../sharedLiveReporter/intellij_haxe_test/`).
 
+The sources compile with every haxe from 3.4.7 on: anything newer sits behind
+`#if (haxe_ver >= 4.0)`, with the haxe 3 form in the `#else` branch where one
+exists (`@:final` for `final`).
+
 `Macro.init()` registers a `@:build` macro on `massive.munit.TestRunner`
 that appends an `addResultClient(new LiveClient(<root suite name>))` call to
 the constructor. munit has no TeamCity reporter of its own, so this client

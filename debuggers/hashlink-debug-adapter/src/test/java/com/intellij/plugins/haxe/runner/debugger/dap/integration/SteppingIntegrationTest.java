@@ -22,12 +22,12 @@ import org.junit.jupiter.params.provider.ValueSource;
  * (FIXTURE_CLOSURE_CALL_LINE) — the callee exists only at runtime (OCallClosure
  * has no static findex), so step-into resolves the closure register's vclosure
  * `fun` pointer at the stop and plants the entry temp there; without that, the
- * step degraded to a step-over (user-reported). DEFERRED: `callbacks[idx]()`
+ * step would degrade to a step-over. DEFERRED: `callbacks[idx]()`
  * (FIXTURE_CLOSURE_REAL_ARRAY_LINE) — a REAL array (runtime index, not
  * analyzer-folded): the closure register is loaded BY the array access on the
  * same line, so it is EMPTY at the stop and cannot be resolved up front; the
  * step traps the call op itself, resolves the operand there, and runs on into
- * the callee (user-reported after the plain closure fix).
+ * the callee.
  */
 @DisplayName("HashLink debugger: stepping (integration)")
 public class SteppingIntegrationTest extends DapIntegrationTestBase {
@@ -49,7 +49,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @ParameterizedTest(name = "call line {0}")
-  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
+  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_ARRAY_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
   @DisplayName("step into enters the closure callee")
   public void stepIntoEntersTheClosureCallee(int callLine) throws Exception {
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, callLine);
@@ -67,12 +67,12 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   }
 
   @ParameterizedTest(name = "call line {0}")
-  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
+  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_ARRAY_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
   @DisplayName("stepping inside the closure entered callee stays inside")
   public void steppingInsideTheClosureEnteredCalleeStaysInside(int callLine) throws Exception {
-    // user-reported: after ENTERING a closure-called function, the very next
-    // step jumped back out to the caller (and the caller position skipped a
-    // line) instead of advancing to the callee's second line
+    // after ENTERING a closure-called function, the very next step must
+    // advance to the callee's second line, not jump back out to the caller
+    // (with the caller position skipping a line)
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, callLine);
     int threadId = atCall.getBody().getThreadId();
     assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn accepted");
@@ -123,10 +123,9 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("step over a long running call waits for the landing")
   public void stepOverALongRunningCallWaitsForTheLanding() throws Exception {
-    // Regression: a step over a slow call (Sys.sleep(3)) produces no debug
-    // events for seconds. The step must WAIT for its landing — an earlier
-    // "step watchdog" wrongly downgraded such steps to a resume after 2s,
-    // losing the stop entirely (user-reported design flaw, verified here).
+    // a step over a slow call (Sys.sleep(3)) produces no debug events for
+    // seconds. The step must WAIT for its landing — a "step watchdog" that
+    // downgrades such steps to a resume after 2s loses the stop entirely.
     StoppedEvent atSleep = runToBreakpoint(FIXTURE_MAIN, FIXTURE_SLOW_LINE);
     long start = System.currentTimeMillis();
     assertTrue(request(nextRequest(atSleep.getBody().getThreadId())).isSuccess(), "next accepted");
@@ -144,10 +143,9 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("step over a caught throw lands in the catch block")
   public void stepOverACaughtThrowLandsInTheCatchBlock() throws Exception {
-    // Regression (user-reported): stepping over `throw` inside a try left the
-    // function entirely instead of landing in the catch. The CFG treated OThrow
-    // as terminal; the VM actually longjmps to the enclosing OTrap's handler,
-    // so the step planted no temp at the catch and ran through it to the caller.
+    // stepping over `throw` inside a try must land in the catch, not leave the
+    // function: OThrow is not terminal - the VM longjmps to the enclosing
+    // OTrap's handler, so the step needs a temp at the catch.
     // Uncaught.hx: line 11 `throw "caught-one"` inside try, catch body prints
     // on line 13.
     // haxe 4.1 emits bogus "line 1" debug info for catch-handler ops, so the

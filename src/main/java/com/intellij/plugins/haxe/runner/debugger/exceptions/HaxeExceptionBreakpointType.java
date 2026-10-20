@@ -22,8 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The single "Haxe Exception Breakpoints" category, shared by the HashLink
- * and HXCPP debuggers and modelled on the Java debugger's:
+ * The single "Haxe Exception Breakpoints" category, shared by every DAP
+ * debugger whose backend supports exception filters (HashLink, HXCPP, eval,
+ * browser, Node.js) and modelled on the Java debugger's:
  *
  * <ul>
  *   <li>the DEFAULT breakpoint is "Any exception", whose Notifications panel

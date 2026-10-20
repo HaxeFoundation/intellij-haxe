@@ -113,7 +113,7 @@ public class JsDebugAdapterLiveTest {
     return dir;
   }
 
-  /// As {@link #awaitStopped}, but only a stop owned by a worker session.
+  /// As {@link LiveProbeUtil#awaitStopped}, but only a stop owned by a worker session.
   private static StoppedEvent awaitWorkerStop(DapEndpoint endpoint, long millis) throws Exception {
     long deadline = System.currentTimeMillis() + millis;
     while (System.currentTimeMillis() < deadline) {
@@ -270,8 +270,8 @@ public class JsDebugAdapterLiveTest {
   /// fire-and-forget launch, await initialized, setBreakpoints,
   /// setExceptionBreakpoints(["uncaught"]), configurationDone — then at the stop:
   /// threads, stackTrace, and the stepInTargets the smart-step handler sends.
-  /// Exists because the IDE reported no step-in chooser while the probe's own
-  /// sequence got targets fine — this pins whether the SEQUENCE is the culprit.
+  /// Pins that the IDE's sequence gets step-in targets just like the probe's
+  /// own.
   @Test
   @Timeout(60)
   @DisplayName("step in targets under the ide exact sequence")
@@ -282,7 +282,7 @@ public class JsDebugAdapterLiveTest {
     LiveProbeUtil.writePageAndCompile(fixture, "WebSmart");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
-      // --- parent exactly as BrowserDebugBackend.runParentHandshake ---
+      // --- parent exactly as JsDebugSessions.runParentHandshake ---
       assertTrue(parent.sendRequest(initializeRequest("chrome"), TIMEOUT).isSuccess(), "parent initialize");
 
       Map<String, Object> parentConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
@@ -342,8 +342,8 @@ public class JsDebugAdapterLiveTest {
         }
 
         // first-stop targets are the plain probe's pin; the unique pin here is
-        // the SECOND pause (the user's failing case had frameId=3 - ids
-        // increment across pauses, so their stop was not the first). continue,
+        // the SECOND pause (frame ids increment across pauses, so a later
+        // stop carries higher ones). continue,
         // let the ticking fixture re-hit the same line, ask again.
         assertTrue(child.sendRequest(continueRequest(threadId), TIMEOUT).isSuccess(), "continue");
 
@@ -367,7 +367,7 @@ public class JsDebugAdapterLiveTest {
   }
 
   // WebClick.hx line numbers are load-bearing: CLICK_CALLS_LINE is the
-  // two-call line INSIDE A DOM EVENT HANDLER - the user's exact failing case.
+  // two-call line INSIDE A DOM EVENT HANDLER.
   private static final int CLICK_CALLS_LINE = 8;
   private static final String WEB_CLICK_HX_SOURCE = """
     class WebClick {
@@ -392,7 +392,7 @@ public class JsDebugAdapterLiveTest {
 
   // A/B confound check: the WORKING fixture's line is an ASSIGNMENT
   // (`counter = f2(f1(...))`), the failing one a BARE expression statement
-  // (`abc(cde(1));`) - same as the user's. Same timer delivery as the
+  // (`abc(cde(1));`). Same timer delivery as the
   // working fixture, only the statement shape differs.
   private static final int EXPR_CALLS_LINE = 9;
   private static final String WEB_EXPR_HX_SOURCE = """
@@ -444,9 +444,8 @@ public class JsDebugAdapterLiveTest {
   /// line AND line+1; the closing-brace line has no source-map entries, the
   /// sibling counts differ, and it bails to [] with the internal warning
   /// "Expected to have the same number of start and end locations" (no CDP is
-  /// even consulted). Diagnosed via trace logs; the IDE then falls back to a
-  /// plain step into. If a future js-debug pin fixes this, THIS TEST FAILS -
-  /// celebrate and delete it.
+  /// even consulted). The IDE then falls back to a plain step into. A
+  /// js-debug pin that fixes this makes THIS TEST FAIL; delete it then.
   @Test
   @Timeout(60)
   @DisplayName("step in targets known limitation on last statement of function")
@@ -546,7 +545,7 @@ public class JsDebugAdapterLiveTest {
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
-      // --- parent handshake exactly as BrowserDebugBackend.runParentHandshake ---
+      // --- parent handshake exactly as JsDebugSessions.runParentHandshake ---
       assertTrue(parent.sendRequest(initializeRequest("chrome"), TIMEOUT).isSuccess(), "parent initialize");
 
       Map<String, Object> parentConfig = baseLaunchConfig(content.getBaseUrl(), fixture);
@@ -685,10 +684,11 @@ public class JsDebugAdapterLiveTest {
   }
 
   /// Pausing, stepping and resuming the PAGE must never disturb a worker that is
-  /// already paused. The IDE holds the worker's stop back and presents it after
-  /// the page resumes, so releasing it early would run it past the breakpoint
-  /// before the user ever sees it. The ticking worker re-hits within ~250ms once
-  /// resumed, so silence is what pins that it stayed put.
+  /// already paused: a session-routed continue releases only its own session. In
+  /// the IDE the worker stays paused and inspectable through the thread list, and
+  /// Resume releases every thread (see `DapDebugProcess.pauseOnScreen`). The
+  /// ticking worker re-hits within ~250ms once resumed, so silence is what pins
+  /// that it stayed put.
   private static void assertPageRoutingLeavesWorkerPaused(JsDebugSessionMux mux, int pageThreadId,
                                                           int workerThreadId) throws Exception {
     assertTrue(mux.sendRequest(pauseRequest(pageThreadId), TIMEOUT).isSuccess(), "pause the page thread");
@@ -699,7 +699,7 @@ public class JsDebugAdapterLiveTest {
                + pageStop.getBody().getThreadId());
 
     // a step routed to the PAGE must stop in the PAGE, never the worker
-    // (the IDE bug this pins: stepping after switching threads)
+    // (stepping after switching threads)
     assertTrue(mux.sendRequest(nextRequest(pageThreadId), TIMEOUT).isSuccess(), "step the page thread");
 
     StoppedEvent stepStop = awaitStopped(mux, 15_000);

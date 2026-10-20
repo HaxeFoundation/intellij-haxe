@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Fixtures mirror the crypto project's shape: a project-local {@code unit.Test}
+ * Fixtures take a common project shape: a project-local {@code unit.Test}
  * base extending a stub {@code utest.Test} (implementing a stub
  * {@code utest.ITest}), so detection is exercised over a transitive chain, not a
  * direct extends.

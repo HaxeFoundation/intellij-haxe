@@ -1,9 +1,8 @@
 package com.intellij.plugins.haxe.v2.toolwindow;
 
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeBuildToolFailures;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeEffectiveBuildFileInfo;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
+import com.intellij.plugins.haxe.v2.buildtools.server.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -19,7 +18,10 @@ import com.intellij.plugins.haxe.v2.buildtools.*;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeProgramLaunches;
 import com.intellij.plugins.haxe.v2.buildtools.settings.*;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
+import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeServerGeneration;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.*;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.util.execution.ParametersListUtil;
@@ -81,6 +83,8 @@ final class HaxeToolWindowModelBuilder {
                         EnvironmentData environment,
                         EnvCompileCommandNode compileCommand,
                         CompilationServerNode server,
+                        ServerInstanceNode serverInstance,
+                        ConnectionModeNode connectionMode,
                         List<ToolNode> tools,
                         boolean userConfigured) {
 
@@ -113,12 +117,14 @@ final class HaxeToolWindowModelBuilder {
       EnvCompileCommandNode compileCommand = compileCommandNode(raw.id(), raw.files(), testsPaths);
       EnvironmentData environment = buildEnvironmentData(raw.id());
       CompilationServerNode server = compilationServerNode(raw.id(), compileCommand.connectEligible());
+      ServerInstanceNode serverInstance = serverInstanceNode(raw.id());
+      ConnectionModeNode connectionMode = connectionModeNode(raw.id(), server);
       List<String> markedTestsPaths = HaxeTestsBuildFileStore.getInstance(project).getTestsFilePaths(raw.id());
       List<ToolNode> tools = containerTools(raw);
       boolean userConfigured = hasUserConfiguration(raw.id());
       ContainerEntry container = new ContainerEntry(raw.id(), raw.displayName(), raw.projectRoot(), raw.files(),
                                                     activePath, testsPaths, markedTestsPaths, environment, compileCommand,
-                                                    server, tools, userConfigured);
+                                                    server, serverInstance, connectionMode, tools, userConfigured);
       containers.add(container);
     }
     return containers;
@@ -133,9 +139,10 @@ final class HaxeToolWindowModelBuilder {
 
   /**
    * The container's tool rows: commands for tool configs detected at the container
-   * root, then the user's custom tools. Everything runs in the container root so
+   * root, then the user's custom tools. Detected tools run in the container root so
    * the tools' own config discovery and relative excludes resolve as if run there;
    * haxelib forwards that directory to the tool (the HAXELIB_RUN cwd convention).
+   * A custom tool runs in its stored work directory, the container root when blank.
    */
   @NotNull
   private List<ToolNode> containerTools(@NotNull RawContainer raw) {
@@ -305,7 +312,9 @@ final class HaxeToolWindowModelBuilder {
   /**
    * The build file's runnable actions: defaults for its type (using the file's
    * selected target and its container's environment SDK) plus its custom actions.
-   * Everything runs in the build file's own directory.
+   * Actions run in the build file's work directory ({@code HaxeBuildWorkDirectories})
+   * unless they name their own: a default action its build system's, a custom
+   * action its stored one.
    */
   @NotNull
   private List<ActionNode> buildFileActions(@NotNull String containerId,
@@ -395,7 +404,7 @@ final class HaxeToolWindowModelBuilder {
     String display = StringUtil.trimTrailing(baseAction.presentableCommand() + " " + compileCommand.arguments());
     String shown = stored == null ? HaxeBundle.message("haxe.toolwindow.compile.command.default", display) : display;
     String environmentSdk = store.getSdkName(containerId);
-    boolean connectEligible = HaxeCompileCommands.connectEligible(project, environmentSdk, command, buildFile.file());
+    boolean connectEligible = HaxeCompileCommands.connectEligible(project, environmentSdk, command);
     return new EnvCompileCommandNode(containerId, shown, command, baseAction.workDirectory(), candidatePaths,
                                      actionNamesByFile, defaultPath, connectEligible);
   }
@@ -456,15 +465,8 @@ final class HaxeToolWindowModelBuilder {
     HaxeLanguageLevel levelOverride = compilerSettings.getContainerLanguageLevelOverride(containerId);
     String levelDisplay = levelOverride != null
                           ? levelOverride.getPresentableText()
-                          : defaultLevelDisplay(compilerSettings, containerId);
+                          : HaxeLanguageLevelUtil.defaultLevelLabel(project, containerId);
     return new EnvironmentData(sdkDisplay, sdkMissing, levelDisplay);
-  }
-
-  /** The "Project default (X)" label following the compiler settings' per-container default level. */
-  @NotNull
-  private static String defaultLevelDisplay(@NotNull HaxeCompilerSettings settings, @NotNull String containerId) {
-    String defaultLevel = settings.getDefaultLanguageLevel(containerId).getPresentableText();
-    return HaxeBundle.message("haxe.toolwindow.node.environment.sdk.default", defaultLevel);
   }
 
   @NotNull
@@ -499,4 +501,34 @@ final class HaxeToolWindowModelBuilder {
     return new CompilationServerNode(containerId, display, projectEnabled, moduleUses, running, connectEligible,
                                      contextFailure);
   }
+
+  /** The container's server-instance row: its SDK's shared server, or one dedicated to the container. */
+  @NotNull
+  private ServerInstanceNode serverInstanceNode(@NotNull String containerId) {
+    boolean dedicated = HaxeEnvironmentStore.getInstance(project).isUsingDedicatedServer(containerId);
+    return new ServerInstanceNode(containerId, HaxeServerSharing.of(dedicated));
+  }
+
+  /**
+   * The container's connection mode row: the mode of its SDK's server
+   * generation; off while the compilation server does not serve the
+   * container.
+   */
+  @NotNull
+  private ConnectionModeNode connectionModeNode(@NotNull String containerId, @NotNull CompilationServerNode server) {
+    String sdkName = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
+    HaxeServerGeneration generation = HaxeServerGenerations.known(project, sdkName);
+    if (!servesRequests(server)) {
+      return new ConnectionModeNode(containerId, generation, HaxeBundle.message("haxe.toolwindow.connection.mode.off"));
+    }
+    HaxeDisplayConnectionMode mode = HaxeCompilerSettings.getInstance(project).getDisplayConnectionMode(generation);
+    return new ConnectionModeNode(containerId, generation, mode.getPresentableText(generation));
+  }
+
+  /** Whether the compilation server serves the container's compiler requests: the server row reads "on". */
+  private boolean servesRequests(@NotNull CompilationServerNode server) {
+    if (!HaxeProjectTrust.isTrusted(project)) return false;
+    return server.projectEnabled() && server.moduleUses() && server.connectEligible();
+  }
+
 }

@@ -25,7 +25,7 @@ public final class HaxeCompilerProjectSettings implements HaxeCompilerSettings, 
   public static final class State {
     public String defaultLanguageLevel = USE_COMPILER_LEVEL;
     // keys are CONTAINER ids (module name, or /project-root); the field
-    // name predates non-module containers and stays for storage compatibility
+    // name is the option name stored in haxeCompiler.xml
     public Map<String, String> moduleLanguageLevels = new TreeMap<>();
     public boolean compilerDiagnostics = false;
     public boolean compilerDiagnosticsErrors = true;
@@ -40,7 +40,9 @@ public final class HaxeCompilerProjectSettings implements HaxeCompilerSettings, 
     public boolean compilerFeatureNavigation = true;
     public boolean compilerFeatureGeneratedMemberPreview = true;
     public boolean compilerFeatureCompletion = true;
-    public String displayConnectionMode = HaxeDisplayConnectionMode.SHARED_SERVER.getId();
+    // a connection mode per server generation: displayConnectionMode is haxe 4 and later's
+    public String displayConnectionMode = HaxeDisplayConnectionMode.DEFAULT.getId();
+    public String haxe3DisplayConnectionMode = HaxeDisplayConnectionMode.DEFAULT.getId();
   }
 
   private final @Nullable Project project;
@@ -67,11 +69,6 @@ public final class HaxeCompilerProjectSettings implements HaxeCompilerSettings, 
   @Override
   public @NotNull HaxeLanguageLevel getDefaultLanguageLevel() {
     return defaultLevelFor(null);
-  }
-
-  @Override
-  public @NotNull HaxeLanguageLevel getDefaultLanguageLevel(@NotNull String containerId) {
-    return defaultLevelFor(containerId);
   }
 
   @Override
@@ -265,12 +262,18 @@ public final class HaxeCompilerProjectSettings implements HaxeCompilerSettings, 
   }
 
   @Override
-  public @NotNull HaxeDisplayConnectionMode getDisplayConnectionMode() {
-    return HaxeDisplayConnectionMode.fromId(state.displayConnectionMode);
+  public @NotNull HaxeDisplayConnectionMode getDisplayConnectionMode(@NotNull HaxeServerGeneration generation) {
+    String id = generation == HaxeServerGeneration.HAXE_3 ? state.haxe3DisplayConnectionMode : state.displayConnectionMode;
+    return HaxeDisplayConnectionMode.fromId(id);
   }
 
   @Override
-  public void setDisplayConnectionMode(@NotNull HaxeDisplayConnectionMode mode) {
-    state.displayConnectionMode = mode.getId();
+  public void setDisplayConnectionMode(@NotNull HaxeServerGeneration generation, @NotNull HaxeDisplayConnectionMode mode) {
+    if (generation == HaxeServerGeneration.HAXE_3) {
+      state.haxe3DisplayConnectionMode = mode.getId();
+    }
+    else {
+      state.displayConnectionMode = mode.getId();
+    }
   }
 }

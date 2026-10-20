@@ -17,9 +17,11 @@ import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
 import com.intellij.plugins.haxe.util.HaxeExternalPaths;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.usageView.UsageInfo;
@@ -111,10 +113,11 @@ final class HaxeCompilerLocations {
 
   /**
    * The declaration the range marks: the named component whose name sits
-   * there, else the bare element at the range start. A range that starts
-   * inside an expression marks no declaration: a macro gives a declaration
-   * it generates the position of the source expression it was built from,
-   * and the element there is not it.
+   * there, else the one whose whole declaration the range spans, else the
+   * bare element at the range start. A range that starts inside an
+   * expression marks no declaration: a macro gives a declaration it
+   * generates the position of the source expression it was built from, and
+   * the element there is not it.
    */
   @Nullable
   static PsiElement declarationIn(@NotNull PsiFile file, @NotNull Range range) {
@@ -125,7 +128,26 @@ final class HaxeCompilerLocations {
     HaxeComponentName name = PsiTreeUtil.getParentOfType(element, HaxeComponentName.class, false);
     HaxeNamedComponent named = name == null ? null : PsiTreeUtil.getParentOfType(name, HaxeNamedComponent.class);
     if (named != null) return named;
+    HaxeNamedComponent spanned = declarationSpannedBy(file, textRange);
+    if (spanned != null) return spanned;
     return PsiTreeUtil.getParentOfType(element, HaxeExpression.class) != null ? null : element;
+  }
+
+  /**
+   * The declaration the range spans from its first keyword or modifier on,
+   * as haxe 3 reports a definition (often as whole lines): the named
+   * component the range's first code leaf belongs to, when its name lies in
+   * the range. An enclosing declaration's name lies outside it.
+   */
+  @Nullable
+  private static HaxeNamedComponent declarationSpannedBy(@NotNull PsiFile file, @NotNull TextRange range) {
+    PsiElement leaf = file.findElementAt(range.getStartOffset());
+    while (leaf instanceof PsiWhiteSpace || leaf instanceof PsiComment) {
+      leaf = PsiTreeUtil.nextLeaf(leaf);
+    }
+    HaxeNamedComponent component = PsiTreeUtil.getParentOfType(leaf, HaxeNamedComponent.class, false);
+    PsiElement name = component == null ? null : component.getComponentName();
+    return name != null && range.contains(name.getTextRange()) ? component : null;
   }
 
   @Nullable

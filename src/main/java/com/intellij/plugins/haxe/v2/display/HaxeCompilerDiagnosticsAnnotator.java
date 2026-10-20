@@ -31,8 +31,8 @@ import java.util.List;
  * compiler's suggestions become quick fixes (imports, spelling corrections
  * and the missing members). Unused imports and removable code have their own
  * annotators and toggles. Opt-in on the Haxe Compiler settings page; requires
- * the compilation server and haxe 4.3 or newer, which added the JSON-RPC
- * diagnostics method.
+ * the compilation server and haxe 4.3.5 or newer (the JSON-RPC diagnostics
+ * method), or the Haxe 3 display lane.
  */
 public class HaxeCompilerDiagnosticsAnnotator extends HaxeCompilerDiagnosticsAnnotatorBase {
 
@@ -69,8 +69,10 @@ public class HaxeCompilerDiagnosticsAnnotator extends HaxeCompilerDiagnosticsAnn
   @Override
   protected void annotate(@NotNull AnnotationHolder holder, @NotNull PsiFile file, @NotNull Document document,
                           @NotNull Diagnostic diagnostic, @NotNull TextRange range) {
-    AnnotationBuilder builder =
-      holder.newAnnotation(HaxeDiagnosticsFetcher.severityOf(diagnostic), HaxeDiagnosticsFetcher.messageOf(diagnostic)).range(range);
+    String message = HaxeDiagnosticsFetcher.messageOf(diagnostic);
+    AnnotationBuilder builder = holder.newAnnotation(HaxeDiagnosticsFetcher.severityOf(diagnostic), HaxeCompilerMessages.plainText(message))
+      .tooltip(HaxeCompilerMessages.html(message))
+      .range(range);
     switch (diagnostic.kind()) {
       case UNRESOLVED_IDENTIFIER -> builder = builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL);
       case DEPRECATION_WARNING -> builder = builder.highlightType(ProblemHighlightType.LIKE_DEPRECATED);
@@ -149,7 +151,7 @@ public class HaxeCompilerDiagnosticsAnnotator extends HaxeCompilerDiagnosticsAnn
     HaxeCompilerDisplayService displayService = HaxeCompilerDisplayService.getInstance(file.getProject());
     VirtualFile virtualFile = file.getOriginalFile().getVirtualFile();
     var context = virtualFile == null ? null : displayService.contextFor(virtualFile);
-    return context == null ? null : displayService.connectedHaxeVersion(context.sdkName());
+    return context == null ? null : displayService.connectedHaxeVersion(context);
   }
 
 }
