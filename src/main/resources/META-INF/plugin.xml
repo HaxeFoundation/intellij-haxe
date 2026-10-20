@@ -866,11 +866,13 @@
   </applicationListeners>
 
   <projectListeners>
+    <listener class="com.intellij.plugins.haxe.model.HaxeResolveCachePsiChangeListener"
+              topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.model.HaxeResolveCacheRootsListener"
+              topic="com.intellij.openapi.roots.ModuleRootListener"/>
 
-    <listener class="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheChangeListener"
-              topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
   </projectListeners>
 
 

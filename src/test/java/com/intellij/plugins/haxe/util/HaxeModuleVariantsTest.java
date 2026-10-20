@@ -1,0 +1,78 @@
+package com.intellij.plugins.haxe.util;
+
+import com.intellij.plugins.haxe.util.HaxeModuleVariants.CustomTargetProblem;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
+@DisplayName("Resolve: module variant file names")
+public class HaxeModuleVariantsTest {
+
+  /** (module file name without .hx, expected variant or null, expected base module name). */
+  static final List<Arguments> VARIANT_SHAPES = List.of(
+    arguments("String.go", "go", "String"),
+    arguments("String", null, "String"),
+    arguments("Syntax.macro", "macro", "Syntax"),
+    arguments("UInt64.custom_js2", "custom_js2", "UInt64"),
+    // only the LAST segment is the variant; the rest stays the module name
+    arguments("A.b.c", "c", "A.b"),
+    // an uppercase segment is not a variant name (platform and custom-target names are lowercase)
+    arguments("String.Go", null, "String.Go"),
+    // punctuation disqualifies the segment
+    arguments("String.go-x", null, "String.go-x"),
+    // degenerate dots are left alone
+    arguments("String.", null, "String."),
+    arguments(".go", null, ".go"));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("VARIANT_SHAPES")
+  @DisplayName("variant and base module derive from the file name")
+  public void variantAndBaseModuleDeriveFromTheFileName(String moduleFileName, String variant, String baseModule) {
+    assertEquals(variant, HaxeModuleVariants.variantOf(moduleFileName));
+    assertEquals(baseModule, HaxeModuleVariants.moduleNameOf(moduleFileName));
+  }
+
+  /** (candidate name, whether it has the target-name shape). */
+  static final List<Arguments> TARGET_NAME_SHAPES = List.of(
+    arguments("js", true),
+    arguments("custom_js2", true),
+    arguments("_private", true),
+    // an uppercase start, punctuation, whitespace or nothing at all is not a target name
+    arguments("Go", false),
+    arguments("go-x", false),
+    arguments("go x", false),
+    arguments("", false),
+    // only ASCII letters: the compiler's own rule
+    arguments("gö", false));
+
+  @ParameterizedTest(name = "\"{0}\"")
+  @FieldSource("TARGET_NAME_SHAPES")
+  @DisplayName("target name shape is a lowercase start identifier")
+  public void targetNameShapeIsALowercaseStartIdentifier(String name, boolean targetName) {
+    assertEquals(targetName, HaxeModuleVariants.isTargetName(name));
+  }
+
+  /** (candidate --custom-target name, the problem the compiler or the variant lookup has with it). */
+  static final List<Arguments> CUSTOM_TARGET_NAMES = List.of(
+    arguments("mytarget", null),
+    arguments("exactly16chars_x", null),
+    // the compiler's own targets are reserved
+    arguments("js", CustomTargetProblem.RESERVED),
+    arguments("hl", CustomTargetProblem.RESERVED),
+    arguments("a_very_long_target_name", CustomTargetProblem.TOO_LONG),
+    arguments("Go", CustomTargetProblem.NOT_A_TARGET_NAME),
+    arguments("go-x", CustomTargetProblem.NOT_A_TARGET_NAME));
+
+  @ParameterizedTest(name = "\"{0}\"")
+  @FieldSource("CUSTOM_TARGET_NAMES")
+  @DisplayName("custom target names follow the compiler's rules")
+  public void customTargetNamesFollowTheCompilersRules(String name, CustomTargetProblem problem) {
+    assertEquals(problem, HaxeModuleVariants.customTargetProblem(name));
+  }
+}

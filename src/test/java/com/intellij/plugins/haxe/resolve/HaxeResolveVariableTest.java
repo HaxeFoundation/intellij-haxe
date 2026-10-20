@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.resolve;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -32,14 +32,10 @@ import java.util.List;
  * Created by Boch on 05.02.2016.
  */
 @DisplayName("Resolve: variable")
-public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeResolveVariableTest extends HaxeLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/resolve/variable/";
-  }
-
-  private void doTest() throws Exception {
-    myFixture.configureByFile(getTestName(false) + ".hx");
   }
 
   //https://github.com/TiVo/intellij-haxe/issues/234
@@ -63,6 +59,6 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
     HaxeExpression expression1 = assignExpression.getExpressionList().get(0);
     HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)expression1;
     PsiElement resolve = referenceExpression.resolve();
-    assertTrue(resolve instanceof HaxeFieldDeclaration, "list variable should be local var declaration part ");
+    assertTrue(resolve instanceof HaxeFieldDeclaration, "the list reference should resolve to the class field declaration");
   }
 }

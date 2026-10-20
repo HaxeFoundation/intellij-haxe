@@ -35,6 +35,6 @@ class <info descr="null">ModuleImportTest</info> {
         <warning descr="Unresolved symbol">ModuleB</warning>.<warning descr="Unresolved symbol">moduleAFunction</warning><info descr="">()</info>;
         <warning descr="Unresolved symbol">moduleAFunction</warning><info descr="">()</info>;
 
-        var <info descr="null">class1</info>:<error descr="Unresolved type"><warning descr="Unresolved symbol">SomeModuleClass</warning></error> = <error descr="SomeModuleClass does not have a constructor"><info descr="null">new</info> <error descr="Unresolved type"><warning descr="Unresolved symbol">SomeModuleClass</warning></error>()</error>;
+        var <info descr="null">class1</info>:<error descr="Unresolved type">SomeModuleClass</error> = <error descr="SomeModuleClass does not have a constructor"><info descr="null">new</info> <error descr="Unresolved type">SomeModuleClass</error>()</error>;
     }
 }
