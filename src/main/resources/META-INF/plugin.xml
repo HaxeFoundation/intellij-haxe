@@ -469,6 +469,10 @@
     <!-- Settings | Languages & Frameworks | Haxe | Frameworks | Lime/OpenFL/NME:
          the configurable target lists (application-level - targets describe
          the machine's toolchains). The two group pages carry no UI. -->
+    <applicationConfigurable instance="com.intellij.plugins.haxe.ide.conditional.settings.HaxeConditionalCompilationSettingsConfigurable"
+                             parentId="settings.haxe"
+                             id="settings.haxe.cc"
+                             key="haxe.settings.cc.name" bundle="messages.HaxeBundle"/>
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
     <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
