@@ -15,20 +15,6 @@ public class HaxeReturnTypeInlayTest extends HaxeInlayTestBase {
     return "/inlay/haxe.return.type/";
   }
 
-  @Override
-  public void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
-    setTestStyleSettings(2);
-  }
-
-  // test to generate preview used in inlay settings example
-  @Test
-  @DisplayName("preview")
-  public void testPreview() throws Exception {
-    doTest(hintsProvider);
-  }
-
   @Test
   @DisplayName("return type generics")
   public void testReturnTypeGenerics() throws Exception {
@@ -45,5 +31,9 @@ public class HaxeReturnTypeInlayTest extends HaxeInlayTestBase {
     doTest(hintsProvider);
   }
 
-
+  @Test
+  @DisplayName("return type from untyped parameters")
+  public void testReturnTypeFromUntypedParameters() throws Exception {
+    doTest(hintsProvider);
+  }
 }

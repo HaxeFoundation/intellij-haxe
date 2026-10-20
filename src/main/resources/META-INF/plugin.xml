@@ -42,6 +42,8 @@
 
   <extensionPoints>
     <extensionPoint dynamic="true" name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
+    <extensionPoint dynamic="true" name="libraryDiagramOpener"
+                    interface="com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibraryDiagramOpener"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="JavaScript">
@@ -186,6 +188,7 @@
     <lang.surroundDescriptor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.surroundWith.HaxeSurroundDescriptor"/>
     <lang.refactoringSupport language="Haxe"
                              implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringSupportProvider"/>
+    <lang.namesValidator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeNamesValidator"/>
     <lang.foldingBuilder language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.folding.HaxeFoldingBuilder"/>
     <lang.importOptimizer language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeImportOptimizer"/>
 
@@ -275,6 +278,14 @@
                                           bundle="messages.HaxeHintBundle"
                                           nameKey="haxe.untyped.parameter.hint.name"
                                           descriptionKey="haxe.untyped.parameter.hint.description"/>
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerTypeInlayProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.compiler.types"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.compiler.types.hint.name"
+                                          descriptionKey="haxe.compiler.types.hint.description"/>
 
 
 
@@ -442,6 +453,8 @@
 
 
     <!-- V2 build system: build tool settings (Settings | Build, Execution, Deployment | Build Tools | Haxe) -->
+    <projectService serviceInterface="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings"
+                    serviceImplementation="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolProjectSettings"/>
     <!-- the v2 settings stores are @Service light services - no registration entries -->
 
 
@@ -851,6 +864,8 @@
   </applicationListeners>
 
   <projectListeners>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
 
     <listener class="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>

@@ -18,15 +18,38 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.introduceVariable;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
+import com.intellij.codeInsight.lookup.Lookup;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupManager;
+import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author: Fedor.Korotkov
  */
 @DisplayName("Refactoring: introduce variable")
 public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
+
+  private static final String GETTER_CALL_SOURCE = """
+    class Sprite {
+    	public var name:String;
+    	public function new() {}
+    	public function getName():String return name;
+    }
+    class Main {
+    	static function main() {
+    		var sprite = new Sprite();
+    		trace(<selection>sprite.getName()</selection>);
+    	}
+    }
+    """;
+
   @Override
   protected String getBasePath() {
     return "/refactoring/introduceVariable/";
@@ -74,15 +97,23 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   }
 
   @Test
-  @DisplayName("suggest name 1 - name derived from getTest call")
-  public void testSuggestName1() throws Throwable {
-    doTestSuggestions(HaxeCallExpression.class, "test");
-  }
+  @DisplayName("in place offers every suggestion")
+  public void testInPlaceOffersEverySuggestion() {
+    myFixture.configureByText("Main.hx", GETTER_CALL_SOURCE);
+    // keeps the template interactive, as the editor does, instead of finishing it at once
+    TemplateManagerImpl.setTemplateTesting(getTestRootDisposable());
+    myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(true);
+    HaxeIntroduceOperation operation =
+      new HaxeIntroduceOperation(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), null, "action name");
+    operation.setReplaceAll(false);
 
-  @Test
-  @DisplayName("suggest name 2 - name derived from test call")
-  public void testSuggestName2() throws Throwable {
-    doTestSuggestions(HaxeCallExpression.class, "test1");
+    createHandler().performAction(operation);
+
+    Lookup lookup = LookupManager.getActiveLookup(myFixture.getEditor());
+    assertNotNull(lookup, "the template stop opens the name lookup");
+    List<String> offered = lookup.getItems().stream().map(LookupElement::getLookupString).toList();
+    assertTrue(offered.containsAll(List.of("name", "spriteName", "str")), offered.toString());
+    TemplateManagerImpl.getTemplateState(myFixture.getEditor()).gotoEnd(false);
   }
 
   @Test
@@ -107,6 +138,12 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   @DisplayName("extract this")
   public void testExtractThis() throws Throwable {
     doTestInplace(null, false, null);
+  }
+
+  @Test
+  @DisplayName("replace this - given name beside a same-named field")
+  public void testReplaceThis() throws Throwable {
+    doTest(null, false, "myThis", false);
   }
 
   @Test

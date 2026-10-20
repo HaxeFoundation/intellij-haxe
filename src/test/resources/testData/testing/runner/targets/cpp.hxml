@@ -1,0 +1,3 @@
+-p src
+--main unit.TestMain
+-cpp bin/cpp

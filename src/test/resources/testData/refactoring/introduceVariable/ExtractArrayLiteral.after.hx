@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var arr = [0, 1, 2, 3];
-        for (i in arr) Sys.println(i);
+        var ints = [0, 1, 2, 3];
+        for (i in ints) Sys.println(i);
     }
 }

@@ -1,7 +1,7 @@
 // "Create local function 'getVal'" "true-preview"
 class Test {
     function test() {
-        function getVal(param:String, i:Int, f:Float):Dynamic {
+        function getVal(myStrParam:String, i:Int, f:Float):Dynamic {
             return null;
         }
 

@@ -4,7 +4,7 @@ class ParameterMonomorph {
         var testFn/*<# :|String #>*/  = testFunction(null);
         var testCls/*<# :|TestClass|<|Int|> #>*/ = new TestClass(1);
     }
-    function testFunction(?p)/*<# :|String #>*/  {
+    function testFunction(?p/*<# :|String #>*/)/*<# :|String #>*/  {
         if (p == null) {
             p = "string";
         }
@@ -13,7 +13,7 @@ class ParameterMonomorph {
 }
 class TestClass<T> {
     var x:T;
-    public function new(p1) {
+    public function new(p1/*<# :|T #>*/) {
         x = p1;
     }
 }

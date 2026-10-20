@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var this1 = function named(ab:Int) {return this;};
-        var named = this1;
+        var func = function named(ab:Int) {return this;};
+        var named = func;
     }
 }

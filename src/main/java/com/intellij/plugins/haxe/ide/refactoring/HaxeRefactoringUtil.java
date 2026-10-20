@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeSyntheticDeclarations;
 import com.intellij.plugins.haxe.lang.psi.impl.ComponentNameScopeProcessor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -55,8 +56,7 @@ public class HaxeRefactoringUtil {
     }
     List<String> converted = convertNamesToString(usedComponentNames);
     Set<String> usedNames = new HashSet<>(converted);
-    // adding global values
-    usedNames.add("trace");
+    usedNames.addAll(HaxeSyntheticDeclarations.declaredNames(context.getProject()));
     return usedNames;
   }
 

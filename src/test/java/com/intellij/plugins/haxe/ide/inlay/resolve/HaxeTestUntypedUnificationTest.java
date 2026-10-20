@@ -18,14 +18,6 @@ public class HaxeTestUntypedUnificationTest extends HaxeInlayTestBase {
     return "/inlay/resolve/";
   }
 
-  @Override
-  public void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
-    setTestStyleSettings(2);
-  }
-
-
   @Test
   @DisplayName("null unification local var")
   public void testNullUnificationLocalVar() throws Exception {

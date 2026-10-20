@@ -1,0 +1,3 @@
+-p src
+--main TestMain
+-js bin/tests.js

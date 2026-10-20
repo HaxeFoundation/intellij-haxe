@@ -7,7 +7,7 @@ class ClassMoveC {
     }
 }
 /**
- some docs for ClassMoveB
+    some docs for ClassMoveB
 **/
 @runtime
 @:compile
