@@ -51,6 +51,7 @@ public abstract class HaxeLightCodeInsightTestBase {
   }
 
   protected void tearDown() throws Exception {
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     engine.stop();
   }
 

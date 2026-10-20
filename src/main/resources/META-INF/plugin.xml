@@ -872,7 +872,6 @@
     <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
     <statusBarWidgetFactory id="HaxeTargetWidget"
                             implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
-    <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="after slowColor"/>
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
   </extensions>
 
