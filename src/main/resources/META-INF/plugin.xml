@@ -386,9 +386,15 @@
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
     <configurationType implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurationType"/>
+    <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunner"/>
     <!-- before the DAP test runner: flash-family test configurations debug through fdb, not DAP -->
+    <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestFlashDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestDebugRunner"/>
     <runLineMarkerContributor language="Haxe"
                               implementationClass="com.intellij.plugins.haxe.v2.runconfig.HaxeMainClassRunLineMarkerContributor"/>
+    <runLineMarkerContributor language="Haxe"
+                              implementationClass="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunLineMarkerContributor"/>
+    <runConfigurationProducer implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurationProducer"/>
 
     <moduleService serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
@@ -986,6 +992,10 @@
   <projectListeners>
     <listener class="com.intellij.plugins.haxe.model.HaxeResolveCachePsiChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
+    <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
+              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
+              topic="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener"/>
     <listener class="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureBannerRefresh"
               topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
