@@ -17,7 +17,21 @@
   -->
 <html>
 <body>
-Highlights import statements that provide types that are not used in the current
-source file.
+Reports import statements that provide types not used in the current file,
+including duplicates of an earlier import. The quick fix removes the
+statement; an "optimize imports" style fix removes all unused imports in the
+file at once.
+<p><b>Example:</b></p>
+<pre><code>
+import haxe.ds.StringMap;   // nothing below uses StringMap
+
+class Launcher {
+    static function main() trace("started");
+}
+</code></pre>
+<!-- tooltip end -->
+<p>
+When the compiler-diagnostics unused-import feature is enabled, this static
+inspection stands down in favor of the compiler's post-macro view.
 </body>
 </html>

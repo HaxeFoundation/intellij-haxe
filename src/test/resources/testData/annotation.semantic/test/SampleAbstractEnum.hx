@@ -1,6 +1,6 @@
 package test;
 
-@:enum abstract SampleAbstractEnum(Int) from Int to Int {
+enum abstract SampleAbstractEnum(Int) from Int to Int {
   var ONE = 1;
   public var TWO = 2;
   var THREE:Int = 3;

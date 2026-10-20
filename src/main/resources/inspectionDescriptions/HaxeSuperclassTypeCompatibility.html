@@ -1,0 +1,13 @@
+<html>
+<body>
+Reports <code>extends</code> clauses naming something that cannot be
+extended in that position: a class extending an interface, an interface
+extending a class, extending a final class, or a typedef that does not point
+at a matching type.
+<p><b>Example:</b></p>
+<pre><code>
+interface Shape {}
+class Circle extends Shape {}   // Shape is an interface - use `implements`
+</code></pre>
+</body>
+</html>

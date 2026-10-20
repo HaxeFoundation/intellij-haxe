@@ -1,0 +1,13 @@
+<html>
+<body>
+Reports type and reference names that do not resolve but DO match a known
+class or public static member elsewhere in the project - the add-import
+cases. The quick fixes import the matching type or static member.
+<p><b>Example:</b></p>
+<pre><code>
+class Report {
+    var buffer:StringBuf;   // resolves after: import StringBuf (from another package)
+}
+</code></pre>
+</body>
+</html>

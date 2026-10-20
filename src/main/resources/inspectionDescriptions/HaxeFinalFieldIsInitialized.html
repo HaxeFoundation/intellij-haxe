@@ -1,0 +1,18 @@
+<html>
+<body>
+Reports <code>final</code> fields that are never initialized: static finals
+must be initialized in place, instance finals in place or in every
+constructor. Interfaces, extern classes and <code>@:structInit</code> classes
+are exempt.
+<p><b>Example:</b></p>
+<pre><code>
+class Config {
+    final retries:Int;          // never initialized
+    final timeout:Int;
+    public function new() {
+        timeout = 30;           // ok - assigned in the constructor
+    }
+}
+</code></pre>
+</body>
+</html>

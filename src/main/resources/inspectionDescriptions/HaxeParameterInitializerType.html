@@ -1,0 +1,15 @@
+<html>
+<body>
+Reports parameter default values that are not constant, or whose type does
+not match the declared parameter type.
+<p><b>Example:</b></p>
+<pre><code>
+class Greeter {
+    // default values must be constant
+    function greet(name:String = Sys.args()[0]) {}
+    // Int is not assignable to String
+    function label(prefix:String = 1) {}
+}
+</code></pre>
+</body>
+</html>

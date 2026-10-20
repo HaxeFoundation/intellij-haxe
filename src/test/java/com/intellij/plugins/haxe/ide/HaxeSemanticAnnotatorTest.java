@@ -20,8 +20,8 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
-import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.ide.inspections.operators.HaxeIsTypeExpressionInspection;
+import com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedSymbolInspection;
 import com.intellij.testFramework.junit5.RunInEdt;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,14 +29,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-
 @DisplayName("Annotation: semantic annotator")
 public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
+
   @Override
   public void setUp() throws Exception {
     // for use when idempotence check problems occur and we need consistent results.
     //Registry.get("platform.random.idempotence.check.rate").setValue(1, getTestRootDisposable());
-    useHaxeToolkit();
     super.setUp();
     setTestStyleSettings(2);
   }
@@ -45,7 +44,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   protected String getBasePath() {
     return "/annotation.semantic/";
   }
-
 
   @Test
   @DisplayName("char dot code")
@@ -174,15 +172,16 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   @Test
   @DisplayName("is keyword for haxe 4.2 - unparenthesized is allowed in 4.2")
   public void testIsKeywordFor4_2() throws Throwable {
-    HashSet skipAnnotators = new HashSet();
-    skipAnnotators.add(HaxeSemanticAnnotatorInspections.IsTypeExpressionInspection4dot1Compatible.class);
-    doTestSkippingAnnotators(skipAnnotators);
+    // the 4.1-compat option defaults to off, so 4.2 semantics apply
+    doTestNoFixWithWarnings();
   }
 
   @Test
   @DisplayName("is keyword for haxe 4.1 - unparenthesized is flagged pre 4.2")
   public void testIsKeywordFor4_1() throws Throwable {
-    doTestSkippingAnnotators(new HashSet<>());
+    HaxeIsTypeExpressionInspection compat41 = new HaxeIsTypeExpressionInspection();
+    compat41.enforce41Semantics = true;
+    doTestReplacingInspection(compat41);
   }
 
   @Test
@@ -395,6 +394,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     public void testAbstractAssignmentFromToFunctions() throws Exception {
       doTestNoFixWithWarnings();
     }
+
+    @Test
+    @DisplayName("anonymous - to cast allows assignment to a structure")
+    public void testAbstractAssignmentFromToAnonymous() throws Exception {
+      doTestNoFixWithWarnings();
+    }
   }
 
   @Nested
@@ -582,6 +587,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("field immutability")
     public void testFieldImmutability() throws Exception {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
+    @DisplayName("assign value to final")
+    public void testAssignValueToFinal() throws Exception {
       doTestNoFixWithWarnings();
     }
   }
@@ -884,7 +895,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     //  doTestNoFixWithWarnings();
     //}
 
-
     // typedef Pt = {x:Int; y:Int;}; var c:Int = new Pt();
     @Test
     @DisplayName("initialize int with typedef")
@@ -1119,7 +1129,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("type parameter constraints")
     public void testTypeParameterConstraints() throws Throwable {
-      doTestSkippingAnnotators(new HashSet<>());
+      doTestNoFixWithWarnings();
     }
 
     @Test
@@ -1160,6 +1170,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("type from constraints")
     public void testTypeFromConstraints() throws Throwable {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
+    @DisplayName("assign from type parameter constraints")
+    public void testAssignFromTypeParameterConstraints() throws Throwable {
       doTestNoFixWithWarnings();
     }
 
@@ -1458,7 +1474,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("enum has enum value members")
     public void testEnumHasEnumValueMembers() throws Throwable {
-      doTestSkippingAnnotators(new HashSet<>());
+      doTestNoFixWithWarnings();
     }
 
     @Test

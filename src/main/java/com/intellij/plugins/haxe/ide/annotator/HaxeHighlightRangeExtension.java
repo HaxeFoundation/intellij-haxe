@@ -24,7 +24,6 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-//TODO
 public class HaxeHighlightRangeExtension implements HighlightRangeExtension {
 
   @Override
@@ -34,14 +33,6 @@ public class HaxeHighlightRangeExtension implements HighlightRangeExtension {
     return (file.getLanguage().isKindOf(HaxeLanguage.INSTANCE));
   }
 
-  //TODO mlo
-  //public static HaxeSemanticAnnotatorInspections.Registrar getInspectionProvider() {
-  //  return new HaxeSemanticAnnotatorInspections.Registrar();
-  //}
 }
-
-
-
-
 
 

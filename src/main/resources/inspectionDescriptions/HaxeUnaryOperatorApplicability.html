@@ -1,0 +1,16 @@
+<html>
+<body>
+Reports increment and decrement (<code>++</code>/<code>--</code>) applied to
+expressions that cannot be written to or do not support the operation:
+literals, call results, immutable references, non-numeric types, and
+properties without write access.
+<p><b>Example:</b></p>
+<pre><code>
+var label = "step";
+label++;               // String does not support ++
+
+final steps = 3;
+steps++;               // cannot assign to an immutable reference
+</code></pre>
+</body>
+</html>

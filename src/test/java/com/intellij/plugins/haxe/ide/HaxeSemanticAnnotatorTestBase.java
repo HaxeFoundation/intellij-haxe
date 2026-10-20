@@ -19,85 +19,49 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.InspectionToolProvider;
+import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.codeInspection.ex.InspectionProfileImpl;
-import com.intellij.codeInspection.ex.InspectionToolWrapper;
-import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
-import com.intellij.profile.codeInspection.InspectionProfileManager;
-import com.intellij.util.ArrayUtil;
+import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 
-public abstract class HaxeSemanticAnnotatorTestBase extends HaxeCodeInsightFixtureTestCase {
-
+public abstract class HaxeSemanticAnnotatorTestBase extends HaxeToolkitLightFixtureTestCase {
 
   @Override
   protected abstract String getBasePath();
 
-  private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
-                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
-                      String... additionalFiles)
-    throws Exception {
-    myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
-    myFixture.enableInspections(getAnnotatorBasedInspection());
-    registerInspectionsForTesting( new HaxeSemanticAnnotatorInspections.Registrar(), myFixture.getProject(), unsetInspections);
-    myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
-  }
-
-  public void registerInspectionsForTesting(InspectionToolProvider provider, Project project,
-                                            @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections) {
-    InspectionProfileManager mgr = InspectionProfileManager.getInstance(project);
-    InspectionProfileImpl profile = mgr.getCurrentProfile();
-
-    try {
-      Class<? extends LocalInspectionTool>[] classes = provider.getInspectionClasses();
-      for (Class<? extends LocalInspectionTool> c : classes) {
-        if (null != unsetInspections && unsetInspections.contains(c)) continue;
-
-        Constructor<? extends LocalInspectionTool> constructor = c.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        InspectionToolWrapper<?, ?> wrapper = new LocalInspectionToolWrapper(constructor.newInstance());
-
-        Map<String, List<String>> dependencies = new HashMap<>();
-        profile.addTool(project, wrapper, dependencies);
-        profile.enableTool(wrapper.getShortName(), project);
-      }
-    }
-    catch (Exception ex) {
-      assertNotNull(ex.toString());
-    }
-  }
-
-  protected void doTestSkippingAnnotators(Set<Class<? extends LocalInspectionTool>> unsetInspections) throws Exception {
-    doTest(true, false, false, unsetInspections);
+  protected void doTestReplacingInspection(InspectionProfileEntry configuredTool) throws Exception {
+    Set<Class<? extends LocalInspectionTool>> replacedClass = Set.of(configuredTool.getClass().asSubclass(LocalInspectionTool.class));
+    doHighlightingTestOn(new String[]{getTestName(false) + ".hx"}, true, false, false, replacedClass, configuredTool);
   }
 
   protected void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
-    doTest(true, false, false, null, additionalFiles);
+    doHighlightingTest(true, false, false, null, additionalFiles);
   }
   protected void doTestNoFixWithWeakWarnings(String... additionalFiles) throws Exception {
-    doTest(true, false, true, null, additionalFiles);
+    doHighlightingTest(true, false, true, null, additionalFiles);
+  }
+
+  /** {@link #doTestNoFixWithWeakWarnings} over explicitly named files, the first being the one under test - for fixtures the test name cannot locate. */
+  protected void doTestFilesNoFixWithWeakWarnings(String... files) throws Exception {
+    doHighlightingTestOn(files, true, false, true, null);
   }
 
   protected void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
-    doTest(false, false, false, null, additionalFiles);
+    doHighlightingTest(false, false, false, null, additionalFiles);
   }
 
   protected void doTestActions(String... filters) throws Exception {
-    doTest(false, false, false, null);
+    doHighlightingTest(false, false, false, null);
+    applyActionsAndCheckResult(filters);
+  }
 
+  /** Launches every available intention whose text is one of {@code filters}, then compares with the test-named _expected fixture. */
+  protected void applyActionsAndCheckResult(String... filters) {
     List<IntentionAction> intentions = myFixture.getAvailableIntentions();
     for (final IntentionAction action : intentions) {
       if (Arrays.asList(filters).contains(action.getText())) {

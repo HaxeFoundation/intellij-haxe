@@ -1,10 +1,9 @@
-// This is a negative test; an error should NOT occur.
 package;
 class Test {
   public function new() {
-    // The following is OK because an Int unifies with a Float
-    var f:Float = (10:Int);
-    //  compiler error Float should be Int
-    var i:Int = <error descr="Incompatible type: Float should be Int">(10:Float)</error>;
+    var f:Float;
+    f = (10:Int);
+    var i:Int;
+    i = <error descr="Incompatible type: Float should be Int">(10:Float)</error>;
   }
 }

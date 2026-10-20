@@ -22,22 +22,21 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeInactiveBody;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
  */
 public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
-  private static final Set<String> BUILTIN = new HashSet<String>(Arrays.asList(
-    "$type", "trace", "__call__", "__vmem_set__", "__vmem_get__", "__vmem_sign__", "__global__", "_global", "__foreach__"
-  ));
+  /** Magic calls without a declaration anywhere; those with a synthetic one (trace, __js__ ...) resolve like any member. */
+  private static final Set<String> BUILTIN = Set.of(
+    "$type", "__call__", "__vmem_set__", "__vmem_get__", "__vmem_sign__", "__global__", "_global", "__foreach__");
 
   @Override
   public void visitReferenceExpression(@NotNull HaxeReferenceExpression reference) {
@@ -76,7 +75,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   @Override
   public void visitMethodDeclaration(@NotNull HaxeMethodDeclaration functionDeclaration) {
-    if (functionDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+    if (functionDeclaration.isDeprecated()) {
       handleDeprecatedFunctionDeclaration(functionDeclaration);
     }
 
@@ -90,7 +89,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
       final PsiElement reference = referenceExpression.resolve();
 
       if (reference instanceof HaxeMethodDeclaration functionDeclaration) {
-        if (functionDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+        if (functionDeclaration.isDeprecated()) {
           handleDeprecatedCallExpression(referenceExpression);
         }
       }
@@ -101,7 +100,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   @Override
   public void visitFieldDeclaration(@NotNull HaxeFieldDeclaration fieldDeclaration) {
-    if (fieldDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+    if (fieldDeclaration.isDeprecated()) {
       handleDeprecatedFieldDeclaration(fieldDeclaration);
     }
     super.visitFieldDeclaration(fieldDeclaration);
@@ -110,6 +109,9 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   @Override
   public void visitElement(PsiElement element) {
     ProgressIndicatorProvider.checkCanceled();
+    // inactive conditional branches are analysis-exempt: descending would run
+    // resolve and usage searches over code that is not part of the build
+    if (element instanceof HaxeInactiveBody) return;
     element.acceptChildren(this);
   }
 
@@ -132,7 +134,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
     PsiElement reference = referenceExpression.resolve();
 
     if (reference instanceof HaxeFieldDeclaration varDeclaration) {
-      if (varDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+      if (varDeclaration.isDeprecated()) {
         handleDeprecatedCallExpression(referenceExpression);
       }
     }

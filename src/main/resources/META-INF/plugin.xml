@@ -483,12 +483,18 @@
     <annotator language="Haxe" id="xmlFastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeXmlFastColorAnnotator" order="after fastColor before slowColor"/>
     <annotator language="Haxe" id="slowColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeSlowColorAnnotator" order="after fastColor"/>
     <annotator language="Haxe" id="invalidEscape" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInvalidEscapeAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="docMarkup" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeDocMarkupAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="inactiveDim" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="conditionalDiagnostic" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeConditionalDiagnosticAnnotator"/>
+    <annotator language="Haxe" id="staleConditionalBranch" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeStaleConditionalBranchAnnotator"/>
     <!-- metadata is its own PSI language; without this registration dead @:meta
          stays uncolored (its lexer-layer yellow only exists in active code) -->
+    <annotator language="HaxeMetadata" id="inactiveDimMeta" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInactiveCodeDimAnnotator"/>
 
     <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeDocCommentManipulator"/>
     <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.impl.HaxeStringLiteralImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeStringLiteralManipulator"/>
 
+    <annotator language="Haxe" id="stringLink" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeStringLinkColorAnnotator" order="after slowColor"/>
 
     <annotator language="HXML" id="hxmlFastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeHxmlFastColorAnnotator" order="first"/>
 
@@ -501,6 +507,7 @@
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxePackageAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeDefaultTypeParameterAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeLanguageFeatureAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAccessAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeReturnStatementAnnotator"/>
 
@@ -634,10 +641,30 @@
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="com.intellij.plugins.haxe.codeInspection.NMEBuildDirectoryInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeUnusedImport" bundle="messages.HaxeBundle"
+                     key="haxe.inspection.unused.import.name"
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedImportInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeUnusedVariable" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.var.name"
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedLocalVarInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeUnusedField" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.field.name"
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedFieldInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeUnusedMethod" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.method.name"
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedMethodInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeUnusedFunction" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.function.name"
+                     groupPath="Haxe" groupKey="inspections.group.declaration.redundancy" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.unused.HaxeUnusedFunctionInspection"/>
 
     <!-- Semantic inspections: metadata lives here, the check logic in the
          inspection classes under ide.inspections -->
@@ -688,6 +715,10 @@
                      level="ERROR"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedTypeInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeUnresolvedSymbol" bundle="messages.HaxeBundle"
+                     key="haxe.inspection.unresolved.symbol"
+                     groupPath="Haxe" groupKey="inspections.group.probable.bugs" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.resolve.HaxeUnresolvedSymbolInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="messages.HaxeBundle"
                      key="haxe.inspection.deprecated.symbol"
@@ -700,6 +731,18 @@
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>
 
     <!-- no language: it visits hxml files and the XML project files (Lime/OpenFL/NME) -->
+    <localInspection shortName="HaxeDashedDefineName" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.dashed.define.name"
+                     groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeDashedDefineNameInspection"/>
+    <localInspection shortName="HaxeMissingLibrary" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.missing.library.name"
+                     groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeMissingLibraryInspection"/>
+    <localInspection shortName="HaxeMissingIncludeFile" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.missing.include.name"
+                     groupPath="Haxe" groupKey="inspections.group.build.files" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.buildfiles.HaxeMissingIncludeFileInspection"/>
 
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
     <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
@@ -830,36 +873,7 @@
     <statusBarWidgetFactory id="HaxeTargetWidget"
                             implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
     <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="after slowColor"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeIsTypeExpressionAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeTypeCheckExprAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeBinaryExpressionAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeUnaryExpressionAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeNullCoalescingAnnotator"/>
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
-    <localInspection language="Haxe" shortName="HaxeUnusedImport" bundle="messages.HaxeBundle"
-                     key="haxe.inspection.unused.import.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection"/>
-    <localInspection language="Haxe" shortName="HaxeUnusedVariable" bundle="messages.HaxeBundle"
-                     key="haxe.inspections.unused.var.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedLocalVarInspection"/>
-    <localInspection language="Haxe" shortName="HaxeUnusedField" bundle="messages.HaxeBundle"
-                     key="haxe.inspections.unused.field.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedFieldInspection"/>
-    <localInspection language="Haxe" shortName="HaxeUnusedMethod" bundle="messages.HaxeBundle"
-                     key="haxe.inspections.unused.method.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedMethodInspection"/>
-    <localInspection language="Haxe" shortName="HaxeUnusedFunction" bundle="messages.HaxeBundle"
-                     key="haxe.inspections.unused.function.name"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedFunctionInspection"/>
-    <localInspection language="Haxe" shortName="HaxeUnresolvedSymbol" bundle="messages.HaxeBundle"
-                     key="haxe.inspection.unresolved.symbol"
-                     groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
   </extensions>
 
   <applicationListeners>

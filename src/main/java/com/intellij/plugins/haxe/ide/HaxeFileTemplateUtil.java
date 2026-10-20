@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.SmartList;
+import com.intellij.util.TriConsumer;
 import com.intellij.util.containers.ContainerUtil;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,20 @@ import java.util.Properties;
  */
 public class HaxeFileTemplateUtil {
   private final static String HAXE_TEMPLATE_PREFIX = "Haxe";
+
+  // Internal file-template names: must match the <internalFileTemplate> entries
+  // in plugin.xml and the fileTemplates/internal/*.ft file names.
+  public static final String CLASS_TEMPLATE = "Haxe Class";
+  public static final String INTERFACE_TEMPLATE = "Haxe Interface";
+  public static final String ENUM_TEMPLATE = "Haxe Enum";
+  public static final String ABSTRACT_TEMPLATE = "Haxe Abstract";
+
+  public static final List<String> TYPE_TEMPLATE_NAMES = List.of(
+    CLASS_TEMPLATE,
+    INTERFACE_TEMPLATE,
+    ENUM_TEMPLATE,
+    ABSTRACT_TEMPLATE
+  );
 
   public static List<FileTemplate> getApplicableTemplates(@NotNull Project project) {
     return getApplicableTemplates(project, fileTemplate -> HaxeFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension()));
@@ -56,9 +71,18 @@ public class HaxeFileTemplateUtil {
     return applicableTemplates;
   }
 
+  /** Offers each template as a kind: its short name, its icon and the template name the kind creates from. */
+  public static void addTemplateKinds(@NotNull List<FileTemplate> templates, @NotNull TriConsumer<String, Icon, String> addKind) {
+    for (FileTemplate fileTemplate : templates) {
+      String templateName = fileTemplate.getName();
+      addKind.accept(getTemplateShortName(templateName), getTemplateIcon(templateName), templateName);
+    }
+  }
+
   public static String getTemplateShortName(String templateName) {
     if (templateName.startsWith(HAXE_TEMPLATE_PREFIX)) {
-      return templateName.substring(HAXE_TEMPLATE_PREFIX.length());
+      // template names follow the platform's spaced convention ("Haxe Class")
+      return templateName.substring(HAXE_TEMPLATE_PREFIX.length()).trim();
     }
     return templateName;
   }

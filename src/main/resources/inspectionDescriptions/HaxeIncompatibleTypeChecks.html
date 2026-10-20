@@ -1,0 +1,13 @@
+<html>
+<body>
+Reports type-check assertions <code>(expression : Type)</code> whose
+expression cannot unify with the asserted type.
+<p><b>Example:</b></p>
+<pre><code>
+var amount = 12;
+var label = (amount : String);   // Int does not unify with String
+</code></pre>
+Quick fixes remove the type check or change the asserted type to the
+expression's actual type.
+</body>
+</html>

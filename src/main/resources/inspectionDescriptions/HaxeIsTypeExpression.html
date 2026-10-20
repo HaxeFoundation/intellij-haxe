@@ -1,0 +1,18 @@
+<html>
+<body>
+Reports invalid <code>is</code> operator usage: the right-hand side must be
+a plain type - not an expression, a type with parameters, or a non-core
+abstract.
+<p><b>Example:</b></p>
+<pre><code>
+var items:Array&lt;Int&gt; = [];
+if (items is Array&lt;Int&gt;) {}   // type parameters are not allowed here
+</code></pre>
+<!-- tooltip end -->
+<p>
+Below language level 4.2 the stricter pre-4.2 rules apply automatically:
+an unparenthesized <code>is</code> expression is only allowed in a plain
+<code>if</code> condition. The <b>4.1 compatibility</b> option keeps those
+rules on at newer levels for code that must still compile on Haxe 4.1.
+</body>
+</html>

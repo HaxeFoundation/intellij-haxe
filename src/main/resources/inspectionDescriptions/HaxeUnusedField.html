@@ -1,0 +1,19 @@
+<html>
+<body>
+Reports fields that are never read or written outside their own
+declaration. Fields carrying compile-time metadata are exempt - metadata
+exists to be consumed by macros, so such fields may be used invisibly.
+<p><b>Example:</b></p>
+<pre><code>
+class Session {
+    var started:Bool = false;   // nothing reads or writes it
+    public function new() {}
+}
+</code></pre>
+<!-- tooltip end -->
+<p>
+When compiler diagnostics report usages (for example from macro-generated
+code), those count as uses. Use <code>@:keep</code> to exempt a field
+deliberately.
+</body>
+</html>
