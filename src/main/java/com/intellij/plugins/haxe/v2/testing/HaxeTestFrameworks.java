@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSections;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTestsBuildFileStore;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -37,21 +38,24 @@ public final class HaxeTestFrameworks {
 
   /**
    * Like {@link #forBuildFile}, but null when the build declares NO known
-   * framework. The offer surfaces (tests rows, marking, gutter candidates)
-   * gate on this, so a plain application build never presents a test run;
-   * actual runs keep the utest default for configurations that predate the
-   * gate. A framework reachable only TRANSITIVELY (a custom lib depending on
-   * utest) is not seen - the tests build declares its framework directly.
+   * framework. A framework reachable only TRANSITIVELY (a custom lib depending
+   * on utest) is not seen - the tests build declares its framework directly.
    * Call inside a read action.
    */
   @Nullable
-  public static HaxeTestFramework detectedFrameworkFor(@NotNull Project project, @NotNull String buildFilePath) {
+  private static HaxeTestFramework detectedFrameworkFor(@NotNull Project project, @NotNull String buildFilePath) {
     HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, buildFilePath);
     if (buildFile == null) return null;
     return detectedFramework(HaxeBuildSections.inspectSelected(project, buildFile).libraries());
   }
 
-  /** The framework the library list declares, or null when none of the known frameworks is among them. */
+  /**
+   * The framework the library list declares, or null when none of the known
+   * frameworks is among them. The offer surfaces (tests rows, marking, gutter
+   * candidates) gate on this, so a plain application build never presents a
+   * test run; actual runs ({@link #forBuildFile}) keep the utest default for
+   * configurations that predate the gate.
+   */
   @Nullable
   public static HaxeTestFramework detectedFramework(@NotNull List<HaxeBuildFileInfo.HaxeLibDependency> libraries) {
     for (HaxeTestFramework framework : ALL) {
@@ -82,5 +86,17 @@ public final class HaxeTestFrameworks {
     });
     String containerRoot = HaxeContainers.containerRootPath(project, containerId);
     return HaxeTestsBuildFileStore.getInstance(project).resolveTestsFiles(containerId, containerRoot, candidates);
+  }
+
+  /** {@link #testsBuildPaths} for build files the caller has not parsed: their selected sections are read here. Read action. */
+  @NotNull
+  public static List<String> testsBuildPathsAmong(@NotNull Project project,
+                                                  @NotNull String containerId,
+                                                  @NotNull List<HaxeBuildFile> buildFiles) {
+    Map<String, List<HaxeBuildFileInfo.HaxeLibDependency>> librariesByPath = new LinkedHashMap<>();
+    for (HaxeBuildFile buildFile : buildFiles) {
+      librariesByPath.put(buildFile.file().getPath(), HaxeBuildSections.inspectSelected(project, buildFile).libraries());
+    }
+    return testsBuildPaths(project, containerId, librariesByPath);
   }
 }

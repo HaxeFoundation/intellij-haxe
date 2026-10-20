@@ -30,11 +30,6 @@ public final class HxcppProfileTranslator {
   private HxcppProfileTranslator() {
   }
 
-  /** True when the line is a report entry — the sniff for a headerless format. */
-  public static boolean looksLikeReportLine(@NotNull String line) {
-    return ENTRY.matcher(line).matches();
-  }
-
   @NotNull
   public static HxcppProfileReport translate(@NotNull InputStream in) throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));

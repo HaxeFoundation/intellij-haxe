@@ -105,7 +105,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // int result into an int local
     assertTrue(evaluate(frameId, "base = add(20, 3)").isSuccess(), "base = add(20, 3)");
-    // the prize: a String PRODUCED by the program's own code, assigned to a local
+    // a String PRODUCED by the program's own code, assigned to a local
     assertTrue(evaluate(frameId, "s = label(7)").isSuccess(), "s = label(7)");
 
     int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
@@ -192,7 +192,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("call succeeds and stays clean with a breakpoint inside the callee")
   public void callSucceedsAndStaysCleanWithABreakpointInsideTheCallee() throws Exception {
-    // The reported corruption: an injected call whose body trips one of OUR
+    // An injected call whose body trips one of the adapter's
     // planted INT3s (a user breakpoint here; the hl_throw trap when VM-exception
     // breakpoints are on, for a callee that throws/catches internally) aborts
     // mid-call and leaves a half-executed frame that breaks later execution.
@@ -225,7 +225,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("push to int array returns and leaves the process runnable")
   public void pushToIntArrayReturnsAndLeavesTheProcessRunnable() throws Exception {
-    // reproduces the reported corruption: a method call that allocates/grows an
+    // a method call that allocates/grows an
     // Array<Int> (hl.types.ArrayBytes_Int.push) must return AND leave the VM
     // able to keep executing — a botched call teardown crashes later steps.
     StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);

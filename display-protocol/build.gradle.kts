@@ -21,6 +21,7 @@ dependencies {
     }
 
     implementation(libs.jacksonDatabind)
+    implementation(libs.jacksonDataformatXml)
 
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
@@ -36,7 +37,10 @@ tasks.named<Test>("test") {
     if (!displayTests) {
         logger.lifecycle("SKIPPING live display server tests (opt in with -PdisplayTests=true)")
         filter.excludeTestsMatching("com.intellij.plugins.haxe.display.client.LiveDisplayServerTest")
+        filter.excludeTestsMatching("com.intellij.plugins.haxe.display.haxe3.LiveHaxe3DisplayServerTest")
     }
     // which compiler the live tests drive; defaults to the PATH haxe
     systemProperty("display.test.haxe", providers.gradleProperty("displayTestHaxe").getOrElse("haxe"))
+    // the haxe 3 executable the haxe 3 live tests drive; without one they skip themselves
+    systemProperty("display.test.haxe3", providers.gradleProperty("displayTestHaxe3").getOrElse(""))
 }

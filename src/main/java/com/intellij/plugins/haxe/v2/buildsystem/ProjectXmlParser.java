@@ -88,6 +88,13 @@ public final class ProjectXmlParser {
     return appAttribute(content, "file");
   }
 
+  /// The `<app main="...">` attribute: the class the application starts
+  /// from; null when the file declares none.
+  @Nullable
+  public static String parseAppMain(@NotNull String content) {
+    return appAttribute(content, "main");
+  }
+
   /// The `<app path="...">` attribute — the output root the tool exports
   /// every target under (conventionally `Export`); null when the file
   /// declares none (the tools default to `bin`).

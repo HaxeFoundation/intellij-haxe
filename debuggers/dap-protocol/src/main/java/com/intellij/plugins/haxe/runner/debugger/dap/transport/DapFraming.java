@@ -11,8 +11,7 @@ import java.nio.charset.StandardCharsets;
  * ("Content-Length: &lt;n&gt;") terminated by CRLF CRLF, followed by
  * &lt;n&gt; bytes of UTF-8 encoded JSON.
  *
- * CR and LF are written as byte values so the framing is identical on
- * every platform; Content-Length counts UTF-8 bytes, not characters.
+ * Content-Length counts UTF-8 bytes, not characters.
  */
 public final class DapFraming {
   static final int CR = 13;
@@ -25,13 +24,11 @@ public final class DapFraming {
     byte[] body = json.getBytes(StandardCharsets.UTF_8);
     byte[] header = ("Content-Length: " + body.length).getBytes(StandardCharsets.US_ASCII);
     ByteArrayOutputStream frame = new ByteArrayOutputStream(header.length + 4 + body.length);
-    // header
     frame.write(header, 0, header.length);
     frame.write(CR);
     frame.write(LF);
     frame.write(CR);
     frame.write(LF);
-    // body
     frame.write(body, 0, body.length);
     return frame.toByteArray();
   }

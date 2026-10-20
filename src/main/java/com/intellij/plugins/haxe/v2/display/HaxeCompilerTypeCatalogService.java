@@ -300,9 +300,8 @@ public final class HaxeCompilerTypeCatalogService {
       // Context.defineType creates it; there is no ModuleInfo listing more.
       // Real source modules in the set (std, haxelibs) drop out in the
       // source-index check.
-      // TODO: Context.defineModule can create multi-type modules; whether the
-      //  server exposes their type lists anywhere is unverified - only the
-      //  module-named type is catalogued.
+      // TODO: catalogue every type of a multi-type Context.defineModule
+      //  module; only the module-named type is listed.
       List<String> generatedDependencies = sourcelessTypes(new ArrayList<>(dependencyOnly));
       if (generatedDependencies == null) return null;
       for (String fqn : generatedDependencies) {

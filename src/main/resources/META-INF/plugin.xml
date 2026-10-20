@@ -398,6 +398,8 @@
     <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestFlashDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestDebugRunner"/>
     <runLineMarkerContributor language="Haxe"
+                              implementationClass="com.intellij.plugins.haxe.v2.runconfig.HaxeMainClassRunLineMarkerContributor"/>
+    <runLineMarkerContributor language="Haxe"
                               implementationClass="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunLineMarkerContributor"/>
     <runConfigurationProducer implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurationProducer"/>
 

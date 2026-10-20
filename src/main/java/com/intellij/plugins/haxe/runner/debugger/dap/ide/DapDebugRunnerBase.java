@@ -41,7 +41,7 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
   /** Fail-fast validation before anything is built (e.g. {@code requireModule()}). */
   protected abstract void validate(C configuration) throws ExecutionException;
 
-  /** Builds the backend; it starts listening in its constructor. */
+  /** Builds the backend; a listening backend binds here, the others connect in {@link DapBackend#connect()}. */
   protected abstract B createBackend(C configuration) throws ExecutionException;
 
   /**

@@ -35,11 +35,6 @@ public final class HaxeDisplayTransport {
     public DisplayResponse request(List<String> args, int readTimeoutMs) throws DisplayRequestException {
       return HaxeDisplayTransport.request(host, port, args, readTimeoutMs);
     }
-
-    @Override
-    public String describe() {
-      return "haxe server at " + host + ":" + port;
-    }
   }
 
   public static DisplayResponse request(String host, int port, List<String> args, int readTimeoutMs)
@@ -98,7 +93,7 @@ public final class HaxeDisplayTransport {
       } else if (line.charAt(0) == 0x02) {
         hasError = true;
       } else {
-        if (payload.length() > 0) payload.append('\n');
+        if (!payload.isEmpty()) payload.append('\n');
         payload.append(line);
       }
     }

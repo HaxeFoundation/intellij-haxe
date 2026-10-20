@@ -1,11 +1,15 @@
 package com.intellij.plugins.haxe.display.protocol;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /** Wire codes of std {@code haxe.display.DiagnosticSeverity}. */
 public enum DiagnosticSeverity {
   ERROR(1),
   WARNING(2),
   INFORMATION(3),
   HINT(4),
+  @JsonEnumDefaultValue
   UNKNOWN(-1);
 
   private final int code;
@@ -14,10 +18,9 @@ public enum DiagnosticSeverity {
     this.code = code;
   }
 
-  public static DiagnosticSeverity fromCode(int code) {
-    for (DiagnosticSeverity severity : values()) {
-      if (severity.code == code) return severity;
-    }
-    return UNKNOWN;
+  /** The wire code. */
+  @JsonValue
+  public int code() {
+    return code;
   }
 }

@@ -104,11 +104,9 @@ public class HaxeDebuggerSupportUtils {
   }
 
   /**
-   * The class name as the debugger RUNTIMES know it: package + bare class
-   * name. NOT PSI's getQualifiedName(): for an ancillary (secondary) class in
-   * a module that includes the module segment ("pack.FileName.ClassName"),
-   * while runtime frames and type names carry "pack.ClassName". (Verified
-   * live: a secondary class matched as its bare package+name.)
+   * The first element on the offset's line, from the offset on, that is
+   * neither whitespace nor a comment, else the element at the offset; null
+   * when the file has no PSI or document.
    */
   @Nullable
   public static PsiElement getContextElement(VirtualFile virtualFile, int offset, final @NotNull Project project) {

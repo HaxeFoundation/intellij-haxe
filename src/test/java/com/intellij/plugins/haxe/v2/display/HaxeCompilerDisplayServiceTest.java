@@ -5,6 +5,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.display.client.HaxeDisplayClient;
+import com.intellij.plugins.haxe.display.client.JsonRpcDisplayClient;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
 import org.junit.jupiter.api.AfterEach;
@@ -87,7 +88,7 @@ public class HaxeCompilerDisplayServiceTest extends HaxeLightFixtureTestCase {
     try (ServerSocket probe = new ServerSocket(0)) {
       closedPort = probe.getLocalPort();
     }
-    HaxeDisplayClient client = new HaxeDisplayClient(HaxeCompilationServerManager.SERVER_HOST, closedPort);
+    HaxeDisplayClient client = new JsonRpcDisplayClient(HaxeCompilationServerManager.SERVER_HOST, closedPort);
     var connected = new HaxeCompilerDisplayService.Connected(client, CONTEXT_ARGS, closedPort);
 
     boolean compiled = displayService().ensureContextCompiled(connected, "warm-up-unreachable", CONTAINER_ID);
@@ -144,7 +145,7 @@ public class HaxeCompilerDisplayServiceTest extends HaxeLightFixtureTestCase {
   }
 
   private static HaxeCompilerDisplayService.Connected connected(OneReplyServer server) {
-    HaxeDisplayClient client = new HaxeDisplayClient(HaxeCompilationServerManager.SERVER_HOST, server.port());
+    HaxeDisplayClient client = new JsonRpcDisplayClient(HaxeCompilationServerManager.SERVER_HOST, server.port());
     return new HaxeCompilerDisplayService.Connected(client, CONTEXT_ARGS, server.port());
   }
 

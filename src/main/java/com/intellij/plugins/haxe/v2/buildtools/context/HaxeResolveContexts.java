@@ -1,9 +1,7 @@
 package com.intellij.plugins.haxe.v2.buildtools.context;
 
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderEntry;
@@ -44,7 +42,7 @@ import java.util.Set;
  * writing its output does not.
  */
 @Service(Service.Level.PROJECT)
-public final class HaxeResolveContexts implements Disposable {
+public final class HaxeResolveContexts {
 
   /**
    * One build, the source directories it compiles and the haxelibs its selected
@@ -73,10 +71,6 @@ public final class HaxeResolveContexts implements Disposable {
     this.project = project;
   }
 
-  @Override
-  public void dispose() {
-  }
-
   @NotNull
   public static HaxeResolveContexts getInstance(@NotNull Project project) {
     return project.getService(HaxeResolveContexts.class);
@@ -99,7 +93,8 @@ public final class HaxeResolveContexts implements Disposable {
     if (!owners.isEmpty()) {
       return new HaxeResolveContext(preferred(file, owners).buildFile());
     }
-    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    // honorExclusion = false: a generated file in an excluded folder (lime's export) still gets its module
+    Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
     HaxeBuildFile fallback = module == null ? null : defaultBuildFileFor(module);
     return fallback == null ? null : new HaxeResolveContext(fallback);
   }
@@ -321,7 +316,8 @@ public final class HaxeResolveContexts implements Disposable {
   }
 
   /** The hxml's {@code -main} class as a path suffix under a source directory; null without one. */
-  // TODO: the lime family's <app main="..."/> is not read yet, so two project.xml sharing a source folder tie on the active file
+  // TODO: a Lime-family suffix from <app main="..."/> (HaxeMainClasses.mainTypePath reads it);
+  //  two project.xml sharing a source folder tie on the active file until then
   @Nullable
   private String mainFileSuffix(@NotNull HaxeBuildFile buildFile) {
     if (buildFile.type() != HaxeBuildFileType.HXML) return null;

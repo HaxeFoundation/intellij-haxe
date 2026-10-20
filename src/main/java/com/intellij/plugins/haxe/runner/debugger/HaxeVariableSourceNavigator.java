@@ -51,7 +51,7 @@ public final class HaxeVariableSourceNavigator {
   // frontend/backend-split debugger also routes every node's INLINE-values
   // lookup through it (FrontendXValue.computeInlineDebuggerData), so one
   // re-render of a populated Variables view fires dozens of navigations at
-  // once. Unbounded, those tripped the platform's submission tracker ("Too
+  // once. Unbounded, those trip the platform's submission tracker ("Too
   // many non-blocking read actions submitted at once"). A small bounded
   // executor queues the resolves instead of stampeding them — still off the
   // EDT, still cancellable/expirable, and the platform's own per-call

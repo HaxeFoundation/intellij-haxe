@@ -10,8 +10,8 @@ import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Typed wrappers over the eval debug methods (wire names and shapes from
- * vshaxe/eval-debugger's Protocol.hx, round-trip-verified against haxe
- * 4.3.7). Threads are optional on run-control requests — omitted means
+ * vshaxe/eval-debugger's Protocol.hx, as haxe 4.3.7 speaks them). Threads
+ * are optional on run-control requests — omitted means
  * "the current/only thread".
  */
 public final class EvalProtocol {

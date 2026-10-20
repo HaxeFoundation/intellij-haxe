@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * Counts are AGGREGATED per class in a map, not tracked as a single "current"
  * class: with -PdapTestForks the test classes run in parallel fork JVMs, so
- * their events interleave — the old single-class tracker flushed "X: 1 tests"
+ * their events interleave — a single-class tracker would flush "X: 1 tests"
  * on every switch between them.
  */
 final class TestEventTail {

@@ -97,6 +97,12 @@ public final class HaxeContainers {
     return rootModule != null ? rootModule.getName() : PROJECT_ROOT_CONTAINER;
   }
 
+  /** The container's name as the tool window shows it: the project's name for the project node, the module name otherwise. */
+  @NotNull
+  public static String displayName(@NotNull Project project, @NotNull String containerId) {
+    return containerId.equals(projectNodeContainerId(project)) ? project.getName() : containerId;
+  }
+
   /**
    * The module whose content root is the project base dir, or null: that
    * module IS the project, its build files belong to the project node and it

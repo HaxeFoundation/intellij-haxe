@@ -11,9 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 
 /**
- * Registers V8 {@code .cpuprofile} files (Chrome DevTools saves, CDP
- * {@code Profiler.stop} output — what a JS-target capture produces) with
- * the IU snapshot import. Opens as sampled data with the stock views plus
+ * Registers imported V8 {@code .cpuprofile} files (Chrome DevTools saves,
+ * CDP {@code Profiler.stop} output) with the IU snapshot import. Opens as sampled data with the stock views plus
  * the Haxe Call Chart; positions point at the generated JavaScript.
  */
 public class HaxeJsCpuProfileParserProvider implements ProfilerDumpParserProvider {
@@ -35,6 +34,6 @@ public class HaxeJsCpuProfileParserProvider implements ProfilerDumpParserProvide
 
   @Override
   public @NotNull ProfilerDumpFileParser createParser(@NotNull Project project) {
-    return new HaxeStreamDumpParser(in -> HaxeSamplingProfilerData.from(CpuProfileTranslator.translate(in)));
+    return new HaxeStreamDumpParser((in, file) -> HaxeSamplingProfilerData.from(CpuProfileTranslator.translate(in), file));
   }
 }

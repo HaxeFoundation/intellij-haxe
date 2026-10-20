@@ -1,8 +1,6 @@
 package com.intellij.plugins.haxe.v2.display;
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -29,7 +27,6 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -247,6 +244,7 @@ public final class HaxeCompilerResolveService {
   @Nullable
   private BlueprintLookup blueprintLookup(@NotNull VirtualFile contextFile, @Nullable String dotPath) {
     if (dotPath == null || dotPath.isEmpty() || STD_TYPES_DECLARATIONS.contains(dotPath)) return null;
+    if (namesTypeParameter(dotPath)) return null;
     HaxeCompilerDisplayService.DisplayContext context = HaxeCompilerDisplayService.getInstance(project).contextFor(contextFile);
     if (context == null) return null;
 
@@ -402,6 +400,15 @@ public final class HaxeCompilerResolveService {
       log.info("server/type failed for " + key.dotPath() + ": " + e.getMessage());
       return null;
     }
+  }
+
+  /**
+   * Whether the dot path names a type parameter rather than a type: the PSI
+   * qualifies a parameter as {@code Owner:T} or {@code Owner#method:T}, and
+   * no module declares it, so the server has no blueprint to answer with.
+   */
+  static boolean namesTypeParameter(@NotNull String dotPath) {
+    return dotPath.indexOf(':') >= 0 || dotPath.indexOf('#') >= 0;
   }
 
   /**

@@ -55,7 +55,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
 
-    // the "evaluate expression" route the user asked for: path = value
+    // the "evaluate expression" route: path = value
     assertTrue(evaluateRaw(frameId, "n = 7").isSuccess(), "n = 7 accepted");
     assertTrue(evaluateRaw(frameId, "obj.x = 3").isSuccess(), "obj.x = 3 accepted");
     assertTrue(evaluateRaw(frameId, "n = idx").isSuccess(), "copy from another variable accepted");
@@ -102,7 +102,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     // no call between): the write must still reach the executed code. Pins
     // that HL 1.15's jitted code re-reads the stack slot here — if this ever
     // fails, the JIT started caching values in CPU registers across opcodes
-    // and value writes need a rethink (we cannot write arbitrary CPU regs).
+    // and value writes need a rethink (arbitrary CPU registers are not writable).
     StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_CACHED_LINE);
     int locals = localsScopeReference(topFrameId(stopped.getBody().getThreadId()));
     assertEquals("100", setVariable(locals, "v", "100"), "v set on the use line");
@@ -115,7 +115,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("write to float arg on its use line takes effect")
   public void writeToFloatArgOnItsUseLineTakesEffect() throws Exception {
-    // the user-reported case: a Float parameter traced on the callee's FIRST
+    // a Float parameter traced on the callee's FIRST
     // line. Float args ARRIVE in XMM0 and the trace consumes that register,
     // not the stack slot — the write must patch XMM0 too (the one arrival
     // register hl_debug_write_register exposes).

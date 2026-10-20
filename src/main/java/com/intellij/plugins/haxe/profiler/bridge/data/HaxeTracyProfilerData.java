@@ -53,7 +53,7 @@ public final class HaxeTracyProfilerData extends HaxeChartedProfilerData {
     Map<Integer, ThreadAggregation> byThread = new HashMap<>();
     store.scanZones(-1, 0, Long.MAX_VALUE, 0, (threadId, depth, startNs, endNs, location) -> {
       ThreadAggregation aggregation = byThread.computeIfAbsent(threadId, id -> new ThreadAggregation());
-      HaxeCallStackElement element = elements.computeIfAbsent(location, HaxeTracyProfilerData::toElement);
+      HaxeCallStackElement element = elements.computeIfAbsent(location, key -> toElement(key, store.file()));
       aggregation.close(depth, endNs - startNs, element);
     });
 
@@ -90,9 +90,9 @@ public final class HaxeTracyProfilerData extends HaxeChartedProfilerData {
     });
   }
 
-  private static HaxeCallStackElement toElement(TracySourceLocation location) {
+  private static HaxeCallStackElement toElement(TracySourceLocation location, Path capture) {
     String file = location.file().isEmpty() ? null : location.file();
-    return new HaxeCallStackElement(location.function(), file, location.line());
+    return new HaxeCallStackElement(location.function(), file, location.line(), capture);
   }
 
   @Override

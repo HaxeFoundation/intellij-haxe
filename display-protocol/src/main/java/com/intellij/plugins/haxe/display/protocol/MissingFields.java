@@ -1,11 +1,9 @@
 package com.intellij.plugins.haxe.display.protocol;
 
-import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
- * The args of a MISSING_FIELDS diagnostic: the type that lacks the fields,
+ * What a MISSING_FIELDS diagnostic reports: the type that lacks the fields,
  * its file, and one entry per cause. The cause kinds are:
  * <ul>
  *   <li>{@code ImplementedInterface} and {@code AbstractParent}: members the
@@ -32,7 +30,8 @@ public record MissingFields(String typeName, String moduleFile, List<Entry> entr
 
   /**
    * One missing class field, as the compiler typed it. {@code fieldKind} is
-   * FMethod, FVar or FProp. A variable's {@code readAccess} and
+   * FMethod or FVar (a property is an FVar with accessor access). A
+   * variable's {@code readAccess} and
    * {@code writeAccess} hold the wire access kinds (AccNormal, AccCall,
    * AccNever, AccNo, ...). {@code declarationOffset} is the start offset of
    * the declaration in its own file, or -1 when unknown.
@@ -44,43 +43,63 @@ public record MissingFields(String typeName, String moduleFile, List<Entry> entr
     }
   }
 
-  /** Null when the args are not the missing-fields shape. */
-  public static MissingFields fromJson(JsonNode args) {
-    if (args == null || !args.isObject()) return null;
-    List<Entry> entries = new ArrayList<>();
-    for (JsonNode entry : args.path("entries")) {
-      entries.add(decodeEntry(entry));
+  /** The MISSING_FIELDS args as the wire carries them: the type lacking the fields, its file and one entry per cause. */
+  public record Args(ModuleType moduleType, String moduleFile, List<WireEntry> entries) implements DiagnosticArgs {
+
+    MissingFields toMissingFields() {
+      String typeName = moduleType == null ? "" : moduleType.name();
+      List<Entry> converted = entries.stream()
+        .map(WireEntry::toEntry)
+        .toList();
+      return new MissingFields(typeName, moduleFile, converted);
     }
-    String typeName = args.path("moduleType").path("name").asString("");
-    return new MissingFields(typeName, args.path("moduleFile").asString(""), List.copyOf(entries));
   }
 
-  private static Entry decodeEntry(JsonNode entry) {
-    List<MissingField> fields = new ArrayList<>();
-    for (JsonNode wrapped : entry.path("fields")) {
-      fields.add(decodeField(wrapped.path("field"), wrapped.path("unique").asBoolean(true)));
-    }
-    JsonNode cause = entry.path("cause");
-    List<MissingField> causeFields = new ArrayList<>();
-    for (JsonNode field : cause.path("args").path("fields")) {
-      causeFields.add(decodeField(field, true));
-    }
-    return new Entry(cause.path("kind").asString(""), List.copyOf(fields), List.copyOf(causeFields));
+  record ModuleType(String name) {
   }
 
-  private static MissingField decodeField(JsonNode field, boolean unique) {
-    JsonNode kind = field.path("kind");
-    JsonNode access = kind.path("args");
-    // the class field scope: 0 static, 1 member, 2 constructor
-    boolean isStatic = field.path("scope").asInt(1) == 0;
-    return new MissingField(field.path("name").asString(""),
-                            JsonTypeRef.of(field.path("type")),
-                            kind.path("kind").asString(""),
-                            field.path("isPublic").asBoolean(false),
-                            isStatic,
-                            unique,
-                            access.path("read").path("kind").asString(""),
-                            access.path("write").path("kind").asString(""),
-                            field.path("pos").path("min").asInt(-1));
+  /** One cause's missing fields. */
+  record WireEntry(List<WrappedField> fields, Cause cause) {
+
+    Entry toEntry() {
+      List<MissingField> missing = fields.stream()
+        .filter(wrapped -> wrapped.field() != null)
+        .map(WrappedField::toMissingField)
+        .toList();
+      String causeKind = cause == null ? "" : cause.kind();
+      return new Entry(causeKind, missing, causeFieldsOf(cause));
+    }
+
+    /** The fields the cause names itself, such as the final fields no constructor initializes. */
+    private static List<MissingField> causeFieldsOf(Cause cause) {
+      if (cause == null || cause.args() == null) return List.of();
+      return cause.args().fields().stream()
+        .map(field -> missingField(field, true))
+        .toList();
+    }
+  }
+
+  /** A missing field and whether it is the only candidate; absent {@code unique} counts as unique. */
+  record WrappedField(JsonClassField field, Boolean unique) {
+
+    MissingField toMissingField() {
+      return missingField(field, unique == null || unique);
+    }
+  }
+
+  /** Why the fields are missing; only some causes, such as FinalFields, name fields of their own. */
+  record Cause(String kind, CauseArgs args) {
+  }
+
+  record CauseArgs(List<JsonClassField> fields) {
+  }
+
+  private static MissingField missingField(JsonClassField field, boolean unique) {
+    JsonClassField.Kind kind = field.kind();
+    String readAccess = kind == null ? "" : kind.readAccess();
+    String writeAccess = kind == null ? "" : kind.writeAccess();
+    int declarationOffset = field.pos() == null ? -1 : field.pos().min();
+    return new MissingField(field.name(), field.type(), field.kindName(), field.isPublic(), field.isStatic(),
+                            unique, readAccess, writeAccess, declarationOffset);
   }
 }

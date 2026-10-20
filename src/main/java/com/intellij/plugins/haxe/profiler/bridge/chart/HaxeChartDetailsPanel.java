@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Path;
 import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -33,11 +34,13 @@ final class HaxeChartDetailsPanel extends BorderLayoutPanel {
   private final JBLabel image = new JBLabel();
   private final DefaultListModel<String> rows = new DefaultListModel<>();
   private final JBList<String> list = new JBList<>(rows);
+  private final @Nullable Path captureFile;
   private List<StackFrame> leafFirstFrames = List.of();
   private int revision;
 
-  HaxeChartDetailsPanel(@NotNull Project project) {
+  HaxeChartDetailsPanel(@NotNull Project project, @Nullable Path captureFile) {
     this.project = project;
+    this.captureFile = captureFile;
     header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
     header.setBorder(JBUI.Borders.empty(4, 6));
     breakdown.setBorder(JBUI.Borders.empty(2, 0));
@@ -109,6 +112,6 @@ final class HaxeChartDetailsPanel extends BorderLayoutPanel {
   private void navigateToSelectedFrame() {
     int index = list.getSelectedIndex();
     if (index < 0 || index >= leafFirstFrames.size()) return;
-    HaxeCallStackElement.navigateToFrame(project, leafFirstFrames.get(index));
+    HaxeCallStackElement.navigateToFrame(project, leafFirstFrames.get(index), captureFile);
   }
 }

@@ -38,6 +38,9 @@ public class HaxeCompilerLocationsTest extends HaxeLightFixtureTestCase {
   private static final Range TOTAL_COMPOUND_ASSIGNMENT = rangeOf(4, 15, 20);
   private static final Range QUALIFIED_TOTAL_COMPOUND_ASSIGNMENT = rangeOf(5, 14, 19);
   private static final Range PAST_THE_END = rangeOf(40, 0, 3);
+  /** How haxe 3 reports the declarations of weight and Main: their whole span, from the line start on. */
+  private static final Range WEIGHT_DECLARATION_SPAN = rangeOf(8, 0, 52);
+  private static final Range MAIN_DECLARATION_SPAN = new Range(new Position(0, 0), new Position(9, 1));
 
   @Override
   protected String getBasePath() {
@@ -83,6 +86,18 @@ public class HaxeCompilerLocationsTest extends HaxeLightFixtureTestCase {
 
     assertInstanceOf(HaxeNamedComponent.class, declaration);
     assertEquals("helper", ((HaxeNamedComponent)declaration).getName());
+  }
+
+  @Test
+  @DisplayName("a whole declaration span becomes the named component")
+  public void testAWholeDeclarationSpanBecomesTheNamedComponent() {
+    PsiFile file = myFixture.configureByText("Main.hx", MAIN_HX_SOURCE);
+
+    PsiElement method = HaxeCompilerLocations.declarationIn(file, WEIGHT_DECLARATION_SPAN);
+    PsiElement type = HaxeCompilerLocations.declarationIn(file, MAIN_DECLARATION_SPAN);
+
+    assertEquals("weight", assertInstanceOf(HaxeNamedComponent.class, method).getName());
+    assertEquals("Main", assertInstanceOf(HaxeNamedComponent.class, type).getName());
   }
 
   @Test

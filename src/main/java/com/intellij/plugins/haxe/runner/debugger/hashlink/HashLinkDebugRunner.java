@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Debug runner for the dedicated HashLink configuration (experimental).
- * Keys on {@link HashLinkRunConfiguration} only, so the legacy Flash/hxcpp
- * debugger is never involved.
+ * Keys on {@link HashLinkRunConfiguration} only, so no other debug runner is
+ * involved.
  *
  * The runner spawns the debuggee itself
  * ({@code hl --debug <port> --debug-wait <program>}), suspended under the

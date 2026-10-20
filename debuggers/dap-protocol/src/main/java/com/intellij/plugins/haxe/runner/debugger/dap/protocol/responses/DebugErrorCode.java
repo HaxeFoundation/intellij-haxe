@@ -3,10 +3,10 @@ package com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses;
 /**
  * Machine-readable error identifiers carried in {@link ErrorMessage#getId()}.
  *
- * <p>Mirrors the adapter's Haxe {@code debug.DebugErrorCode} — the numeric values
+ * <p>Mirrors the adapter's Haxe {@code ijhaxe.debug.DebugErrorCode} — the numeric values
  * are the wire contract and MUST stay in sync between the two. The human-readable
  * {@code format} text may change freely; clients branch on the code, not the text.
- * DAP leaves the id space to the adapter, so these numbers are ours to define.
+ * DAP leaves the id space to the adapter, which defines these numbers.
  */
 public enum DebugErrorCode {
   /** No specific machine meaning — a plain rejection. */
@@ -29,9 +29,5 @@ public enum DebugErrorCode {
 
   public int id() {
     return id;
-  }
-
-  public boolean matches(ErrorMessage error) {
-    return error != null && error.getId() == id;
   }
 }

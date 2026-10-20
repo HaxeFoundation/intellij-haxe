@@ -32,14 +32,13 @@ import java.util.Set;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibraryGraph;
 import java.util.Objects;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Turns the model builder's container entries into the tool window's Swing
  * tree, Gradle-style: one project node holding the project root's groups and
  * the modules. A pure transformation of the prepared model plus the target
- * selection store - no read action needed. With {@code hideEmptyNodes}, a
+ * selection store and the library graph - no read action needed. With {@code hideEmptyNodes}, a
  * grouping row without children and an unset value row are left out.
  */
 final class HaxeToolWindowTreeBuilder {
@@ -90,6 +89,8 @@ final class HaxeToolWindowTreeBuilder {
     DefaultMutableTreeNode compilationNode = new DefaultMutableTreeNode(new CompilationGroupNode(container.id()));
     compilationNode.add(new DefaultMutableTreeNode(container.compileCommand()));
     compilationNode.add(new DefaultMutableTreeNode(container.server()));
+    compilationNode.add(new DefaultMutableTreeNode(container.connectionMode()));
+    compilationNode.add(new DefaultMutableTreeNode(container.serverInstance()));
     return compilationNode;
   }
 

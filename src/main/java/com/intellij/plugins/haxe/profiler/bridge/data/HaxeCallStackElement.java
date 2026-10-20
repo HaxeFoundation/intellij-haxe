@@ -30,8 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * One frame of a profiled Haxe stack shown in the IU profiler views. A
@@ -42,17 +44,33 @@ import java.util.Objects;
  * classes — the longest symbol prefix that names a class wins, so a
  * closure symbol ({@code Main.update.closure}) still lands on its
  * enclosing method.
+ * <p>
+ * A frame also remembers the capture file it came from, which tells the
+ * sources of the profiled build apart from same-named ones of other builds.
+ * Some collectors (Tracy, hxcpp telemetry) report paths relative to the
+ * build's working directory; such a path is looked up under the capture's
+ * ancestors first, which also reaches generated sources in excluded folders
+ * that no index holds. When a symbol or a path still matches several files
+ * (every lime module and target generates its own {@code ApplicationMain}),
+ * the one nearest the capture wins: the one sharing the most leading path
+ * segments with it.
  */
 public final class HaxeCallStackElement extends BaseCallStackElement {
 
   private final String symbol;
   private final @Nullable String file;
   private final int line;
+  private final @Nullable Path capture;
 
   public HaxeCallStackElement(@NotNull String symbol, @Nullable String file, int line) {
+    this(symbol, file, line, null);
+  }
+
+  public HaxeCallStackElement(@NotNull String symbol, @Nullable String file, int line, @Nullable Path capture) {
     this.symbol = symbol;
     this.file = file;
     this.line = line;
+    this.capture = capture;
   }
 
   @Override
@@ -83,8 +101,8 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
    * the EDT only performs the final PSI-free navigation. Repeat clicks on
    * the same frame coalesce into one computation.
    */
-  public static void navigateToFrame(@NotNull Project project, @NotNull StackFrame frame) {
-    HaxeCallStackElement element = new HaxeCallStackElement(frame.symbol(), frame.file(), frame.line());
+  public static void navigateToFrame(@NotNull Project project, @NotNull StackFrame frame, @Nullable Path capture) {
+    HaxeCallStackElement element = new HaxeCallStackElement(frame.symbol(), frame.file(), frame.line(), capture);
     ReadAction.nonBlocking(() -> element.descriptor(project))
       .inSmartMode(project)
       .coalesceBy(element)
@@ -106,7 +124,7 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
     if (atPosition != null) {
       return new NavigatablePsiElement[]{atPosition};
     }
-    NavigatablePsiElement declaration = declarationOf(project, symbol);
+    NavigatablePsiElement declaration = declarationOf(project, symbol, capture);
     return declaration != null ? new NavigatablePsiElement[]{declaration}
                                : NavigatablePsiElement.EMPTY_NAVIGATABLE_ELEMENT_ARRAY;
   }
@@ -115,17 +133,18 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
    * The declaration a bare qualified symbol names: the longest symbol
    * prefix that names a class wins, then its member (or the class itself)
    * — a closure symbol ({@code Main.update.2}) lands on its enclosing
-   * method. Hits the resolver and indexes; call under a read action.
+   * method. Among classes sharing a runtime name, the one nearest {@code capture} wins.
+   * Hits the resolver and indexes; call under a read action.
    */
   @Nullable
-  public static NavigatablePsiElement declarationOf(@NotNull Project project, @NotNull String symbol) {
+  public static NavigatablePsiElement declarationOf(@NotNull Project project, @NotNull String symbol, @Nullable Path capture) {
     PsiManager psiManager = PsiManager.getInstance(project);
     GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     // qualified-name segments: pack.Class.method, closures with trailing numeric segments
     String[] segments = symbol.split("\\.");
     for (int memberIndex = segments.length - 1; memberIndex >= 1; memberIndex--) {
       String className = String.join(".", List.of(segments).subList(0, memberIndex));
-      HaxeClass haxeClass = runtimeClass(project, className, psiManager, scope);
+      HaxeClass haxeClass = runtimeClass(project, className, psiManager, scope, capture);
       if (haxeClass == null) continue;
       NavigatablePsiElement member = findMember(haxeClass, segments[memberIndex]);
       return member != null ? member : haxeClass;
@@ -147,7 +166,12 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
     return enclosing != null ? enclosing : psiFile;
   }
 
-  /** An absolute path opens directly; a collector-relative one matches the project file whose path ends with it; null for one naming no usable path. */
+  /**
+   * An absolute path opens directly. A collector-relative one is looked up
+   * under the capture's ancestors (the build's working directory is one of
+   * them), else among the indexed files whose path ends with it, the one
+   * nearest the capture winning. Null when no file is found.
+   */
   @Nullable
   private VirtualFile findVirtualFile(Project project) {
     String normalized = file.replace('\\', '/');
@@ -156,9 +180,28 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
     if (path.isAbsolute()) {
       return LocalFileSystem.getInstance().findFileByNioFile(path);
     }
+    VirtualFile underCapture = findUnderCaptureAncestors(normalized);
+    if (underCapture != null) return underCapture;
     String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
-    for (VirtualFile candidate : FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project))) {
-      if (candidate.getPath().endsWith("/" + normalized)) return candidate;
+    List<VirtualFile> matching = FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project)).stream()
+      .filter(candidate -> candidate.getPath().endsWith("/" + normalized))
+      .toList();
+    return matching.isEmpty() ? null : nearest(matching, VirtualFile::getPath, capture);
+  }
+
+  /**
+   * The file at the relative path under the nearest ancestor of the capture
+   * file that holds it. Ancestors the VFS does not know yet (a freshly
+   * written captures folder) are skipped.
+   */
+  @Nullable
+  private VirtualFile findUnderCaptureAncestors(@NotNull String relativePath) {
+    if (capture == null) return null;
+    for (Path ancestor = capture.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
+      VirtualFile directory = LocalFileSystem.getInstance().findFileByNioFile(ancestor);
+      if (directory == null) continue;
+      VirtualFile found = directory.findFileByRelativePath(relativePath);
+      if (found != null && !found.isDirectory()) return found;
     }
     return null;
   }
@@ -166,10 +209,37 @@ public final class HaxeCallStackElement extends BaseCallStackElement {
   /** The class a profiler symbol's prefix names: by its runtime name (no module segment), else by its source spelling. */
   @Nullable
   private static HaxeClass runtimeClass(@NotNull Project project, @NotNull String className,
-                                        @NotNull PsiManager psiManager, @NotNull GlobalSearchScope scope) {
+                                        @NotNull PsiManager psiManager, @NotNull GlobalSearchScope scope,
+                                        @Nullable Path capture) {
     List<HaxeClass> byRuntimeName = HaxeQnameResolveUtil.findClassesByRuntimeName(className, project);
-    if (!byRuntimeName.isEmpty()) return byRuntimeName.getFirst();
+    if (!byRuntimeName.isEmpty()) return nearest(byRuntimeName, HaxeCallStackElement::pathOf, capture);
     return HaxeResolveUtil.findClassByQName(className, psiManager, scope);
+  }
+
+  /** The candidate sharing the most leading path segments with the capture; the first one when there is no capture. */
+  private static <T> T nearest(@NotNull List<T> candidates, @NotNull Function<T, String> pathOf, @Nullable Path capture) {
+    if (capture == null || candidates.size() == 1) return candidates.getFirst();
+    String anchor = capture.toString().replace('\\', '/');
+    return candidates.stream()
+      .max(Comparator.comparingInt(candidate -> sharedSegments(pathOf.apply(candidate), anchor)))
+      .orElseThrow();
+  }
+
+  /** The number of leading path segments two slash-separated paths share. */
+  private static int sharedSegments(@NotNull String path, @NotNull String anchor) {
+    String[] left = path.replace('\\', '/').split("/");
+    String[] right = anchor.split("/");
+    int shared = 0;
+    while (shared < left.length && shared < right.length && left[shared].equals(right[shared])) {
+      shared++;
+    }
+    return shared;
+  }
+
+  private static String pathOf(@NotNull HaxeClass haxeClass) {
+    PsiFile psiFile = haxeClass.getContainingFile();
+    VirtualFile virtualFile = psiFile == null ? null : psiFile.getVirtualFile();
+    return virtualFile == null ? "" : virtualFile.getPath();
   }
 
   @Nullable

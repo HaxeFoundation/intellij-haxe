@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pause/resume/step against the live fixtures — the scenarios that caught the
- * real-world session wedges (getter deadlock, fault-in-renderer) and the
- * multi-threaded shape real apps have.
+ * Pause/resume/step against the live fixtures — the session-wedge scenarios
+ * (getter deadlock, fault-in-renderer) and the multi-threaded shape real apps
+ * have.
  */
 @DisplayName("HXCPP debugger: run control (integration)")
 public class RunControlIT {
@@ -146,8 +146,8 @@ public class RunControlIT {
   }
 
   /**
-   * The regression that froze real sessions: a local whose @:isVar property
-   * getter needs a mutex the PAUSED main thread holds. Rendering must not run
+   * A local whose @:isVar property getter needs a mutex the PAUSED main
+   * thread holds would freeze the session if rendered. Rendering must not run
    * the getter — the raw backing value shows and the session stays live.
    */
   @Test

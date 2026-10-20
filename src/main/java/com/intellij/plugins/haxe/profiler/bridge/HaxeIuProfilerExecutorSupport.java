@@ -27,10 +27,11 @@ import java.util.Set;
 
 /**
  * Resolves profiler child executors back to their Haxe profiler
- * configurations: the HashLink entry's sampling rate, the hxcpp entry's
- * compile additions (its profiler defines plus the bundled start/stop
- * bootstrap macro, extracted beside the IDE's system directory), and the
- * lane-matching executor for tool-window Profile actions.
+ * configurations: each lane's settings and compile additions (for example
+ * the HashLink entry's sampling rate, or the hxcpp entry's profiler defines
+ * plus the bundled start/stop bootstrap macro, extracted beside the IDE's
+ * system directory), and the lane-matching executor for tool-window Profile
+ * actions.
  */
 public class HaxeIuProfilerExecutorSupport implements HaxeProfilerExecutorSupport {
 

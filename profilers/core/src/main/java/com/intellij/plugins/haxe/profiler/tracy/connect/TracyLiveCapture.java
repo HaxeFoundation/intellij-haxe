@@ -25,7 +25,7 @@ import java.util.function.BooleanSupplier;
  * port the launcher assigned via TRACY_PORT), settles the protocol version
  * through the handshake - offering the strategy's candidates one connect
  * at a time, since the client answers a wrong version with a refusal, closes
- * and listens again - asks plot/thread names over the query channel as they
+ * and listens again - asks plot, thread and memory-pool names over the query channel as they
  * first appear, and reads until the client is drained. Shutdown is a
  * two-step handshake and the client NEVER closes the socket itself: it
  * announces exit with a Terminate item, and on receiving the receiver's

@@ -57,7 +57,7 @@ final class HxtSampleAccumulator {
     }
     readSamples(data, stamp);
 
-    // optional trailing fields - records written before them read as 0
+    // optional trailing fields - absent ones read as 0
     long allocatedBytes = data.available() >= 8 ? Integer.toUnsignedLong(readIntLe(data)) : 0;
     long freedBytes = data.available() >= 4 ? Integer.toUnsignedLong(readIntLe(data)) : 0;
     int flags = data.available() >= 1 ? data.readUnsignedByte() : 0;

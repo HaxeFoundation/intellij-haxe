@@ -41,4 +41,18 @@ class Rich {
 		pushed.push("z");
 		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get() + dynObj.score + stringMap.get("b") + intMap.get(n) + enumMap.get(Shade.Plain) + holder.pos.x + vec.y + pushed[n - n]); // FIXTURE_RICH_LINE = 42
 	}
+
+	/**
+		Closures over locals they only read. The environment slot holds a pointer:
+		a single captured value that is one already (the Null<Int> box) is stored
+		as it is, anything else travels in an anonymous tuple enum.
+	**/
+	public static function captures():Void {
+		var fixed = 10;
+		var offset = Std.parseInt("20");
+		var shiftFixed = (k:Int) -> k + fixed;
+		var shift = (k:Int) -> k + offset;
+		var scale = (k:Int) -> k * offset + fixed;
+		Sys.println("captures:" + shiftFixed(1) + shift(1) + scale(1)); // FIXTURE_RICH_CAPTURES_LINE = 56
+	}
 }

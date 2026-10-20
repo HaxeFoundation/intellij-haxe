@@ -90,12 +90,6 @@ public final class HaxeIdeOverridesStore implements PersistentStateComponent<Hax
     HaxeBuildSettingsListener.publisher(project).stateLoaded();
   }
 
-  /** Whether the build file has any define entry or a custom target. */
-  public boolean hasOverrides(@NotNull String buildFilePath) {
-    BuildFileOverrides overrides = find(buildFilePath);
-    return overrides != null && !isEmpty(overrides);
-  }
-
   /** The build file's define entries, in name order. */
   @NotNull
   public List<DefineOverride> getDefines(@NotNull String buildFilePath) {

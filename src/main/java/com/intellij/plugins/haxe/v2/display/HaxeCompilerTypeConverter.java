@@ -54,7 +54,7 @@ final class HaxeCompilerTypeConverter {
   /** The declaration of a named compiler type, through the class indexes: by its qualified name, else by its dot path. */
   @Nullable
   static HaxeClass findClass(@NotNull JsonTypeRef type, @NotNull PsiElement context) {
-    String qualifiedName = JsonTypeRef.qualifiedNameOf(type.args().path("path"));
+    String qualifiedName = type.qualifiedName();
     HaxeClass byQualifiedName = HaxeResolveUtil.findClassByQName(qualifiedName, context);
     if (byQualifiedName != null) return byQualifiedName;
     return HaxeResolveUtil.findClassByQName(type.dotPath(), context);

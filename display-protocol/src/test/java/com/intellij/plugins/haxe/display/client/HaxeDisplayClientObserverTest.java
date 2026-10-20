@@ -23,8 +23,8 @@ public class HaxeDisplayClientObserverTest {
     }
 
     @Override
-    public void afterRequest(String method, long millis, boolean success) {
-      events.add("after " + method + " " + success);
+    public void afterRequest(String method, long millis, DisplayRequestException failure) {
+      events.add("after " + method + " " + (failure == null ? "ok" : failure.getMessage()));
     }
   };
 
@@ -35,7 +35,7 @@ public class HaxeDisplayClientObserverTest {
 
     client.exchange(List.of("-main", "Main"), 1_000);
 
-    assertEquals(List.of("before compile", "after compile true"), events);
+    assertEquals(List.of("before compile", "after compile ok"), events);
   }
 
   @Test
@@ -43,13 +43,13 @@ public class HaxeDisplayClientObserverTest {
   public void testADisplayRequestWithoutAResultIsReportedAsFailed() {
     HaxeDisplayClient client = clientOver(channelAnswering(new DisplayResponse("", List.of(), true)));
 
-    assertThrows(DisplayRequestException.class, () -> client.hover(List.of(), "Main.hx", 0, null));
+    DisplayRequestException thrown = assertThrows(DisplayRequestException.class, () -> client.hover(List.of(), "Main.hx", 0, null));
 
-    assertEquals(List.of("before display/hover", "after display/hover false"), events);
+    assertEquals(List.of("before display/hover", "after display/hover " + thrown.getMessage()), events);
   }
 
   private HaxeDisplayClient clientOver(DisplayChannel channel) {
-    HaxeDisplayClient client = new HaxeDisplayClient(channel);
+    HaxeDisplayClient client = new JsonRpcDisplayClient(channel);
     client.setObserver(observer);
     return client;
   }
@@ -59,11 +59,6 @@ public class HaxeDisplayClientObserverTest {
       @Override
       public DisplayResponse request(List<String> args, int readTimeoutMs) {
         return response;
-      }
-
-      @Override
-      public String describe() {
-        return "canned channel";
       }
     };
   }

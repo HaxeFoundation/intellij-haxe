@@ -16,8 +16,9 @@ import java.util.List;
  * Routes result-row location URLs to the frameworks: each framework resolves
  * the hints its own reporting emitted (see
  * {@link HaxeTestFramework#resolveTestLocation}) — identifier-shaped
- * {@code haxe:test} names for utest/munit/tink, file-plus-description
- * {@code haxe:buddy} hints for buddy's closure specs.
+ * {@code haxe:test} names for utest/munit, {@code haxe:tink} hints (file,
+ * class and method) for tink, file-plus-description {@code haxe:buddy} hints
+ * for buddy's closure specs.
  */
 public final class HaxeTestLocator implements SMTestLocator {
 

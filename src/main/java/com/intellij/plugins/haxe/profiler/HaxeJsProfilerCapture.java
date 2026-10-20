@@ -28,8 +28,7 @@ public interface HaxeJsProfilerCapture {
    * browser starts), profiles the first page target and shows the profiler
    * session tab. {@code contentRoot} and {@code baseUrl} locate the served
    * scripts' source maps, so sampled positions map back to the .hx sources;
-   * either may be null (an external URL run has no local scripts). Null
-   * without the profiler module.
+   * either may be null (an external URL run has no local scripts).
    */
   @Nullable
   Handle start(@NotNull Project project, @NotNull String displayName, @NotNull Path sessionFile,

@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.v2.display;
 import com.intellij.plugins.haxe.display.protocol.JsonTypeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,15 +61,13 @@ final class HaxeInlayTypeText {
   }
 
   private static void render(@Nullable JsonTypeRef type, @NotNull List<Part> parts) {
-    if (type == null) {
-      parts.add(plainPart("?"));
-      return;
+    switch (type) {
+      case JsonTypeRef.NamedType named -> named(named, parts);
+      case JsonTypeRef.FunctionType function -> function(function, parts);
+      case JsonTypeRef.DynamicType dynamic -> dynamic(dynamic, parts);
+      case JsonTypeRef.AnonymousType anonymous -> anonymous(anonymous, parts);
+      case null, default -> parts.add(plainPart("?"));
     }
-    if (type.isNamedType()) named(type, parts);
-    else if (type.isFunction()) function(type, parts);
-    else if (type.isDynamic()) dynamic(type, parts);
-    else if (type.isAnonymous()) anonymous(type, parts);
-    else parts.add(plainPart("?"));
   }
 
   private static void named(@NotNull JsonTypeRef type, @NotNull List<Part> parts) {
@@ -91,24 +88,24 @@ final class HaxeInlayTypeText {
     render(type.returnType(), parts);
   }
 
-  /** {@code Dynamic}, or {@code Dynamic<T>} when the compiler's args carry the parameter type. */
-  private static void dynamic(@NotNull JsonTypeRef type, @NotNull List<Part> parts) {
+  /** {@code Dynamic}, or {@code Dynamic<T>} when the compiler names the parameter type. */
+  private static void dynamic(@NotNull JsonTypeRef.DynamicType type, @NotNull List<Part> parts) {
     parts.add(plainPart("Dynamic"));
-    JsonNode args = type.args();
-    if (args == null || args.isMissingNode() || args.isNull()) return;
+    if (type.args() == null) return;
     parts.add(plainPart("<"));
-    render(JsonTypeRef.of(args), parts);
+    render(type.args(), parts);
     parts.add(plainPart(">"));
   }
 
-  private static void anonymous(@NotNull JsonTypeRef type, @NotNull List<Part> parts) {
+  private static void anonymous(@NotNull JsonTypeRef.AnonymousType type, @NotNull List<Part> parts) {
     parts.add(plainPart("{"));
     boolean first = true;
-    for (JsonNode field : type.args().path("fields")) {
+    for (JsonTypeRef.AnonymousType.Field field : type.fields()) {
       if (!first) parts.add(plainPart(", "));
       first = false;
-      parts.add(plainPart(field.path("name").asString("?") + ":"));
-      render(JsonTypeRef.of(field.path("type")), parts);
+      String name = field.name().isEmpty() ? "?" : field.name();
+      parts.add(plainPart(name + ":"));
+      render(field.type(), parts);
     }
     parts.add(plainPart("}"));
   }

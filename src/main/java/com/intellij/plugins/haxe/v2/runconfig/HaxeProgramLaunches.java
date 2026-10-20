@@ -1,11 +1,14 @@
 package com.intellij.plugins.haxe.v2.runconfig;
 
 import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -137,6 +140,33 @@ public final class HaxeProgramLaunches {
   @Nullable
   public static String launchOutput(@NotNull HaxeBuildFileInfo info) {
     return info.target() == HaxeTarget.INTERP ? "" : info.targetOutput();
+  }
+
+  /**
+   * Starts the build's Build &amp; run configuration under the executor; does
+   * nothing for a build file outside every module. EDT.
+   */
+  public static void launchBuildAndRun(@NotNull Project project,
+                                       @NotNull HaxeBuildFile buildFile,
+                                       @NotNull HaxeLaunchKind kind,
+                                       @NotNull String targetOutput,
+                                       @NotNull Executor executor) {
+    // the file index needs a read action - the EDT has no implicit read access
+    Module module = ReadAction.computeBlocking(() -> ProjectFileIndex.getInstance(project).getModuleForFile(buildFile.file()));
+    if (module == null) return;
+    RunnerAndConfigurationSettings settings = buildAndRunConfiguration(project, module, buildFile, kind, targetOutput);
+    HaxeConfigurationLaunches.runSelected(project, settings, executor);
+  }
+
+  /** Build &amp; run's configuration: the build's output launched through the kind after the type's default build action. */
+  @NotNull
+  public static RunnerAndConfigurationSettings buildAndRunConfiguration(@NotNull Project project,
+                                                                       @NotNull Module module,
+                                                                       @NotNull HaxeBuildFile buildFile,
+                                                                       @NotNull HaxeLaunchKind kind,
+                                                                       @NotNull String targetOutput) {
+    String buildAction = HaxeBuildSystem.of(buildFile.type()).defaultBuildActionName();
+    return findOrCreate(project, module, buildFile, kind, targetOutput, buildAction, Map.of(), true);
   }
 
   /**

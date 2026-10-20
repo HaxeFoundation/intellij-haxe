@@ -266,7 +266,7 @@ class PathResolver {
 			case HStruct(_):
 				base = parent.address;
 				effectiveType = parent.type;
-			case HObj(_), HArray, HDynObj, HVirtual(_):
+			case HObj(_), HArray, HDynObj, HVirtual(_), HEnum(_), HFun(_), HMethod(_):
 				base = memory.readPointer(parent.address);
 				if (Int64.eq(base, Int64.ofInt(0))) {
 					throw new DebugError('"' + parent.name + '" is null');

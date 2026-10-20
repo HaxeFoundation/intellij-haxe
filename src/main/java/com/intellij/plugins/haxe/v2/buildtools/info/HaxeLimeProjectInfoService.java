@@ -100,21 +100,9 @@ public final class HaxeLimeProjectInfoService implements Disposable {
   /**
    * The file's effective configuration for the target, or null when not resolved
    * (yet). Schedules a background run when the cache is stale; the landing is
-   * announced as {@link HaxeBuildEventListener#evaluationLanded}. Safe to call
-   * from read actions.
-   */
-  @Nullable
-  public HaxeBuildFileInfo getCachedOrSchedule(@NotNull HaxeBuildFile buildFile,
-                                               @NotNull String targetFlag,
-                                               @Nullable String preferredSdkName) {
-    return getCachedOrSchedule(buildFile, targetFlag, preferredSdkName, HaxeProjectInfoCache.NO_CALLBACK);
-  }
-
-  /**
-   * {@link #getCachedOrSchedule(HaxeBuildFile, String, String)} for a caller
-   * that must react to the evaluation this call starts: {@code onUpdated}
-   * runs on the EDT when it lands. Kept by identity, so pass one long-lived
-   * instance.
+   * announced as {@link HaxeBuildEventListener#evaluationLanded}, and
+   * {@code onUpdated} runs on the EDT when it lands (kept by identity, so pass
+   * one long-lived instance). Safe to call from read actions.
    */
   @Nullable
   public HaxeBuildFileInfo getCachedOrSchedule(@NotNull HaxeBuildFile buildFile,

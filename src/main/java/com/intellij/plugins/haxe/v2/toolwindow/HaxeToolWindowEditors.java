@@ -12,13 +12,15 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
 import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleWorkspace;
-import com.intellij.plugins.haxe.v2.buildtools.server.HaxeContextFailures;
+import com.intellij.plugins.haxe.v2.buildtools.server.*;
 import com.intellij.plugins.haxe.v2.buildtools.settings.*;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore.CompileCommand;
 import com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeBuildToolsConfigurable;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeServerGeneration;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeCompileCommandDialog;
 import com.intellij.plugins.haxe.v2.toolwindow.ui.HaxeIdeOverridesDialog;
@@ -37,9 +39,9 @@ import java.util.List;
  * The settings edits tree rows offer: choosers, the custom-target prompt, the
  * compile command dialog, the server toggle and the confirmed removals. The
  * stores publish every change, so the tree refreshes on its own. Module
- * libraries come from the module's current build context (see
- * {@link HaxeLibrarySync}), so changing the target, the section or the build
- * command's file re-syncs them.
+ * libraries come from the module's build files (see {@link HaxeLibrarySync}),
+ * so changing the target or the section re-syncs them; changing the build
+ * command does not.
  */
 public final class HaxeToolWindowEditors {
 
@@ -100,15 +102,13 @@ public final class HaxeToolWindowEditors {
       .show(point);
   }
 
-  /** Level choices mirror the Haxe Compiler settings page: an explicit level, or null = project default. */
+  /** Level choices mirror the Haxe Compiler settings page: an explicit level, or null = the default the module takes. */
   public static void showLanguageLevelPopup(@NotNull Project project,
                                             @NotNull EnvLanguageLevelNode levelNode,
                                             @NotNull RelativePoint point) {
     HaxeCompilerSettings compilerSettings = HaxeCompilerSettings.getInstance(project);
     List<LevelChoice> choices = new ArrayList<>();
-    String defaultLevel = compilerSettings.getDefaultLanguageLevel(levelNode.containerId()).getPresentableText();
-    String defaultDisplay = HaxeBundle.message("haxe.toolwindow.node.environment.sdk.default", defaultLevel);
-    choices.add(new LevelChoice(null, defaultDisplay));
+    choices.add(new LevelChoice(null, HaxeLanguageLevelUtil.defaultLevelLabel(project, levelNode.containerId())));
     for (HaxeLanguageLevel level : HaxeLanguageLevel.values()) {
       choices.add(new LevelChoice(level, level.getPresentableText()));
     }
@@ -122,6 +122,30 @@ public final class HaxeToolWindowEditors {
       })
       .createPopup()
       .show(point);
+  }
+
+  /** The connection mode of every SDK of the row's server generation, named by the flags its servers start with. */
+  public static void showConnectionModePopup(@NotNull Project project,
+                                             @NotNull ConnectionModeNode connectionMode,
+                                             @NotNull RelativePoint point) {
+    HaxeServerGeneration generation = connectionMode.generation();
+    HaxeDisplayConnectionMode current = HaxeCompilerSettings.getInstance(project).getDisplayConnectionMode(generation);
+    String title = HaxeBundle.message("haxe.toolwindow.select.connection.mode.title", generation.getPresentableText());
+    JBPopupFactory.getInstance()
+      .createPopupChooserBuilder(List.of(HaxeDisplayConnectionMode.values()))
+      .setTitle(title)
+      .setRenderer(BuilderKt.textListCellRenderer("", (HaxeDisplayConnectionMode mode) -> mode.getPresentableText(generation)))
+      .setSelectedValue(current, true)
+      .setItemChosenCallback(mode -> chooseConnectionMode(project, generation, mode))
+      .createPopup()
+      .show(point);
+  }
+
+  private static void chooseConnectionMode(@NotNull Project project,
+                                           @NotNull HaxeServerGeneration generation,
+                                           @NotNull HaxeDisplayConnectionMode mode) {
+    HaxeDisplayProcessManager.getInstance(project).chooseConnection(generation, mode);
+    HaxeBuildSettingsListener.publisher(project).compilerSettingsChanged();
   }
 
   /** Edits the build file's {@code --custom-target} name; an empty entry clears it. */
@@ -171,6 +195,34 @@ public final class HaxeToolWindowEditors {
     if (!enable) {
       // an opted-out container sends no more requests - a lingering failure could never clear itself
       HaxeContextFailures.getInstance(project).record(serverNode.containerId(), null);
+    }
+  }
+
+  /** Which compilation server instance serves the container: its SDK's shared one, or a dedicated one with a cache of its own. */
+  public static void showServerInstancePopup(@NotNull Project project,
+                                             @NotNull ServerInstanceNode serverInstance,
+                                             @NotNull RelativePoint point) {
+    JBPopupFactory.getInstance()
+      .createPopupChooserBuilder(List.of(HaxeServerSharing.values()))
+      .setTitle(HaxeBundle.message("haxe.toolwindow.select.server.instance.title"))
+      .setRenderer(BuilderKt.textListCellRenderer("", (HaxeServerSharing sharing) -> sharing.getPresentableText()))
+      .setSelectedValue(serverInstance.sharing(), true)
+      .setItemChosenCallback(sharing -> chooseServerSharing(project, serverInstance.containerId(), sharing))
+      .createPopup()
+      .show(point);
+  }
+
+  /** A container leaving its dedicated instance forgets it (process, console tab, failures); the shared instance stays for the other containers. */
+  private static void chooseServerSharing(@NotNull Project project,
+                                          @NotNull String containerId,
+                                          @NotNull HaxeServerSharing sharing) {
+    HaxeEnvironmentStore environments = HaxeEnvironmentStore.getInstance(project);
+    if (environments.isUsingDedicatedServer(containerId) == sharing.isDedicated()) return;
+    HaxeServerAssignment previous = HaxeServerAssignment.forContainer(project, containerId);
+    environments.setUsingDedicatedServer(containerId, sharing.isDedicated());
+    if (!sharing.isDedicated()) {
+      HaxeCompilationServerManager.getInstance(project).removeServer(previous.id());
+      HaxeDisplayProcessManager.getInstance(project).removeServer(HaxeDisplayProcessManager.idFor(previous));
     }
   }
 

@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Debug runner for the HXCPP (vshaxe debug server) configuration. Keys on
- * {@link HxcppVshaxeRunConfiguration} only, so the legacy Flash/hxcpp debugger is
- * never involved. The base class binds the adapter's listener BEFORE spawning
+ * {@link HxcppVshaxeRunConfiguration} only, so no other debug runner is
+ * involved. The base class binds the adapter's listener BEFORE spawning
  * the debuggee — the executable's embedded debug server connects out during
  * startup and holds the program before {@code main} until configuration is
  * done, so breakpoints are always installed before user code runs.

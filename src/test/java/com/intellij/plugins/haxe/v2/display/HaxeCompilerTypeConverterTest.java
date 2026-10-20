@@ -2,12 +2,12 @@ package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
 import com.intellij.plugins.haxe.display.protocol.JsonTypeRef;
+import com.intellij.plugins.haxe.display.protocol.ProtocolJson;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.psi.PsiFile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -116,7 +116,7 @@ public class HaxeCompilerTypeConverterTest extends HaxeToolkitLightFixtureTestCa
   }
 
   private static ResultHolder convert(String json, PsiFile context) {
-    JsonTypeRef type = JsonTypeRef.of(JsonMapper.builder().build().readTree(json));
+    JsonTypeRef type = ProtocolJson.MAPPER.readValue(json, JsonTypeRef.class);
     return HaxeCompilerTypeConverter.toResultHolder(type, context);
   }
 

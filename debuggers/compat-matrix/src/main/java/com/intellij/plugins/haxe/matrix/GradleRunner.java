@@ -72,8 +72,8 @@ final class GradleRunner {
 
     try {
       // the redirect targets must exist or CreateProcess fails with a
-      // misleading "cannot find the path specified" (fresh checkouts have
-      // no logs/ directory yet; older runs left one behind, masking this)
+      // misleading "cannot find the path specified" (a fresh checkout has
+      // no logs/ directory yet)
       Files.createDirectories(logFile.toAbsolutePath().getParent());
       Process process = builder.start();
       long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSec);
@@ -106,8 +106,8 @@ final class GradleRunner {
    * Applies the lane's env overrides, first REMOVING any case-variant of the
    * overridden keys ("Path" vs "PATH"): Windows environments are
    * case-insensitive but java maps are not everywhere in the chain, and a
-   * surviving variant with the dev toolchain first produced a lane compiling
-   * with the WRONG haxe on one machine (std-typing error salad).
+   * surviving variant with the dev toolchain first makes the lane compile
+   * with the WRONG haxe (std-typing errors throughout).
    */
   static void applyEnv(Map<String, String> environment, Map<String, String> overrides) {
     for (String key : overrides.keySet()) {

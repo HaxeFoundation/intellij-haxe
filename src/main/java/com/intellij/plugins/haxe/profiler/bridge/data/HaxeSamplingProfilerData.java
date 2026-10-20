@@ -42,7 +42,7 @@ public final class HaxeSamplingProfilerData extends HaxeChartedProfilerData {
   private static final String GC_SYMBOL = "GC Major";
 
   private final ProfilerSnapshot snapshot;
-  /** The session file this data was parsed from; a still-live capture of it renders the self-refreshing view. */
+  /** The session or dump file this data was parsed from; a still-live session renders the self-refreshing view. */
   private final @Nullable Path sourceFile;
 
   private HaxeSamplingProfilerData(MultipleCallTreesProfilerData trees, ProfilerSnapshot snapshot, @Nullable Path sourceFile) {
@@ -51,15 +51,16 @@ public final class HaxeSamplingProfilerData extends HaxeChartedProfilerData {
     this.sourceFile = sourceFile;
   }
 
+  /** The session or dump file this data was parsed from; null when it was built without one. */
+  @Nullable
+  public Path sourceFile() {
+    return sourceFile;
+  }
+
   /** The parsed capture; the gutter hints aggregate their line times from it. */
   @NotNull
   public ProfilerSnapshot snapshot() {
     return snapshot;
-  }
-
-  @NotNull
-  public static HaxeSamplingProfilerData from(@NotNull ProfilerSnapshot snapshot) {
-    return from(snapshot, null);
   }
 
   @NotNull
@@ -79,7 +80,7 @@ public final class HaxeSamplingProfilerData extends HaxeChartedProfilerData {
     for (StackSample sample : snapshot.samples()) {
       List<BaseCallStackElement> stack = new ArrayList<>(sample.frames().size() + 1);
       for (StackFrame frame : sample.frames()) {
-        stack.add(elements.computeIfAbsent(frame, HaxeSamplingProfilerData::toElement));
+        stack.add(elements.computeIfAbsent(frame, key -> toElement(key, sourceFile)));
       }
       if (sample.inGc()) {
         stack.add(inGc);
@@ -101,8 +102,8 @@ public final class HaxeSamplingProfilerData extends HaxeChartedProfilerData {
   }
 
   @NotNull
-  private static HaxeCallStackElement toElement(StackFrame frame) {
-    return new HaxeCallStackElement(frame.symbol(), frame.file(), frame.line());
+  private static HaxeCallStackElement toElement(StackFrame frame, @Nullable Path sourceFile) {
+    return new HaxeCallStackElement(frame.symbol(), frame.file(), frame.line(), sourceFile);
   }
 
   /** A thread sampled without being listed in the capture's thread table. */
@@ -130,7 +131,7 @@ public final class HaxeSamplingProfilerData extends HaxeChartedProfilerData {
                                                 @NotNull Disposable parent) {
     return live != null
            ? HaxeCallChartTab.createLive(project, snapshot, sourceFile, live, parent)
-           : HaxeCallChartTab.create(project, snapshot);
+           : HaxeCallChartTab.create(project, snapshot, sourceFile);
   }
 
   /** Live captures only come from v1 (.hxtsession) receivers. */

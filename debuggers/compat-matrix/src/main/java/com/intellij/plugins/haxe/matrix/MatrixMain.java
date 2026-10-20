@@ -17,9 +17,9 @@ import java.util.stream.Stream;
  * suite per toolchain, and writes the HTML report. Entry point of
  * {@code gradlew debuggerCompatibilityReport}; see README.md.
  *
- * The lane mechanics encode hard-won lessons from the runs that certified
- * the version support policy — see the comments at the decision points and
- * in {@link GradleRunner} before "simplifying" any of them.
+ * The lane mechanics carry constraints that are easy to break — read the
+ * comments at the decision points and in {@link GradleRunner} before
+ * "simplifying" any of them.
  */
 public final class MatrixMain {
   private final Path root;
@@ -332,8 +332,8 @@ public final class MatrixMain {
    * once and the results merged — a test that fails then passes is reported
    * as FLAKY (machine load, not a version incompatibility) instead of
    * failing the cell. The debugger ITs drive real debuggees against wait
-   * timeouts, so contention flakes are a fact of life; the certified-green
-   * combos kept "failing surprisingly" on busy machines without this.
+   * timeouts, so contention flakes are a fact of life; without the rerun,
+   * green combos fail on busy machines.
    *
    * {@code resultFilter} (nullable): only XMLs whose filename contains it are
    * collected as this cell's evidence. Lanes sharing a module's results dir
@@ -386,12 +386,6 @@ public final class MatrixMain {
     return new SuiteRun(status, merged, flaky);
   }
 
-  /**
-   * Copies the first attempt's failure XMLs into {@code evidence/first-attempt}
-   * before the retry overwrites them — a flake that "passed on retry" is
-   * undiagnosable without the stack traces (and adapter output) that first
-   * failed it.
-   */
   /** "ClassName::testName" for every failed test of one class result. */
   private static Stream<String> failedTestIds(Results.ClassResult result) {
     return result.failed()
@@ -399,6 +393,12 @@ public final class MatrixMain {
       .map(failure -> result.name() + "::" + failure.test());
   }
 
+  /**
+   * Copies the first attempt's failure XMLs into {@code evidence/first-attempt}
+   * before the retry overwrites them — a flake that "passed on retry" is
+   * undiagnosable without the stack traces (and adapter output) that first
+   * failed it.
+   */
   private void preserveFirstAttempt(List<Results.ClassResult> failing, Path evidence) throws IOException {
     Path firstAttempt = evidence.resolve("first-attempt");
     Files.createDirectories(firstAttempt);
@@ -626,8 +626,8 @@ public final class MatrixMain {
 
   /**
    * Reads a failed fixture build's error output for KNOWN toolchain problems
-   * and logs an actionable hint — "compile-fail" alone sent the first user
-   * hunting through log files for what was an environment issue.
+   * and logs an actionable hint — "compile-fail" alone does not tell an
+   * environment issue from a code problem.
    */
   private void diagnoseCompileFail(Path buildLog) {
     try {

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Breakpoints, variables and the evaluate matrix against the plain fixture
  * (Main.hx: add() is called three times with amount 0/1/2, then the program
- * exits). Mirrors the M2–M5 python probes.
+ * exits).
  */
 @DisplayName("HXCPP debugger: breakpoints and evaluate (integration)")
 public class BreakpointsAndEvaluateIT {

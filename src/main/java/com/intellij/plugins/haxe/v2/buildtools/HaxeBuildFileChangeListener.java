@@ -43,7 +43,7 @@ public final class HaxeBuildFileChangeListener implements BulkFileListener {
     }
   }
 
-  /** A move or rename leaves the old path and arrives at the new one; either side may be a build file. */
+  /** Publishes the build-file event a VFS event amounts to, if any. */
   private void announce(@NotNull VFileEvent event, @NotNull HaxeBuildEventListener publisher) {
     switch (event) {
       case VFileContentChangeEvent change when concernsBuildFile(change) ->
@@ -59,6 +59,7 @@ public final class HaxeBuildFileChangeListener implements BulkFileListener {
     }
   }
 
+  /** A move or rename leaves the old path and arrives at the new one; either side may be a build file. */
   private void announceRelocation(@NotNull String oldPath,
                                   @NotNull String newPath,
                                   @NotNull VirtualFile file,

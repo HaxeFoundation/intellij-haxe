@@ -38,7 +38,7 @@ import java.awt.BorderLayout;
  * run and its working directory, and for a build file's action the optional
  * run configuration it creates or starts ({@link HaxeLaunchSection}). A blank
  * work directory falls back to the row
- * kind's default (the build file's directory for actions, the container root
+ * kind's default (the build file's work directory for actions, the container root
  * for tools); {@code ${moduleRoot}} and {@code ${projectRoot}} expand in both
  * the command and the work directory. The layout lives in the matching .form
  * (labels bind their bundle keys there).

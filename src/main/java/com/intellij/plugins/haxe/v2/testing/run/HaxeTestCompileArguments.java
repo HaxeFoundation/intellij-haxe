@@ -7,7 +7,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.buildtools.*;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeToolFlagSpellings;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import com.intellij.plugins.haxe.v2.testing.*;
 import com.intellij.util.execution.ParametersListUtil;
@@ -166,8 +165,9 @@ final class HaxeTestCompileArguments {
    * buddy's packaged (lime/nme) tests only report when the app's OWN main
    * honors the injected {@code -D reporter} define — a lime/nme main is the
    * Sprite, not buddy's generated main, so buddy's built-in handling of that
-   * define never runs. The conditional to copy into such a TestMain lives in
-   * the testProjects buddy samples; without it the run stays console-only.
+   * define never runs. Such a TestMain has to run its suites with the reporter
+   * class the {@code reporter} define names when the define is set; without
+   * that the run stays console-only.
    */
   @NotNull
   private static List<String> frameworkArguments(@NotNull Project project,

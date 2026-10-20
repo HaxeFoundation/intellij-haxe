@@ -17,10 +17,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * Renders the Haxe tool window tree. Most rows take one of three shapes - a
- * label, a label with its grayed value (plus a ▾ marker where clicking opens a
- * chooser), or a group label with its child count; rows with more to say
- * (build files, the server, the SDK, defines, libraries) render themselves.
- * Missing libraries and SDKs are shown in error color.
+ * label, a label with its grayed value (on a chooser row the value and a ▾
+ * marker answer a click), or a group label with its child count; rows with
+ * more to say (build files, the server, the SDK, defines, libraries) render
+ * themselves. Missing libraries and SDKs are shown in error color.
  */
 public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
 
@@ -60,6 +60,10 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
       case BuildGroupNode buildGroup -> countRow(AllIcons.Nodes.Folder, buildGroup.label(), buildGroup.count());
       case CompilationGroupNode compilation -> labelRow(AllIcons.General.Settings, compilation.label());
       case CompilationServerNode server -> renderServer(server);
+      case ServerInstanceNode serverInstance ->
+        valueRow(AllIcons.Webreferences.Server, HaxeBundle.message("haxe.toolwindow.node.server.instance"), serverInstance.label(), true);
+      case ConnectionModeNode connectionMode ->
+        valueRow(AllIcons.Webreferences.Server, HaxeBundle.message("haxe.toolwindow.node.connection.mode"), connectionMode.display(), true);
       case ActionsGroupNode actionsGroup -> countRow(AllIcons.Nodes.ConfigFolder, actionsGroup.label(), actionsGroup.count());
       case TestsGroupNode tests -> labelRow(AllIcons.Nodes.TestSourceFolder, tests.label());
       case ActionNode action -> renderAction(action);
@@ -83,14 +87,23 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
     append(label);
   }
 
-  /** The label, then its current value grayed; a {@code chooser} row adds the dropdown marker. */
+  /** The label, then its current value grayed; a {@code chooser} row makes the value a click target. */
   private void valueRow(@NotNull Icon icon, @NotNull String label, @NotNull String value, boolean chooser) {
     setIcon(icon);
     append(label);
-    append("  " + value, SimpleTextAttributes.GRAYED_ATTRIBUTES);
     if (chooser) {
-      append(CHOOSER_MARKER, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+      appendChooserValue(value, SimpleTextAttributes.GRAYED_ATTRIBUTES);
     }
+    else {
+      append("  " + value, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    }
+  }
+
+  /** A chooser's value and its dropdown marker, both tagged so a click on either opens the chooser. */
+  private void appendChooserValue(@NotNull String value, @NotNull SimpleTextAttributes attributes) {
+    append("  ");
+    append(value, attributes, RowValueLink.INSTANCE);
+    append(CHOOSER_MARKER, SimpleTextAttributes.GRAYED_ATTRIBUTES, RowValueLink.INSTANCE);
   }
 
   private void countRow(@NotNull Icon icon, @NotNull String label, int count) {
@@ -142,8 +155,7 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
     setIcon(AllIcons.Nodes.PpJdk);
     append(HaxeBundle.message("haxe.toolwindow.node.environment.sdk"));
     var attributes = sdk.missing() ? SimpleTextAttributes.ERROR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES;
-    append("  " + sdk.displayName(), attributes);
-    append(CHOOSER_MARKER, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    appendChooserValue(sdk.displayName(), attributes);
   }
 
   private void renderDefine(@NotNull String name, @Nullable String value) {
@@ -181,10 +193,9 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
     setIcon(AllIcons.Nodes.Property);
     append(label);
     append("  ");
-    append(customTarget.customTarget(), STRIKEOUT_ATTRIBUTES);
+    append(customTarget.customTarget(), STRIKEOUT_ATTRIBUTES, RowValueLink.INSTANCE);
     String buildWins = HaxeBundle.message("haxe.toolwindow.node.ide.custom.target.build.wins", customTarget.buildTarget());
-    append("  " + buildWins, SimpleTextAttributes.GRAYED_ATTRIBUTES);
-    append(CHOOSER_MARKER, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    appendChooserValue(buildWins, SimpleTextAttributes.GRAYED_ATTRIBUTES);
   }
 
   private void renderLibrary(@NotNull LibraryNode library) {
@@ -210,6 +221,9 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
       case CompilationGroupNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.compilation");
       case EnvCompileCommandNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.compile.command");
       case CompilationServerNode server -> serverTooltip(server);
+      case ServerInstanceNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.server.instance");
+      case ConnectionModeNode connectionMode ->
+        HaxeBundle.message("haxe.toolwindow.tooltip.connection.mode", connectionMode.generation().getPresentableText());
       case EnvironmentNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment");
       case EnvSdkNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment.sdk");
       case EnvLanguageLevelNode ignored -> HaxeBundle.message("haxe.toolwindow.tooltip.environment.language.level");

@@ -10,7 +10,8 @@ import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
-import com.intellij.plugins.haxe.v2.compiler.settings.HaxeDisplayConnectionMode;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeServerGeneration;
+import com.intellij.plugins.haxe.v2.compiler.settings.ui.HaxeCompilerSettingsPanel.ModuleSdk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +73,12 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
            || panel.isCompilerNavigationEnabled() != settings.isCompilerNavigationEnabled()
            || panel.isGeneratedMemberPreviewEnabled() != settings.isGeneratedMemberPreviewEnabled()
            || panel.isCompilerCompletionEnabled() != settings.isCompilerCompletionEnabled()
-           || panel.getDisplayConnectionMode() != settings.getDisplayConnectionMode();
+           || connectionModesModified(settings);
+  }
+
+  private boolean connectionModesModified(@NotNull HaxeCompilerSettings settings) {
+    return Arrays.stream(HaxeServerGeneration.values())
+      .anyMatch(generation -> panel.getDisplayConnectionMode(generation) != settings.getDisplayConnectionMode(generation));
   }
 
   @Override
@@ -94,7 +100,10 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
     settings.setCompilerNavigationEnabled(panel.isCompilerNavigationEnabled());
     settings.setGeneratedMemberPreviewEnabled(panel.isGeneratedMemberPreviewEnabled());
     settings.setCompilerCompletionEnabled(panel.isCompilerCompletionEnabled());
-    applyDisplayConnectionMode(settings, panel.getDisplayConnectionMode());
+    HaxeDisplayProcessManager displayProcesses = HaxeDisplayProcessManager.getInstance(project);
+    for (HaxeServerGeneration generation : HaxeServerGeneration.values()) {
+      displayProcesses.chooseConnection(generation, panel.getDisplayConnectionMode(generation));
+    }
     HaxeLanguageLevelUtil.notifyLanguageLevelChanged(project);
   }
 
@@ -102,10 +111,7 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
   public void reset() {
     if (panel == null) return;
     HaxeCompilerSettings settings = getSettings();
-    panel.reset(settings.getExplicitDefaultLanguageLevel(),
-                HaxeLanguageLevelUtil.fromCompiler(project, null),
-                settings.getContainerLanguageLevelOverrides(),
-                getModuleNames());
+    panel.reset(settings.getExplicitDefaultLanguageLevel(), settings.getContainerLanguageLevelOverrides(), moduleSdks());
     panel.setUseLanguageLevelForConditionals(settings.isUseLanguageLevelForConditionals());
     panel.setCompilerDiagnosticsEnabled(settings.isCompilerDiagnosticsEnabled());
     panel.setDiagnosticsErrorsEnabled(settings.isDiagnosticsErrorsEnabled());
@@ -119,15 +125,8 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
     panel.setCompilerNavigationEnabled(settings.isCompilerNavigationEnabled());
     panel.setGeneratedMemberPreviewEnabled(settings.isGeneratedMemberPreviewEnabled());
     panel.setCompilerCompletionEnabled(settings.isCompilerCompletionEnabled());
-    panel.setDisplayConnectionMode(settings.getDisplayConnectionMode());
-  }
-
-  /** Switching away from the dedicated process stops the processes; switching to it lets the next request start one. */
-  private void applyDisplayConnectionMode(@NotNull HaxeCompilerSettings settings, @NotNull HaxeDisplayConnectionMode mode) {
-    if (settings.getDisplayConnectionMode() == mode) return;
-    settings.setDisplayConnectionMode(mode);
-    if (mode == HaxeDisplayConnectionMode.SHARED_SERVER) {
-      HaxeDisplayProcessManager.getInstance(project).stopAll();
+    for (HaxeServerGeneration generation : HaxeServerGeneration.values()) {
+      panel.setDisplayConnectionMode(generation, settings.getDisplayConnectionMode(generation));
     }
   }
 
@@ -146,6 +145,14 @@ public final class HaxeCompilerConfigurable implements SearchableConfigurable, C
     return Arrays.stream(ModuleManager.getInstance(project).getModules())
       .map(Module::getName)
       .sorted(String.CASE_INSENSITIVE_ORDER)
+      .toList();
+  }
+
+  /** Each module's SDK as the page shows it: the level its compiler implies. */
+  @NotNull
+  private List<ModuleSdk> moduleSdks() {
+    return getModuleNames().stream()
+      .map(name -> new ModuleSdk(name, HaxeLanguageLevelUtil.fromCompiler(project, name)))
       .toList();
   }
 

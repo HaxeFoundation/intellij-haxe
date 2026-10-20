@@ -15,7 +15,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * One box: the build file or a library. A library's icon and tooltip are
+ * One box: a file (the root build file, an included hxml or a library's
+ * include file) or a library. A library's icon and tooltip are
  * read from the sync's graph when asked for, never stored: a refresh keeps
  * the node objects that stand for the same element so that the layout
  * survives, and state stored in them would survive the refresh with them.

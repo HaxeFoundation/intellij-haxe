@@ -44,10 +44,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * arrows to the hxml files it includes, arrows from each file to the
  * libraries its own lines declare (labelled with a pinned version), and from
  * each library to what it requires (labelled with the required version when
- * one is pinned). For a build whose tool merges the libraries' include files
- * (lime, nme), each library gets a dashed arrow to its include file, which
- * lists the defines the build takes from it and points on to the libraries it
- * brings in ({@link HaxeLibraryIncludeFiles}). Rooted at a library instead,
+ * one is pinned). Each library gets a dashed arrow to the files it adds to
+ * the build: its extraParams.hxml for every build, and its include file for a
+ * build whose tool merges the libraries' include files (lime, nme). Such a
+ * file lists the defines the build takes from it and points on to the
+ * libraries it brings in ({@link HaxeLibraryIncludeFiles}). Rooted at a library instead,
  * the model shows that library and what it requires.
  * {@link HxmlIncludeTree} and {@link HaxeLibraryHierarchy} do the walking,
  * each with its loop guard.

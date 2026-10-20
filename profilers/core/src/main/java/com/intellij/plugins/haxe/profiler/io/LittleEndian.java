@@ -7,8 +7,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Little-endian primitive reads over a {@link DataInputStream}, whose own
- * reads are big-endian. Every capture format the profilers read is
- * little-endian. A stream ending inside a value throws
+ * reads are big-endian. The binary formats read through this class (HXTS
+ * and the tracy wire) are little-endian; flash telemetry's AMF3 is
+ * big-endian and reads through a plain {@link DataInputStream}. A stream
+ * ending inside a value throws
  * {@link java.io.EOFException}.
  */
 public final class LittleEndian {

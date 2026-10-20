@@ -89,6 +89,11 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     customHlBinaryPath = path == null ? "" : path;
   }
 
+  @Override
+  public @NotNull Lane profilingLane() {
+    return Lane.HASHLINK;
+  }
+
   /**
    * This configuration always launches HL output, so profiling is ready
    * whenever the configuration could run at all — the gate only mirrors
@@ -96,11 +101,6 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
    * the buttons act on is the run widget's SELECTION; the tool window's
    * target dropdown is not consulted.
    */
-  @Override
-  public @NotNull Lane profilingLane() {
-    return Lane.HASHLINK;
-  }
-
   @Override
   public boolean isProfilingReady() {
     return !DumbService.isDumb(getProject());

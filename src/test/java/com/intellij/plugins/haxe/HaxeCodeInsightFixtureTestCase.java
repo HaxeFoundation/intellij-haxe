@@ -21,6 +21,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.LogLevel;
@@ -34,6 +35,7 @@ import com.intellij.plugins.haxe.ide.HaxeInspectionTestTools;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
@@ -62,6 +64,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -334,7 +337,28 @@ abstract public class HaxeCodeInsightFixtureTestCase {
 
   /** Whether a haxe compiler is on the PATH - the gate live tests check via assumeTrue before compiling anything. */
   public static boolean haxeAvailable() {
-    return toolAvailable("haxe", "--version");
+    // -version, not --version: haxe 3.x knows only the single-dash form, and haxe 5 still accepts it
+    return toolAvailable("haxe", "-version");
+  }
+
+  /** What the haxe on the PATH answers to {@code -version}; haxe 3 prints it to stderr, so both streams count. */
+  public static String haxeVersionOnPath() throws IOException, InterruptedException {
+    Process process = new ProcessBuilder("haxe", "-version")
+      .redirectErrorStream(true)
+      .start();
+    String answer = new String(process.getInputStream().readAllBytes()).strip();
+    process.waitFor(10, TimeUnit.SECONDS);
+    return answer;
+  }
+
+  /** The folder of the haxe on the PATH, as an SDK home. */
+  public static String haxeHomeOnPath() {
+    return Path.of(HaxeToolPathResolver.pathDetectedExecutable("haxe")).getParent().toString();
+  }
+
+  /** The work's result from a pooled thread: the compiler services start processes, which they refuse on the EDT. */
+  protected static <T> T onPooledThread(Callable<T> work) throws Exception {
+    return ApplicationManager.getApplication().executeOnPooledThread(work).get(120, TimeUnit.SECONDS);
   }
 
   /** Whether the utest haxelib is installed - the gate for live tests compiling against real utest. */

@@ -92,11 +92,6 @@ public enum HaxeLaunchKind {
     }
 
     @NotNull
-    public String key() {
-      return key;
-    }
-
-    @NotNull
     public Shape shape() {
       return shape;
     }

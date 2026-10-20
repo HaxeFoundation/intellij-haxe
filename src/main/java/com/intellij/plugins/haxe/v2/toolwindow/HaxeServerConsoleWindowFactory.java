@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListene
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeDisplayProcessManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerAssignment;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerMetricsListener;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerProcesses;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerProcesses.ServerInfo;
@@ -56,7 +57,9 @@ import javax.swing.JComponent;
  * command, compile requests they serve, and any errors when clients connect.
  * Per-module SDKs mean several haxe versions can serve at once, so each server
  * instance gets its own tab (named after its SDK); tabs appear as instances
- * start and survive their server's restarts, replaying buffered history.
+ * start and survive their server's restarts, replaying buffered history. The
+ * dedicated display processes ({@link HaxeDisplayProcessManager}) get tabs
+ * the same way.
  */
 public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, DumbAware {
 
@@ -92,6 +95,8 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
 
         @Override
         public void environmentChanged(@NotNull String containerId, @NotNull EnvironmentAspect aspect) {
+          // the build command changes neither a container's server nor its failures
+          if (aspect == EnvironmentAspect.COMPILE_COMMAND) return;
           updateStatusesLater(project, toolWindow);
         }
       });
@@ -324,7 +329,7 @@ public final class HaxeServerConsoleWindowFactory implements ToolWindowFactory, 
       }
       // process creation must stay off the EDT
       AppExecutorUtil.getAppExecutorService()
-        .execute(() -> HaxeCompilationServerManager.getInstance(project).ensureRunning(null));
+        .execute(() -> HaxeCompilationServerManager.getInstance(project).ensureRunning(HaxeServerAssignment.shared(project, null)));
     }
 
     @Override

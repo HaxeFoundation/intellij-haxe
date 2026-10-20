@@ -50,13 +50,13 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     assertEquals("main", main.getName(), "lowest id is named main");
 
     // the worker (the stopped thread) shows its own frame + local
-    Map<String, String> workerLocals = localsOf(stoppedThreadId);
+    Map<String, String> workerLocals = localsInTopFrame(stoppedThreadId);
     assertEquals("222", workerLocals.get("workerLocal"), "worker local (workerLocal=222)");
 
     // the OTHER thread (main) shows a DIFFERENT stack + its own local — the
     // decisive per-thread check: main is parked in block(v=111)
     int mainThreadId = otherThread(threads, stoppedThreadId);
-    Map<String, String> mainLocals = localsOf(mainThreadId);
+    Map<String, String> mainLocals = localsInTopFrame(mainThreadId);
     assertEquals("111", mainLocals.get("v"), "main's block() argument (v=111)");
     assertTrue(topFrameName(mainThreadId).endsWith("block"), "main's top frame is block(), not the worker");
 
@@ -69,9 +69,9 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     // The worker parks on gate.wait() (never released). Stepping over it plants
     // a landing that is never reached — CORRECT debugger semantics is to keep
     // the session running with the step pending (exactly like stepping over an
-    // infinite loop): no hang, no fake stop, and — the regression part — no
-    // wedged adapter. Before the Handled-event fixes, stray thread-lifecycle
-    // events during the resume dance could freeze the whole debuggee.
+    // infinite loop): no hang, no fake stop, and no wedged adapter - stray
+    // thread-lifecycle events during the resume dance must not freeze the
+    // debuggee.
     initialize();
     assertTrue(launch(threadsFixtureHl.toString()).isSuccess(), "launch succeeds");
     assertTrue(setBreakpoint("Threads.hx", BLOCK_LINE).isSuccess(), "breakpoint set");
@@ -96,10 +96,6 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 
   private List<DapThread> threadList() throws Exception {
     return ((ThreadsResponse)request(new ThreadsRequest())).getBody().getThreads();
-  }
-
-  private Map<String, String> localsOf(int threadId) throws Exception {
-    return variablesByName(localsScopeReference(topFrameId(threadId)));
   }
 
   private static DapThread lowestId(List<DapThread> threads) {

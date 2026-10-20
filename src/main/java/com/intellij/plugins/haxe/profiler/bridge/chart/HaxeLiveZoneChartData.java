@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.profiler.tracy.TracySession;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,11 @@ import java.util.Map;
  * store's whole-file scan is too costly per live refresh.
  */
 record HaxeLiveZoneChartData(@NotNull HaxeZoneChartData zones, @NotNull Activity activity) implements HaxeChartData {
+
+  @Override
+  public Path captureFile() {
+    return zones.captureFile();
+  }
 
   @Override
   public List<ProfilerThread> threads() {

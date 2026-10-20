@@ -4,26 +4,38 @@ import com.intellij.plugins.haxe.display.protocol.*;
 import com.intellij.plugins.haxe.display.protocol.server.*;
 import com.intellij.plugins.haxe.display.transport.DisplayRequestException;
 import com.intellij.plugins.haxe.display.transport.MalformedPayloadException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.MissingNode;
 
 /**
  * Encodes display requests as JSON-RPC and decodes the responses into the
- * protocol DTOs. A response nests its data twice: the JSON-RPC
- * {@code result} holds a std {@code Response<T>}, and that object's own
- * {@code result} holds the data.
+ * protocol DTOs, binding each answer to records ({@link ProtocolJson}): the
+ * DTOs themselves where they match the wire, else the wire records of
+ * {@link DisplayWire} and {@link CompletionWire}. A response nests its data
+ * twice: the JSON-RPC {@code result} holds a std {@code Response<T>}, and
+ * that object's own {@code result} holds the data. Data the records cannot
+ * bind is a {@link MalformedPayloadException}.
  */
 public final class DisplayJson {
 
-  private static final ObjectMapper MAPPER = JsonMapper.builder()
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .build();
+  private static final TypeReference<List<FileDiagnostics>> FILE_DIAGNOSTICS = new TypeReference<>() {
+  };
+  private static final TypeReference<List<Location>> LOCATIONS = new TypeReference<>() {
+  };
+  private static final TypeReference<List<DisplayWire.Context>> CONTEXTS = new TypeReference<>() {
+  };
+  private static final TypeReference<List<MetadataEntry>> METADATA = new TypeReference<>() {
+  };
+  private static final TypeReference<List<String>> STRINGS = new TypeReference<>() {
+  };
+  private static final TypeReference<List<DisplayWire.ModuleType>> MODULE_TYPES = new TypeReference<>() {
+  };
 
   private DisplayJson() {
   }
@@ -34,7 +46,7 @@ public final class DisplayJson {
     envelope.put("id", 1);
     envelope.put("method", method);
     envelope.put("params", params);
-    return MAPPER.writeValueAsString(envelope);
+    return ProtocolJson.MAPPER.writeValueAsString(envelope);
   }
 
   /**
@@ -43,286 +55,119 @@ public final class DisplayJson {
    * when the envelope carries a JSON-RPC error.
    */
   public static JsonNode unwrap(String payload) throws DisplayRequestException {
-    JsonNode root;
-    try {
-      root = MAPPER.readTree(payload);
-    } catch (RuntimeException e) {
-      throw new MalformedPayloadException("Malformed display response: " + abbreviate(payload), e);
-    }
-
-    JsonNode error = root.path("error");
-    if (!error.isMissingNode()) {
-      String errorMessage = error.path("message").asString("unknown error");
-      int errorCode = error.path("code").asInt(-1);
-      String detail = firstErrorDetail(error.path("data"));
+    DisplayWire.Envelope envelope = bind(parse(payload), DisplayWire.Envelope.class);
+    if (envelope == null) return MissingNode.getInstance();
+    DisplayWire.EnvelopeError error = envelope.error();
+    if (error != null) {
+      String errorMessage = error.message().isEmpty() ? "unknown error" : error.message();
+      int errorCode = error.code() != null ? error.code() : -1;
+      // a compiler error lists its diagnostics; the first one says what went wrong
+      String detail = error.data().isEmpty() ? "" : error.data().getFirst().message();
       String suffix = detail.isEmpty() ? "" : ": " + abbreviate(detail);
       throw new DisplayRequestException("Display request failed: " + errorMessage + " (code " + errorCode + ")" + suffix, true);
     }
-    return root.path("result").path("result");
+    JsonNode data = envelope.result() == null ? null : envelope.result().result();
+    return data != null ? data : MissingNode.getInstance();
   }
 
-  /**
-   * The first item of an error's {@code data}: a compiler error carries a list
-   * of diagnostics ({@code {message, location}}) or of plain strings.
-   */
-  private static String firstErrorDetail(JsonNode data) {
-    JsonNode first = data.isArray() ? data.path(0) : data;
-    if (first.isMissingNode() || first.isNull()) return "";
-    if (first.isObject()) return first.path("message").asString("");
-    return first.asString("");
+  /** The JSON of a payload without an envelope, as haxe 3's JSON display modes answer. */
+  public static JsonNode parse(String payload) throws MalformedPayloadException {
+    try {
+      return ProtocolJson.MAPPER.readTree(payload);
+    } catch (RuntimeException e) {
+      throw new MalformedPayloadException("Malformed display response: " + abbreviate(payload), e);
+    }
   }
 
   private static String abbreviate(String text) {
     return text.length() > 200 ? text.substring(0, 200) + "..." : text;
   }
 
-  // --- result decoders ---
-
-  public static InitializeResult decodeInitialize(JsonNode data) {
-    List<String> methods = new ArrayList<>();
-    for (JsonNode method : data.path("methods")) {
-      methods.add(method.asString(""));
-    }
-    return new InitializeResult(
-      decodeSemVer(data.path("protocolVersion")),
-      decodeSemVer(data.path("haxeVersion")),
-      List.copyOf(methods));
+  public static InitializeResult decodeInitialize(JsonNode data) throws MalformedPayloadException {
+    return bind(data, InitializeResult.class);
   }
 
-  private static InitializeResult.SemVer decodeSemVer(JsonNode node) {
-    return new InitializeResult.SemVer(
-      node.path("major").asInt(0),
-      node.path("minor").asInt(0),
-      node.path("patch").asInt(0),
-      node.path("pre").asString(null),
-      node.path("build").asString(null));
+  public static List<FileDiagnostics> decodeDiagnostics(JsonNode data) throws MalformedPayloadException {
+    return bindList(data, FILE_DIAGNOSTICS);
   }
 
-  public static List<FileDiagnostics> decodeDiagnostics(JsonNode data) {
-    List<FileDiagnostics> files = new ArrayList<>();
-    for (JsonNode fileEntry : data) {
-      List<Diagnostic> diagnostics = new ArrayList<>();
-      for (JsonNode entry : fileEntry.path("diagnostics")) {
-        diagnostics.add(decodeDiagnostic(entry));
-      }
-      files.add(new FileDiagnostics(fileEntry.path("file").asString(""), List.copyOf(diagnostics)));
-    }
-    return List.copyOf(files);
-  }
-
-  private static Diagnostic decodeDiagnostic(JsonNode entry) {
-    DiagnosticKind kind = DiagnosticKind.fromCode(entry.path("kind").asInt(-1));
-    DiagnosticSeverity severity = DiagnosticSeverity.fromCode(entry.path("severity").asInt(-1));
-    String code = entry.path("code").isString() ? entry.path("code").asString() : null;
-    return new Diagnostic(kind, Range.fromJson(entry.path("range")), severity, entry.path("args"), code);
-  }
-
-  public static List<Location> decodeLocations(JsonNode data) {
-    List<Location> locations = new ArrayList<>();
-    for (JsonNode entry : data) {
-      locations.add(decodeLocation(entry));
-    }
-    return List.copyOf(locations);
-  }
-
-  private static Location decodeLocation(JsonNode node) {
-    return new Location(node.path("file").asString(""), Range.fromJson(node.path("range")));
+  public static List<Location> decodeLocations(JsonNode data) throws MalformedPayloadException {
+    return bindList(data, LOCATIONS);
   }
 
   /** Null when there is nothing under the cursor. */
-  public static HoverInfo decodeHover(JsonNode data) {
-    if (data.isNull() || data.isMissingNode()) return null;
-    JsonNode item = data.path("item");
-    return new HoverInfo(Range.fromJson(data.path("range")), item.path("kind").asString(""), JsonTypeRef.of(item.path("type")));
+  public static HoverInfo decodeHover(JsonNode data) throws MalformedPayloadException {
+    DisplayWire.Hover hover = bind(data, DisplayWire.Hover.class);
+    return hover == null ? null : hover.toHoverInfo();
   }
 
   /** Null when the compiler has nothing to complete at the position. */
-  public static CompletionList decodeCompletion(JsonNode data) {
-    if (data.isNull() || data.isMissingNode()) return null;
-    List<CompletionItem> items = new ArrayList<>();
-    int position = 0;
-    for (JsonNode entry : data.path("items")) {
-      // A resolve request names an item by its position in this list. The
-      // item's own index key repeats that position when present.
-      CompletionItem item = decodeCompletionItem(entry, position++);
-      if (item != null) items.add(item);
-    }
-    JsonNode replaceRange = data.path("replaceRange");
-    JsonNode mode = data.path("mode");
-    return new CompletionList(List.copyOf(items),
-                              mode.path("kind").asInt(-1),
-                              expectedTypeOf(mode.path("args")),
-                              replaceRange.isMissingNode() || replaceRange.isNull() ? null : Range.fromJson(replaceRange),
-                              data.path("isIncomplete").asBoolean(false));
-  }
-
-  /** The mode's expected type with typedefs followed, else the raw one; null when the position expects nothing. */
-  private static JsonTypeRef expectedTypeOf(JsonNode modeArgs) {
-    for (JsonNode candidate : List.of(modeArgs.path("expectedTypeFollowed"), modeArgs.path("expectedType"))) {
-      if (!candidate.isMissingNode() && !candidate.isNull()) return JsonTypeRef.of(candidate);
-    }
-    return null;
+  public static CompletionList decodeCompletion(JsonNode data) throws MalformedPayloadException {
+    CompletionWire.Result result = bind(data, CompletionWire.Result.class);
+    return result == null ? null : result.toList();
   }
 
   /** The item of a {@code display/completionItem/resolve} result: a completion item with its doc comment. */
-  public static CompletionItem decodeResolvedCompletionItem(JsonNode data, int index) {
-    if (data.isNull() || data.isMissingNode()) return null;
-    return decodeCompletionItem(data.path("item"), index);
+  public static CompletionItem decodeResolvedCompletionItem(JsonNode data, int index) throws MalformedPayloadException {
+    CompletionWire.Resolved resolved = bind(data, CompletionWire.Resolved.class);
+    return resolved == null || resolved.item() == null ? null : resolved.item().toItem(index);
   }
 
-  /**
-   * Reads the item's name and detail from where its kind keeps them. Null for
-   * kinds without a name, such as an anonymous structure or an expression.
-   */
-  private static CompletionItem decodeCompletionItem(JsonNode entry, int position) {
-    String kind = entry.path("kind").asString("");
-    JsonNode args = entry.path("args");
-    JsonTypeRef type = completionItemType(entry, args);
-    String doc = completionItemDoc(args);
-    int index = entry.path("index").asInt(position);
-    return switch (kind) {
-      case "Local", "Literal", "Keyword", "Metadata", "Define", "TypeParameter" ->
-        new CompletionItem(kind, args.path("name").asString(""), null, null, type, doc, index, null);
-      case "ClassField", "EnumAbstractField", "EnumField" ->
-        new CompletionItem(kind, args.path("field").path("name").asString(""), null, null, type, doc, index, null);
-      case "Type" -> typeItem(kind, args.path("path"), args.path("kind").asString(""), type, doc, index);
-      case "Package" -> new CompletionItem(kind, lastSegment(args.path("path").path("pack")), dotPath(args.path("path").path("pack")),
-                                           null, type, doc, index, null);
-      case "Module" -> new CompletionItem(kind, args.path("path").path("moduleName").asString(""),
-                                          dotPath(args.path("path").path("pack")), null, type, doc, index, null);
-      default -> null;
-    };
+  public static List<HaxeServerContext> decodeContexts(JsonNode data) throws MalformedPayloadException {
+    return bindList(data, CONTEXTS).stream()
+      .map(DisplayWire.Context::toContext)
+      .toList();
   }
 
-  /** A type item: its name, qualified path and declaration kind, and its import status at the position. */
-  private static CompletionItem typeItem(String kind, JsonNode path, String moduleTypeKind, JsonTypeRef type, String doc, int index) {
-    String name = path.path("typeName").asString("");
-    ImportStatus importStatus = ImportStatus.fromWire(path.path("importStatus").asInt(-1));
-    return new CompletionItem(kind, name, JsonTypeRef.qualifiedNameOf(path), moduleTypeKind, type, doc, index, importStatus);
+  public static ServerMemory decodeServerMemory(JsonNode data) throws MalformedPayloadException {
+    DisplayWire.Memory memory = bind(data, DisplayWire.Memory.class);
+    return memory == null ? new ServerMemory(0, List.of()) : memory.toServerMemory();
   }
 
-  /** The item-level type. When that is absent, a local carries its type in its args and a field in its field args. */
-  private static JsonTypeRef completionItemType(JsonNode entry, JsonNode args) {
-    for (JsonNode candidate : List.of(entry.path("type"), args.path("type"), args.path("field").path("type"))) {
-      if (!candidate.isMissingNode() && !candidate.isNull()) return JsonTypeRef.of(candidate);
-    }
-    return null;
+  public static List<MetadataEntry> decodeMetadataList(JsonNode data) throws MalformedPayloadException {
+    return bindList(data, METADATA);
   }
 
-  /**
-   * The item's doc comment, or null. A field keeps it in its field args; a
-   * type, metadata or define keeps it directly in its args.
-   */
-  private static String completionItemDoc(JsonNode args) {
-    for (JsonNode candidate : List.of(args.path("field").path("doc"), args.path("doc"))) {
-      if (candidate.isString() && !candidate.asString("").isBlank()) return candidate.asString("");
-    }
-    return null;
+  public static List<String> decodeStringList(JsonNode data) throws MalformedPayloadException {
+    return bindList(data, STRINGS);
   }
 
-  private static String lastSegment(JsonNode pack) {
-    String last = "";
-    for (JsonNode segment : pack) last = segment.asString("");
-    return last;
-  }
-
-  private static String dotPath(JsonNode pack) {
-    List<String> segments = new ArrayList<>();
-    for (JsonNode segment : pack) segments.add(segment.asString(""));
-    return String.join(".", segments);
-  }
-
-  public static List<HaxeServerContext> decodeContexts(JsonNode data) {
-    List<HaxeServerContext> contexts = new ArrayList<>();
-    for (JsonNode entry : data) {
-      contexts.add(decodeContext(entry));
-    }
-    return List.copyOf(contexts);
-  }
-
-  private static HaxeServerContext decodeContext(JsonNode entry) {
-    Map<String, String> defines = new LinkedHashMap<>();
-    for (JsonNode define : entry.path("defines")) {
-      defines.put(define.path("key").asString(""), define.path("value").asString(""));
-    }
-    String description = entry.path("desc").asString("");
-    String signature = entry.path("signature").asString("");
-    String platform = entry.path("platform").asString("");
-    return new HaxeServerContext(description, signature, platform, defines);
-  }
-
-  public static ServerMemory decodeServerMemory(JsonNode data) {
-    List<ServerMemory.ContextSize> contexts = new ArrayList<>();
-    for (JsonNode entry : data.path("contexts")) {
-      HaxeServerContext context = decodeContext(entry.path("context"));
-      contexts.add(new ServerMemory.ContextSize(context, entry.path("size").asLong(0)));
-    }
-    long totalCache = data.path("memory").path("totalCache").asLong(0);
-    return new ServerMemory(totalCache, List.copyOf(contexts));
-  }
-
-  public static List<MetadataEntry> decodeMetadataList(JsonNode data) {
-    List<MetadataEntry> entries = new ArrayList<>();
-    for (JsonNode entry : data) {
-      String name = entry.path("name").asString("");
-      String doc = entry.path("doc").asString("");
-      boolean internal = entry.path("internal").asBoolean(false);
-      entries.add(new MetadataEntry(name, doc, internal));
-    }
-    return List.copyOf(entries);
-  }
-
-  public static List<String> decodeStringList(JsonNode data) {
-    List<String> values = new ArrayList<>();
-    for (JsonNode entry : data) {
-      values.add(entry.asString(""));
-    }
-    return List.copyOf(values);
-  }
-
-  public static ModuleInfo decodeModule(JsonNode data) {
-    List<String> types = new ArrayList<>();
-    for (JsonNode typePath : data.path("types")) {
-      types.add(JsonTypeRef.qualifiedNameOf(typePath));
-    }
-    return new ModuleInfo(data.path("sign").asString(""), List.copyOf(types), decodeModulePaths(data.path("dependencies")));
-  }
-
-  private static List<String> decodeModulePaths(JsonNode node) {
-    List<String> paths = new ArrayList<>();
-    for (JsonNode entry : node) {
-      paths.add(entry.path("path").asString(""));
-    }
-    return List.copyOf(paths);
+  public static ModuleInfo decodeModule(JsonNode data) throws MalformedPayloadException {
+    DisplayWire.Module module = bind(data, DisplayWire.Module.class);
+    return module == null ? new ModuleInfo("", List.of(), List.of()) : module.toModuleInfo();
   }
 
   /** The {@code typer/compiledTypes} answer: every type of the compile as a blueprint, members with positions. */
-  public static List<TypeBlueprint> decodeCompiledTypes(JsonNode data) {
-    List<TypeBlueprint> types = new ArrayList<>();
-    for (JsonNode type : data) {
-      types.add(decodeTypeBlueprint(type.path("name").asString(""), type));
-    }
-    return List.copyOf(types);
+  public static List<TypeBlueprint> decodeCompiledTypes(JsonNode data) throws MalformedPayloadException {
+    return bindList(data, MODULE_TYPES).stream()
+      .map(type -> type.toBlueprint(type.name()))
+      .toList();
   }
 
-  public static TypeBlueprint decodeTypeBlueprint(String typeName, JsonNode data) {
-    JsonNode args = data.path("args");
-    return new TypeBlueprint(
-      typeName,
-      data.path("kind").asString(""),
-      decodeMembers(args.path("fields")),
-      decodeMembers(args.path("statics")));
+  public static TypeBlueprint decodeTypeBlueprint(String typeName, JsonNode data) throws MalformedPayloadException {
+    DisplayWire.ModuleType type = bind(data, DisplayWire.ModuleType.class);
+    if (type == null) return new TypeBlueprint(typeName, "", List.of(), List.of());
+    return type.toBlueprint(typeName);
   }
 
-  private static List<TypeBlueprint.Member> decodeMembers(JsonNode node) {
-    List<TypeBlueprint.Member> members = new ArrayList<>();
-    for (JsonNode field : node) {
-      members.add(new TypeBlueprint.Member(
-        field.path("name").asString(""),
-        JsonTypeRef.of(field.path("type")),
-        field.path("kind").path("kind").asString(""),
-        JsonPos.of(field.path("pos"))));
+  /** The data bound to a list type; empty for absent or null data. */
+  private static <T> List<T> bindList(JsonNode data, TypeReference<List<T>> type) throws MalformedPayloadException {
+    List<T> bound = bind(data, ProtocolJson.MAPPER.constructType(type));
+    return bound != null ? bound : List.of();
+  }
+
+  private static <T> T bind(JsonNode data, Class<T> type) throws MalformedPayloadException {
+    return bind(data, ProtocolJson.MAPPER.constructType(type));
+  }
+
+  /** The data bound to the type; null for absent or null data. */
+  private static <T> T bind(JsonNode data, JavaType type) throws MalformedPayloadException {
+    if (data == null || data.isMissingNode() || data.isNull()) return null;
+    try {
+      return ProtocolJson.MAPPER.convertValue(data, type);
+    } catch (JacksonException | IllegalArgumentException e) {
+      String message = "Display data does not bind to " + type.toCanonical() + ": " + abbreviate(data.toString());
+      throw new MalformedPayloadException(message, e);
     }
-    return List.copyOf(members);
   }
 }

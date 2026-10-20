@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The task's stored form: run configurations saved before the state-component migration still load. */
+/** The task's stored form: {@code <option>} children keyed by the State field names, defaults for absent ones. */
 @DisplayName("Run configurations: action before run task")
 public class HaxeActionBeforeRunTaskTest {
 

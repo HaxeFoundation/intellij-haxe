@@ -357,7 +357,7 @@ public class LegacyHxcppDebugProcess extends XDebugProcess {
       return;
     }
     enqueueCommand(Command.DeleteBreakpointRange(id, id), (messageId, message) -> {
-      // Could verify that the response was Deleted ...
+      // TODO: check that the response is Deleted; a failed delete goes unnoticed
     });
   }
 

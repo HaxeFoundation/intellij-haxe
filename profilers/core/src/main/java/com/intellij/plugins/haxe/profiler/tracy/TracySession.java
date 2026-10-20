@@ -9,7 +9,9 @@ import java.util.Map;
 
 /**
  * Everything decoded from one tracy connection, times in nanoseconds
- * relative to the session's first event. Zones are start-ordered. Plots are
+ * relative to the session's first event. Zones are start-ordered, and
+ * empty when the read streamed them to a zone sink (as every live capture
+ * does). Plots are
  * keyed by their resolved name when a PlotName answer arrived (the live
  * query channel), else by a stable {@code plot@<pointer>} label.
  * {@code memoryCurves} are live-bytes-over-time series per allocation pool,

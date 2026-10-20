@@ -50,7 +50,7 @@ public class PauseIntegrationTest extends DapIntegrationTestBase {
     // it landed IN the Haxe busy loop: top frame is Spin.main and its locals are
     // inspectable — the whole point of being able to pause
     assertEquals("Spin.main", topFrameName(threadId), "paused in Haxe code");
-    Map<String, String> locals = variablesByName(localsScopeReference(topFrameId(threadId)));
+    Map<String, String> locals = localsInTopFrame(threadId);
     assertFalse(locals.isEmpty(), "loop locals are visible while paused (" + locals.keySet() + ")");
 
     // continue resumes the held break-event thread; the debuggee runs to the end

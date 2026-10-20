@@ -6,26 +6,46 @@ However, it allows for a one-way migration (make sure to make a backup of your p
 
 ### Project setup
 * Changed: Project and module configuration now lives in a Haxe tool window instead of Project Structure.
+* Added: One-step conversion of 1.x modules, also from the Project view context menu.
 * Added: New-project templates.
 * Added: Language level per module.
 * Added: Support for HXP build files (Beta) and better NME support.
 * Added: Custom targets and target-specific module variants (`Module.<target>.hx`).
+* Added: IDE overrides: per-build-file defines and custom target for the editor, without editing the build file.
+* Added: Each file is analysed in the context of the build that compiles it, with a status-bar build switcher.
+* Added: Source folders outside the module are resolved.
 * Added: Tools and custom actions, including detected formatter and checkstyle tools.
+* Added: Build & run: build and launch a program in one step, for most targets.
+* Added: Actions can launch run configurations and run other actions first.
+* Added: Run and Debug gutter icons on a build's main class.
+* Added: Navigation from paths in Lime/OpenFL/NME project files and from `-main` in hxml files.
+* Added: Inspections for build files (missing libraries, missing include files, dashed define names).
+* Added: Lime and NME project errors are shown in the Haxe tool window.
+* Changed: Build Project shows compiler output as it runs and can be stopped.
 * Added: Trusted-project support: project code (macros, scripts, compilation server) never runs in safe mode.
 ### Haxelib
 * Added: Haxelib Explorer for browsing and installing libraries.
 * Added: Support for git version pins (`-lib name:git:url#ref`).
+* Added: Library dependencies in the Haxe tool window, and a project diagram (IntelliJ IDEA Ultimate).
+* Changed: Libraries refresh automatically when a trusted project opens.
 ### Compilation server (Beta)
 * Added: Compiler diagnostics and quick fixes in the editor.
 * Added: Completion, Find Usages and Go to Declaration from the compilation server, including macro-generated members.
+* Added: Auto-import in compiler completion.
+* Added: Type hints from the compiler.
+* Added: Each compiler feature can be turned on or off.
 * Added: Preview of macro-generated sources.
+* Added: A separate compiler process for editor features, and an optional compilation server per module.
+* Added: Compilation Server tool window with server output and failed requests.
 ### Testing (Beta)
 * Added: Test runner for utest, munit, buddy and tink_unittest, with run and debug support.
 ### Debugging
-* Added: New Flash and AIR debugging.
+* Added: New Flash and AIR debugging (IntelliJ IDEA Ultimate).
+* Added: Node.js run configuration with debugging.
+* Fixed: Breakpoint conditions in the interpreter (eval) debugger.
 * Fixed: Misc HashLink and hxcpp debugger issues.
 ### Profiler (experimental)
-* Added: Profiler for HashLink, hxcpp, Flash/AIR and JS.
+* Added: Profiler for HashLink, hxcpp (including Tracy), Flash/AIR and JS (IntelliJ IDEA Ultimate).
 ### Editor
 * Changed: Formatter reworked toward haxe-formatter output parity, with hxformat.json support.
 * Added: Improved doc comment support.
@@ -37,12 +57,15 @@ However, it allows for a one-way migration (make sure to make a backup of your p
 * Added: In-place rename, including properties together with their accessors.
 * Added: Improved name suggestions.
 ### Fixes and performance
-* Fixed: Misc resolve issues (map literals, type parameters, index lookups).
+* Fixed: Misc resolve issues (map literals, type parameters, index lookups, enum and array patterns).
+* Fixed: Analysis stalling on macro-heavy code.
+* Fixed: Std resolve in projects that mix Haxe SDKs.
+* Fixed: Warnings from newer haxelib versions misread as class paths.
 * Fixed: Keyword completion no longer appears inside comments.
 * Changed: Performance improvements in resolve and indexing.
 ### Misc
-* Changed: IntelliJ 2026.1 support dropped (2026.2+ only).
-
+* Added: Haxe 3.4.7 support.
+* Changed: Supports IntelliJ 2026.2 and 2026.3; 2026.1 support dropped.
 
 ## 1.9.0
 * Added: New (experimental) debugger support for javascript, Eval, hashlink and hxcpp. 

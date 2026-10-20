@@ -29,7 +29,7 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
     assertEquals("0", localsInTopFrame(stopped.getBody().getThreadId()).get("i"), "first iteration");
 
     // re-send this file's breakpoints WHILE stopped on one — re-arms the INT3 at the
-    // current instruction pointer, the exact situation that used to cause a re-hit
+    // current instruction pointer, which must not cause a re-hit
     assertTrue(setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE).isSuccess(), "reflush while stopped succeeds");
 
     // continue: the loop body must actually run (i advances to 1), proving the session
@@ -42,11 +42,11 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
 
   /**
    * Removing a file's breakpoints WHILE stopped on one of them must fully
-   * retire that breakpoint: the next continue used to re-arm the removed
-   * breakpoint's INT3 from the stale stopped-on reference, and the orphan trap
-   * (no table entry) was then "resumed past silently" with Eip beyond the
-   * 0xCC — executing the original instruction minus its first byte and
-   * faulting the VM at the removed breakpoint's line.
+   * retire that breakpoint: the next continue must not re-arm the removed
+   * breakpoint's INT3 from the stale stopped-on reference. Such an orphan trap
+   * (no table entry) is "resumed past silently" with Eip beyond the 0xCC —
+   * executing the original instruction minus its first byte and faulting the
+   * VM at the removed breakpoint's line.
    */
   @Test
   @DisplayName("removing breakpoints while stopped on one runs cleanly after continue")
@@ -57,8 +57,8 @@ public class BreakpointReflushIntegrationTest extends DapIntegrationTestBase {
     // remove every breakpoint in the file while standing on one of them
     assertTrue(setBreakpoints(fixtureSrcDir.resolve(FIXTURE_MAIN).toString()).isSuccess(), "breakpoint removal succeeds");
 
-    // the loop line executes twice more; with the stale INT3 re-armed this
-    // faulted ("Low-level runtime error") instead of running to a clean exit
+    // the loop line executes twice more; a re-armed stale INT3 faults here
+    // ("Low-level runtime error") instead of running to a clean exit
     assertTrue(request(continueRequest(threadId)).isSuccess(), "continue succeeds");
     boolean exited = false;
     Integer exitCode = null;

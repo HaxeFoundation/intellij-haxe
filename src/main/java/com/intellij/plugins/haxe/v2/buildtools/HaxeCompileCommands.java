@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.v2.buildtools;
 
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerAssignment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -10,9 +11,7 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeCustomActionsStore.A
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeActiveBuildFileStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore.CompileCommand;
-import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
-import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeLibDependency;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import com.intellij.plugins.haxe.v2.testing.HaxeTestFrameworks;
@@ -21,9 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -87,20 +84,12 @@ public final class HaxeCompileCommands {
     if (store.isBuildSkipped(containerId)) return null;
     CompileCommand stored = store.getCompileCommand(containerId);
     if (stored != null) return stored;
-    Map<String, List<HaxeLibDependency>> librariesByPath = librariesByPath(project, containerId);
-    List<String> testsPaths = HaxeTestFrameworks.testsBuildPaths(project, containerId, librariesByPath);
-    return defaultCommand(project, List.copyOf(librariesByPath.keySet()), testsPaths);
-  }
-
-  /** The libraries of each of the container's build files, as its tests builds are told apart by. */
-  @NotNull
-  private static Map<String, List<HaxeLibDependency>> librariesByPath(@NotNull Project project, @NotNull String containerId) {
-    Map<String, List<HaxeLibDependency>> librariesByPath = new LinkedHashMap<>();
-    for (HaxeBuildFile buildFile : HaxeKnownBuildFiles.forContainer(project, containerId)) {
-      List<HaxeLibDependency> libraries = HaxeBuildSections.inspectSelected(project, buildFile).libraries();
-      librariesByPath.put(buildFile.file().getPath(), libraries);
-    }
-    return librariesByPath;
+    List<HaxeBuildFile> buildFiles = HaxeKnownBuildFiles.forContainer(project, containerId);
+    List<String> buildFilePaths = buildFiles.stream()
+      .map(buildFile -> buildFile.file().getPath())
+      .toList();
+    List<String> testsPaths = HaxeTestFrameworks.testsBuildPathsAmong(project, containerId, buildFiles);
+    return defaultCommand(project, buildFilePaths, testsPaths);
   }
 
   /**
@@ -226,35 +215,19 @@ public final class HaxeCompileCommands {
     command.addAll(ParametersListUtil.parse(extraArguments));
     String workDirectory = workDirectoryOverride != null ? workDirectoryOverride
                                                          : HaxeBuildWorkDirectories.workDirectory(project, file);
-    boolean eligible = connectEligible(project, environmentSdk, command, file);
+    boolean eligible = connectEligible(project, environmentSdk, command);
     return new Resolved(containerId, command, workDirectory, String.join(" ", command), eligible);
   }
 
-  /** True when the build file's command may ride the compilation server: connect-capable and not emitting a swf. */
+  /**
+   * True when the command can compile through the server: a direct haxe
+   * compile or a lime/openfl/nme build. A swf build qualifies too, although a
+   * Haxe server since 4.1 may write a broken swf on a recompile of the same
+   * build; restarting the server clears it.
+   */
   public static boolean connectEligible(@NotNull Project project,
                                         @Nullable String environmentSdk,
-                                        @NotNull List<String> command,
-                                        @NotNull VirtualFile file) {
-    return isConnectEligible(project, environmentSdk, command) && !producesSwf(project, file);
-  }
-
-  /**
-   * Whether the build emits a swf. The compilation server produces a corrupt
-   * swf on the second compile of the same build (VerifyError #1053 at load),
-   * so swf-emitting compiles never ride {@code --connect}. Display/diagnostic
-   * requests are unaffected - the corruption is in swf generation only.
-   */
-  private static boolean producesSwf(@NotNull Project project, @NotNull VirtualFile file) {
-    HaxeBuildFileType type = HaxeBuildFileScanner.detectType(project, file);
-    if (type == null) return false;
-    HaxeTarget target = HaxeBuildSystem.of(type).launchTarget(project, new HaxeBuildFile(file, type));
-    return target == HaxeTarget.FLASH;
-  }
-
-  /** True when the command can compile through the server: a direct haxe compile or a lime/openfl/nme build. */
-  private static boolean isConnectEligible(@NotNull Project project,
-                                           @Nullable String environmentSdk,
-                                           @NotNull List<String> command) {
+                                        @NotNull List<String> command) {
     return HxmlProjects.isDirectHaxeCommand(project, environmentSdk, command)
            || LimeProjects.isToolCommand(command)
            || NmeProjects.isToolCommand(command);
@@ -278,7 +251,8 @@ public final class HaxeCompileCommands {
     if (!useServer) return command;
 
     String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
-    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(environmentSdk);
+    HaxeServerAssignment assignment = HaxeServerAssignment.forContainer(project, containerId);
+    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(assignment);
     if (port <= 0) return command;
 
     List<String> connected = new ArrayList<>(command);

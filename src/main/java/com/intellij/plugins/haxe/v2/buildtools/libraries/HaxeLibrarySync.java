@@ -388,12 +388,12 @@ public final class HaxeLibrarySync {
     return new Resolution(libraries, definesByDependency, resolvedLibraries, closureByDependency);
   }
 
-  /** The graph node of a section: its resolved version and kind, and the requirements and folder of the haxelib.json above its roots. */
+  /** The graph node of a section: its resolved version, and the requirements and folder of the haxelib.json above its roots. */
   @NotNull
   private static Library resolvedLibrary(@NotNull LibrarySection section, @Nullable String version) {
     Path manifest = HaxelibManifest.find(section.classpaths());
     List<HaxeLibraryGraph.Requirement> requires = manifest == null ? List.of() : HaxelibManifest.requirements(manifest);
-    return new Library(section.name(), version, isScmCheckout(section), requires, section.extraDefines(), libraryRoot(section, manifest));
+    return new Library(section.name(), version, requires, section.extraDefines(), libraryRoot(section, manifest));
   }
 
   /** The library's folder as lime takes it: the haxelib.json's, else the classpath haxelib prints right before the library's version define. */

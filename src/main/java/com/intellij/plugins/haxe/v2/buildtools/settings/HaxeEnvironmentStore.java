@@ -16,7 +16,8 @@ import org.jetbrains.annotations.TestOnly;
 
 /**
  * Per-container (module / project root) environment: the Haxe SDK to use, the
- * Build command and whether builds use the compilation server. Shares
+ * Build command, whether builds use the compilation server and whether the
+ * container runs a server of its own. Shares
  * {@code .idea/haxeBuildConfig.xml} with the active-build-file selection.
  * Define entries and the custom target are per build file
  * ({@link HaxeIdeOverridesStore}).
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.TestOnly;
 @State(name = "HaxeEnvironments", storages = @Storage("haxeBuildConfig.xml"))
 public final class HaxeEnvironmentStore implements PersistentStateComponent<HaxeEnvironmentStore.State> {
 
-  /** The layout {@link #getState} writes. Version 1 moved define entries and the custom target to the build files. */
+  /** The layout version {@link #getState} stamps; define entries and the custom target live per build file. */
   static final int STATE_VERSION = 1;
 
   public static final class State {
@@ -47,6 +48,7 @@ public final class HaxeEnvironmentStore implements PersistentStateComponent<Haxe
     public String compileArguments = "";
     public boolean skipBuild;
     public boolean useCompilationServer = true;
+    public boolean dedicatedServer;
   }
 
   /**
@@ -89,14 +91,15 @@ public final class HaxeEnvironmentStore implements PersistentStateComponent<Haxe
     HaxeBuildSettingsListener.publisher(project).stateLoaded();
   }
 
-  /** Whether the user overrode anything for the container: SDK, compile command or server opt-out. */
+  /** Whether the user overrode anything for the container: SDK, compile command, server opt-out or dedicated server. */
   public boolean hasUserOverrides(@NotNull String containerId) {
     ContainerEnvironment environment = find(containerId);
     if (environment == null) return false;
     return StringUtil.isNotEmpty(environment.sdkName)
            || StringUtil.isNotEmpty(environment.compileFilePath)
            || environment.skipBuild
-           || !environment.useCompilationServer;
+           || !environment.useCompilationServer
+           || environment.dedicatedServer;
   }
 
   /** Drops every stored setting of the container (a removed module leaves no stale state behind). */
@@ -173,6 +176,17 @@ public final class HaxeEnvironmentStore implements PersistentStateComponent<Haxe
 
   public void setUsingCompilationServer(@NotNull String containerId, boolean use) {
     getOrCreate(containerId).useCompilationServer = use;
+    HaxeBuildSettingsListener.publisher(project).environmentChanged(containerId, EnvironmentAspect.COMPILATION_SERVER);
+  }
+
+  /** Whether the container's builds and compiler requests use a compilation server of their own instead of its SDK's shared one. */
+  public boolean isUsingDedicatedServer(@NotNull String containerId) {
+    ContainerEnvironment environment = find(containerId);
+    return environment != null && environment.dedicatedServer;
+  }
+
+  public void setUsingDedicatedServer(@NotNull String containerId, boolean dedicated) {
+    getOrCreate(containerId).dedicatedServer = dedicated;
     HaxeBuildSettingsListener.publisher(project).environmentChanged(containerId, EnvironmentAspect.COMPILATION_SERVER);
   }
 

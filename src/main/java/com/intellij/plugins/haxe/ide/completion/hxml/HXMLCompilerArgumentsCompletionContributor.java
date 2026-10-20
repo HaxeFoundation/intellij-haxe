@@ -29,16 +29,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PatternCondition;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
-import com.intellij.plugins.haxe.util.HaxeHelpUtil;
-import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.plugins.haxe.util.HaxeCompletionCache;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,22 +50,32 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
  */
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
 
-  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS =  new ArrayList<>();;
-  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS2 =  new ArrayList<>();;
+  // a haxe 3 single-dash help line: "-name <param> : description" (name, optional <param>, description)
   public static final Pattern HAXE3_PATTERN = Pattern.compile("-([a-z-_0-9]+)[\\s](<[^>]+>)?[^:]+:[\\t\\s]+([^\\r\\n]+)");
+  // a haxe 3 double-dash help line: "--name ... : description" (name, description)
   public static final Pattern HAXE3_PATTERN2 = Pattern.compile("--([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
-
+  // a haxe 4+ help line: optional "-short, ", then "--long", its <param> and [param2], then the description
   public static final Pattern HAXE4_PATTERN = Pattern.compile("(-((?<short>([a-z_0-9]+)),\\s))?--(?<long>[a-z-_0-9]+)[\\s](?<param><[^>]+>)?\\s*(?<param2>\\[.*\\])?\\s+[\\t\\s]+(?<description>[^\\r\\n]+)", Pattern.CASE_INSENSITIVE);
 
-  private void getCompilerArguments(Module module) {
-    ArrayList<String> commandLine = new ArrayList<>();
-    List<String> compilerArguments = getHaxeCompilerArguments(module, commandLine);
-
-    addHaxe4CompilerArguments(compilerArguments);
-    addHaxe3CompilerArguments(compilerArguments);
+  /** The arguments one compiler's {@code --help} lists, in their single-dash ({@code -cp}) and double-dash ({@code --macro}) forms. */
+  private record CompilerArguments(@NotNull List<HXMLCompletionItem> singleDash, @NotNull List<HXMLCompletionItem> doubleDash) {
   }
 
-  private void addHaxe3CompilerArguments(List<String> strings) {
+  /** The arguments the compiler of the file's module lists; none until its help listing is read. */
+  @NotNull
+  private static CompilerArguments compilerArguments(@NotNull CompletionParameters parameters) {
+    VirtualFile file = parameters.getOriginalFile().getVirtualFile();
+    Project project = parameters.getEditor().getProject();
+    Module module = ModuleUtil.findModuleForFile(file, project);
+    List<String> helpLines = HaxeCompletionCache.getInstance(module).getCompilerHelp();
+
+    CompilerArguments arguments = new CompilerArguments(new ArrayList<>(), new ArrayList<>());
+    addHaxe4CompilerArguments(helpLines, arguments);
+    addHaxe3CompilerArguments(helpLines, arguments);
+    return arguments;
+  }
+
+  private static void addHaxe3CompilerArguments(List<String> strings, CompilerArguments arguments) {
     for (int i = 0; i < strings.size(); i++) {
       String text = strings.get(i);
       Matcher matcher = HAXE3_PATTERN2.matcher(text);
@@ -76,8 +83,8 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
       if (matcher.find()) {
         String group = matcher.group(1);
 
-        if (!COMPILER_ARGUMENTS2.contains(group)) {
-          COMPILER_ARGUMENTS2.add(new HXMLCompletionItem(group, matcher.group(2)));
+        if (!arguments.doubleDash().contains(group)) {
+          arguments.doubleDash().add(new HXMLCompletionItem(group, matcher.group(2)));
         }
       }
       else
@@ -87,23 +94,23 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
         if (matcher.find()) {
           String group = matcher.group(1);
 
-          if (!COMPILER_ARGUMENTS.contains(group)) {
+          if (!arguments.singleDash().contains(group)) {
             String description = matcher.group(3);
             String group2 = matcher.group(2);
             if (group2 != null) {
               group2 = group + " " + group2;
             }
-            COMPILER_ARGUMENTS.add(new HXMLCompletionItem(group, description, group2));
+            arguments.singleDash().add(new HXMLCompletionItem(group, description, group2));
           }
         }
       }
     }
 
-    if (!COMPILER_ARGUMENTS.contains("D")) {
-      COMPILER_ARGUMENTS.add(new HXMLCompletionItem("D"));
+    if (!arguments.singleDash().contains("D")) {
+      arguments.singleDash().add(new HXMLCompletionItem("D"));
     }
   }
-  private void addHaxe4CompilerArguments(List<String> strings) {
+  private static void addHaxe4CompilerArguments(List<String> strings, CompilerArguments arguments) {
     for (int i = 0; i < strings.size(); i++) {
       String text = strings.get(i);
 
@@ -113,7 +120,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
           String shortCmd = getTextFromGroup(matcher, "short");
           String longCmd = getTextFromGroup(matcher, "long");
 
-          if (shortCmd != null && !COMPILER_ARGUMENTS.contains(shortCmd)) {
+          if (shortCmd != null && !arguments.singleDash().contains(shortCmd)) {
             String description = getTextFromGroup(matcher, "description");
             StringJoiner presentation = new StringJoiner(" ");
             String params = getTextFromGroup(matcher, "params");
@@ -121,10 +128,10 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
             presentation.add(shortCmd);
             if (params != null)  presentation.add(params);
             if (params2 != null)  presentation.add(params2);
-            COMPILER_ARGUMENTS.add(new HXMLCompletionItem(shortCmd, description,  presentation.toString()));
+            arguments.singleDash().add(new HXMLCompletionItem(shortCmd, description,  presentation.toString()));
           }
 
-          if (longCmd != null && !COMPILER_ARGUMENTS2.contains(longCmd)) {
+          if (longCmd != null && !arguments.doubleDash().contains(longCmd)) {
             String description = getTextFromGroup(matcher, "description");
             StringJoiner presentation = new StringJoiner(" ");
             String params = getTextFromGroup(matcher, "params");
@@ -133,30 +140,19 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
             if (params != null)  presentation.add(params);
             if (params2 != null)  presentation.add(params2);
 
-            COMPILER_ARGUMENTS2.add(new HXMLCompletionItem(longCmd, description, presentation.toString()));
+            arguments.doubleDash().add(new HXMLCompletionItem(longCmd, description, presentation.toString()));
           }
         }
       }
   }
 
-  private String getTextFromGroup(Matcher matcher, String groupName) {
+  private static String getTextFromGroup(Matcher matcher, String groupName) {
     try {
       return matcher.group(groupName);
     }catch (IllegalArgumentException e) {
       // group not found
       return null;
     }
-  }
-
-  private List<String> getHaxeCompilerArguments(Module module, ArrayList<String> commandLine) {
-    commandLine.add(HaxeHelpUtil.getHaxePath(module));
-    commandLine.add("--help");
-
-    List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLine, HaxeSdkUtilBase.getSdkData(module));
-    if (strings.size() > 0) {
-      strings.remove(0);
-    }
-    return strings;
   }
 
   public static PsiElementPattern.Capture<PsiElement> emptyLinePattern() {
@@ -184,15 +180,15 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
             new CompletionProvider<>() {
               @Override
               protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set) {
-                fetchCompilerArgumentsIfMissing(parameters);
+                CompilerArguments arguments = compilerArguments(parameters);
 
-                for (HXMLCompletionItem argument : COMPILER_ARGUMENTS2) {
+                for (HXMLCompletionItem argument : arguments.doubleDash()) {
                   LookupElementBuilder element = LookupElementBuilder.create("--" +argument.name)
                           .withTailText(" " + argument.description, true);
                   set.addElement(element);
                 }
 
-                for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
+                for (HXMLCompletionItem argument : arguments.singleDash()) {
                   LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create("-"+argument.name)
                           .withTailText(" " + argument.description, true);
                   if (argument.presentableText != null) {
@@ -208,19 +204,19 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
     extend(CompletionType.BASIC, psiElement(HXMLTypes.KEY_TOKEN).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<>() {
              @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set) 
+             protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set)
              {
-               fetchCompilerArgumentsIfMissing(parameters);
+               CompilerArguments arguments = compilerArguments(parameters);
 
                String text = parameters.getPosition().getText();
 
                if (text.startsWith("--")) {
-                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS2) {
+                 for (HXMLCompletionItem argument : arguments.doubleDash()) {
                    set.addElement(LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true));
                  }
                }
                else {
-                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
+                 for (HXMLCompletionItem argument : arguments.singleDash()) {
                    LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true);
                    if (argument.presentableText != null) {
                      lookupElementBuilder = lookupElementBuilder.withPresentableText(argument.presentableText);
@@ -231,14 +227,5 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
              }
            }
     );
-  }
-
-  private void fetchCompilerArgumentsIfMissing(@NonNull CompletionParameters parameters) {
-    if (COMPILER_ARGUMENTS.isEmpty()) {
-      VirtualFile file = parameters.getOriginalFile().getVirtualFile();
-      Project project = parameters.getEditor().getProject();
-      Module module = ModuleUtil.findModuleForFile(file, project);
-      getCompilerArguments(module);
-    }
   }
 }

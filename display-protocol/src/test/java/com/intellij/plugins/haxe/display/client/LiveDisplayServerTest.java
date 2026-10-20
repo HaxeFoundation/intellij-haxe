@@ -69,7 +69,7 @@ public class LiveDisplayServerTest {
     Files.writeString(fixture, FIXTURE);
     fixtureFile = fixture.toString();
     baseArgs = List.of("--cwd", workDir.toString(), "-cp", ".", "-main", "Live", "-js", "out.js", "--no-output");
-    client = new HaxeDisplayClient("127.0.0.1", port);
+    client = new JsonRpcDisplayClient("127.0.0.1", port);
     waitUntilAccepting();
     serverVersion = client.initialize(baseArgs).haxeVersion();
     System.out.println("[live] driving haxe " + serverVersion);
@@ -186,7 +186,7 @@ public class LiveDisplayServerTest {
     Range removal = removable.removableRangeArg();
     assertNotNull(removal, "removable-code args must carry the removal range");
     if (sendsReplaceableCode()) {
-      System.out.println("[live] haxe5 replaceable newCode = " + removable.args().path("newCode"));
+      System.out.println("[live] haxe5 replaceable newCode = " + removable.newCodeArg());
       return;
     }
     List<String> lines = withUnusedVar.lines().toList();
@@ -412,7 +412,8 @@ public class LiveDisplayServerTest {
 
   private static boolean haxeAvailable() {
     try {
-      Process process = new ProcessBuilder(HAXE_EXE, "--version")
+      // -version, not --version: haxe 3.x knows only the single-dash form, and haxe 5 still accepts it
+      Process process = new ProcessBuilder(HAXE_EXE, "-version")
         .redirectErrorStream(true)
         .redirectOutput(ProcessBuilder.Redirect.DISCARD)
         .start();

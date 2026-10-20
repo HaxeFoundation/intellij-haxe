@@ -64,7 +64,7 @@ public class HaxeTestRunnerPipelineTest extends HaxeCodeInsightFixtureTestCase {
     HaxeTestRunConfiguration configuration = newConfiguration(buildFile.getPath());
     assertDoesNotThrow(configuration::checkConfiguration, "the interp fixture must validate");
 
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), buildFile.getPath(), null);
+    Plan plan = HaxeTestLaunchPlanner.planFor(newConfiguration(buildFile.getPath()));
     assertTrue(plan.singleStage(), "the fixture targets --interp");
 
     RecordingEventsProcessor recorder = runThroughConverter(configuration, plan, 0);
@@ -95,15 +95,17 @@ public class HaxeTestRunnerPipelineTest extends HaxeCodeInsightFixtureTestCase {
     VirtualFile buildFile = myFixture.findFileInTempDir("utest/test.hxml");
     assertNotNull(buildFile, "the utest fixture must be copied");
 
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), buildFile.getPath(), null);
+    Plan plan = HaxeTestLaunchPlanner.planFor(newConfiguration(buildFile.getPath()));
     // utest exits 1: the assertion-less test counts as a warning and warnings make its stats not-ok
     RecordingEventsProcessor recorder = runThroughConverter(newConfiguration(buildFile.getPath()), plan, 1);
 
     // live names carry no leading dot (utest's BATCH spells the default
     // package as `.LiveCase` - those replays must all be swallowed)
+    // sorted: haxe 3 reflects the test methods in another order than the declaration order 4.x keeps
+    List<String> finishedTestsSorted = recorder.finishedTests.stream().sorted().toList();
     assertTrue(recorder.startedSuites.contains("LiveCase"), "class suite expected, got: " + recorder.startedSuites);
-    assertEquals(List.of("LiveCase.testTraces", "LiveCase.testPasses", "LiveCase.testNoAsserts"),
-                 recorder.finishedTests,
+    assertEquals(List.of("LiveCase.testNoAsserts", "LiveCase.testPasses", "LiveCase.testTraces"),
+                 finishedTestsSorted,
                  "each test finishes exactly once - the batch replay is deduplicated");
     assertFalse(recorder.startedSuites.contains(".LiveCase"),
                 "the batch's suite replay must be swallowed, got: " + recorder.startedSuites);
@@ -134,7 +136,7 @@ public class HaxeTestRunnerPipelineTest extends HaxeCodeInsightFixtureTestCase {
 
     compileTestsBuild(buildFile);
 
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), buildFile.getPath(), null);
+    Plan plan = HaxeTestLaunchPlanner.planFor(newConfiguration(buildFile.getPath()));
     assertEquals("-nodebug", plan.command().get(1), "adl's default debug-launch mode swallows trace output");
     // the injected reporter's completion handler runs FIRST (attached in
     // Runner's constructor) and exits with 0 - the batch replay never prints
@@ -166,7 +168,7 @@ public class HaxeTestRunnerPipelineTest extends HaxeCodeInsightFixtureTestCase {
     assertEquals("munit", HaxeTestFrameworks.forBuildFile(getProject(), buildFile.getPath()).libraryName());
     compileTestsBuild(buildFile);
 
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), buildFile.getPath(), null);
+    Plan plan = HaxeTestLaunchPlanner.planFor(newConfiguration(buildFile.getPath()));
     // munit's classic TestMain exits 0 even on failures (its delayed
     // completion handler misses the process end) - verdicts are events-only
     RecordingEventsProcessor recorder = runThroughConverter(newConfiguration(buildFile.getPath()), plan, 0);
@@ -203,8 +205,8 @@ public class HaxeTestRunnerPipelineTest extends HaxeCodeInsightFixtureTestCase {
     assertNotNull(buildFile, "the buddy fixture must be copied");
 
     assertEquals("buddy", HaxeTestFrameworks.forBuildFile(getProject(), buildFile.getPath()).libraryName());
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), buildFile.getPath(), null);
-    // buddy's generated main exits 1 on a failing spec - verified live
+    Plan plan = HaxeTestLaunchPlanner.planFor(newConfiguration(buildFile.getPath()));
+    // buddy's generated main exits 1 on a failing spec
     RecordingEventsProcessor recorder = runThroughConverter(newConfiguration(buildFile.getPath()), plan, 1);
 
     assertTrue(recorder.startedSuites.contains("A calculator"),
@@ -242,8 +244,8 @@ public class HaxeTestRunnerPipelineTest extends HaxeCodeInsightFixtureTestCase {
     assertNotNull(buildFile, "the tink fixture must be copied");
 
     assertEquals("tink_unittest", HaxeTestFrameworks.forBuildFile(getProject(), buildFile.getPath()).libraryName());
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), buildFile.getPath(), null);
-    // Runner.exit reports the failure count as the exit code - verified live
+    Plan plan = HaxeTestLaunchPlanner.planFor(newConfiguration(buildFile.getPath()));
+    // Runner.exit reports the failure count as the exit code
     RecordingEventsProcessor recorder = runThroughConverter(newConfiguration(buildFile.getPath()), plan, 1);
 
     assertTrue(recorder.startedSuites.contains("TinkCase"), "case suite expected, got: " + recorder.startedSuites);

@@ -219,8 +219,7 @@ public final class HaxeGeneratedDumpService {
   /// an `--interp` build restated so that eval dumps without running it
   /// ([#entryPointArgs]). The target and its defines stay the user's. Null
   /// when the argument shape cannot be made safe (`-x`/`--run` execute the
-  /// program) or no target flag is visible, which includes a target hidden
-  /// in a NESTED hxml reference (expansion is one level deep).
+  /// program) or no target flag is visible.
   /// TODO: `--next` sections get the dump defines appended only after
   ///  the last section; multi-build hxml dumps only that section's modules.
   @Nullable

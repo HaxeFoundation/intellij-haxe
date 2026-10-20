@@ -18,6 +18,7 @@ import com.intellij.plugins.haxe.v2.runconfig.HaxeDebugSupport;
 import com.intellij.plugins.haxe.v2.buildtools.*;
 import com.intellij.plugins.haxe.v2.testing.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -107,25 +108,11 @@ final class HaxeTestLaunchPlanner {
     return binDirectory == null ? null : binDirectory.resolve(LimeProjects.HL_BOOT_FILE);
   }
 
-  @NotNull
-  static Plan plan(@NotNull Project project,
-                   @NotNull String buildFilePath,
-                   @Nullable String filterPattern) throws ExecutionException {
-    return plan(project, buildFilePath, filterPattern, null, nodeExecutable(project), false);
-  }
-
   /** The configuration's plan, single-run narrowing included. */
   @NotNull
   static Plan planFor(@NotNull HaxeTestRunConfiguration configuration) throws ExecutionException {
     return plan(configuration.getProject(), configuration.getBuildFilePath(), configuration.getFilterPattern(),
                 configuration.singleRun(), nodeExecutable(configuration.getProject()), false);
-  }
-
-  @NotNull
-  static Plan planForDebug(@NotNull Project project,
-                           @NotNull String buildFilePath,
-                           @Nullable String filterPattern) throws ExecutionException {
-    return plan(project, buildFilePath, filterPattern, null, nodeExecutable(project), true);
   }
 
   /** The debug executor's plan: its before-run compile injects the debug additions, which for hxcpp rename the binary. */
@@ -141,6 +128,8 @@ final class HaxeTestLaunchPlanner {
     return HaxeToolPathResolver.resolveNodeExecutable(project, null);
   }
 
+  /** The plan without the SDK node lookup: {@code nodeOnPath} stands in for the runtime a test machine may lack. */
+  @TestOnly
   @NotNull
   static Plan plan(@NotNull Project project,
                    @NotNull String buildFilePath,
@@ -149,6 +138,7 @@ final class HaxeTestLaunchPlanner {
     return plan(project, buildFilePath, filterPattern, null, bareNode(nodeOnPath), false);
   }
 
+  @TestOnly
   @NotNull
   static Plan planSingle(@NotNull Project project,
                          @NotNull String buildFilePath,
@@ -185,7 +175,8 @@ final class HaxeTestLaunchPlanner {
       return limePlan(project, file, type, debugLaunch);
     }
     if (singleRun != null && type != HaxeBuildFileType.HXML) {
-      // TODO gutter runs for nmml tests builds: nme's app-main override is unverified
+      // TODO: single runs (gutter, context menu) for nmml tests builds: nme's app-main override
+      //  is unverified; HaxeTestContext offers none for them either
       throw new ExecutionException(HaxeBundle.message("haxe.test.single.unsupported.type", file.getName()));
     }
     if (type == HaxeBuildFileType.NMML) {

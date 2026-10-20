@@ -7,6 +7,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
@@ -168,8 +169,18 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
         return result.toString();
       }
 
+      /** A target's std override presents like the generic std declaration; the target tells them apart. */
       @Override
       public String getLocationString() {
+        String location = declaringTypeLocation();
+        String stdTarget = HaxeIndexUtil.platformSpecificStdTargetOf(HaxeStubBasedNamedComponent.this.getContainingFile());
+        if (stdTarget == null) return location;
+        String override = stdTarget + "/" + HaxeIndexUtil.STD_OVERRIDE_DIR;
+        return location.isEmpty() ? override : location + ", " + override;
+      }
+
+      /** The declaring type's qualified name (its package for a type itself), with the field path inside an anonymous type. */
+      private String declaringTypeLocation() {
         HaxeClass haxeClass = HaxeStubBasedNamedComponent.this instanceof HaxeClass
                               ? (HaxeClass)HaxeStubBasedNamedComponent.this
                               : PsiTreeUtil.getStubOrPsiParentOfType(HaxeStubBasedNamedComponent.this, HaxeClass.class);

@@ -21,7 +21,6 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCommandNotifications;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildSystem;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCompileCommands;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeActionConfigurationFactory;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeActionRunConfiguration;
@@ -187,9 +186,8 @@ public final class HaxeToolWindowLaunches {
     Module module = moduleOf(project, programNode.buildFile().file());
     if (module == null) return null;
 
-    String buildAction = HaxeBuildSystem.of(programNode.buildFile().type()).defaultBuildActionName();
-    return HaxeProgramLaunches.findOrCreate(project, module, programNode.buildFile(), programNode.kind(),
-                                            programNode.targetOutput(), buildAction, Map.of(), true);
+    return HaxeProgramLaunches.buildAndRunConfiguration(project, module, programNode.buildFile(), programNode.kind(),
+                                                        programNode.targetOutput());
   }
 
   /**

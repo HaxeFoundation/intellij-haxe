@@ -31,8 +31,9 @@ import java.util.stream.Collectors;
 /**
  * Reads a build file's declared target, defines and library dependencies
  * statically; call inside a read action. HXP files are Haxe code and report
- * empty info here: {@code HaxeLimeProjectInfoService} evaluates them (and
- * lime/openfl projects with their conditions applied). An hxml's sections
+ * empty info here: {@code HaxeLimeProjectInfoService} evaluates Lime project
+ * scripts (and lime/openfl projects with their conditions applied); a plain
+ * hxp build script stays empty. An hxml's sections
  * and an xml project file's declared info are cached on the file's PSI, so
  * the many readers (tool window, resolve context, define context, library
  * sync, test runs) share one answer until the file, or a file it includes,

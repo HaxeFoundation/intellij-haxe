@@ -25,6 +25,8 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.display.client.HaxeVersionProbe;
+import com.intellij.plugins.haxe.display.protocol.InitializeResult.SemVer;
 import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
@@ -42,14 +44,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.*;
 
 @CustomLog
 public class HaxeSdkUtil extends HaxeSdkUtilBase {
-  private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
+  private static final String UNKNOWN_VERSION = "NA";
 
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
@@ -59,34 +59,26 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       return null;
     }
 
-    List<String> command = new ArrayList<>();
-    command.add(exePath);
-    command.add("-help");
+    // -version is the one spelling every supported compiler knows
+    List<String> command = List.of(exePath, "-version");
 
     try {
       VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(HaxeFileUtil.fixUrl(path));
-      List<String> output = new ArrayList<>();
+      List<String> stdout = new ArrayList<>();
+      List<String> stderr = new ArrayList<>();
       int exitCode;
       if (ApplicationManager.getApplication().isDispatchThread()) {
-        exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, true, dir, output, null, null, true);
+        exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, dir, stdout, stderr, null, true);
       }
       else {
-        exitCode = HaxeProcessUtil.runProcess(command, true, dir, output, null, null, true);
+        exitCode = HaxeProcessUtil.runProcess(command, dir, stdout, stderr, null);
       }
       if (exitCode != 0) {
         log.error("Haxe compiler exited with invalid exit code: " + exitCode);
         return null;
       }
 
-      String haxeVersion = "NA";
-      for (String s : output) {
-        final Matcher matcher = VERSION_MATCHER.matcher(s);
-        if (matcher.find()) {
-          haxeVersion = matcher.group(1);
-          break;
-        }
-      }
-      final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
+      final HaxeSdkData haxeSdkData = new HaxeSdkData(path, versionOf(stdout, stderr));
       haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
       haxeSdkData.setNekoBinPath(suggestNekoBinPath());
       return haxeSdkData;
@@ -95,6 +87,14 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       log.info("Exception while executing the process:", e);
       return null;
     }
+  }
+
+  /** The version a {@code -version} answer names, {@code NA} when none: haxe 3 prints it to stderr, haxe 4 and 5 to stdout. */
+  @NotNull
+  private static String versionOf(List<String> stdout, List<String> stderr) {
+    String answer = String.join("\n", stdout) + "\n" + String.join("\n", stderr);
+    SemVer version = HaxeVersionProbe.parse(answer);
+    return version != null ? version.toString() : UNKNOWN_VERSION;
   }
 
   public static void setupSdkPaths(@Nullable VirtualFile sdkRoot, SdkModificator modificator) {

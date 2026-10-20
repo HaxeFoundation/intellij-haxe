@@ -16,7 +16,6 @@ public record TypeBlueprint(String name,
                             List<Member> fields,
                             List<Member> statics) {
 
-  /** {@code fieldKind} is the JsonClassField kind: FMethod, FVar or FProp. */
   /** A member with its compiler type and, where the answer carries one, the position of its declaration. */
   public record Member(String name, JsonTypeRef type, String fieldKind, JsonPos pos) {
     public boolean isMethod() {

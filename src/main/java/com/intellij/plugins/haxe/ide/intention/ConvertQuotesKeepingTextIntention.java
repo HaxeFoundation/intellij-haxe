@@ -5,12 +5,9 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +18,6 @@ import org.jetbrains.annotations.NotNull;
  * {@link ConvertQuotesIntention} on the same string starts interpolating instead.
  */
 public class ConvertQuotesKeepingTextIntention extends BaseIntentionAction {
-
-  private HaxeStringLiteralExpression expression;
 
   @Nls
   @NotNull
@@ -39,11 +34,7 @@ public class ConvertQuotesKeepingTextIntention extends BaseIntentionAction {
 
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
-
-    PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
-    expression = PsiTreeUtil.getParentOfType(place, HaxeStringLiteralExpression.class);
-
+    HaxeStringLiteralExpression expression = ConvertQuotesIntention.stringLiteralAt(editor, file);
     return expression != null
            && ConvertQuotesIntention.isWrappedWithDoubleQuotes(expression)
            && ConvertQuotesIntention.hasDollar(expression);
@@ -51,6 +42,8 @@ public class ConvertQuotesKeepingTextIntention extends BaseIntentionAction {
 
   @Override
   public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+    HaxeStringLiteralExpression expression = ConvertQuotesIntention.stringLiteralAt(editor, file);
+    if (expression == null) return;
     String commandName = HaxeBundle.message("haxe.intention.convert.quotes.command");
     WriteCommandAction.runWriteCommandAction(project, commandName, null, HaxeSurroundFixer.replaceQuotesWithSingleQuotesKeepingText(expression));
   }

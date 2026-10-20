@@ -30,14 +30,19 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Switches a string literal between single and double quotes. One instance
+ * serves every editor, so nothing about the caret's literal is kept between
+ * the calls: {@link #isAvailable} sets the label for the literal it found and
+ * {@link #invoke} finds the literal again.
+ */
 public class ConvertQuotesIntention extends BaseIntentionAction {
-  private static final String SINGLE_QUOTES = "'";
   private static final String DOUBLE_QUOTES = "\"";
 
-  private HaxeStringLiteralExpression expression;
-
   public ConvertQuotesIntention() {
+    setText(getFamilyName());
   }
 
   @Nls
@@ -47,10 +52,25 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
     return HaxeBundle.message("haxe.intention.convert.quotes.family");
   }
 
+  @Override
+  public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
+    HaxeStringLiteralExpression expression = stringLiteralAt(editor, file);
+    if (expression == null) return false;
+    setText(labelFor(expression));
+    return true;
+  }
+
+  @Override
+  public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+    HaxeStringLiteralExpression expression = stringLiteralAt(editor, file);
+    if (expression == null) return;
+    String commandName = HaxeBundle.message("haxe.intention.convert.quotes.command");
+    WriteCommandAction.runWriteCommandAction(project, commandName, null, HaxeSurroundFixer.exchangeQuoteType(expression));
+  }
+
   /** The label says what the switch does to a {@code $}: the two quote kinds differ in exactly that. */
   @NotNull
-  @Override
-  public String getText() {
+  private static String labelFor(@NotNull HaxeStringLiteralExpression expression) {
     if (isWrappedWithDoubleQuotes(expression)) {
       return hasDollar(expression)
              ? HaxeBundle.message("haxe.quickfix.convert.to.single.quotes.interpolating")
@@ -61,20 +81,12 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
            : HaxeBundle.message("haxe.quickfix.surround.with.double.quotation.marks");
   }
 
-  @Override
-  public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
-
+  /** The string literal at the caret of a Haxe file, or null. */
+  @Nullable
+  static HaxeStringLiteralExpression stringLiteralAt(@NotNull Editor editor, @NotNull PsiFile file) {
+    if (file.getLanguage() != HaxeLanguage.INSTANCE) return null;
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
-    expression = PsiTreeUtil.getParentOfType(place, HaxeStringLiteralExpression.class);
-
-    return expression != null;
-  }
-
-  @Override
-  public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    String commandName = HaxeBundle.message("haxe.intention.convert.quotes.command");
-    WriteCommandAction.runWriteCommandAction(project, commandName, null, HaxeSurroundFixer.exchangeQuoteType(expression));
+    return PsiTreeUtil.getParentOfType(place, HaxeStringLiteralExpression.class);
   }
 
   /** Whether a single-quoted string interpolates something; only the lexer of single quotes produces template entries. */
@@ -87,8 +99,8 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
     return expression.getText().indexOf('$') >= 0;
   }
 
-  static boolean isWrappedWithDoubleQuotes(HaxeStringLiteralExpression expression) {
-    if (expression== null || expression.getFirstChild() == null) return  false;
-    return expression.getFirstChild().textMatches(DOUBLE_QUOTES);
+  static boolean isWrappedWithDoubleQuotes(@NotNull HaxeStringLiteralExpression expression) {
+    PsiElement opening = expression.getFirstChild();
+    return opening != null && opening.textMatches(DOUBLE_QUOTES);
   }
 }

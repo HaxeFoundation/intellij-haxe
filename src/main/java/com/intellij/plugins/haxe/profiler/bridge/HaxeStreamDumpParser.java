@@ -10,6 +10,7 @@ import com.intellij.profiler.api.Success;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -23,10 +24,13 @@ import java.nio.file.Files;
  */
 public final class HaxeStreamDumpParser implements ProfilerDumpFileParser {
 
-  /** Translates the dump into the data the profiler tool window shows. */
+  /**
+   * Translates the dump into the data the profiler tool window shows. {@code file} is the dump's own path;
+   * frame navigation uses it to pick the sources of the build the dump came from.
+   */
   public interface Reader {
     @NotNull
-    ProfilerData read(@NotNull InputStream in) throws IOException;
+    ProfilerData read(@NotNull InputStream in, @NotNull Path file) throws IOException;
   }
 
   private final Reader reader;
@@ -38,7 +42,7 @@ public final class HaxeStreamDumpParser implements ProfilerDumpFileParser {
   @Override
   public @NotNull ProfilerDumpFileParsingResult parse(@NotNull File file, @NotNull ProgressIndicator indicator) {
     try (InputStream in = new CancellableStream(new BufferedInputStream(Files.newInputStream(file.toPath())), indicator)) {
-      return new Success(reader.read(in));
+      return new Success(reader.read(in, file.toPath()));
     }
     catch (IOException e) {
       return new Failure(HaxeProfilerBundle.message("haxe.profiler.parse.failed", e.getMessage()));

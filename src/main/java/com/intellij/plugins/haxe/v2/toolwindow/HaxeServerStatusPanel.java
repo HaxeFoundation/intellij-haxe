@@ -32,7 +32,8 @@ import java.util.Map;
  * copyable — the tree row's tooltip is neither), the IDE-side request
  * statistics, and — on demand via Refresh — the server's own cache memory per
  * compilation context ({@code server/memory}; fetched on request only, since
- * every query queues behind compiles on the single-connection server).
+ * every query queues behind compiles on the single-connection server). A
+ * Haxe 3 server prints its report to the console below instead.
  */
 final class HaxeServerStatusPanel extends JPanel {
 
@@ -123,7 +124,7 @@ final class HaxeServerStatusPanel extends JPanel {
     serverStats = null;
   }
 
-  /** Queries {@code server/memory} in the background and re-renders; no-op while the process is down. */
+  /** Queries the server's cache statistics in the background and re-renders; no-op while the process is down. */
   private void fetchServerStats() {
     Project currentProject = project;
     HaxeServerProcesses currentManager = manager;
@@ -139,7 +140,7 @@ final class HaxeServerStatusPanel extends JPanel {
       String rendered;
       try {
         ServerMemory memory = currentManager.fetchMemory(currentServerId);
-        rendered = renderMemory(memory);
+        rendered = memory == null ? HaxeBundle.message("haxe.server.console.stats.printed") : renderMemory(memory);
       }
       catch (DisplayRequestException e) {
         rendered = HaxeBundle.message("haxe.server.console.stats.failed", StringUtil.notNullize(e.getMessage()));

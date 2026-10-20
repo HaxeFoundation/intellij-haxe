@@ -11,8 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Uncaught-exception behaviour of the real server, pinned empirically: the
- * debuggee STOPS AT THE THROW LINE (observed with reason "pause" — the
+ * Uncaught-exception behaviour of the real server: the debuggee STOPS AT
+ * THE THROW LINE (with reason "pause" — the
  * server classifies the critical error only later in the unwind), and after
  * continuing, the thrown text surfaces (as an exception-reason stop and/or
  * the process's Critical Error output) before termination. There is nothing

@@ -9,7 +9,9 @@ import com.intellij.profiler.api.CallTreeBuildingData;
 import com.intellij.profiler.api.SingleCallTreeProfilerData;
 import com.intellij.profiler.model.ThreadInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -28,8 +30,9 @@ public final class HaxeHxcppProfilerData extends SingleCallTreeProfilerData {
     super(tree);
   }
 
+  /** {@code capture} is the report; its symbols carry no positions, so navigation picks the declarations nearest it. */
   @NotNull
-  public static HaxeHxcppProfilerData from(@NotNull HxcppProfileReport report) {
+  public static HaxeHxcppProfilerData from(@NotNull HxcppProfileReport report, @Nullable Path capture) {
     // the report is per-process with no thread data; hxcpp profiles the thread that called start()
     ThreadInfo thread = new HaxeProfilerThreadInfo(ProfilerThread.MAIN_NAME, "0");
     DummyCallTreeBuilder<BaseCallStackElement> builder = new DummyCallTreeBuilder<>();
@@ -37,7 +40,7 @@ public final class HaxeHxcppProfilerData extends SingleCallTreeProfilerData {
       // basis points keep the report's two decimals as integer weights
       long weight = Math.round(entry.selfPercent() * 100);
       if (weight <= 0) continue;
-      HaxeCallStackElement element = new HaxeCallStackElement(entry.symbol(), null, StackFrame.NO_LINE);
+      HaxeCallStackElement element = new HaxeCallStackElement(entry.symbol(), null, StackFrame.NO_LINE, capture);
       builder.addStack(thread, List.of(element), weight);
     }
 

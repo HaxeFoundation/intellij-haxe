@@ -8,7 +8,7 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One stop of the (suspend-all) debuggee: every live thread as an
+ * One stop of the debuggee: every listed thread as an
  * execution stack, with the stopped thread active and its frames pre-fetched.
  * Selecting another thread lazily walks its stack.
  */

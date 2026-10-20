@@ -39,7 +39,9 @@ class FakeHxcppServer implements Closeable {
     in = socket.getInputStream();
     out = socket.getOutputStream();
 
-    // Void-result methods every session uses; tests override what they assert on
+    // Void-result methods: the run-control verbs, plus setExceptionOptions and
+    // switchFrame, which the real server null-succeeds (no handler); tests
+    // override what they assert on
     handle("continue", params -> "null");
     handle("next", params -> "null");
     handle("stepIn", params -> "null");

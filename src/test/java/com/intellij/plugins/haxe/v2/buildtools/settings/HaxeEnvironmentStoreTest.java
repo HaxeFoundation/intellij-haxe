@@ -49,6 +49,11 @@ public class HaxeEnvironmentStoreTest {
     assertTrue(store.hasUserOverrides("mod"));
     store.setUsingCompilationServer("mod", true);
     assertFalse(store.hasUserOverrides("mod"));
+
+    store.setUsingDedicatedServer("mod", true);
+    assertTrue(store.hasUserOverrides("mod"));
+    store.setUsingDedicatedServer("mod", false);
+    assertFalse(store.hasUserOverrides("mod"));
   }
 
   @Test
@@ -73,6 +78,19 @@ public class HaxeEnvironmentStoreTest {
 
     store.setUsingCompilationServer(MODULE, true);
     assertTrue(store.isUsingCompilationServer(MODULE));
+  }
+
+  @Test
+  @DisplayName("dedicated server defaults off and can be toggled")
+  public void dedicatedServerDefaultsOffAndCanBeToggled() {
+    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
+    assertFalse(store.isUsingDedicatedServer(MODULE));
+
+    store.setUsingDedicatedServer(MODULE, true);
+    assertTrue(store.isUsingDedicatedServer(MODULE));
+
+    store.setUsingDedicatedServer(MODULE, false);
+    assertFalse(store.isUsingDedicatedServer(MODULE));
   }
 
   @Test
@@ -109,6 +127,7 @@ public class HaxeEnvironmentStoreTest {
     HaxeEnvironmentStore store = new HaxeEnvironmentStore();
     store.setSdkName(MODULE, "Haxe 4.3.7");
     store.setCompileCommand(MODULE, new HaxeEnvironmentStore.CompileCommand("/p/build.hxml", "compile", "-debug"));
+    store.setUsingDedicatedServer(MODULE, true);
 
     Element serialized = XmlSerializer.serialize(store.getState());
     HaxeEnvironmentStore.State deserialized = XmlSerializer.deserialize(serialized, HaxeEnvironmentStore.State.class);
@@ -118,6 +137,7 @@ public class HaxeEnvironmentStoreTest {
 
     assertEquals("Haxe 4.3.7", reloaded.getSdkName(MODULE));
     assertEquals(new HaxeEnvironmentStore.CompileCommand("/p/build.hxml", "compile", "-debug"), reloaded.getCompileCommand(MODULE));
+    assertTrue(reloaded.isUsingDedicatedServer(MODULE));
   }
 
   /** The layout before version 1: define entries and the custom target were per container. */

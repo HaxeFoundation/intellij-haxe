@@ -76,7 +76,7 @@ public class NativeStackTraceIntegrationTest extends DapIntegrationTestBase {
     }
     assertTrue(located >= 2, "two+ fixture frames carry a File.hx:line location (" + joined + ")");
 
-    // NOTE: entries are deliberately allowed to remain opaque `hl_symbol @ 0x..`:
+    // entries are deliberately allowed to remain opaque `hl_symbol @ 0x..`:
     // some VM versions (1.16+) capture C-runtime frames that have no Haxe source
     // to resolve to — showing the raw symbol is the intended graceful fallback.
 

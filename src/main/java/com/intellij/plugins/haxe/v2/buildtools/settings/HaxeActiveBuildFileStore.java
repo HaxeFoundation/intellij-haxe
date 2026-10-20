@@ -13,10 +13,11 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.List;
 
 /**
- * The project's single active build file. There is exactly one because the IDE has
- * one parse tree per file: conditional compilation of shared libraries is evaluated
- * against one define context, and that context comes from the active build file.
- * Stored in {@code .idea/haxeBuildConfig.xml}.
+ * The project's single active build file. A file's conditional compilation is
+ * evaluated against the define context of the build it is analysed under (its
+ * resolve context); the active build file is the fallback for files without
+ * one, and the default build file of its container when that container has no
+ * build command. Stored in {@code .idea/haxeBuildConfig.xml}.
  */
 @Service(Service.Level.PROJECT)
 @State(name = "HaxeActiveBuildFiles", storages = @Storage("haxeBuildConfig.xml"))

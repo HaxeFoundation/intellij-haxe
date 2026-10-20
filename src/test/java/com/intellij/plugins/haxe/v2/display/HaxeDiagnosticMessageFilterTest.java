@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.plugins.haxe.display.protocol.Diagnostic;
+import com.intellij.plugins.haxe.display.protocol.DiagnosticArgs;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticKind;
 import com.intellij.plugins.haxe.display.protocol.DiagnosticSeverity;
 import com.intellij.plugins.haxe.display.protocol.InitializeResult.SemVer;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
-import tools.jackson.databind.node.StringNode;
 
 import java.util.List;
 
@@ -62,7 +62,7 @@ public class HaxeDiagnosticMessageFilterTest {
   @DisplayName("shows a diagnostic by level, code and message")
   public void showsADiagnosticByLevelCodeAndMessage(HaxeLanguageLevel level, SemVer version, DiagnosticSeverity severity,
                                                     DiagnosticKind kind, String message, String code, boolean shown) {
-    Diagnostic diagnostic = new Diagnostic(kind, anyRange(), severity, StringNode.valueOf(message), code);
+    Diagnostic diagnostic = new Diagnostic(kind, anyRange(), severity, new DiagnosticArgs.Message(message), code);
 
     boolean actual = HaxeDiagnosticMessageFilter.shouldShow(level, version, diagnostic);
 

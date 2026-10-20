@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
  * Uncaught-only exception breakpoints: with only the "uncaught" filter, a
  * throw inside a live {@code try} is skipped and execution stops only at a throw
  * no {@code catch} will handle. The fixture throws "caught-one" inside a try, then
- * "uncaught-one" with no handler — we must stop on the latter.
+ * "uncaught-one" with no handler — the session stops on the latter.
  */
 @DisplayName("HashLink debugger: uncaught exception (integration)")
 public class UncaughtExceptionIntegrationTest extends DapIntegrationTestBase {

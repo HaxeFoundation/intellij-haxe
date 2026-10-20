@@ -30,6 +30,10 @@ class ValueReader {
 	public var runtimeTypes:Null<RuntimeTypes> = null;
 	// Names the function at a jitted code address, for closures.
 	public var functionNameResolver:Null<Pointer->Null<String>> = null;
+	// The environment type of the closure function at a jitted code address:
+	// its first parameter. genhl passes a single captured variable as the
+	// value itself and several in an anonymous tuple enum.
+	public var closureEnvironmentTypeResolver:Null<Pointer->Null<HLType>> = null;
 	// Turns an hl_symbol stack-trace entry (a code return address) into
 	// "Class.method (File.hx:line)"; without it the raw pointer is shown.
 	public var symbolResolver:Null<Pointer->Null<String>> = null;
@@ -296,6 +300,16 @@ class ValueReader {
 		}
 	}
 
+	/**
+		The type of the bound object or capture environment a vclosure holds
+		@ +ptr*3; Dynamic when the closure's function is unknown.
+	**/
+	public function closureEnvironmentType(closurePtr:Pointer):HLType {
+		var fun = mem.readPointer(closurePtr.offset(align.ptr));
+		var resolved = closureEnvironmentTypeResolver == null ? null : closureEnvironmentTypeResolver(fun);
+		return resolved != null ? resolved : HDyn;
+	}
+
 	// vclosure: function pointer @ +ptr, hasValue i32 @ +ptr*2. A bound closure
 	// (hasValue == 1) holds its bound object or capture environment @ +ptr*3
 	// and is expandable.
@@ -470,7 +484,8 @@ class ValueReader {
 			case HObj(proto), HStruct(proto):
 				proto == null ? "Object" : (isArrayWrapper(proto.name) ? "Array" : displayName(proto.name));
 			case HVirtual(_): "Virtual";
-			case HEnum(proto): proto != null ? proto.name : "Enum";
+			// a closure's capture environment is an enum without a name
+			case HEnum(proto): proto == null ? "Enum" : (proto.name == null ? "Tuple" : proto.name);
 			case HNull(inner): typeName(inner);
 			case HRef(inner): typeName(inner);
 			case HFun(fun), HMethod(fun): funSignature(fun);

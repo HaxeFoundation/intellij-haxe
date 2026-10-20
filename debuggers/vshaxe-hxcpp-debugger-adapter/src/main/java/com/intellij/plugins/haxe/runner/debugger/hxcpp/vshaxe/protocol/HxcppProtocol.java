@@ -2,11 +2,11 @@ package com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.protocol;
 
 /**
  * Method and notification names of the hxcpp-debug-server jsonrpc protocol
- * (Protocol.hx in vshaxe/hxcpp-debugger) — the subset we use. Protocol.hx
- * also declares setBreakpoint, removeBreakpoint, switchFrame, completions
- * and setExceptionOptions, but Server.hx has NO handler for those (an
- * unknown method gets a null-result success — see docs/README.md gotcha #7),
- * so they are deliberately absent here.
+ * (Protocol.hx in vshaxe/hxcpp-debugger) — the subset the adapter calls.
+ * Protocol.hx also declares setBreakpoint, removeBreakpoint, switchFrame,
+ * completions and setExceptionOptions, but Server.hx has NO handler for
+ * those (an unknown method gets a null-result success — see docs/README.md,
+ * "The wire protocol"), so they are deliberately absent here.
  */
 public final class HxcppProtocol {
   // requests

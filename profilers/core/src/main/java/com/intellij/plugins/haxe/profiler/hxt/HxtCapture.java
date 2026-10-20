@@ -5,9 +5,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * What an HXTS session file holds, by container version: v1 files carry a
- * sampled capture (the telemetry lane), v3 files an exact zone capture (the
- * tracy lane) served from disk through its store. One extension, one
- * container, two data shapes.
+ * sampled capture (the telemetry lane), the zone-capture version
+ * ({@code HxtZoneWriter.VERSION}) an exact zone capture (the tracy lane)
+ * served from disk through its store. One extension, one container, two data
+ * shapes.
  */
 public sealed interface HxtCapture {
 

@@ -44,9 +44,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import com.intellij.plugins.haxe.runner.debugger.browser.ContentHttpServer;
 
-/// Test that verifies live that we can connect and start a debugger session with a Firefox browser.
-/// verify breakpoints, capabilities.
-/// Require a Chrome-based browser, Node.js and Haxe and utest (Haxe test framework)
+/// Live probes of the firefox debug adapter: connecting, starting a session in
+/// Firefox, breakpoints and capabilities. Requires Firefox, the provisioned
+/// portable node with the firefox adapter, and haxe on PATH.
 @DisplayName("Browser debugger: firefox adapter (live)")
 public class FirefoxAdapterLiveTest {
   private static final long TIMEOUT = 15_000;
@@ -270,8 +270,7 @@ public class FirefoxAdapterLiveTest {
 
   /// The IDE's breakpoint paths come from IntelliJ's VFS, which uses forward
   /// slashes on Windows (C:/Users/...). Does the adapter bind those, or only
-  /// native backslash paths? (The IDE smoke test showed breakpoints never
-  /// binding; my earlier probes all sent native paths and worked.)
+  /// native backslash paths?
   @Test
   @Timeout(60)
   @DisplayName("breakpoint path separator sensitivity")
@@ -330,7 +329,7 @@ public class FirefoxAdapterLiveTest {
     """;
 
   /// Pins whether the firefox adapter answers evaluate for a worker thread's
-  /// frame. Suspicion (IDE-observed): variables/scopes answer, evaluate never
+  /// frame. The suspected shape: variables/scopes answer, evaluate never
   /// does — and per the adapter's per-actor FIFO queue, one unanswered request
   /// wedges that thread forever. The TAB thread's evaluate is the control.
   /// Runs variables before evaluate (evaluate may poison the queue).
@@ -397,9 +396,8 @@ public class FirefoxAdapterLiveTest {
   /// The ZOMBIE question, on a CLEAN instance (unique RDP port): with the
   /// serve-mode refresh armed and a worker breakpoint hitting BEFORE the
   /// reload, what does the thread list look like after the reload settles?
-  /// (The contaminated-era sessions showed doubled worker threads whose
-  /// actors answered nothing; this pins whether that happens without the
-  /// stale-instance pollution.)
+  /// This pins whether doubled worker threads whose actors answer nothing
+  /// occur without a stale browser instance polluting the session.
   @Test
   @Timeout(60)
   @DisplayName("worker threads across refresh")
@@ -455,12 +453,12 @@ public class FirefoxAdapterLiveTest {
 
   /// Which strategy beats the load race: code in main() runs while the page
   /// loads, likely BEFORE the standard breakpoint flow (launch -> initialized
-  /// -> setBreakpoints) completes. Tries, in order:
-  ///   A: breakpoints BEFORE launch;
-  ///   B: breakpoints before launch + reloadOnAttach:true;
-  ///   C: standard order + reloadOnAttach:true.
-  /// Each variant is a fresh DAP connection to the same adapter server (it
-  /// accepts sequential connections). Asserts at least one variant stops.
+  /// -> setBreakpoints) completes. Runs the variants of `LOAD_VARIANTS`:
+  ///   J: the plain standard flow (the baseline);
+  ///   K: refresh-once - the served first page reloads once, and the second
+  ///      load hits the breakpoints registered during the first.
+  /// Each variant gets its own adapter process and DAP connection. Asserts at
+  /// least one variant stops.
   @Test
   @Timeout(60)
   @DisplayName("load time breakpoint strategies")
@@ -471,19 +469,15 @@ public class FirefoxAdapterLiveTest {
     Path fixture = buildLoadFixture();
 
     // J: plain standard flow (baseline: does the adapter attach/emit at all?)
-    // K: refresh-once, NO injection (second load hits via the learned map?)
-    // I: refresh-once + `debugger;` entry-pause injection
+    // K: refresh-once (second load hits via the learned map?)
     Path appJs = fixture.resolve(APP_JS);
     String pristineAppJs = Files.readString(appJs);
 
-    // Variants L/M/N do not arm load-time breakpoints and were removed (N
-    // was re-checked on a clean instance with a unique RDP port): L/M served
-    // a synthetic BOOTSTRAP page first (empty page + meta refresh to the app;
-    // M with an inert <script>); N registered the breakpoints only when the
-    // RELOADED page requested its script (server-held response, so the first
-    // load ran unpaused). None armed, because the adapter applies breakpoints
-    // to a load only when they were registered BEFORE the load that taught it
-    // the sources. Register -> load once -> reload (K) is the single working
+    // The adapter applies breakpoints to a load only when they were
+    // registered BEFORE the load that taught it the sources, so serving a
+    // synthetic bootstrap page first, or registering the breakpoints only
+    // when the reloaded page requests its script, arms nothing. Register ->
+    // load once -> reload (K) is the single working
     // sequence; its cost is that a worker PAUSED at a breakpoint when the
     // reload fires lingers as a zombie thread (pinned by the
     // workerThreadsAcrossRefresh probe).

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Intention: convert quotes")
@@ -21,6 +22,15 @@ public class ConvertQuotesIntentionTest extends HaxeLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "";
+  }
+
+  @Test
+  @DisplayName("the label needs no availability check first")
+  public void testTheLabelNeedsNoAvailabilityCheckFirst() {
+    // the platform caches labels outside the isAvailable/invoke pair, from any editor
+    ConvertQuotesIntention intention = new ConvertQuotesIntention();
+
+    assertEquals(HaxeBundle.message("haxe.intention.convert.quotes.family"), intention.getText());
   }
 
   @Test

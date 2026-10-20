@@ -73,8 +73,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * TODO: a local hovered at its declaration shows the monomorphs still unbound
  * at that point ({@code Array<?>} for {@code var a = []}); the bound type
  * comes from hovering its last reference in scope.
- * TODO: the answers hold their declarations' PSI strongly, which keeps every
- * hovered file's tree in memory until the caches clear.
+ * TODO: key the answers by smart pointer (or weakly) so hovered files' trees
+ * can be collected; the answers hold their declarations' PSI strongly until
+ * the caches clear.
  */
 @Service(Service.Level.PROJECT)
 @CustomLog

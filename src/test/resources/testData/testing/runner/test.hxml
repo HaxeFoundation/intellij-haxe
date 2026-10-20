@@ -1,3 +1,4 @@
--p src
---main TestMain
+# single-dash flags: these also run on haxe 3.x, which has no -p/--main
+-cp src
+-main TestMain
 --interp

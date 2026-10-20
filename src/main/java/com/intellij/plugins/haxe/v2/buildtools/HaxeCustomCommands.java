@@ -6,8 +6,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
 import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeServerAssignment;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
-import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,8 +70,8 @@ public final class HaxeCustomCommands {
     if (!wantsPort) return command;
     if (!HaxeBuildToolSettings.getInstance(project).isCompilationServerEnabled()) return command;
 
-    String environmentSdk = HaxeEnvironmentStore.getInstance(project).getSdkName(containerId);
-    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(environmentSdk);
+    HaxeServerAssignment assignment = HaxeServerAssignment.forContainer(project, containerId);
+    int port = HaxeCompilationServerManager.getInstance(project).ensureRunning(assignment);
     if (port <= 0) return command;
     return command.stream()
       .map(argument -> argument.replace(SERVER_PORT_VARIABLE, String.valueOf(port)))
@@ -154,7 +154,7 @@ public final class HaxeCustomCommands {
                                          @Nullable String moduleRoot,
                                          @Nullable String projectRoot) {
     String withTools = expandTools(project, environmentSdk, command);
-    return parse(expandRoots(withTools, moduleRoot, projectRoot));
+    return ParametersListUtil.parse(expandRoots(withTools, moduleRoot, projectRoot));
   }
 
   /** The value as one command-line argument: wrapped in double quotes when it contains whitespace. */
@@ -172,11 +172,5 @@ public final class HaxeCustomCommands {
                                             @Nullable String moduleRoot, @Nullable String projectRoot) {
     if (StringUtil.isEmptyOrSpaces(workDirectory)) return fallback;
     return expandRoots(workDirectory, moduleRoot, projectRoot);
-  }
-
-  /** Parses a user-typed command into its arguments; the program name is resolved through PATH only when launched. */
-  @NotNull
-  public static List<String> parse(@NotNull String command) {
-    return ParametersListUtil.parse(command);
   }
 }

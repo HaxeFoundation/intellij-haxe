@@ -13,9 +13,6 @@ public interface DisplayChannel {
 
   DisplayResponse request(List<String> args, int readTimeoutMs) throws DisplayRequestException;
 
-  /** Names the server for log lines and error messages. */
-  String describe();
-
   /** Whether a failed exchange closed the channel for good; a request on a broken channel fails without reaching a server. */
   default boolean isBroken() {
     return false;

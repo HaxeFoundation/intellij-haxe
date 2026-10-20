@@ -115,7 +115,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // An Array<()->Int> element reaches its value through a DYNAMIC slot: the
     // runtime fun-type header must resolve (RuntimeTypes KFUN) so the element
     // renders like a statically typed closure variable — name and signature —
-    // instead of a bare "Dynamic" (user-reported).
+    // instead of a bare "Dynamic".
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CLOSURE, FIXTURE_CLOSURE_REAL_ARRAY_LINE);
     List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
     Variable callbacks = findVariable(locals, "callbacks");
@@ -262,6 +262,51 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
     assertNotNull(captured, "captured child present");
+
+    request(new DisconnectRequest());
+  }
+
+  /** (closure local, the captured environment the view and the pre-filled `<closure>.captured` path show). */
+  static final List<Arguments> CAPTURE_SHAPES = List.of(
+    // one captured Int travels in a tuple: the environment slot holds a pointer
+    arguments("shiftFixed", "(10)"),
+    // one captured Null<Int> is a pointer already: its box is the environment
+    arguments("shift", "20"),
+    // several captured values travel in a tuple, in declaration order
+    arguments("scale", "(10, 20)"));
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("captureShapes")
+  @DisplayName("renders a closure's read-only capture environment")
+  public void rendersAClosuresReadOnlyCaptureEnvironment(String closure, String environment) throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_CAPTURES_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+    Variable local = findVariable(variables(localsScopeReference(frameId)), closure);
+    assertNotNull(local, "local " + closure + " present");
+
+    Variable captured = findVariable(variables(local.getVariablesReference()), "captured");
+
+    assertNotNull(captured, "captured child present");
+    assertEquals(environment, captured.getValue(), "the environment shows its captured values");
+    assertEquals(environment, evaluated(frameId, closure + ".captured"), "the pre-filled path evaluates to the same");
+    request(new DisconnectRequest());
+  }
+
+  static Stream<Arguments> captureShapes() {
+    return CAPTURE_SHAPES.stream();
+  }
+
+  @Test
+  @DisplayName("a tuple environment expands to its captured values")
+  public void aTupleEnvironmentExpandsToItsCapturedValues() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_CAPTURES_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+    Variable scale = findVariable(variables(localsScopeReference(frameId)), "scale");
+    Variable captured = findVariable(variables(scale.getVariablesReference()), "captured");
+
+    assertEquals("Tuple", captured.getType());
+    assertEquals(Map.of("0", "10", "1", "20"), variablesByName(captured.getVariablesReference()));
+    assertEquals("20", evaluated(frameId, "scale.captured[1]"), "a tuple slot by index");
 
     request(new DisconnectRequest());
   }
@@ -413,7 +458,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("evaluates string local length")
   public void evaluatesStringLocalLength() throws Exception {
-    // the reported case: `s.length` on a plain String local (s = "orig10")
+    // `s.length` on a plain String local (s = "orig10")
     runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 
@@ -438,9 +483,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  // Class-qualified statics stop in Main (NOT Config / pkg.Deep): the class
-  // names must resolve from a FOREIGN frame, which the locals → this →
-  // frame-statics order cannot.
+  // --- class-qualified statics (stopped in Main, a foreign frame) ---
+  // NOT Config / pkg.Deep: the class names must resolve from a FOREIGN frame,
+  // which the locals → this → frame-statics order cannot.
 
   @Test
   @DisplayName("evaluates class qualified statics from a foreign frame")
@@ -453,9 +498,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("\"cfg\"", evaluated(frameId, "Config.title"), "Config.title");
     // a PACKAGED class: the dotted class prefix spans path segments
     assertEquals("99", evaluated(frameId, "pkg.Deep.marker"), "pkg.Deep.marker");
-    // a function-typed static var (Null<Int->Void>) resolves by FQN — regression:
-    // HFun statics were dropped as if they were methods, so this used to fail with
-    // `"...Config" has no field "onBump"`
+    // a function-typed static var (Null<Int->Void>) resolves by FQN: an HFun
+    // static is a field, not a method (dropped as one, this fails with
+    // `"...Config" has no field "onBump"`)
     assertTrue(evaluate(frameId, "Config.onBump").isSuccess(), "Config.onBump resolves");
 
     request(new DisconnectRequest());
@@ -630,7 +675,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     // intMap has 2->"v2"; String values are pointers (no boxing needed)
     assertEquals("\"v2\"", evaluated(frameId, "intMap.get(2)"), "intMap.get(2)");
 
-    // MUTATE the map via its own method — the value-manipulation prize. A
+    // MUTATE the map via its own method. A
     // String value is dynamic-compatible, so no boxing is required. The
     // insertion is proven by reading the new key back through get() (a missing
     // key returns null), the honest end-to-end signal.

@@ -16,9 +16,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Runs a Haxe profilable configuration under the IU "Run with Profiler"
  * executor when the chosen profiler configuration matches its lane. The
- * profiled behaviour itself lives with the configurations — HashLink's
- * getState injects {@code --profile}, an hxcpp run gets its bootstrap through
- * the before-launch compile — both asking {@code HaxeProfilerExecutorSupport}.
+ * profiled behaviour itself lives with each lane's configuration, which asks
+ * {@code HaxeProfilerExecutorSupport} for its additions (for example,
+ * HashLink's getState injects {@code --profile}, an hxcpp run gets its
+ * bootstrap through the before-launch compile).
  */
 public class HaxeProfilerRunner extends GenericProgramRunner<RunnerSettings> {
 

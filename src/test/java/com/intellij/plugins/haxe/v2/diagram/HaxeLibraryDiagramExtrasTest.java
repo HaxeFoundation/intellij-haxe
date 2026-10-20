@@ -40,6 +40,6 @@ public class HaxeLibraryDiagramExtrasTest extends HaxeCodeInsightFixtureTestCase
   }
 
   private static Library libraryAt(String name, VirtualFile root) {
-    return new Library(name, "1.0.0", false, List.of(), List.of(), root.getPath());
+    return new Library(name, "1.0.0", List.of(), List.of(), root.getPath());
   }
 }

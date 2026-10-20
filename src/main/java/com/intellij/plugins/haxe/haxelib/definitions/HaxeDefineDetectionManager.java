@@ -19,9 +19,7 @@ import com.intellij.plugins.haxe.haxelib.definitions.tags.ProjectXmlUndefineValu
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
-import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevelUtil;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.text.SemVer;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
@@ -130,22 +128,8 @@ public class HaxeDefineDetectionManager implements Disposable {
     Map<String, String> detectedDefines = new HashMap<>();
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
-    // getSDK version and add definition
     String versionString = sdk.getVersionString();
-    detectedDefines.put("haxe_ver", versionString == null ? null : HaxeLanguageLevelUtil.haxeVerDefineValue(versionString));
-    SemVer semVer = SemVer.parseFromText(sdk.getVersionString());
-    if(semVer != null) {
-      if (semVer.getMajor() >= 5) {
-        detectedDefines.put("haxe5", sdk.getVersionString());
-      }
-      if (semVer.getMajor() >= 4) {
-        detectedDefines.put("haxe4", sdk.getVersionString());
-      }
-      if (semVer.getMajor() >= 3) {
-        detectedDefines.put("haxe3", sdk.getVersionString());
-      }
-      detectedDefines.put("haxe", semVer.getRawVersion());
-    }
+    if (versionString != null) detectedDefines.putAll(HaxeDefineContextService.compilerIdentityDefines(versionString));
 
     //TODO add and detect hashlink ? ("hl_ver") & neko?
 

@@ -36,6 +36,6 @@ public class HaxeHxcppDumpParserProvider implements ProfilerDumpParserProvider {
 
   @Override
   public @NotNull ProfilerDumpFileParser createParser(@NotNull Project project) {
-    return new HaxeStreamDumpParser(in -> HaxeHxcppProfilerData.from(HxcppProfileTranslator.translate(in)));
+    return new HaxeStreamDumpParser((in, file) -> HaxeHxcppProfilerData.from(HxcppProfileTranslator.translate(in), file));
   }
 }

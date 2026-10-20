@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.runner.debugger.dap.client;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;

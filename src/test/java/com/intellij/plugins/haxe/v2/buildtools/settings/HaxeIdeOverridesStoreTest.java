@@ -22,7 +22,6 @@ public class HaxeIdeOverridesStoreTest {
 
     assertTrue(store.getDefines(BUILD_FILE).isEmpty());
     assertNull(store.getCustomTarget(BUILD_FILE));
-    assertFalse(store.hasOverrides(BUILD_FILE));
   }
 
   @Test
@@ -100,12 +99,13 @@ public class HaxeIdeOverridesStoreTest {
     HaxeIdeOverridesStore store = new HaxeIdeOverridesStore();
     store.putDefine(BUILD_FILE, "debug", "");
     store.setCustomTarget(BUILD_FILE, "go");
-    assertTrue(store.hasOverrides(BUILD_FILE));
+    assertFalse(store.getState().buildFiles.isEmpty());
 
     store.removeDefine(BUILD_FILE, "debug");
     store.setCustomTarget(BUILD_FILE, null);
 
-    assertFalse(store.hasOverrides(BUILD_FILE));
+    assertTrue(store.getDefines(BUILD_FILE).isEmpty());
+    assertNull(store.getCustomTarget(BUILD_FILE));
     assertTrue(store.getState().buildFiles.isEmpty());
   }
 
