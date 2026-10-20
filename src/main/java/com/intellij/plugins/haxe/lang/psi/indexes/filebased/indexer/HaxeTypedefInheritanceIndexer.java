@@ -4,11 +4,9 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +18,14 @@ import java.util.List;
 import java.util.Map;
 
 import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexDataUtil.createIndexData;
-import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceIndexUtil.containsDotSeparator;
-import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceIndexUtil.getClassNameCandidate;
+import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceIndexUtil.superTypeSimpleName;
 
+/**
+ * Keys are the supertypes' SIMPLE names: an indexer may not read outside the
+ * indexed file, and resolving a supertype's qualified name would. Supertypes
+ * sharing a simple name are told apart at lookup, which checks each
+ * candidate's qualified name.
+ */
 public class HaxeTypedefInheritanceIndexer implements DataIndexer<String, List<HaxeComponentIndexData>, FileContent> {
 
     @Override
@@ -41,16 +44,13 @@ public class HaxeTypedefInheritanceIndexer implements DataIndexer<String, List<H
                 return Map.of();
             }
 
-            return collectSuperClasses(classes, haxeFile);
-
-
+            return collectSuperClasses(classes);
         }
         return Map.of();
     }
 
-    private static @NonNull Map<String, List<HaxeComponentIndexData>>  collectSuperClasses(List<HaxeClass> classes, HaxeFile haxeFile) {
-        final Map<String, List<HaxeComponentIndexData>> result = new HashMap<String, List<HaxeComponentIndexData>>(classes.size());
-        final Map<String, String> qNameCache = new HashMap<String, String>();
+    private static @NonNull Map<String, List<HaxeComponentIndexData>> collectSuperClasses(List<HaxeClass> classes) {
+        final Map<String, List<HaxeComponentIndexData>> result = new HashMap<>(classes.size());
 
         for (HaxeClass haxeClass : classes) {
             if (!haxeClass.isTypeDef()) continue;
@@ -67,48 +67,26 @@ public class HaxeTypedefInheritanceIndexer implements DataIndexer<String, List<H
 
                         // handles anonymous structures extends (`{> TypeA, > TypeB, ...fields}`)
                         for (HaxeType haxeType : anonymousTypeModel.getExtensionTypesPsi()) {
-                            final String classNameCandidate = haxeType.getText();
-                            final String key = containsDotSeparator(classNameCandidate) ?
-                                    classNameCandidate :
-                                    getQNameAndCache(qNameCache, haxeFile, classNameCandidate, haxeType);
-                            insert(result, key, value);
+                            insert(result, superTypeSimpleName(haxeType), value);
                         }
 
                         // composite types ( TypeA & TypeB & { ... })
                         for (HaxeType haxeType : anonymousTypeModel.getCompositeTypesPsi()) {
-                            final String classNameCandidate = haxeType.getText();
-                            final String key = containsDotSeparator(classNameCandidate) ?
-                                    classNameCandidate :
-                                    getQNameAndCache(qNameCache, haxeFile, classNameCandidate, haxeType);
-                            insert(result, key, value);
+                            insert(result, superTypeSimpleName(haxeType), value);
                         }
                     }
                 } else if (type != null) {
 
                     // handles normal types (`typedef TD = String`)
-                    final String classNameCandidate = getClassNameCandidate(type);
-                    final String qName = containsDotSeparator(classNameCandidate) ?
-                            classNameCandidate :
-                            getQNameAndCache(qNameCache, haxeFile, classNameCandidate, type);
-                    insert(result, qName, value);
+                    insert(result, superTypeSimpleName(type), value);
                 }
             }
         }
         return result;
     }
 
-    private static String getQNameAndCache(Map<String, String> qNameCache, PsiFile psiFile, String classNameCandidate, HaxeType haxeType) {
-        String result = qNameCache.get(classNameCandidate);
-        if (result == null) {
-            result = HaxeResolveUtil.getQName(psiFile, classNameCandidate, true, true, haxeType);
-            if (result == null) result = classNameCandidate;// fallback so key wont be null
-            qNameCache.put(classNameCandidate, result);
-        }
-        return result;
-    }
-
-    private static void insert(Map<String, List<HaxeComponentIndexData>> map, String superClassQname, HaxeComponentIndexData value) {
-        List<HaxeComponentIndexData> infos = map.computeIfAbsent(superClassQname, k -> new ArrayList<>());
+    private static void insert(Map<String, List<HaxeComponentIndexData>> map, String superClassKey, HaxeComponentIndexData value) {
+        List<HaxeComponentIndexData> infos = map.computeIfAbsent(superClassKey, k -> new ArrayList<>());
         infos.add(value);
     }
 
