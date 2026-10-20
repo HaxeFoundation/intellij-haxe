@@ -7,8 +7,7 @@ plugins {
 include(":jps-plugin")
 include(":common")
 
-// the debugger family lives under debuggers/ (the :debuggers node is an
-// empty grouping project with no build logic of its own)
+//dap protocol use in most debugger integrations
 include(":debuggers:dap-protocol")
 include(":debuggers:hashlink-debug-adapter")
 include(":debuggers:vshaxe-hxcpp-debugger-adapter")

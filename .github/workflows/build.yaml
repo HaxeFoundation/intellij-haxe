@@ -45,8 +45,9 @@ jobs:
         with:
           haxe-version: 4.3.7
 
-      - name: Test haxe
-        run: haxe -version
+      - name: install haxelibs
+        run: |
+          haxelib install hxjava 4.2.0
 
       # Debugger tests are opt-in (-PdebuggerTests=true) and are NOT run here:
       # they need real toolchains (windows + hxcpp/HashLink) and run via the
