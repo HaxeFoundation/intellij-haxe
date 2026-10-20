@@ -73,6 +73,9 @@
          window) is the only configuration surface -->
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
+    <editorNotificationProvider implementation="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureNotificationProvider"/>
+    <statusBarWidgetFactory id="HaxeResolveContext" implementation="com.intellij.plugins.haxe.v2.editor.HaxeResolveContextWidgetFactory"
+                            order="after encodingWidget"/>
     <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
@@ -158,8 +161,10 @@
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.neko.NekoRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionRunner"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
     <!-- ONE exception breakpoint category shared by the HashLink and HXCPP
          debuggers (Java-style: a default "Any exception" with Notifications
@@ -374,6 +379,8 @@
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
     <configurationType implementation="com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurationType"/>
     <!-- before the DAP test runner: flash-family test configurations debug through fdb, not DAP -->
+    <runLineMarkerContributor language="Haxe"
+                              implementationClass="com.intellij.plugins.haxe.v2.runconfig.HaxeMainClassRunLineMarkerContributor"/>
 
     <moduleService serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
@@ -827,6 +834,7 @@
     <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
 
     <consoleFilterProvider implementation="com.intellij.plugins.haxe.execution.console.HaxeConsoleFilterProvider"/>
+    <exceptionFilter implementation="com.intellij.plugins.haxe.execution.console.HaxeExceptionFilterFactory"/>
 
     <intentionAction>
       <language>Haxe</language>
@@ -970,10 +978,16 @@
   <projectListeners>
     <listener class="com.intellij.plugins.haxe.model.HaxeResolveCachePsiChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
+    <listener class="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureBannerRefresh"
+              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.runconfig.HaxeRunConfigurationBuildFileTracker"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildFileChangeListener"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.editor.HaxeResolveContextFollower"
+              topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
     <listener class="com.intellij.plugins.haxe.model.HaxeResolveCacheRootsListener"
               topic="com.intellij.openapi.roots.ModuleRootListener"/>
 
@@ -1000,6 +1014,18 @@
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
       <add-to-group group-id="EditorPopupMenu" anchor="last"/>
     </action>
+    <group id="Haxe.ToolsEditorPopup" class="com.intellij.plugins.haxe.v2.tools.HaxeToolsEditorGroup"
+           text="Haxe Tools" popup="true">
+      <action id="Haxe.Tools.FormatFile" class="com.intellij.plugins.haxe.v2.tools.HaxeFormatFileAction"
+              text="Format File" description="Format this file with the formatter haxelib"/>
+      <action id="Haxe.Tools.CheckFileFormatting" class="com.intellij.plugins.haxe.v2.tools.HaxeCheckFileFormattingAction"
+              text="Check Formatting" description="Check this file's formatting without changing it"/>
+      <action id="Haxe.Tools.ShowFormattingDiff" class="com.intellij.plugins.haxe.v2.tools.HaxeShowFormattingDiffAction"
+              text="Show Formatting Diff" description="Diff this file against the formatter's output without changing it"/>
+      <action id="Haxe.Tools.RunCheckstyleFile" class="com.intellij.plugins.haxe.v2.tools.HaxeRunCheckstyleFileAction"
+              text="Run Checkstyle" description="Lint this file with the checkstyle haxelib"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </group>
     <action id="Generate.Constructor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateConstructorAction"
             text="Constructor">
       <add-to-group anchor="first" group-id="GenerateGroup"/>
