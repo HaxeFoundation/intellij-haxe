@@ -1,0 +1,283 @@
+package com.intellij.plugins.haxe.runner.debugger.flash;
+
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RuntimeConfigurationError;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.configurations.RuntimeConfigurationWarning;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessListener;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.JDOMExternalizerUtil;
+import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
+import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
+import com.intellij.plugins.haxe.profiler.HaxeTelemetryCapture;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapCommandLineRunningState;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
+import com.intellij.util.execution.ParametersListUtil;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * An AIR run/debug configuration: the application descriptor (application.xml)
+ * plus the Flex/AIR SDK whose {@code adl} launches it. Plain Run spawns adl
+ * directly — no Flash plugin needed, and no registered SDK either when the
+ * Build Tools chain or the AIR_SDK environment variable supplies adl (see
+ * {@link #findAdl}); debugging attaches the Flex debugger (the Flash/Flex
+ * plugin must be installed, the SDK registered) while adl launches the app.
+ * A lime/openfl {@code air} build exports the descriptor at the export root
+ * with the content (swf) in {@code bin/} beside it.
+ */
+public class AirRunConfiguration extends DapRunConfigurationBase implements HaxeProfilableRunConfiguration {
+  /** The telemetry session the IDE receiver persists beside the descriptor. */
+  public static final String PROFILER_SESSION_FILE_NAME = "flashprofile.hxtsession";
+  private static final String DESCRIPTOR = "descriptorFile";
+  private static final String CONTENT_ROOT = "contentRoot";
+  private static final String FLEX_SDK = "flexSdk";
+  private static final String ADL_OPTIONS = "adlOptions";
+  private static final String PROGRAM_PARAMETERS = "programParameters";
+
+  private String descriptorPath = "";
+  private String contentRootPath = "";
+  private String flexSdkName = "";
+  private String adlOptions = "";
+  private String programParameters = "";
+
+  public AirRunConfiguration(String name, Project project, ConfigurationFactory factory) {
+    super(name, project, factory);
+  }
+
+  // --- settings ---
+
+  public String getDescriptorPath() {
+    return descriptorPath;
+  }
+
+  public void setDescriptorPath(@Nullable String path) {
+    descriptorPath = orEmpty(path);
+  }
+
+  public String getContentRootPath() {
+    return contentRootPath;
+  }
+
+  public void setContentRootPath(@Nullable String path) {
+    contentRootPath = orEmpty(path);
+  }
+
+  public String getFlexSdkName() {
+    return flexSdkName;
+  }
+
+  public void setFlexSdkName(@Nullable String name) {
+    flexSdkName = orEmpty(name);
+  }
+
+  public String getAdlOptions() {
+    return adlOptions;
+  }
+
+  public void setAdlOptions(@Nullable String options) {
+    adlOptions = orEmpty(options);
+  }
+
+  public String getProgramParameters() {
+    return programParameters;
+  }
+
+  public void setProgramParameters(@Nullable String parameters) {
+    programParameters = orEmpty(parameters);
+  }
+
+  @Override
+  public @NotNull SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
+    return new AirRunConfigurationEditor(getProject());
+  }
+
+  @Override
+  public void checkConfiguration() throws RuntimeConfigurationException {
+    if (getConfigurationModule().getModule() == null) {
+      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("air.runner.no.module"));
+    }
+    if (descriptorPath.isBlank()) {
+      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("air.runner.no.descriptor"));
+    }
+    Path descriptor = resolveAgainstModule(descriptorPath);
+    if (!Files.isRegularFile(descriptor)) {
+      throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("air.runner.descriptor.missing", descriptorPath));
+    }
+    if (findAdl() == null) {
+      throw new RuntimeConfigurationWarning(HaxeDebuggerBundle.message("air.runner.no.adl"));
+    }
+  }
+
+  @Override
+  public @NotNull Lane profilingLane() {
+    return Lane.FLASH;
+  }
+
+  @Override
+  public boolean isProfilingReady() {
+    return !DumbService.isDumb(getProject()) && !descriptorPath.isBlank();
+  }
+
+  // Plain Run: adl launches the app. Resolution stays inside the supplier -
+  // getState runs before before-launch tasks, so the descriptor a build step
+  // produces may not exist yet.
+  @Override
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    requireModule();
+    // non-null exactly when the IU "Run with Profiler" executor launched us
+    // with the Flash Profiler entry selected (the collector itself goes into
+    // the before-launch compile, not this command line)
+    boolean profiling = !descriptorPath.isBlank()
+                        && HaxeProfilerExecutorSupport.flashProfilingAdditions(executor) != null;
+    HaxeTelemetryCapture.Handle capture = profiling
+                                          ? HaxeTelemetryCapture.startCapture(getProject(), getName(), profilerSessionPath(), Lane.FLASH)
+                                          : null;
+    return new DapCommandLineRunningState(env, () -> profiledAdlCommandLine(capture)) {
+      @Override
+      protected @NotNull ProcessHandler startProcess() throws ExecutionException {
+        ProcessHandler handler = super.startProcess();
+        if (capture != null) {
+          handler.addProcessListener(new ProcessListener() {
+            @Override
+            public void processTerminated(@NotNull ProcessEvent event) {
+              capture.processExited();
+            }
+          });
+        }
+        return handler;
+      }
+    };
+  }
+
+  @NotNull
+  private Path profilerSessionPath() {
+    return resolveAgainstModule(descriptorPath).resolveSibling(PROFILER_SESSION_FILE_NAME);
+  }
+
+  /**
+   * The profiling launch runs the DEBUGGER runtime (no -nodebug — the
+   * telemetry sampler only ticks on it; trace output goes to the debug
+   * channel and is lost, the data arrives over the telemetry socket
+   * instead). The runtime finds the receiver through {@code ~/.telemetry.cfg},
+   * installed by the capture, so the command line carries nothing extra.
+   */
+  private GeneralCommandLine profiledAdlCommandLine(@Nullable HaxeTelemetryCapture.Handle capture) throws ExecutionException {
+    return createAdlCommandLine(capture != null);
+  }
+
+  /**
+   * The adl launch ({@link AdlLaunches#command}) with adl from the effective
+   * Flex/AIR SDK's bin directory. The SDK entry is read from the plain SDK
+   * table, so plain Run works without the Flash plugin. With multiple instances
+   * allowed, and on every debug launch, the descriptor is a COPY carrying a
+   * unique app id ({@link AdlLaunches#uniqueIdDescriptor}): a debug player
+   * orphaned by a stopped fdb would otherwise swallow the launch.
+   */
+  @NotNull
+  public GeneralCommandLine createAdlCommandLine(boolean debugLaunch) throws ExecutionException {
+    Path descriptor = resolveDescriptor();
+    Path contentRoot = resolveContentRoot(descriptor);
+    if (isAllowRunningInParallel() || debugLaunch) {
+      descriptor = AdlLaunches.uniqueIdDescriptor(descriptor);
+    }
+    List<String> options = ParametersListUtil.parse(adlOptions);
+    List<String> programArguments = ParametersListUtil.parse(programParameters);
+    return AdlLaunches.command(resolveAdl(), options, descriptor, contentRoot, debugLaunch, programArguments);
+  }
+
+  // --- resolution ---
+
+  @NotNull
+  private Path resolveDescriptor() throws ExecutionException {
+    if (descriptorPath.isBlank()) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.no.descriptor"));
+    }
+    Path descriptor = resolveAgainstModule(descriptorPath);
+    if (!Files.isRegularFile(descriptor)) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.descriptor.missing", descriptor.toString()));
+    }
+    return descriptor;
+  }
+
+  /** The directory the descriptor's {@code <content>} resolves against; the descriptor's own directory when unset. */
+  @NotNull
+  private Path resolveContentRoot(@NotNull Path descriptor) {
+    if (contentRootPath.isBlank()) {
+      Path parent = descriptor.getParent();
+      return parent != null ? parent : descriptor;
+    }
+    return resolveAgainstModule(contentRootPath);
+  }
+
+  @NotNull
+  private Path resolveAdl() throws ExecutionException {
+    Path adl = findAdl();
+    if (adl == null) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("air.runner.no.adl"));
+    }
+    return adl;
+  }
+
+  /**
+   * adl for a plain Run: this configuration's own Flex/AIR SDK selection when
+   * it has one, else the project chain of
+   * {@link HaxeToolPathResolver#resolveAdlExecutable} (the Build Tools / Haxe
+   * SDK entry, then the AIR_SDK environment variable). Null when none yields an
+   * existing executable. Debug needs a registered SDK regardless - the debugger
+   * comes from it ({@link AirDebugRunner}).
+   */
+  @Nullable
+  private Path findAdl() {
+    Sdk ownSdk = flexSdkName.isBlank() ? null : ProjectJdkTable.getInstance().findJdk(flexSdkName);
+    if (ownSdk != null && ownSdk.getHomePath() != null) {
+      Path adl = HaxeToolPathResolver.adlInSdk(ownSdk.getHomePath());
+      if (Files.isRegularFile(adl)) return adl;
+    }
+    String resolved = HaxeToolPathResolver.resolveAdlExecutable(getProject());
+    return resolved == null ? null : Path.of(resolved);
+  }
+
+  // --- persistence ---
+
+  @Override
+  public void readExternal(@NotNull Element element) throws InvalidDataException {
+    super.readExternal(element);
+    readModule(element);
+    descriptorPath = orEmpty(JDOMExternalizerUtil.readField(element, DESCRIPTOR));
+    contentRootPath = orEmpty(JDOMExternalizerUtil.readField(element, CONTENT_ROOT));
+    flexSdkName = orEmpty(JDOMExternalizerUtil.readField(element, FLEX_SDK));
+    adlOptions = orEmpty(JDOMExternalizerUtil.readField(element, ADL_OPTIONS));
+    programParameters = orEmpty(JDOMExternalizerUtil.readField(element, PROGRAM_PARAMETERS));
+  }
+
+  @Override
+  public void writeExternal(@NotNull Element element) throws WriteExternalException {
+    super.writeExternal(element); // also serializes the module
+    JDOMExternalizerUtil.writeField(element, DESCRIPTOR, descriptorPath);
+    JDOMExternalizerUtil.writeField(element, CONTENT_ROOT, contentRootPath);
+    JDOMExternalizerUtil.writeField(element, FLEX_SDK, flexSdkName);
+    JDOMExternalizerUtil.writeField(element, ADL_OPTIONS, adlOptions);
+    JDOMExternalizerUtil.writeField(element, PROGRAM_PARAMETERS, programParameters);
+  }
+}

@@ -17,17 +17,19 @@
  */
 package com.intellij.plugins.haxe.ide.module;
 
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.v2.wizard.HaxeModuleBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+/**
+ * The legacy HAXE_MODULE type, kept registered so old projects still open.
+ * Creating a module through it yields a v2 PLAIN-module setup (the v2 wizard
+ * builder) - the v1 builder and its settings surface are gone.
+ */
 public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   private static final String MODULE_TYPE_ID = "HAXE_MODULE";
 
@@ -49,7 +51,6 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
     return HaxeBundle.message("haxe.module.type.description");
   }
 
-
   @Override
   public @NotNull Icon getNodeIcon(boolean isOpened) {
     return icons.HaxeIcons.HAXE_LOGO;
@@ -58,17 +59,5 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   @Override
   public @NotNull HaxeModuleBuilder createModuleBuilder() {
     return new HaxeModuleBuilder();
-  }
-
-
-  public ModuleWizardStep @NotNull [] createWizardSteps(final WizardContext wizardContext,
-                                                        final HaxeModuleBuilder moduleBuilder,
-                                                        final ModulesProvider modulesProvider) {
-    HaxeSdkType type = HaxeSdkType.getInstance();
-    type.ensureSdk();
-
-    return new ModuleWizardStep[]{
-      new HaxeSdkWizardStep(moduleBuilder, wizardContext, type)
-    };
   }
 }

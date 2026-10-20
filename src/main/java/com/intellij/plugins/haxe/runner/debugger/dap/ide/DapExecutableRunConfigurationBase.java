@@ -14,9 +14,10 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.v2.buildtools.HxcppExecutables;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import com.intellij.util.execution.ParametersListUtil;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import lombok.Getter;
 import org.jdom.Element;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base for DAP-debugger configurations that run a compiled native executable:
- * the executable path (absolute or project-relative), an optional working
+ * the executable path (absolute or module-relative), an optional working
  * directory (default: the executable's directory, so relative resource
  * loading behaves like a manual launch) and program arguments — with their
  * resolution, validation, persistence and the plain-Run state. Subclasses add
@@ -72,53 +73,62 @@ public abstract class DapExecutableRunConfigurationBase extends DapRunConfigurat
       throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("hxcpp.runner.no.executable"));
     }
     Path executable = resolveExecutableOrNull();
+    if (executable == null && usesBuiltExecutable()) {
+      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("hxcpp.runner.executable.unresolved"));
+    }
     if (executable == null || !Files.isRegularFile(executable)) {
       throw new RuntimeConfigurationWarning(
-        HaxeDebuggerBundle.message("hxcpp.runner.executable.missing", executablePath));
+        HaxeDebuggerBundle.message("hxcpp.runner.executable.missing", missingExecutableText(executable)));
     }
   }
 
+  // Resolution stays inside the supplier: getState runs before before-launch
+  // tasks, so an executable a build step produces may not exist yet.
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
-    return new DapCommandLineRunningState(env, getProject(), createCommandLine());
+    return new DapCommandLineRunningState(env, this::createCommandLine);
   }
 
   // --- resolution ---
 
   public Path resolveExecutable() throws ExecutionException {
     Path executable = resolveExecutableOrNull();
+    if (executable == null && usesBuiltExecutable()) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("hxcpp.runner.executable.unresolved"));
+    }
     if (executable == null || !Files.isRegularFile(executable)) {
-      throw new ExecutionException(
-        HaxeDebuggerBundle.message("hxcpp.runner.executable.missing", executablePath.isBlank() ? "<not set>" : executablePath));
+      throw new ExecutionException(HaxeDebuggerBundle.message("hxcpp.runner.executable.missing", missingExecutableText(executable)));
     }
     return executable;
   }
 
-  private @Nullable Path resolveExecutableOrNull() {
-    if (executablePath.isBlank()) {
-      return null;
-    }
-    try {
-      Path path = Path.of(executablePath);
-      if (path.isAbsolute()) {
-        return path;
-      }
-      String basePath = getProject().getBasePath();
-      return basePath != null ? Path.of(basePath).resolve(path) : path;
-    } catch (InvalidPathException e) {
-      return null;
-    }
+  /**
+   * The executable this configuration runs, whether it exists yet or not; for
+   * {@code ${executable}} the one its Haxe build step writes for the current
+   * launch. Null when unset or unresolvable.
+   */
+  public @Nullable Path resolveExecutableOrNull() {
+    if (executablePath.isBlank()) return null;
+    if (usesBuiltExecutable()) return HaxeActionBeforeRunTaskProvider.builtExecutable(this);
+    return resolveAgainstModule(executablePath);
   }
 
-  /** The working directory: the explicit setting, else the executable's directory. */
+  private boolean usesBuiltExecutable() {
+    return HxcppExecutables.EXECUTABLE_VARIABLE.equals(executablePath.trim());
+  }
+
+  /** The executable as a missing-file message names it: the resolved path when there is one. */
+  @NotNull
+  private String missingExecutableText(@Nullable Path executable) {
+    if (executable != null) return executable.toString();
+    return executablePath.isBlank() ? "<not set>" : executablePath;
+  }
+
+  /** The working directory: the explicit setting (a relative one resolved against the module folder, like the executable), else the executable's directory. */
   public @Nullable Path resolveWorkingDirectory() {
     if (!workingDirectory.isBlank()) {
-      try {
-        return Path.of(workingDirectory);
-      } catch (InvalidPathException e) {
-        return null;
-      }
+      return resolveAgainstModule(workingDirectory);
     }
     Path executable = resolveExecutableOrNull();
     return executable != null ? executable.getParent() : null;

@@ -2,6 +2,8 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.HaxeIterationProtocol;
+import com.intellij.plugins.haxe.model.evaluator.HaxeSwitchSubjectTypeCache;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -120,10 +122,15 @@ public class HaxeEnumExtractorModel implements HaxeModel {
 
     HaxeEnumValueModel enumValueModel = getEnumValueModel();
     if (enumValueModel instanceof HaxeEnumValueConstructorModel) {
-      HaxeExpression switchStatement = findSwitchExpressionType(extractedValue);
-      if (switchStatement == null) return createUnknown(extractedValue);
-      ResultHolder switchType = evaluate(switchStatement).result;
-      return getTypeForExtractedValue(extractedValue, switchStatement, switchType);
+
+      HaxeExpression subject = findSwitchExpressionType(extractedValue);
+      if (subject == null) return createUnknown(extractedValue);
+
+      HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
+      ResultHolder switchType = HaxeSwitchSubjectTypeCache.subjectType(switchStatement);
+      if (switchType == null) return createUnknown(extractedValue);
+
+      return getTypeForExtractedValue(extractedValue, subject, switchType);
     }
     // unable to determine type
     return createUnknown(extractedValue);
@@ -224,11 +231,11 @@ public class HaxeEnumExtractorModel implements HaxeModel {
             }
           } else {
             if(loopType instanceof  SpecificHaxeClassReference classReference) {
-              ResultHolder iteratorResult = searchForIteratorType(classReference, "iterator", extractedValue);
+              ResultHolder iteratorResult = searchForIteratorType(classReference, HaxeIterationProtocol.ITERATOR, extractedValue);
               if (iteratorResult != null && iteratorResult.getClassType() != null) {
                 SpecificHaxeClassReference iterator = iteratorResult.getClassType();
                 HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
-                ResultHolder access = iterator.access("next", context, iterator.getGenericResolver());
+                ResultHolder access = iterator.access(HaxeIterationProtocol.NEXT, context, iterator.getGenericResolver());
                 if (access != null && access.getFunctionType() != null) {
                   SpecificFunctionReference functionType = access.getFunctionType();
                   ResultHolder result = functionType.getReturnType();

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 @CustomLog
 public class HaxeTypeCompatible {
@@ -96,25 +97,19 @@ public class HaxeTypeCompatible {
     }
 
 
-    /**
-     * When checking if typeParameters can be assign we have to be stricter than object reference assign.
-     * When doing normal assign Dynamic can be assigned to anything while when checking assign for typeParameter you are not allowed
-     * to assign Dynamic</>(or Any) to more specific types, implicit cast for abstracts are also not allowed
-     * <pre>
-     * {@code
-     *  var x:String = null;
-     *  var y:Dynamic = null;
-     *  x = y;// allowed
-     * }
-     * </pre>
-     * <pre>
-     * {@code
-     *  var x:Array<String> = null;
-     *  var y:Array<Dynamic> = null;
-     *  x = y // not allowed;
-     * }
-     * </pre>
-     */
+    /// When checking if typeParameters can be assign we have to be stricter than object reference assign.
+    /// When doing normal assign Dynamic can be assigned to anything while when checking assign for typeParameter you are not allowed
+    /// to assign Dynamic (or Any) to more specific types, implicit cast for abstracts are also not allowed
+    /// ```haxe
+    ///  var x:String = null;
+    ///  var y:Dynamic = null;
+    ///  x = y;// allowed
+    /// ```
+    /// ```haxe
+    ///  var x:Array<String> = null;
+    ///  var y:Array<Dynamic> = null;
+    ///  x = y // not allowed;
+    /// ```
     static public boolean canAssignToFromTypeParameter(@Nullable ResultHolder to, @Nullable ResultHolder from) {
         if (to == null || from == null) return false;
         return canAssignToFromTypeParameter(null, to, from, false, false);
@@ -197,7 +192,7 @@ public class HaxeTypeCompatible {
         if(!evaluation.completed) {
             // NOTE: memoize can not be used as the context elements does not necessarily represent the type
             // (could maybe do some tricks with fully qualified names but recursive typeParameter constraints will be problematic)
-            Boolean done = canAssignRecursionGuard.doPreventingRecursion(evaluation.recursionGuardKey(), false, () -> {
+            Boolean done = HaxeEvaluationTaint.computeOrTaint(canAssignRecursionGuard, evaluation.recursionGuardKey(), false, () -> {
                 if (!evaluation.completed) evaluation.testClassAssignRules();
                 if (!evaluation.completed) evaluation.testEnumAssignRules();
                 if (!evaluation.completed) evaluation.testEnumValueAssignRules();

@@ -19,7 +19,9 @@ package com.intellij.plugins.haxe;
 
 import com.intellij.codeInsight.daemon.impl.HighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.LogLevel;
@@ -29,10 +31,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.plugins.haxe.ide.HaxeInspectionTestTools;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeLibrarySync;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.impl.PsiManagerEx;
@@ -42,14 +50,23 @@ import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.testFramework.junit5.RunInEdt;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -222,6 +239,17 @@ abstract public class HaxeCodeInsightFixtureTestCase {
   }
 
   /**
+   * Waits until the library syncs requested so far have landed. Opening the
+   * project starts one; a test that records sync results itself waits first,
+   * or that sync replaces them with its own.
+   */
+  protected void awaitLibrarySync() {
+    AtomicBoolean synced = new AtomicBoolean();
+    HaxeLibrarySync.sync(getProject(), () -> synced.set(true));
+    PlatformTestUtil.waitWithEventsDispatching("the library sync must land", synced::get, 30);
+  }
+
+  /**
    * Use reflection to load an annotator inspection class.
    * Specific to annotation tests, but placed here just to avoid adding yet another single-function base class.
    * <p>
@@ -237,15 +265,44 @@ abstract public class HaxeCodeInsightFixtureTestCase {
     return inspection;
   }
 
+  /**
+   * Highlighting over the test-named fixture: the annotator-based inspection
+   * plus the semantic-inspection block, minus {@code unsetInspections}.
+   */
+  protected void doHighlightingTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
+                                    @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
+                                    String... additionalFiles) throws Exception {
+    String[] files = ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles);
+    doHighlightingTestOn(files, checkWarnings, checkInfos, checkWeakWarnings, unsetInspections);
+  }
+
+  /**
+   * Highlighting over explicitly named files, the first being the one under
+   * test. {@code extraTools} are pre-configured inspection INSTANCES (e.g.
+   * with an option flipped); list their classes in {@code unsetInspections}
+   * so the default instance does not register alongside.
+   */
+  protected void doHighlightingTestOn(String[] files, boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
+                                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
+                                      InspectionProfileEntry... extraTools) throws Exception {
+    myFixture.configureByFiles(files);
+    myFixture.enableInspections(getAnnotatorBasedInspection());
+    myFixture.enableInspections(HaxeInspectionTestTools.semanticInspections(unsetInspections));
+    if (extraTools.length > 0) {
+      myFixture.enableInspections(extraTools);
+    }
+    myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
+  }
+
   public void setTestStyleSettings() {
     setTestStyleSettings(2);
   }
 
   public void setTestStyleSettings(int indent) {
     Project project = getProject();
-    CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
+    CodeStyleSettings currSettings = CodeStyle.getSettings(project);
     assertNotNull(currSettings);
-    CodeStyleSettings tempSettings = currSettings.clone();
+    CodeStyleSettings tempSettings = CodeStyleSettingsManager.getInstance(project).cloneSettings(currSettings);
     CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.INSTANCE);
     indentOptions.INDENT_SIZE = indent;
     assertNotNull(indentOptions);
@@ -269,6 +326,90 @@ abstract public class HaxeCodeInsightFixtureTestCase {
 
   public CodeInsightTestFixture getFixture() {
     return myFixture;
+  }
+
+  /** The element at the editor caret — the context anchor the debugger/fragment tests hang their expressions on. */
+  protected PsiElement contextAtCaret() {
+    PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+    assertNotNull(context, "context element at the caret");
+    return context;
+  }
+
+  /** Whether a haxe compiler is on the PATH - the gate live tests check via assumeTrue before compiling anything. */
+  public static boolean haxeAvailable() {
+    // -version, not --version: haxe 3.x knows only the single-dash form, and haxe 5 still accepts it
+    return toolAvailable("haxe", "-version");
+  }
+
+  /** What the haxe on the PATH answers to {@code -version}; haxe 3 prints it to stderr, so both streams count. */
+  public static String haxeVersionOnPath() throws IOException, InterruptedException {
+    Process process = new ProcessBuilder("haxe", "-version")
+      .redirectErrorStream(true)
+      .start();
+    String answer = new String(process.getInputStream().readAllBytes()).strip();
+    process.waitFor(10, TimeUnit.SECONDS);
+    return answer;
+  }
+
+  /** The folder of the haxe on the PATH, as an SDK home. */
+  public static String haxeHomeOnPath() {
+    return Path.of(HaxeToolPathResolver.pathDetectedExecutable("haxe")).getParent().toString();
+  }
+
+  /** The work's result from a pooled thread: the compiler services start processes, which they refuse on the EDT. */
+  protected static <T> T onPooledThread(Callable<T> work) throws Exception {
+    return ApplicationManager.getApplication().executeOnPooledThread(work).get(120, TimeUnit.SECONDS);
+  }
+
+  /** Whether the utest haxelib is installed - the gate for live tests compiling against real utest. */
+  public static boolean utestAvailable() {
+    return toolAvailable("haxelib", "path", "utest");
+  }
+
+  /** Whether the munit haxelib is installed - the gate for live tests compiling against real munit. */
+  public static boolean munitAvailable() {
+    return toolAvailable("haxelib", "path", "munit");
+  }
+
+  /** Whether the buddy haxelib is installed - the gate for live tests compiling against real buddy. */
+  public static boolean buddyAvailable() {
+    return toolAvailable("haxelib", "path", "buddy");
+  }
+
+  /** Whether the tink_unittest haxelib is installed - the gate for live tests compiling against real tink. */
+  public static boolean tinkAvailable() {
+    return toolAvailable("haxelib", "path", "tink_unittest");
+  }
+
+  /** Whether a neko runtime is on the PATH - the gate for live tests launching neko artifacts. */
+  public static boolean nekoAvailable() {
+    return toolAvailable("neko", "-version");
+  }
+
+  /** Whether the AIR_SDK environment variable points at an SDK with adl - the gate for live flash-family test runs. */
+  public static boolean adlAvailable() {
+    String airSdk = System.getenv("AIR_SDK");
+    if (airSdk == null || airSdk.isBlank()) return false;
+    return Files.isRegularFile(Path.of(airSdk, "bin", HaxeSdkUtilBase.getExecutableName("adl")));
+  }
+
+  private static boolean toolAvailable(String... command) {
+    try {
+      Process process = new ProcessBuilder(command)
+        .redirectErrorStream(true)
+        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+        .start();
+      // haxelib can stop on an interactive prompt with nobody on its stdin
+      // pipe; a hung probe must read as "not available", not hang the suite
+      if (!process.waitFor(10, TimeUnit.SECONDS)) {
+        process.destroyForcibly();
+        return false;
+      }
+      return process.exitValue() == 0;
+    }
+    catch (IOException | InterruptedException e) {
+      return false;
+    }
   }
 
   public static class MyHaxeModuleFixtureBuilderImpl extends ModuleFixtureBuilderImpl {

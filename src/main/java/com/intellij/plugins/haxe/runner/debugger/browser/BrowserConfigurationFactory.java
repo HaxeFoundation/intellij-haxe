@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import javax.swing.Icon;

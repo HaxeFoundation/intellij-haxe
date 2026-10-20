@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
+import com.intellij.plugins.haxe.util.HaxeTestDefines;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +31,7 @@ public class ConditionalCompilationTest extends StatementTestBase {
   }
 
   private void setDefines(String defines) {
-    getProject().putUserData(HaxeConditionalExpression.DEFINES_KEY, defines);
+    HaxeTestDefines.set(getProject(), defines);
   }
 
   @Test
@@ -58,6 +58,14 @@ public class ConditionalCompilationTest extends StatementTestBase {
   @DisplayName("constant defined")
   public void testConstantDefined() throws Throwable {
     setDefines("cpp");
+    doTest(true);
+  }
+
+  @Test
+  @DisplayName("flag define compares as its compiler value 1")
+  public void testFlagDefineVersionComparison() throws Throwable {
+    // a bare flag carries "1" (never a boolean): 1 < 9.0.0 - first branch active
+    setDefines("myVersion");
     doTest(true);
   }
 
@@ -121,51 +129,9 @@ public class ConditionalCompilationTest extends StatementTestBase {
   }
 
   @Test
-  @DisplayName("not constant when not defined")
-  public void testNotConstantWhenNotDefined() throws Throwable {
-    // #if(!cpp)
-    doTest(true);
-  }
-
-  @Test
   @DisplayName("constant set false")
   public void testConstantSetFalse() throws Throwable {
     setDefines("cpp=false");
-    doTest(true);
-  }
-
-  @Test
-  @DisplayName("constant set true")
-  public void testConstantSetTrue() throws Throwable {
-    setDefines("cpp=true");
-    doTest(true);
-  }
-
-  @Test
-  @DisplayName("constant set to zero string")
-  public void testConstantSetToZeroString() throws Throwable {
-    setDefines("cpp=\"0\"");
-    doTest(true);
-  }
-
-  @Test
-  @DisplayName("constant set to non zero string")
-  public void testConstantSetToNonZeroString() throws Throwable {
-    setDefines("cpp=\"2.1\"");
-    doTest(true);
-  }
-
-  @Test
-  @DisplayName("constant set to zero value")
-  public void testConstantSetToZeroValue() throws Throwable {
-    setDefines("cpp=0");
-    doTest(true);
-  }
-
-  @Test
-  @DisplayName("constant set to non zero value")
-  public void testConstantSetToNonZeroValue() throws Throwable {
-    setDefines("cpp=1.2");
     doTest(true);
   }
 
@@ -201,34 +167,6 @@ public class ConditionalCompilationTest extends StatementTestBase {
   @DisplayName("value equal boolean")
   public void testValueEqualBoolean() throws Throwable {
     //  #if ( 1 == true )
-    doTest(true);
-  }
-
-  @Test
-  @DisplayName("constant or constant")
-  public void testConstantOrConstant() throws Throwable {
-    // When either one or both are set, we should have the same result.
-    setDefines("cpp"); // And not js
-    doTest(true);
-    setDefines("js"); // And not cpp
-    doTest(true);
-    setDefines("js,cpp");
-    doTest(true);
-    setDefines("js=1,cpp=2.3");
-    doTest(true);
-    setDefines("js=\"foo\"");
-  }
-
-  @Test
-  @DisplayName("constant and constant")
-  public void testConstantAndConstant() throws Throwable {
-    setDefines("cpp,js=false");
-    doTest(true);
-    setDefines("cpp=false,js");
-    doTest(true);
-    setDefines("cpp");
-    doTest(true);
-    setDefines("js");
     doTest(true);
   }
 

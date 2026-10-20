@@ -16,18 +16,17 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -158,9 +157,10 @@ public class HaxeFileModel implements HaxeExposableModel {
     return file;
   }
 
+  /** The module name: the file name without target variant or extension. */
   @NotNull
   public String getName() {
-    return FileUtil.getNameWithoutExtension(file.getName());
+    return HaxeModuleVariants.moduleNameOf(file);
   }
 
   @NotNull
@@ -282,14 +282,12 @@ public class HaxeFileModel implements HaxeExposableModel {
     return result;
   }
 
-  /**
-   * Import models for the type names {@linkplain HaxeExpressionCodeFragment#importClass
-   * added directly to an evaluate/debugger fragment} (empty for a normal file).
-   * Each stored name is turned into an ordinary {@link HaxeImportModel} by
-   * synthesizing an {@code import <fqn>;} statement, so it resolves through the
-   * same machinery as a written import — but the statement lives outside the
-   * fragment's text and thus never reaches the evaluated expression.
-   */
+  /// Import models for the type names [added directly to an evaluate/debugger
+  /// fragment][HaxeExpressionCodeFragment#importClass] (empty for a normal file).
+  /// Each stored name is turned into an ordinary [HaxeImportModel] by
+  /// synthesizing an `import <fqn>;` statement, so it resolves through the
+  /// same machinery as a written import — but the statement lives outside the
+  /// fragment's text and thus never reaches the evaluated expression.
   @NotNull
   private List<HaxeImportModel> getFragmentStoredImportModels() {
     if (!(file instanceof HaxeExpressionCodeFragment fragment)) {
@@ -425,7 +423,8 @@ public class HaxeFileModel implements HaxeExposableModel {
   private String detectPackageName() {
     HaxeSourceRootModel sourceRootModel = getProject().getContainingRoot(file.getContainingFile().getParent());
     if (sourceRootModel != null) {
-      return StringUtils.replace(sourceRootModel.resolvePath(file.getParent()), "/", ".");
+      String relativePath = sourceRootModel.resolvePath(file.getParent());
+      return relativePath == null ? null : relativePath.replace('/', '.');
     }
 
     return "";

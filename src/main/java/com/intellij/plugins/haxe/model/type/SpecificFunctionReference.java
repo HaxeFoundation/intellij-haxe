@@ -336,6 +336,28 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   }
 
   @Override
+  public void appendCacheKey(@NotNull StringBuilder out, @NotNull Set<SpecificTypeReference> walkPath) {
+    if (!walkPath.add(this)) {
+      out.append(CACHE_KEY_CYCLE);
+      return;
+    }
+    try {
+      out.append("fn(");
+      for (HaxeArgument argument : arguments) {
+        if (argument.isOptional()) out.append('?');
+        if (argument.isRest()) out.append("...");
+        argument.getType().appendCacheKey(out, walkPath);
+        out.append(',');
+      }
+      out.append(")->");
+      returnValue.appendCacheKey(out, walkPath);
+    }
+    finally {
+      walkPath.remove(this);
+    }
+  }
+
+  @Override
   public String toString() {
     return toFunctionDescription(false, arguments, returnValue);
   }

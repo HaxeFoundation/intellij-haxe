@@ -1,0 +1,82 @@
+package com.intellij.plugins.haxe.v2.buildtools;
+
+import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeDebugAdditions.Debugger;
+import java.util.ArrayList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/** NME projects: the nme tool's actions against the selected target. */
+final class NmeBuildSystem implements HaxeBuildSystem {
+  static final NmeBuildSystem INSTANCE = new NmeBuildSystem();
+
+  private NmeBuildSystem() {
+  }
+
+  @Override
+  public @NotNull String defaultBuildActionName() {
+    return NmeProjects.BUILD_ACTION;
+  }
+
+  @Override
+  public @NotNull List<String> defaultActionNames() {
+    return NmeProjects.DEFAULT_ACTIONS;
+  }
+
+  @Override
+  public @Nullable List<String> actionCommand(@NotNull Project project, @Nullable String environmentSdk,
+                                              @NotNull HaxeBuildFile buildFile, @NotNull String actionName) {
+    if (!NmeProjects.DEFAULT_ACTIONS.contains(actionName)) return null;
+    return NmeProjects.actionCommand(project, environmentSdk, buildFile.file(), actionName);
+  }
+
+  @Override
+  public @NotNull String presentableCommand(@NotNull Project project, @NotNull HaxeBuildFile buildFile, @NotNull String actionName) {
+    return "nme " + actionName + " " + String.join(" ", NmeProjects.selectedTargetFlags(project, buildFile.file()));
+  }
+
+  @Override
+  public @NotNull String selectedTargetFlag(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    return NmeProjects.selectedTargetFlag(project, buildFile.file());
+  }
+
+  @Override
+  public @Nullable HaxeTarget launchTarget(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    return NmeProjects.targetFor(selectedTargetFlag(project, buildFile));
+  }
+
+  @Override
+  public @NotNull List<String> forwardedArguments(@NotNull List<String> haxeArguments) {
+    return NmeProjects.FLAG_SPELLINGS.respell(haxeArguments);
+  }
+
+  @Override
+  public boolean mergesLibraryIncludeFiles() {
+    return true;
+  }
+
+  /**
+   * nme has no lime-style --haxelib override: a single-token
+   * {@code --library <lib>} haxeflag becomes one line of the generated
+   * build.hxml, and haxe pulls the lib with its extraParams (the
+   * server-injection macro). A tool define ({@code -Dfdb}) becomes a
+   * haxedef of the generated build.
+   */
+  @Override
+  public @NotNull List<String> debugCompileAdditions(@NotNull Project project, @NotNull HaxeBuildFile buildFile,
+                                                     @NotNull Debugger debugger) {
+    List<String> additions = new ArrayList<>();
+    additions.add("-debug");
+    String serverLib = debugger.hxcppServerLib();
+    if (serverLib != null && DESKTOP_CPP_TARGETS.contains(selectedTargetFlag(project, buildFile))) {
+      additions.add("--library " + serverLib);
+    }
+    if (debugger.flashDebuggerTag() && launchTarget(project, buildFile) == HaxeTarget.FLASH) {
+      additions.add("-Dfdb");
+    }
+    return additions;
+  }
+}

@@ -8,19 +8,42 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Precedence tests for the HashLink executable resolution: SDK path first,
- * then the HASHLINK_BIN/HASHLINK/HASHLINKPATH environment variables, then
- * PATH. Pure unit test — the environment is injected.
+ * Precedence tests for the HashLink executable resolution: a Build Tools
+ * override decides alone, else SDK path first, then the
+ * HASHLINK_BIN/HASHLINK/HASHLINKPATH environment variables, then PATH. Pure
+ * unit test — the environment is injected.
  */
 @DisplayName("Debugger: hl executable resolver")
 public class HlExecutableResolverTest {
   @TempDir
   Path temp;
+
+  @Test
+  @DisplayName("build tools override wins over sdk path")
+  public void buildToolsOverrideWinsOverSdkPath() throws IOException {
+    Path overrideHl = executableIn("override");
+    Path sdkHl = executableIn("sdk");
+    Optional<Path> resolved =
+      HlExecutableResolver.resolve(overrideHl.toString(), sdkHl.toString(), env(Map.of()));
+    assertEquals(overrideHl, resolved.orElseThrow());
+  }
+
+  @Test
+  @DisplayName("broken build tools override yields empty")
+  public void brokenBuildToolsOverrideYieldsEmpty() throws IOException {
+    Path sdkHl = executableIn("sdk");
+    Path envHl = executableIn("env");
+    String brokenOverride = temp.resolve("missing").toString();
+    Optional<Path> resolved =
+      HlExecutableResolver.resolve(brokenOverride, sdkHl.toString(), env(Map.of("HASHLINK_BIN", envHl.toString())));
+    assertTrue(resolved.isEmpty(), "a typo in the override must not fall back to the SDK or environment hl");
+  }
 
   @Test
   @DisplayName("sdk path wins over environment")
@@ -79,12 +102,14 @@ public class HlExecutableResolverTest {
 
   private Path executableIn(String directory) throws IOException {
     Path dir = Files.createDirectories(temp.resolve(directory));
-    Path exe = dir.resolve("hl.exe");
+    Path exe = dir.resolve(HaxeRuntimeTool.HASHLINK.executableName());
     Files.createFile(exe);
+    // a PATH lookup takes only executable files; a new file is one on windows alone
+    exe.toFile().setExecutable(true);
     return exe;
   }
 
-  private static HlExecutableResolver.Environment env(Map<String, String> values) {
+  private static HaxeRuntimeTool.Environment env(Map<String, String> values) {
     return values::get;
   }
 }

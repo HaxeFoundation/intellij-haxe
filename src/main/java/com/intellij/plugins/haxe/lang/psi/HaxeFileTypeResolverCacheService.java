@@ -33,12 +33,20 @@ public final class HaxeFileTypeResolverCacheService implements Disposable {
         return project.getService(HaxeFileTypeResolverCacheService.class);
     }
 
-    private  SimpleModificationTracker lowMemoryTracker = new SimpleModificationTracker();
+    private  SimpleModificationTracker invalidationTracker = new SimpleModificationTracker();
     public boolean ENABLE_CACHING = true;
 
 
     public HaxeFileTypeResolverCacheService() {
-        LowMemoryWatcher.register(() -> lowMemoryTracker.incModificationCount(), this);
+        LowMemoryWatcher.register(this::invalidate, this);
+    }
+
+    /** Drops every file's cached types; called on low memory and by the plugin-wide clear ({@code HaxeResolveCaches}), which also runs on roots changes. */
+    public void invalidate() {
+        SimpleModificationTracker tracker = invalidationTracker;
+        if (tracker != null) {
+            tracker.incModificationCount();
+        }
     }
 
     @Nullable
@@ -69,13 +77,13 @@ public final class HaxeFileTypeResolverCacheService implements Disposable {
     @NotNull
     private ConcurrentMap<String, HaxeClass> getFileTypeResolveCacheMap(@NotNull PsiFile file) {
         CachedValuesManager manager = CachedValuesManager.getManager(file.getProject());
-        return manager.getCachedValue(file, RESOLVE_CACHE_KEY, new CacheProvider(lowMemoryTracker));
+        return manager.getCachedValue(file, RESOLVE_CACHE_KEY, new CacheProvider(invalidationTracker));
     }
 
     @Override
     public void dispose() {
-        lowMemoryTracker.incModificationCount();
-        lowMemoryTracker = null;
+        invalidationTracker.incModificationCount();
+        invalidationTracker = null;
     }
 
     //NOTE:
@@ -85,15 +93,15 @@ public final class HaxeFileTypeResolverCacheService implements Disposable {
     // more fields to it.
     //
     private static final class CacheProvider implements CachedValueProvider<ConcurrentMap<String, HaxeClass>> {
-        private final SimpleModificationTracker lowMemoryTracker;
+        private final SimpleModificationTracker invalidationTracker;
 
-        CacheProvider(@NotNull SimpleModificationTracker lowMemoryTracker) {
-            this.lowMemoryTracker = lowMemoryTracker;
+        CacheProvider(@NotNull SimpleModificationTracker invalidationTracker) {
+            this.invalidationTracker = invalidationTracker;
         }
         @Override
         public @NotNull Result<ConcurrentMap<String, HaxeClass>> compute() {
             // we clear the cache on any PSI change the be sure we  avoid issues when import.hx or other parts if the resolve chain changes
-            return Result.create(new ConcurrentHashMap<>(), MODIFICATION_COUNT, lowMemoryTracker);
+            return Result.create(new ConcurrentHashMap<>(), MODIFICATION_COUNT, invalidationTracker);
         }
     }
 }

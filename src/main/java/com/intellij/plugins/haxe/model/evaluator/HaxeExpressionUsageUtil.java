@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService.HoleEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
@@ -39,8 +40,8 @@ public class HaxeExpressionUsageUtil {
                                                               HaxeGenericResolver resolver,
                                                               @Nullable PsiElement scope
   ) {
-    ResultHolder searchResult = searchReferencesForTypeGuard
-      .computePreventingRecursion(element, true, () -> searchReferencesForType(element, context, resolver, scope, hint));
+    ResultHolder searchResult = HaxeEvaluationTaint.computeOrTaint(searchReferencesForTypeGuard, element, true,
+                                                                   () -> searchReferencesForType(element, context, resolver, scope, hint));
     if (searchResult != null && !searchResult.isUnknown()) {
       if (result == null) {
         result = searchResult;
@@ -61,18 +62,19 @@ public class HaxeExpressionUsageUtil {
                                                                           HaxeCallExpressionList list,
                                                                           PsiElement resolved) {
     PsiPair key = new PsiPair(referenceExpression, callExpression);
-    return findUsageAsParameterInFunctionCallRecursionGuard.computePreventingRecursion(key, false, () -> {
+    return HaxeEvaluationTaint.computeOrTaint(findUsageAsParameterInFunctionCallRecursionGuard, key, false, () -> {
 
     int index = -1;
     if (list != null) index = list.getExpressionList().indexOf(referenceExpression);
     if (index == -1) return null;
 
     if (resolved instanceof HaxeMethod method) {
-      HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-      HaxeCallExpressionEvaluation evaluated = contextContainer.evaluateContexts();
+      // the argument being typed is the call's hole: evaluating it would re-enter
+      // this query. Cached, since this runs once per usage per reference resolve.
+      HoleEvaluation evaluated = HaxeCallExpressionEvaluatorCacheService.cachedHoleEvaluation(method, callExpression, index);
       if (evaluated != null) {
-        if (contextContainer.getContext().isStaticExtension) index++;
-        return evaluated.getParameterType(index);
+        int parameterIndex = evaluated.staticExtension() ? index + 1 : index;
+        return evaluated.evaluation().getParameterType(parameterIndex);
       }
     }
     return null;
@@ -86,7 +88,8 @@ public class HaxeExpressionUsageUtil {
     if (list != null) index = list.indexOf(referenceExpression);
     if (index == -1) return null;
     ResultHolder  assignHint=  lookForAssignHints(newExpression);
-    HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression, assignHint);
+    // the argument being typed is the call's hole: evaluating it would re-enter this query
+    HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression, assignHint, index);
     HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
       if(evaluation != null) {
         if (contextContainer.getContext().isStaticExtension) index++;
@@ -130,7 +133,8 @@ public class HaxeExpressionUsageUtil {
     int index = -1;
     if (list != null) index = list.getExpressionList().indexOf(referenceExpression);
     if (index == -1) return null;
-    HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForFunctionCall(callExpression, functionReference);
+    // the argument being typed is the call's hole: evaluating it would re-enter this query
+    HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForFunctionCall(callExpression, functionReference, index);
     HaxeCallExpressionEvaluation evaluated = context.evaluate();
     if (context.isStaticExtension) index++;
     return evaluated.getParameterType(index);
@@ -144,6 +148,44 @@ public class HaxeExpressionUsageUtil {
    return searchReferencesForTypeParameters(componentName,context,resolver,resultHolder,0);
   }
 
+  /**
+   * True when every type parameter in {@code holder} is an unresolved
+   * TypeParameter declared by a method or class that is a parent of
+   * {@code usageSite}.
+   *
+   * Such TypeParameters only get their types substituted in from usage sites
+   * outside the parents' scope, so searching usages inside it can never
+   * refine them.
+   */
+  public static boolean containsOnlyEnclosingTypeParameters(@Nullable ResultHolder holder, @NotNull PsiElement usageSite) {
+    if (holder == null || holder.isUnknown()) return false;
+    SpecificTypeReference type = holder.getType();
+    if (type instanceof SpecificHaxeClassReference classReference) {
+      if (classReference.isTypeParameter()) return declaredByEnclosingClassOrMethod(classReference, usageSite);
+      for (ResultHolder specific : classReference.getSpecifics()) {
+        if (specific.isUnknown()) return false;
+        if (!containsOnlyEnclosingTypeParameters(specific, usageSite)) return false;
+      }
+      return true;
+    }
+
+    if (type instanceof SpecificFunctionReference function) {
+      for (HaxeArgument argument : function.arguments) {
+        if (!containsOnlyEnclosingTypeParameters(argument.getType(), usageSite)) return false;
+      }
+      return containsOnlyEnclosingTypeParameters(function.returnValue, usageSite);
+    }
+    return false;
+  }
+
+  private static boolean declaredByEnclosingClassOrMethod(SpecificHaxeClassReference typeParameter, PsiElement usageSite) {
+    HaxeClassModel model = typeParameter.getHaxeClassReference().classModel;
+    if (model == null) return false;
+    if (!(model.getBasePsi() instanceof HaxeTypeParameterDeclaration parameterDeclaration)) return false;
+    PsiElement owner = parameterDeclaration.getOwner();
+    return owner != null && PsiTreeUtil.isAncestor(owner, usageSite, false);
+  }
+
   private static final RecursionGuard<PsiElement> searchReferencesForTypeParametersRecursionGuard = RecursionManager.createGuard("searchReferencesForTypeParametersRecursionGuard");
 
   @NotNull
@@ -155,7 +197,7 @@ public class HaxeExpressionUsageUtil {
     // AND stop any other logic picking up typeParameters from later reference when current reference is skipped by the recursion guard.
     // This is a common problem when you got a variable that gets its typeParameters from method calls on that instance,
     // and our code will try to find callie type
-    var newValues = searchReferencesForTypeParametersRecursionGuard.computePreventingRecursion(componentName, false, () -> { //TODO mlo: figure out if we can optimize
+    var newValues = HaxeEvaluationTaint.computeOrTaint(searchReferencesForTypeParametersRecursionGuard, componentName, false, () -> { //TODO mlo: figure out if we can optimize
       ResultHolder updatedType = resultHolder.duplicate();
       SpecificHaxeClassReference classType = updatedType.getClassType();
       // TODO mlo: should we add some kind of support for functions here ?
@@ -492,7 +534,7 @@ public class HaxeExpressionUsageUtil {
                                                   HaxeObjectLiteralElement literalElement) {
     HaxeObjectLiteral objectLiteral = PsiTreeUtil.getParentOfType(literalElement, HaxeObjectLiteral.class);
     if (objectLiteral != null) {
-      ResultHolder result = searchReferencesForTypeGuard.computePreventingRecursion(objectLiteral, false, () -> {
+      ResultHolder result = HaxeEvaluationTaint.computeOrTaint(searchReferencesForTypeGuard, objectLiteral, false, () -> {
         ResultHolder objectLiteralType = findObjectLiteralType(context, resolver, objectLiteral);
         if (objectLiteralType != null && !objectLiteralType.isUnknown()) {
           SpecificHaxeClassReference literlClassType = objectLiteralType.getClassType();

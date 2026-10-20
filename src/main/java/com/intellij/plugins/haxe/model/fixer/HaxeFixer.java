@@ -19,6 +19,9 @@
 package com.intellij.plugins.haxe.model.fixer;
 
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
@@ -26,7 +29,11 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-abstract public class HaxeFixer implements IntentionAction, Runnable {
+/**
+ * Both an intention (annotator path) and a local quick fix (inspection path):
+ * the same fixer instance serves whichever pass reported the problem.
+ */
+abstract public class HaxeFixer implements IntentionAction, LocalQuickFix, Runnable {
   @FunctionalInterface
   public interface IntentionCallback {
     void run();
@@ -81,6 +88,28 @@ abstract public class HaxeFixer implements IntentionAction, Runnable {
   @Override
   public boolean startInWriteAction() {
     return true;
+  }
+
+  @Nls
+  @NotNull
+  @Override
+  public String getName() {
+    return getText();
+  }
+
+  @Override
+  public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+    run();
+  }
+
+  /**
+   * Fixers mutate the real document directly, which the quick-fix preview
+   * machinery cannot replay on a file copy; subclasses wanting a preview
+   * override the IntentionAction-side generatePreview.
+   */
+  @Override
+  public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull ProblemDescriptor previewDescriptor) {
+    return IntentionPreviewInfo.EMPTY;
   }
 
   abstract public void run();

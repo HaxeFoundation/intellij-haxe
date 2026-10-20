@@ -108,13 +108,8 @@ public class HaxeDebugUtil {
    */
   public static boolean appearsOnStack(@NotNull Class klass) {
     String klassName = klass.getName();
-    StackTraceElement[] stack = new Exception().getStackTrace();
-    for (StackTraceElement frame : stack) {
-      if (frame.getClassName().equals(klassName)) {
-        return true;
-      }
-    }
-    return false;
+    // StackWalker stops at the first match; an Exception would capture the whole stack first
+    return StackWalker.getInstance().walk(frames -> frames.anyMatch(frame -> frame.getClassName().equals(klassName)));
   }
 
   /**
@@ -214,7 +209,7 @@ public class HaxeDebugUtil {
     StringBuilder msg = new StringBuilder();
     if (includeThreadId) {
       msg.append("thread=");
-      msg.append(Thread.currentThread().getId());
+      msg.append(Thread.currentThread().threadId());
       msg.append(':');
     }
     msg.append("depth=");

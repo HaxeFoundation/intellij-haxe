@@ -1,23 +1,18 @@
 package com.intellij.plugins.haxe.runner.debugger.browser;
 
 import com.intellij.application.options.ModulesComboBox;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.HelpTooltipKt;
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.browsers.BrowserSelector;
 import com.intellij.ide.browsers.WebBrowser;
 import com.intellij.ide.browsers.WebBrowserManager;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
-import com.intellij.plugins.haxe.runner.debugger.HaxeRunConfigurationEditorUtil;
+import com.intellij.plugins.haxe.runner.debugger.javascript.DapAdapterStatusRow;
+import com.intellij.plugins.haxe.util.ui.HaxePathFieldChoosers;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration.BrowserFamily;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.JBCheckBox;
@@ -32,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterPin;
 
 /**
  * Settings UI for the browser debug configuration: module, the browser
@@ -39,8 +35,9 @@ import org.jetbrains.annotations.Nullable;
  * family), the serve-vs-url content mode (checkbox toggles which field is
  * live), an optional node executable override, and the selected browser's
  * DAP adapter status with a Download link. The link is the ONLY acquisition
- * path: sessions never download, and a missing adapter fails configuration
- * validation — downloading third-party code is the user's explicit decision.
+ * path: sessions never download, and a missing adapter fails validation for
+ * Debug (the one executor using it) — downloading third-party code is the
+ * user's explicit decision.
  * An unsupported browser family (Safari, IE, ...) shows a message in the
  * status row instead of an adapter version.
  *
@@ -56,6 +53,7 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
   private ActionLink downloadLink;
   /** Icon-only link revealing the adapter store directory in the system file manager. */
   private ActionLink openStoreLink;
+  private final DapAdapterStatusRow adapterStatus;
   private JBCheckBox serveContentCheckBox;
   private TextFieldWithBrowseButton contentRootField;
   private JBTextField urlField;
@@ -70,27 +68,22 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
 
   public BrowserRunConfigurationEditor(Project project) {
     this.project = project;
-    FileChooserDescriptor folderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+    FileChooserDescriptor folderDescriptor = FileChooserDescriptorFactory.singleDir();
     FileChooserDescriptor fileDescriptor = FileChooserDescriptorFactory.singleFile();
 
-    HaxeRunConfigurationEditorUtil.browseInto(project, contentRootField, folderDescriptor);
-    HaxeRunConfigurationEditorUtil.browseInto(project, nodePathField, fileDescriptor);
+    HaxePathFieldChoosers.browseInto(project, contentRootField, folderDescriptor);
+    HaxePathFieldChoosers.browseInto(project, nodePathField, fileDescriptor);
 
     serveContentCheckBox.addActionListener(e -> updateContentModeEnablement());
     overrideNodeCheckBox.addActionListener(e -> updateOverrideEnablement());
     buildBrowserSelector();
 
     // secondary information, styled like the platform's context help text
-    adapterStatusLabel.setForeground(UIUtil.getContextHelpForeground());
     hintArea.setForeground(UIUtil.getContextHelpForeground());
     hintArea.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     hintArea.setBorder(null);
 
-    downloadLink.setText(HaxeDebuggerBundle.message("browser.runner.adapter.download"));
-    downloadLink.addActionListener(e -> downloadAdapter());
-    openStoreLink.setIcon(AllIcons.General.OpenDisk);
-    openStoreLink.addActionListener(e -> revealAdapterDirectory());
-    HelpTooltipKt.setToolTipText(openStoreLink, HtmlChunk.text(RevealFileAction.getActionName()));
+    adapterStatus = new DapAdapterStatusRow(adapterStatusLabel, downloadLink, openStoreLink, this::selectedPin, this::fireEditorStateChanged);
   }
 
   // The IDE's own browser combobox (Settings | Web Browsers entries). The
@@ -111,10 +104,12 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
   }
 
   private void selectBrowser(@Nullable String browserId) {
-    WebBrowser browser = browserId == null || browserId.isBlank()
-                         ? null
-                         : WebBrowserManager.getInstance().findBrowserById(browserId);
-    browserSelector.setSelected(browser);
+    browserSelector.setSelected(browserById(browserId));
+  }
+
+  private static @Nullable WebBrowser browserById(@Nullable String browserId) {
+    if (browserId == null || browserId.isBlank()) return null;
+    return WebBrowserManager.getInstance().findBrowserById(browserId);
   }
 
   private void updateContentModeEnablement() {
@@ -138,73 +133,17 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
   }
 
   private void updateAdapterStatus() {
-    BrowserFamily family = selectedFamily();
-    if (family == null) {
+    if (selectedFamily() == null) {
       // no browser, or a family (Safari, IE, ...) no adapter can drive
-      WebBrowser browser = browserSelector.getSelected();
-      adapterStatusLabel.setText(browser == null
-                                 ? HaxeDebuggerBundle.message("browser.runner.adapter.no.browser")
-                                 : HaxeDebuggerBundle.message("browser.runner.adapter.unsupported", browser.getName()));
-      openStoreLink.setVisible(false);
-      downloadLink.setVisible(false);
-      return;
+      adapterStatusLabel.setText(noAdapterStatusText(browserSelector.getSelected()));
     }
-    AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    String name = BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version();
-    boolean installed = new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).isInstalled(pin);
-    adapterStatusLabel.setText(installed
-                               ? HaxeDebuggerBundle.message("browser.runner.adapter.downloaded", name)
-                               : name + " —");
-    openStoreLink.setVisible(installed);
-    downloadLink.setVisible(!installed);
-    downloadLink.setEnabled(true);
+    adapterStatus.update();
   }
 
-  private void revealAdapterDirectory() {
+  /** The pinned adapter for the selected browser's family; null when no adapter can drive it. */
+  private @Nullable AdapterPin selectedPin() {
     BrowserFamily family = selectedFamily();
-    if (family == null) {
-      return;
-    }
-    AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    RevealFileAction.openDirectory(
-      BrowserDebugBackend.adapterStoreRoot().resolve(pin.id()).resolve(pin.version()).toFile());
-  }
-
-  private void downloadAdapter() {
-    BrowserFamily family = selectedFamily();
-    if (family == null) {
-      return;
-    }
-    AdapterPin pin = BrowserRunConfiguration.adapterPinFor(family);
-    downloadLink.setVisible(false);
-    adapterStatusLabel.setText(HaxeDebuggerBundle.message(
-      "browser.runner.adapter.downloading",
-      BrowserRunConfiguration.adapterDisplayName(family) + " " + pin.version()));
-
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      String failure;
-      try {
-        new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).resolveEntry(pin, null);
-        failure = null;
-      } catch (Exception e) {
-        failure = e.getMessage();
-      }
-      String failureText = failure;
-      // the editor lives in a MODAL dialog: without its modality state the
-      // runnable would only run after the dialog closes and the status text
-      // would never appear to update
-      ApplicationManager.getApplication().invokeLater(() -> {
-        if (failureText != null) {
-          adapterStatusLabel.setText(HaxeDebuggerBundle.message("browser.runner.adapter.failed", failureText));
-          downloadLink.setVisible(true);
-        } else {
-          updateAdapterStatus();
-          // the dialog's "adapter is not downloaded" validation error must
-          // clear now, not on the next manual edit - nudge a re-validation
-          fireEditorStateChanged();
-        }
-      }, ModalityState.stateForComponent(adapterStatusLabel));
-    });
+    return family == null ? null : BrowserRunConfiguration.adapterPinFor(family);
   }
 
   @Override
@@ -231,10 +170,18 @@ public class BrowserRunConfigurationEditor extends SettingsEditor<BrowserRunConf
     configuration.setServeContent(serveContentCheckBox.isSelected());
     configuration.setContentRoot(FileUtil.toSystemIndependentName(contentRootField.getText().trim()));
     configuration.setUrl(urlField.getText().trim());
-    // an unchecked override means "use the default", regardless of field text
-    configuration.setNodePath(overrideNodeCheckBox.isSelected()
-                              ? FileUtil.toSystemIndependentName(nodePathField.getText().trim())
-                              : "");
+    configuration.setNodePath(nodePathOverride());
+  }
+
+  /// An unchecked override means "use the default", regardless of field text.
+  private String nodePathOverride() {
+    if (!overrideNodeCheckBox.isSelected()) return "";
+    return FileUtil.toSystemIndependentName(nodePathField.getText().trim());
+  }
+
+  private static String noAdapterStatusText(@Nullable WebBrowser browser) {
+    if (browser == null) return HaxeDebuggerBundle.message("browser.runner.adapter.no.browser");
+    return HaxeDebuggerBundle.message("browser.runner.adapter.unsupported", browser.getName());
   }
 
   @Override

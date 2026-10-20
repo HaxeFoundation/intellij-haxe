@@ -24,6 +24,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.toolWindow.HaxelibConsoleWindowFactory;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,7 +141,7 @@ public class HaxelibNotifier {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
     Project project = module.getProject();
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Haxelib");
+    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(HaxelibConsoleWindowFactory.TOOL_WINDOW_ID);
     if (toolWindow != null) {
       toolWindow.show();
 

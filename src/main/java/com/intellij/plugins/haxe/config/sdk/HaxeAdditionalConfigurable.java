@@ -17,13 +17,20 @@
  */
 package com.intellij.plugins.haxe.config.sdk;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.config.sdk.ui.HaxeAdditionalConfigurablePanel;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -35,6 +42,7 @@ import javax.swing.*;
 public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
   private final HaxeAdditionalConfigurablePanel myHaxeAdditionalConfigurablePanel;
   private Sdk mySdk;
+  private Disposable myValidatorsDisposable;
 
   public HaxeAdditionalConfigurable() {
     myHaxeAdditionalConfigurablePanel = new HaxeAdditionalConfigurablePanel();
@@ -47,6 +55,12 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public JComponent createComponent() {
+    // the SDK editor creates the component before reset() fills the fields,
+    // so a stored path that does not resolve warns on open
+    if (myValidatorsDisposable == null) {
+      myValidatorsDisposable = Disposer.newDisposable();
+      myHaxeAdditionalConfigurablePanel.registerValidators(myValidatorsDisposable);
+    }
     return myHaxeAdditionalConfigurablePanel.getPanel();
   }
 
@@ -57,7 +71,9 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
            !myHaxeAdditionalConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath()) ||
            !myHaxeAdditionalConfigurablePanel.getHlBinPath().equals(haxeSdkData.getHlBinPath()) ||
            !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath()) ||
-           myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag() ^ haxeSdkData.getUseCompilerCompletionFlag() ||
+           !myHaxeAdditionalConfigurablePanel.getNodeBinPath().equals(haxeSdkData.getNodeBinPath()) ||
+           !myHaxeAdditionalConfigurablePanel.getFlashPlayerPath().equals(haxeSdkData.getFlashPlayerPath()) ||
+           !myHaxeAdditionalConfigurablePanel.getFlexSdkName().equals(haxeSdkData.getFlexSdkName()) ||
            myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag() ^ haxeSdkData.getRemoveCompletionDuplicatesFlag();
   }
 
@@ -75,7 +91,9 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
     newData.setHlBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHlBinPath()));
     newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
-    newData.setUseCompilerCompletionFlag(myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag());
+    newData.setNodeBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNodeBinPath()));
+    newData.setFlashPlayerPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getFlashPlayerPath()));
+    newData.setFlexSdkName(myHaxeAdditionalConfigurablePanel.getFlexSdkName());
     newData.setRemoveCompletionDuplicatesFlag(myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag());
 
     final SdkModificator modificator = mySdk.getSdkModificator();
@@ -94,6 +112,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public void reset() {
+    updateInheritedDefaults();
+
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
     if (haxeSdkData != null) {
       final String nekoBinPath = haxeSdkData.getNekoBinPath();
@@ -105,8 +125,9 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
       final String haxelibPath = haxeSdkData.getHaxelibPath();
       myHaxeAdditionalConfigurablePanel.setHaxelibPath(toSystemDependentName(haxelibPath));
 
-      final boolean bUseCompilerCompletion = haxeSdkData.getUseCompilerCompletionFlag();
-      myHaxeAdditionalConfigurablePanel.setUseCompilerCompletionFlag(bUseCompilerCompletion);
+      myHaxeAdditionalConfigurablePanel.setNodeBinPath(toSystemDependentName(haxeSdkData.getNodeBinPath()));
+      myHaxeAdditionalConfigurablePanel.setFlashPlayerPath(toSystemDependentName(haxeSdkData.getFlashPlayerPath()));
+      myHaxeAdditionalConfigurablePanel.setFlexSdkName(haxeSdkData.getFlexSdkName());
 
       final boolean bRemoveDuplicates = haxeSdkData.getRemoveCompletionDuplicatesFlag();
       myHaxeAdditionalConfigurablePanel.setRemoveCompletionDuplicatesFlag(bRemoveDuplicates);
@@ -118,7 +139,47 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     return FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath);
   }
 
+  /** The grayed haxelib/neko/hl/node defaults for a runtime field left empty. */
+  private record InheritedDefaults(@Nullable String haxelib,
+                                   @Nullable String neko,
+                                   @Nullable String hl,
+                                   @Nullable String node) {
+  }
+
+  // the defaults probe every PATH directory on disk - computed off the EDT,
+  // or a slow/network PATH freezes the SDK editor on every reset
+  private void updateInheritedDefaults() {
+    String homePath = mySdk.getHomePath();
+    ReadAction.nonBlocking(() -> computeInheritedDefaults(homePath))
+      .finishOnUiThread(ModalityState.defaultModalityState(), this::applyInheritedDefaults)
+      .submit(AppExecutorUtil.getAppExecutorService());
+  }
+
+  /** What the empty fields inherit: the haxelib bundled in the home, otherwise each runtime's own variables, then the PATH. */
+  @NonNull
+  private static InheritedDefaults computeInheritedDefaults(@Nullable String homePath) {
+    String bundledHaxelib = homePath != null ? HaxeSdkUtilBase.getHaxelibPathByFolderPath(homePath) : null;
+    String haxelib = bundledHaxelib != null ? bundledHaxelib : environmentOrPathDefault(HaxeRuntimeTool.HAXELIB);
+    return new InheritedDefaults(haxelib,
+                                 environmentOrPathDefault(HaxeRuntimeTool.NEKO),
+                                 environmentOrPathDefault(HaxeRuntimeTool.HASHLINK),
+                                 environmentOrPathDefault(HaxeRuntimeTool.NODE));
+  }
+
+  @Nullable
+  private static String environmentOrPathDefault(HaxeRuntimeTool tool) {
+    return tool.fromEnvironmentOrPath(HaxeRuntimeTool.PROCESS_ENVIRONMENT);
+  }
+
+  private void applyInheritedDefaults(@NonNull InheritedDefaults defaults) {
+    myHaxeAdditionalConfigurablePanel.setInheritedDefaults(defaults.haxelib(), defaults.neko(), defaults.hl(), defaults.node());
+  }
+
   @Override
   public void disposeUIResources() {
+    if (myValidatorsDisposable != null) {
+      Disposer.dispose(myValidatorsDisposable);
+      myValidatorsDisposable = null;
+    }
   }
 }

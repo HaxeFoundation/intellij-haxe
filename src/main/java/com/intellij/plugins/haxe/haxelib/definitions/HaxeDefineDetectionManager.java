@@ -18,8 +18,8 @@ import com.intellij.plugins.haxe.haxelib.definitions.tags.ProjectXmlHaxelibValue
 import com.intellij.plugins.haxe.haxelib.definitions.tags.ProjectXmlUndefineValue;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.v2.buildtools.info.HaxeDefineContextService;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.text.SemVer;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +28,7 @@ import java.util.*;
 import static com.intellij.plugins.haxe.haxelib.definitions.HxmlDefinitionsUtil.findHxml;
 import static com.intellij.plugins.haxe.haxelib.definitions.HxmlDefinitionsUtil.processHxml;
 import static com.intellij.plugins.haxe.haxelib.definitions.ProjectXmlDefinitionsUtil.*;
+import static com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression.FLAG_DEFINE_VALUE;
 import static java.util.function.Predicate.not;
 
 
@@ -64,6 +65,12 @@ public class HaxeDefineDetectionManager implements Disposable {
 
 
   public Map<String, String> getAllDefinitions() {
+    // v2 projects derive the context from the active build file; the legacy
+    // detection below only sees HAXE_MODULE-type modules and returns nothing
+    // for plain modules
+    Map<String, String> v2Defines = HaxeDefineContextService.getInstance(myProject).getActiveDefines();
+    if (v2Defines != null) return v2Defines;
+
     HashMap<String, String> map = new HashMap<>();
     HaxeProjectSettings instance = HaxeProjectSettings.getInstance(myProject);
     Map<String, String> projectUserDefineMap = instance.getUserCompilerDefinitionMap();
@@ -121,28 +128,15 @@ public class HaxeDefineDetectionManager implements Disposable {
     Map<String, String> detectedDefines = new HashMap<>();
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
-    // getSDK version and add definition
-    detectedDefines.put("haxe_ver", sdk.getVersionString());
-    SemVer semVer = SemVer.parseFromText(sdk.getVersionString());
-    if(semVer != null) {
-      if (semVer.getMajor() >= 5) {
-        detectedDefines.put("haxe5", sdk.getVersionString());
-      }
-      if (semVer.getMajor() >= 4) {
-        detectedDefines.put("haxe4", sdk.getVersionString());
-      }
-      if (semVer.getMajor() >= 3) {
-        detectedDefines.put("haxe3", sdk.getVersionString());
-      }
-      detectedDefines.put("haxe", semVer.getRawVersion());
-    }
+    String versionString = sdk.getVersionString();
+    if (versionString != null) detectedDefines.putAll(HaxeDefineContextService.compilerIdentityDefines(versionString));
 
     //TODO add and detect hashlink ? ("hl_ver") & neko?
 
 
     HaxeTarget target = settings.getCompilationTarget();
     // add default definitions for target
-    target.getDefinitions().forEach(def -> detectedDefines.put(def, "true"));
+    detectedDefines.putAll(target.getDefines());
 
     // buildsystems
     switch (settings.getBuildConfiguration()) {
@@ -174,14 +168,14 @@ public class HaxeDefineDetectionManager implements Disposable {
 
   private static void proccessNmmlModule(Module module, HaxeModuleSettings settings, Map<String, String> detectedDefines) {
     String[] flags = settings.getNmeTarget().getFlags();
-    Arrays.stream(flags).forEach(def -> detectedDefines.put(def, "true"));
+    Arrays.stream(flags).forEach(def -> detectedDefines.put(def, FLAG_DEFINE_VALUE));
     XmlFile projectXml = findProjectXml(module, settings.getNmmlPath());
     processProjectXml(module, detectedDefines, projectXml);
   }
 
   private static void processOpenFlModule(Module module, HaxeModuleSettings settings, Map<String, String> detectedDefines) {
     String[] flags = settings.getOpenFLTarget().getFlags();
-    Arrays.stream(flags).forEach(def -> detectedDefines.put(def, "true"));
+    Arrays.stream(flags).forEach(def -> detectedDefines.put(def, FLAG_DEFINE_VALUE));
     XmlFile projectXml = findProjectXml(module, settings.getOpenFLPath());
     //todo look for include xml &  include xml in openfl lib
     processProjectXml(module, detectedDefines, projectXml);
@@ -195,13 +189,13 @@ public class HaxeDefineDetectionManager implements Disposable {
     List<ProjectXmlDefineValue> defines = getDefinesFromProjectXmlFile(projectXml);
     defines.forEach( value -> {
       if (value.getEnabled(detectedDefines)) {
-        detectedDefines.put(value.getName(), "true");
+        detectedDefines.put(value.getName(), FLAG_DEFINE_VALUE);
       }
     });
     List<ProjectXmlHaxedefValue> haxedef = getHaxeDefFromProjectXmlFile(projectXml);
     haxedef.forEach( value -> {
       if (value.getEnabled(detectedDefines)) {
-        detectedDefines.put(value.getName(), "true");
+        detectedDefines.put(value.getName(), FLAG_DEFINE_VALUE);
       }
     });
 
@@ -229,8 +223,8 @@ public class HaxeDefineDetectionManager implements Disposable {
       HaxelibSemVer version = library.getVersion();
       return version.toString();
     }else {
-      // unknown version, setting true to make the define active (might not work well with compiler, som might have to change this)
-      return "true";
+      // unknown version: the bare-flag value keeps the define active AND comparable
+      return FLAG_DEFINE_VALUE;
     }
   }
 

@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiDocCommentOwner;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -106,6 +107,11 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
 
   @Nullable
   public abstract HaxeModuleModel getDeclaringModule();
+
+  /** Whether the declaration carries {@code @:deprecated}. */
+  public boolean isDeprecated() {
+    return basePsi instanceof PsiDocCommentOwner owner && owner.isDeprecated();
+  }
 
   @Deprecated
   public ResultHolder getResultType() {

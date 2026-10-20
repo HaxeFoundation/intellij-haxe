@@ -40,6 +40,7 @@ import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -53,6 +54,8 @@ import org.jetbrains.io.LocalFileFinder;
 import java.io.File;
 import java.util.*;
 
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HAXE_STD_PATH;
+
 /**
  * Static interface to haxelib class path functionality.
  */
@@ -62,11 +65,6 @@ public class HaxelibClasspathUtils {
   static {
     log.setLevel(LogLevel.DEBUG);
   }
-
-  /** Old environment variable name for the Haxe standard library location. */
-  final public static String HAXE_LIBRARY_PATH = "HAXE_LIBRARY_PATH";
-  /** Modern environment variable name for the Haxe standard library location. */
-  final public static String HAXE_STD_PATH = "HAXE_STD_PATH";
 
   /**
    * Gets the libraries specified for the IDEA project; source paths and
@@ -236,24 +234,20 @@ public class HaxelibClasspathUtils {
     HaxeTarget target = settings.getCompilationTarget();
     String targetFlag = target.getFlag();
 
-    // Find the standard library.
-    String libraryPath = System.getenv(HAXE_STD_PATH);
-    if (null == libraryPath) {
-      // Back off to the old name if the modern one isn't found.
-      libraryPath = System.getenv(HAXE_LIBRARY_PATH);
-    }
-    if (null == libraryPath) {
+    // Find the standard library: every HAXE_STD_PATH entry is a class path to the compiler.
+    List<String> libraryPaths = HaxeEnvironmentVariables.pathList(HAXE_STD_PATH);
+    if (libraryPaths.isEmpty()) {
       return HaxeClasspath.EMPTY_CLASSPATH;
     }
 
     HaxeClasspath cp = new HaxeClasspath();
-
-    if (null != targetFlag) {
-      cp.add(new HaxeClasspathEntry("Std library target implementation",
-                                    libraryPath + File.separator + targetFlag +
-                                      File.separator + "_std"));
+    for (String libraryPath : libraryPaths) {
+      if (null != targetFlag) {
+        String targetImplementation = libraryPath + File.separator + targetFlag + File.separator + "_std";
+        cp.add(new HaxeClasspathEntry("Std library target implementation", targetImplementation));
+      }
+      cp.add(new HaxeClasspathEntry("Standard Library", libraryPath));
     }
-    cp.add(new HaxeClasspathEntry("Standard Library", libraryPath));
     return cp;
   }
 

@@ -34,6 +34,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@code HashLinkBackend} — the bundled external {@code
  *       hl-debug-adapter.hl} process, spoken to over TCP; it attaches to the
  *       runner-spawned debuggee by pid.</li>
+ *   <li>{@code BrowserDebugBackend} — a pinned vscode debug adapter (firefox
+ *       or js-debug) spawned on node; the adapter launches the browser
+ *       itself, so the runner spawns no debuggee.</li>
+ *   <li>{@code NodeDebugBackend} — the pinned vscode-js-debug adapter spawned
+ *       on node and attached to the inspector port of the runner-spawned
+ *       {@code node --inspect-brk} debuggee.</li>
  * </ul>
  *
  * A backend is created by the debug runner BEFORE the debuggee is spawned (a
@@ -218,6 +224,16 @@ public interface DapBackend extends Closeable {
   }
 
   /**
+   * Why this backend cannot take {@code condition} (already qualified) on a
+   * breakpoint, or null when it can. A rejected breakpoint is withheld from
+   * the server and shown invalid with the reason — arming it without the
+   * condition would make it stop every time.
+   */
+  default @Nullable String conditionProblem(Project project, @NotNull String condition) {
+    return null;
+  }
+
+  /**
    * Maps a frame's server-reported source path to an IDE position. The
    * default resolves absolute paths directly and relative ones through the
    * filename index.
@@ -238,6 +254,18 @@ public interface DapBackend extends Closeable {
   }
 
   /**
+   * Whether a breakpoint's file can belong to this debuggee. Bytecode debug
+   * tables carry relative (sometimes bare) file names, so the debuggee side
+   * matches breakpoints by name/suffix — a same-named file from a SIBLING
+   * project then binds into this debuggee and stops it on lines the user
+   * never marked. A backend that knows the build's source directories
+   * accepts only files under them; the default accepts everything.
+   */
+  default boolean acceptsBreakpointFile(String vfsPath) {
+    return true;
+  }
+
+  /**
    * Whether the server understands the custom
    * {@code custom/setToStringRendering} request (object labels via the
    * object's own toString, toggleable live). The vshaxe server does not —
@@ -252,6 +280,28 @@ public interface DapBackend extends Closeable {
    * expression span for the editor highlight).
    */
   default boolean supportsExpressionStepping() {
+    return false;
+  }
+
+  /**
+   * Whether the debuggee's PROGRAM output rides the debug connection as DAP
+   * output events instead of a process's stdout (the browser targets: the
+   * page's console has no process). The debug process then replays those
+   * events through the session's process handler — an attached SM test
+   * console parses them — rather than printing them past the parser.
+   */
+  default boolean programOutputViaAdapter() {
+    return false;
+  }
+
+  /**
+   * Whether the adapter ECHOES the debuggee's program output as stdout and
+   * stderr output events while the real output already arrives on the
+   * process's streams (js-debug on node reports every console call that
+   * way). The debug process then drops the echoes instead of showing each
+   * line twice.
+   */
+  default boolean echoesProgramOutput() {
     return false;
   }
 

@@ -18,20 +18,27 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.HaxeModuleVariants;
 import com.intellij.plugins.haxe.util.HaxeNameUtils;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import com.intellij.openapi.project.IndexNotReadyException;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
 
 public class HaxePackageModel implements HaxeExposableModel {
   private final HaxeProjectModel project;
-  private final HaxeSourceRootModel root;
+  protected final HaxeSourceRootModel root;
   private final HaxePackageModel parent;
   private final String name;
   protected final String path;
@@ -123,36 +130,112 @@ public class HaxePackageModel implements HaxeExposableModel {
 
   protected HaxeFile getFile(String filePath) {
     List<String> parts = HaxeFileUtil.splitPath(filePath);
-    String fname = parts.get(parts.size() - 1);
+    String fname = parts.getLast();
+    if (fname == null || fname.isEmpty()) return null;
 
-    if (null != fname && !fname.isEmpty()) {
-      String packagePath = HaxeFileUtil.joinPath(parts.subList(0, parts.size() - 1));
-      String accessPath = null != packagePath && !packagePath.isEmpty() ? HaxeFileUtil.joinPath(path, packagePath) : path;
-      PsiDirectory directory = root.access(accessPath);
+    String packagePath = HaxeFileUtil.joinPath(parts.subList(0, parts.size() - 1));
+    String accessPath = null != packagePath && !packagePath.isEmpty() ? HaxeFileUtil.joinPath(path, packagePath) : path;
+    try {
+      // target-specific files ("MyClass.js.hx") can shadow plain normal files ("MyClass.hx") when a target is active.
+      HaxeFile variantFile = findActiveVariantFileByIndex(fname, accessPath);
+      if (variantFile != null) return variantFile;
 
+      return findFileByIndex(fname, accessPath);
+    }
+    catch (IndexNotReadyException e) {
+      // dumb mode: indexes unavailable, walk the directories instead
+      return findFileByDirectoryWalk(fname, accessPath);
+    }
+  }
+
+  @Nullable
+  private HaxeFile findActiveVariantFileByIndex(String fname, String accessPath) {
+    if (project == null) return null;
+    for (String variant : HaxeModuleVariants.activeVariants(project.getProject())) {
+      HaxeFile file = findFileByIndex(fname + '.' + variant, accessPath);
+      if (file != null) return file;
+    }
+    return null;
+  }
+
+  /**
+   * Index-backed lookup: one FilenameIndex query with candidates matched to
+   * this root, then to any project root since some libs share package names,
+   * by relative path. Much cheaper than walking subdirectories per package
+   * segment per source root.
+   * <p>
+   * An empty candidate set is a definitive miss: every root the models serve
+   * is an order-entry root (module source roots and library classes roots via
+   * OrderEnumerator, SDK source roots for std - see HaxeProjectModel's
+   * RootsCache), and the platform indexes all of those under allScope. The
+   * only in-scope-but-unindexed states are indexes not yet built (dumb mode,
+   * handled by the IndexNotReadyException fallback in {@link #getFile}) and
+   * user-excluded subtrees, which platform resolve ignores everywhere.
+   */
+  @Nullable
+  private HaxeFile findFileByIndex(String fname, String accessPath) {
+    if (project == null) return null;
+    Collection<VirtualFile> candidates = HaxeFilenameCandidateCache.getInstance(project.getProject()).candidatesFor(fname + ".hx");
+    if (candidates.isEmpty()) return null;
+
+    String relative = relativeFilePath(fname, accessPath);
+    VirtualFile found = findInRoot(root, relative, candidates);
+    if (found != null) return asHaxeFile(found);
+
+    // scan all source roots in project order (some libs share package names)
+    for (HaxeSourceRootModel other : project.getRoots()) {
+      found = findInRoot(other, relative, candidates);
+      if (found != null) return asHaxeFile(found);
+    }
+    return null;
+  }
+
+  /**
+   * One VFS descent instead of a relative-path walk per candidate. Candidate
+   * membership doubles as the exact-name check: on a case-insensitive
+   * filesystem the descent can return a case-mismatched file, which the
+   * index never lists under this name.
+   */
+  @Nullable
+  private static VirtualFile findInRoot(HaxeSourceRootModel rootModel, String relative, Collection<VirtualFile> candidates) {
+    if (rootModel.root == null) return null;
+    VirtualFile file = rootModel.root.findFileByRelativePath(relative);
+    return file != null && candidates.contains(file) ? file : null;
+  }
+
+  private static @NotNull String relativeFilePath(String fname, String accessPath) {
+    // package paths mix '.' and '/' separators depending on the caller
+    return accessPath == null || accessPath.isEmpty()
+           ? fname + ".hx"
+           : accessPath.replace('.', '/') + '/' + fname + ".hx";
+  }
+
+  @Nullable
+  private HaxeFile asHaxeFile(VirtualFile file) {
+    PsiFile psi = PsiManager.getInstance(project.getProject()).findFile(file);
+    return psi instanceof HaxeFile haxeFile && haxeFile.isValid() ? haxeFile : null;
+  }
+
+  @Nullable
+  private HaxeFile findFileByDirectoryWalk(String fname, String accessPath) {
+    PsiDirectory directory = root.access(accessPath);
+    if (directory != null && directory.isValid()) {
+      PsiFile file = directory.findFile(fname + ".hx");
+      if (file != null && file.isValid() && file instanceof HaxeFile haxeFile) {
+        return haxeFile;
+      }
+    }
+    // scan all source roots (some libs share package names across libs)
+    if (project == null) return null;
+    for (HaxeSourceRootModel rootModel : project.getRoots()) {
+      directory = rootModel.access(accessPath);
       if (directory != null && directory.isValid()) {
         PsiFile file = directory.findFile(fname + ".hx");
         if (file != null && file.isValid() && file instanceof HaxeFile haxeFile) {
           return haxeFile;
         }
       }
-
-      // scan all source roots (some libs share package names across libs)
-      if (project != null) {
-        List<HaxeSourceRootModel> roots = project.getRoots();
-        for (HaxeSourceRootModel rootModel : roots) {
-          directory = rootModel.access(accessPath);
-
-          if (directory != null && directory.isValid()) {
-            PsiFile file = directory.findFile(fname + ".hx");
-            if (file != null && file.isValid() && file instanceof HaxeFile) {
-              return (HaxeFile)file;
-            }
-          }
-        }
-      }
     }
-
     return null;
   }
 
@@ -185,25 +268,56 @@ public class HaxePackageModel implements HaxeExposableModel {
     return Collections.emptyList();
   }
 
+  /**
+   * The main class of every module in this package. Cached on the package
+   * directory, since the same-package check runs this for every reference no
+   * earlier check resolved. Invalidates on ANY PSI change
+   * (global modification count) - a PsiDirectory has no per-directory
+   * timestamp, so finer dependencies cannot exist; the global count also
+   * covers files added to or removed from the directory.
+   */
   @NotNull
   public List<HaxeModel> getModulesMainClass() {
     PsiDirectory directory = root.access(path);
-    if (directory != null) {
-      PsiFile[] files = directory.getFiles();
+    if (directory == null) return Collections.emptyList();
+    return CachedValuesManager.getCachedValue(directory, () -> modulesMainClassResult(directory));
+  }
 
-      List<HaxeModel>  result = new ArrayList<>();
-      for(PsiFile file : files) {
-        if( file instanceof HaxeFile) {
-          HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
-          if(fileModel != null) {
-            HaxeClassModel mainClassModel = fileModel.getMainClassModel();
-            if(mainClassModel != null)result.add(mainClassModel);
-          }
-        }
+  private static CachedValueProvider.Result<List<HaxeModel>> modulesMainClassResult(PsiDirectory directory) {
+    // one entry per module: a target-specific file and its plain sibling both
+    // declare the same module, so only the ladder's winner is that module here
+    Map<String, HaxeClassModel> winners = new LinkedHashMap<>();
+    Map<String, Integer> ranks = new HashMap<>();
+    for (PsiFile file : directory.getFiles()) {
+      if (!(file instanceof HaxeFile haxeFile)) continue;
+
+      HaxeFileModel fileModel = HaxeFileModel.fromElement(haxeFile);
+      if (fileModel == null) continue;
+
+      HaxeClassModel mainClassModel = fileModel.getMainClassModel();
+      if (mainClassModel == null) continue;
+
+      String module = fileModel.getName();
+      int rank = variantRank(haxeFile);
+      Integer existing = ranks.get(module);
+      if (existing == null || rank > existing) {
+        winners.put(module, mainClassModel);
+        ranks.put(module, rank);
       }
-      return result;
     }
-    return Collections.emptyList();
+    List<HaxeModel> result = List.copyOf(winners.values());
+    return CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT);
+  }
+
+  /**
+   * The compiler's platform file selection as a rank: an ACTIVE target-specific
+   * file ("Net.js.hx" while js compiles) shadows the plain "Net.hx"; an
+   * inactive one only stands in when no other file declares the module.
+   */
+  private static int variantRank(@NotNull HaxeFile file) {
+    String variant = HaxeModuleVariants.variantOf(file);
+    if (variant == null) return 1;
+    return HaxeModuleVariants.isActive(variant, file.getProject()) ? 2 : 0;
   }
 
   @Override

@@ -133,16 +133,7 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
         if (null == fnName1) return -1;
         if (null == fnName2) return 1;
 
-        int comp = fnName1.compareTo(fnName2);
-        if (0 == comp) {
-          Object obj1 = el1.getObject();
-          Object obj2 = el2.getObject();
-
-          comp = obj1 instanceof HaxeCompilerCompletionItem
-                  ? (obj2 instanceof HaxeCompilerCompletionItem ? 0 : -1)
-                  : (obj2 instanceof HaxeCompilerCompletionItem ? 1 : 0);
-        }
-        return comp;
+        return fnName1.compareTo(fnName2);
       }
     })
             .toList();

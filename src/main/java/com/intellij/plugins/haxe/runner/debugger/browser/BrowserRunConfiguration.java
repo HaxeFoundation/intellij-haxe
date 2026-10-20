@@ -3,24 +3,35 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationPerRunnerSettings;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
+import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.profiler.HaxeProfilableRunConfiguration;
+import com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import lombok.Getter;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterPin;
+import com.intellij.plugins.haxe.runner.debugger.javascript.AdapterStores;
+import com.intellij.plugins.haxe.runner.debugger.javascript.JsDebugAdapters;
 
 /**
  * Debug a haxe -js build in a browser (experimental): the vscode DAP debug
@@ -41,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  * vscode-js-debug; other families cannot be debugged. Executable paths are
  * configured in the registry, not here.
  */
-public class BrowserRunConfiguration extends DapRunConfigurationBase {
+public class BrowserRunConfiguration extends DapRunConfigurationBase implements HaxeProfilableRunConfiguration {
   /** Which adapter family drives the session; derived from the selected browser. */
   public enum BrowserFamily {FIREFOX, CHROMIUM}
 
@@ -82,16 +93,24 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
     nodePath = value == null ? "" : value;
   }
 
+  /** The node the adapter runs on: this configuration's override, else the Haxe SDK's runtimes entry; empty leaves the PATH lookup to the locator. */
+  @NotNull
+  public String effectiveNodePath() {
+    if (!nodePath.isBlank()) {
+      return nodePath;
+    }
+    String fromSdk = HaxeToolPathResolver.resolveNodeExecutable(getProject(), null);
+    return fromSdk != null ? fromSdk : "";
+  }
+
   /** The pinned DAP adapter driving the given family. */
   public static AdapterPin adapterPinFor(BrowserFamily family) {
     return family == BrowserFamily.CHROMIUM ? AdapterPin.JS_DEBUG : AdapterPin.FIREFOX;
   }
 
-  /** The user-facing adapter name ("Firefox DAP debugger" / "Chromium DAP debugger"). */
+  /** The user-facing name of the adapter driving the given family. */
   public static String adapterDisplayName(BrowserFamily family) {
-    return HaxeDebuggerBundle.message(family == BrowserFamily.CHROMIUM
-                                      ? "browser.runner.adapter.name.chromium"
-                                      : "browser.runner.adapter.name.firefox");
+    return JsDebugAdapters.displayName(adapterPinFor(family));
   }
 
   // --- validation ---
@@ -106,8 +125,11 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
       if (root == null) {
         throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("browser.runner.no.content.root"));
       }
+      // a warning, not an error: the Before launch build step creates the
+      // directory, and this check runs before that step; the launch itself
+      // fails with the same message when it is still missing afterwards
       if (!Files.isDirectory(root)) {
-        throw new RuntimeConfigurationError(
+        throw new RuntimeConfigurationWarning(
           HaxeDebuggerBundle.message("browser.runner.content.root.missing", contentRoot));
       }
     } else {
@@ -119,7 +141,7 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
       if (!contentRoot.isBlank()) {
         Path root = resolveContentRootOrNull();
         if (root == null || !Files.isDirectory(root)) {
-          throw new RuntimeConfigurationError(
+          throw new RuntimeConfigurationWarning(
             HaxeDebuggerBundle.message("browser.runner.content.root.missing", contentRoot));
         }
       }
@@ -141,40 +163,66 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
       throw new RuntimeConfigurationError(
         HaxeDebuggerBundle.message("browser.runner.browser.no.exe", browser.getName()));
     }
+  }
 
-    // downloading the adapter is the USER's explicit decision (the editor's
-    // Download link) - a session never downloads, so a missing adapter is an
-    // incorrect configuration, not a launch-time surprise
-    AdapterPin pin = adapterPinFor(family);
-    if (!new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).isInstalled(pin)) {
-      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message(
-        "browser.runner.adapter.missing", adapterDisplayName(family) + " " + pin.version()));
+  // Only Debug uses the adapter (Run opens the page, Profile drives CDP
+  // itself), so its check hangs off the runner: the platform calls this hook
+  // for the runner about to execute, and an error here blocks that launch
+  // without touching the other executors. Downloading is the USER's explicit
+  // decision (the editor's Download link) - a session never downloads, so a
+  // missing adapter is an incorrect configuration, not a launch-time surprise.
+  @Override
+  public void checkRunnerSettings(@NotNull ProgramRunner runner,
+                                  @Nullable RunnerSettings runnerSettings,
+                                  @Nullable ConfigurationPerRunnerSettings configurationPerRunnerSettings)
+    throws RuntimeConfigurationException {
+    if (runner instanceof DapDebugRunnerBase<?, ?>) {
+      checkAdapterDownloaded();
     }
   }
 
-  /** The content directory: the setting, project-relative when not absolute. */
+  /** The selected browser's pinned adapter must be in the store; a missing or unsupported browser is checkConfiguration's error. */
+  private void checkAdapterDownloaded() throws RuntimeConfigurationError {
+    BrowserFamily family = DebugBrowser.familyOf(DebugBrowser.resolve(browserId));
+    if (family == null) return;
+    AdapterPin pin = adapterPinFor(family);
+    if (!AdapterStores.open().isInstalled(pin)) {
+      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message(
+        "javascript.adapter.missing", adapterDisplayName(family) + " " + pin.version()));
+    }
+  }
+
+  /** The content directory: the setting, module-relative when not absolute. */
   public @Nullable Path resolveContentRootOrNull() {
-    if (contentRoot.isBlank()) {
-      return null;
-    }
-    try {
-      Path path = Path.of(contentRoot);
-      if (path.isAbsolute()) {
-        return path;
-      }
-      String basePath = getProject().getBasePath();
-      return basePath != null ? Path.of(basePath).resolve(path) : path;
-    } catch (InvalidPathException e) {
-      return null;
-    }
+    return contentRoot.isBlank() ? null : resolveAgainstModule(contentRoot);
+  }
+
+  @Override
+  public @NotNull Lane profilingLane() {
+    return Lane.JS;
+  }
+
+  /** Profiling drives V8 over CDP — a Chromium-family browser only; Firefox speaks no CDP. */
+  @Override
+  public boolean isProfilingReady() {
+    if (DumbService.isDumb(getProject())) return false;
+    if (DebugBrowser.familyOf(DebugBrowser.resolve(browserId)) != BrowserFamily.CHROMIUM) return false;
+    return serveContent ? !contentRoot.isBlank() : !url.isBlank();
   }
 
   // The platform builds this state BEFORE any runner acts — for BOTH
   // executors. Run executes it (serve + open browser, no debugger); the debug
-  // runner ignores it and builds the DAP session itself.
+  // runner ignores it and builds the DAP session itself; the profiler
+  // executor gets the CDP-driven state.
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     requireModule();
+    // non-null exactly when the IU "Run with Profiler" executor launched us
+    // with the JavaScript Profiler entry selected
+    Integer samplingIntervalUs = HaxeProfilerExecutorSupport.jsSamplingIntervalUs(executor);
+    if (samplingIntervalUs != null) {
+      return new BrowserProfilingState(this, samplingIntervalUs);
+    }
     return new BrowserRunningState(this);
   }
 

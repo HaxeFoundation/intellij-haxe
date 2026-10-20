@@ -18,7 +18,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteralComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteralElement;
-import com.intellij.plugins.haxe.lang.psi.HaxeResolver;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -28,19 +27,18 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.lang.psi.HaxeResolveChecks;
 
-/**
- * Lets you Ctrl/Cmd+Click the <em>key</em> of an object literal and jump to the field it fills in
- * on the structure the literal is typed against.
- *
- * <p>For {@code var c:Config = { name: "x" }} clicking {@code name} navigates to the {@code name}
- * field declared in {@code Config}. The field is looked up through the structure's full member set,
- * so it also works when {@code Config} extends (or is built from) other typedefs.</p>
- *
- * <p>The object literal key is otherwise a field <em>declaration</em> on the literal's own anonymous
- * type (it has no reference), so plain reference resolution never produces a navigation target here.
- * This handler adds that target without touching find-usages, rename or highlighting.</p>
- */
+/// Lets you Ctrl/Cmd+Click the *key* of an object literal and jump to the field it fills in
+/// on the structure the literal is typed against.
+///
+/// For `var c:Config = { name: "x" }` clicking `name` navigates to the `name`
+/// field declared in `Config`. The field is looked up through the structure's full member set,
+/// so it also works when `Config` extends (or is built from) other typedefs.
+///
+/// The object literal key is otherwise a field *declaration* on the literal's own anonymous
+/// type (it has no reference), so plain reference resolution never produces a navigation target here.
+/// This handler adds that target without touching find-usages, rename or highlighting.
 public class HaxeGotoDeclarationHandler implements GotoDeclarationHandler {
 
   @Override
@@ -65,7 +63,7 @@ public class HaxeGotoDeclarationHandler implements GotoDeclarationHandler {
       // findObjectLiteralType only understands a few direct contexts (assignment, return, var init,
       // plain call). Fall back to the resolver's full finder, which also handles constructor
       // arguments and literals nested inside arrays or other object literals.
-      expectedType = HaxeResolver.findExpectedType(objectLiteral);
+      expectedType = HaxeResolveChecks.findExpectedType(objectLiteral);
     }
     if (expectedType == null || expectedType.isUnknown()) return null;
 

@@ -106,7 +106,7 @@ public final class HaxeDebugTimeLog {
    */
   public static void logStamp(@NotNull Logger logger, @Nullable String message) {
     if (null == message) message = "";
-    logger.debug(message + ":" + formatTime(System.currentTimeMillis()));
+    if (logger.isDebugEnabled()) logger.debug(message + ":" + formatTime(System.currentTimeMillis()));
   }
 
   /**
@@ -289,11 +289,11 @@ public final class HaxeDebugTimeLog {
     }
 
     public void log(@NotNull Logger logger) {
-      logger.debug(buildLogMsg(false, null, null));
+      if (logger.isDebugEnabled()) logger.debug(buildLogMsg(false, null, null));
     }
 
     public void log(@NotNull Logger logger, boolean showTimeStamp, @Nullable TimeStamp first, @Nullable TimeStamp previous) {
-      logger.debug(buildLogMsg(showTimeStamp, first, previous));
+      if (logger.isDebugEnabled()) logger.debug(buildLogMsg(showTimeStamp, first, previous));
     }
 
     public String buildLogMsg(boolean showTimeStamp, @Nullable TimeStamp first, @Nullable TimeStamp previous) {

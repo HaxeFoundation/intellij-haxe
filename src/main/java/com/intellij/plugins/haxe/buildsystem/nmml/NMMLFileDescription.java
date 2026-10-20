@@ -3,7 +3,7 @@ package com.intellij.plugins.haxe.buildsystem.nmml;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.plugins.haxe.buildsystem.ProjectXml;
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -12,40 +12,30 @@ import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
-public class NMMLFileDescription extends DomFileDescription<ProjectXml> {
-
+public class NMMLFileDescription extends DomFileDescription<NmmlProjectXml> {
 
     public NMMLFileDescription() {
-        super(ProjectXml.class, ProjectXml.TAG_NAME);
-    }
-    @Override
-    public @Nullable Icon getFileIcon(@NotNull XmlFile file, @Iconable.IconFlags int flags) {
-        if(isNmmlFile(file)) {
-            return HaxeIcons.NMML_LOGO;
-        }
-        return null;
+        super(NmmlProjectXml.class, ProjectXmlVocabulary.ROOT_ELEMENT);
     }
 
     @Override
-    public @Nullable Icon getFileIcon(int flags) {
-        return super.getFileIcon(flags);
+    public @Nullable Icon getFileIcon(@Iconable.IconFlags int flags) {
+        return HaxeIcons.NMML_LOGO;
     }
-
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
         return isNmmlFile(file);
     }
 
+    /** Any file under NME's extension with a {@code <project>} root, the rule the build-file scanner applies. */
     private static boolean isNmmlFile(@NotNull XmlFile file) {
         XmlDocument document = file.getDocument();
-        if(document == null) return false;
-
-        XmlTag rootTag = document.getRootTag();
-        if(rootTag == null) return false;
-
-        return FileUtilRt.extensionEquals(file.getName(), NMMLFileType.INSTANCE.getDefaultExtension());
+        XmlTag root = document == null ? null : document.getRootTag();
+        if (root == null) return false;
+        return FileUtilRt.extensionEquals(file.getName(), NMMLFileType.DEFAULT_EXTENSION)
+               && ProjectXmlVocabulary.ROOT_ELEMENT.equalsIgnoreCase(root.getLocalName());
     }
 }

@@ -16,7 +16,6 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.google.gson.*;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 
@@ -25,9 +24,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +94,7 @@ public class HaxelibMetadata {
     path = "";
   }
 
-  /** Test constructor */
+  /** Parses in-memory content — fetched haxelib.json or test json. */
   public HaxelibMetadata(@NotNull String json) {
     root = parse(json);
     path = "";

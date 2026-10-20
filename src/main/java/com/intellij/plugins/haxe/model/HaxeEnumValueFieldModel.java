@@ -2,11 +2,9 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 
 
 public class HaxeEnumValueFieldModel extends HaxeFieldModel implements HaxeEnumValueModel {
@@ -51,22 +49,7 @@ public class HaxeEnumValueFieldModel extends HaxeFieldModel implements HaxeEnumV
 
   @Override
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
-
-      HaxeClassReference superclassReference = new HaxeClassReference(haxeClass.getModel(), haxeClass);
-      if (resolver != null) {
-        SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
-
-        return reference.createHolder();
-      } else {
-        SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withoutGenerics(superclassReference);
-        return reference.createHolder();
-      }
-    }
-    return SpecificHaxeClassReference.getUnknown(aClass).createHolder();
+    return declaringEnumType(resolver);
   }
 
 
@@ -74,14 +57,4 @@ public class HaxeEnumValueFieldModel extends HaxeFieldModel implements HaxeEnumV
   public String getPresentableText(HaxeMethodContext context) {
     return getName();
   }
-
-  @Nullable
-  public HaxeClassModel getDeclaringEnum() {
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
-      return haxeClass.getModel();
-    }
-    return null;
-  }
-
 }

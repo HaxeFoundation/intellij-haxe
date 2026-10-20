@@ -1,6 +1,10 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.search.ExecutionSearchScopes;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
@@ -46,18 +50,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The shared XDebugger process for every DAP-based debugger: a DAP client
- * over a {@link DapBackend} (the in-process vshaxe adapter, the debuggee's
- * embedded intellij-hxcpp-debug-server, or the eval adapter), bridging its
- * events into the IDE. Mirrors the HashLink debug process, but simpler in two
- * ways: the peer is reached over a loopback socket (no external process to
- * manage), and the debuggee is a plain child process (no OS-level debug
- * attachment, so killing it needs no special ceremony).
+ * The shared XDebugger process for every DAP-based debugger: a generic DAP
+ * client over any {@link DapBackend}, bridging its events into the IDE. The
+ * backend supplies the adapter connection (a spawned adapter, a connection to
+ * a running one, or a listening socket the debuggee connects to) and, where
+ * there is one, takes part in the debuggee's lifecycle: some backends attach
+ * to the OS process (HashLink), some have no runner-spawned debuggee at all
+ * (browser - the adapter launches the browser itself).
  *
- * The debuggee is spawned by the debug runner; its {@link ProcessHandler} is
- * the session's process handler, so console output, stdin and the exit code
- * flow through the normal run machinery, and the session ends when the
- * debuggee does.
+ * A runner-spawned debuggee's {@link ProcessHandler} is the session's process
+ * handler, so console output, stdin and the exit code flow through the normal
+ * run machinery, and the session ends when the debuggee does. Without one the
+ * session runs on a no-op handler.
  *
  * Threading: the IDE calls resume/step/stop on the EDT — those only submit
  * work to a single-thread request executor. A dedicated event-pump thread is
@@ -156,10 +160,19 @@ public class DapDebugProcess extends XDebugProcess {
   // The default XDebugProcess.createConsole() builds a console but never
   // attaches it to the process handler (unlike CommandLineState, which does) —
   // without this override the debuggee's stdout/stderr go nowhere.
+  // A debugged TEST run gets an SM test console instead: the teamcity messages
+  // on the debuggee's stdout drive the test tree while breakpoints work.
   @Override
   public @NotNull ExecutionConsole createConsole() {
+    ExecutionConsole testConsole = DapTestConsoles.createTestConsole(
+      getSession().getRunProfile(), DefaultDebugExecutor.getDebugExecutorInstance(), processHandler);
+    if (testConsole != null) {
+      return testConsole;
+    }
+    Project project = getSession().getProject();
+    GlobalSearchScope scope = ExecutionSearchScopes.executionScope(project, getSession().getRunProfile());
     ConsoleView console = TextConsoleBuilderFactory.getInstance()
-      .createBuilder(getSession().getProject())
+      .createBuilder(project, scope)
       .getConsole();
     console.attachToProcess(processHandler);
     return console;
@@ -232,10 +245,11 @@ public class DapDebugProcess extends XDebugProcess {
   /** Breakpoints, exception filters and settings, then configurationDone. */
   private void sendStartupConfiguration() throws IOException, InterruptedException {
     breakpoints.flushAll();
+    printSystem("[debug] " + breakpoints.armedDescription() + "\n");
     // Exception filters go IN-PHASE (before configurationDone), built by
     // reading the breakpoint manager: a breakpoint already enabled from a
     // previous IDE run arms here — the registerBreakpoint callbacks alone
-    // fire on the EDT and would race startup (the HashLink lesson).
+    // fire on the EDT and would race startup.
     if (backend.supportsExceptionFilters()) {
       sendRequest(exceptionFiltersRequest());
     }
@@ -344,8 +358,7 @@ public class DapDebugProcess extends XDebugProcess {
     // tempting: the firefox adapter's actor proxies answer requests through a
     // per-thread FIFO queue, and firefox never answers an interrupt that
     // RACES a breakpoint pause - the unanswered request wedges that thread's
-    // queue FOREVER (every later stackTrace/evaluate for it times out;
-    // verified in the adapter's base actor proxy source).
+    // queue FOREVER (every later stackTrace/evaluate for it times out).
     // Threads that pause independently therefore also keep RUNNING
     // independently while one of them is on screen.
   }
@@ -423,20 +436,39 @@ public class DapDebugProcess extends XDebugProcess {
   }
 
   List<DapThread> requestThreads() {
-    return sendRequest(new ThreadsRequest()) instanceof ThreadsResponse response && response.isSuccess()
-           ? response.getBody().getThreads() : List.of();
+    if (sendRequest(new ThreadsRequest()) instanceof ThreadsResponse response && response.isSuccess()) {
+      return response.getBody().getThreads();
+    }
+    return List.of();
   }
 
   List<StackFrame> requestStackTrace(int threadId) {
-    return sendRequest(StackTraceRequest.of(threadId)) instanceof StackTraceResponse response && response.isSuccess()
-           ? response.getBody().getStackFrames() : List.of();
+    if (sendRequest(StackTraceRequest.of(threadId)) instanceof StackTraceResponse response && response.isSuccess()) {
+      return response.getBody().getStackFrames();
+    }
+    return List.of();
   }
 
   private void handleOutput(OutputEvent output) {
     String text = output.getBody().getOutput();
-    if (text != null) {
-      print(text, "stderr".equals(output.getBody().getCategory()));
+    String category = output.getBody().getCategory();
+    if (text == null || !DapOutputEvents.shownToUser(category, backend.echoesProgramOutput())) {
+      return;
     }
+    boolean stderr = "stderr".equals(category);
+    if (backend.programOutputViaAdapter()) {
+      // the debuggee's real output rides the debug connection (a browser
+      // page's console): replaying it through the process handler lets the
+      // attached SM test console parse it - print() would bypass the
+      // converter. The hosted-run completion sentinel is control flow for
+      // the RUN lane; a debug session just drops it.
+      String replayed = HostedTestRunSentinel.strip(text);
+      if (!replayed.isEmpty()) {
+        processHandler.notifyTextAvailable(replayed, stderr ? ProcessOutputTypes.STDERR : ProcessOutputTypes.STDOUT);
+      }
+      return;
+    }
+    print(text, stderr);
   }
 
   /** Grey system-output line (e.g. an external adapter's own chatter). */
@@ -750,8 +782,10 @@ public class DapDebugProcess extends XDebugProcess {
   }
 
   public List<Scope> requestScopes(int frameId) {
-    return sendRequest(ScopesRequest.of(frameId)) instanceof ScopesResponse response && response.isSuccess()
-           ? response.getBody().getScopes() : List.of();
+    if (sendRequest(ScopesRequest.of(frameId)) instanceof ScopesResponse response && response.isSuccess()) {
+      return response.getBody().getScopes();
+    }
+    return List.of();
   }
 
   /**
@@ -775,8 +809,10 @@ public class DapDebugProcess extends XDebugProcess {
       unresponsiveVariableRefs.add(variablesReference);
       return List.of();
     }
-    return response instanceof VariablesResponse ok && ok.isSuccess()
-           ? ok.getBody().getVariables() : List.of();
+    if (response instanceof VariablesResponse ok && ok.isSuccess()) {
+      return ok.getBody().getVariables();
+    }
+    return List.of();
   }
 
   /**
@@ -856,9 +892,7 @@ public class DapDebugProcess extends XDebugProcess {
       future = new CompletableFuture<>();
     onRequestThread(() -> {
       CompletionsRequest request = CompletionsRequest.of(frameId >= 0 ? frameId : null, text, column);
-      future.complete(sendRequest(request) instanceof CompletionsResponse response && response.isSuccess()
-                      && response.getBody() != null && response.getBody().getTargets() != null
-                      ? response.getBody().getTargets() : List.of());
+      future.complete(completionTargets(sendRequest(request)));
     }, () -> future.complete(List.of()));
     try {
       return future.get(2, TimeUnit.SECONDS);
@@ -882,8 +916,16 @@ public class DapDebugProcess extends XDebugProcess {
     if (response instanceof SetVariableResponse ok && response.isSuccess() && ok.getBody() != null) {
       return ok.getBody();
     }
-    throw new IllegalStateException(response != null && response.getMessage() != null
-                                    ? response.getMessage() : "the debugger rejected the change");
+    String reason = response != null && response.getMessage() != null ? response.getMessage() : "the debugger rejected the change";
+    throw new IllegalStateException(reason);
+  }
+
+  /** The completion targets of a successful response; empty on failure or an answer without targets. */
+  @NotNull
+  private static List<CompletionItem> completionTargets(@Nullable Response response) {
+    boolean answered = response instanceof CompletionsResponse ok
+      && ok.isSuccess() && ok.getBody() != null && ok.getBody().getTargets() != null;
+    return answered ? ((CompletionsResponse)response).getBody().getTargets() : List.of();
   }
 
   // --- XDebugProcess wiring ---

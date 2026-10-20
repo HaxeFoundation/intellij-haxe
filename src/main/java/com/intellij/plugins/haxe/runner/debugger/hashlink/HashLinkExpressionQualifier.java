@@ -37,11 +37,12 @@ import org.jetbrains.annotations.Nullable;
  * already evaluated in a compound expression — {@code increase() + Cls.member}
  * would call {@code increase()} twice. Sending once keeps side effects once.
  *
- * <p>A detached code fragment's own {@code resolve()} does NOT honor the context
- * file's imports, so each type <em>name</em> is resolved against the context via
- * the model layer (the Haxe analogue of Flex's {@code
- * JSImportHandlingUtil.resolveTypeName}) — the same {@code exposeByName} path
- * {@link com.intellij.plugins.haxe.lang.psi.HaxeResolver} itself uses.
+ * <p>Each type <em>name</em> is resolved against the context through the model
+ * layer (the same {@code exposeByName} path
+ * {@link com.intellij.plugins.haxe.lang.psi.HaxeResolver} itself uses) rather
+ * than the fragment's own {@code resolve()}: the rewrite also qualifies a class the
+ * context never imports when it is the project's only one of that name, and must
+ * leave an ambiguous one bare.
  *
  * <p>Limitation: a local variable named exactly like a resolvable class (one the
  * context imports, shares a package with, or the project's single class of that
@@ -59,7 +60,7 @@ final class HashLinkExpressionQualifier {
    * Returns {@code expression} with each bare class reference replaced by its
    * fully-qualified name; returns it unchanged when there is no usable context or
    * nothing needs qualifying. Never throws — a rewrite failure falls back to the
-   * original text (the adapter then reports a clear UNRESOLVED_NAME as before).
+   * original text (the adapter then reports a clear UNRESOLVED_NAME).
    */
   static @NotNull String qualify(@NotNull Project project, @Nullable XSourcePosition position,
                                  @NotNull String expression) {
