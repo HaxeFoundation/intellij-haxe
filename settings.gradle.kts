@@ -22,3 +22,9 @@ include(":profilers:core")
 
 // haxe JSON-RPC display protocol (allow the IDE to communicate with Haxe Compiler)
 include(":display-protocol")
+
+// Custom tool for evaluating Lime/openFL projects including HXP
+include(":tools:LimeProjectParser")
+
+
+

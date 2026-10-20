@@ -309,14 +309,20 @@ tasks {
     }
 
 
-    // ship the DAP debug adapter bytecode inside the plugin directory (not a jar):
-    // the hl executable needs a real file path to run it
+    //Makes sure the latest Hashlink debugger and LimeProjectParser is added to the sandbox
     withType<PrepareSandboxTask> {
 
         dependsOn(":debuggers:hashlink-debug-adapter:buildDebugAdapter")
         from(project(":debuggers:hashlink-debug-adapter").layout.buildDirectory.file("hl/hl-debug-adapter.hl")) {
             into(pluginName.map { "$it/adapter" })
         }
+
+        // Note: the lime project parser/evaluator is a jar that contains compiled java and Haxe sources
+        dependsOn(":tools:LimeProjectParser:buildParser")
+        from(project(":tools:LimeProjectParser").layout.buildDirectory.file("libs/LimeProjectParser.jar")) {
+            into(pluginName.map { "$it/tools" })
+        }
+
     }
 
 
