@@ -36,6 +36,7 @@
   <depends optional="true" config-file="haxe-grazie.xml">tanvd.grazi</depends>
   <!-- IU-only: the Profiler tool window integration (snapshot parsers, jump-to-source) -->
   <depends optional="true" config-file="haxe-profiler-support.xml">com.intellij.modules.profiler</depends>
+  <depends optional="true" config-file="haxe-diagram-support.xml">com.intellij.diagram</depends>
 
   <!-- Leave the '999' at the start of unreleased version numbers so that it's always newer than any released version. -->
   <version>DEV @plugin.dev.version@ for @plugin.compatibility.description@</version>
