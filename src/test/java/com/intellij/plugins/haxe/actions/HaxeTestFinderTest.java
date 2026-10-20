@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.actions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.HaxeTestFinder;
 import com.intellij.psi.PsiFile;
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
  * @author: Fedor.Korotkov
  */
 @DisplayName("Navigation: test finder")
-public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeTestFinderTest extends HaxeLightFixtureTestCase {
   private HaxeTestFinder myTestFinder = null;
 
   @Override
@@ -44,16 +44,16 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
     myTestFinder = new HaxeTestFinder();
   }
 
-  private void doFindTestsTest(int i) {
-    doFindTestsTest(myFixture.configureByFiles(getTestName(false) + "." + HaxeFileType.DEFAULT_EXTENSION), 1);
+  private void doFindTestsTest(int expectedCount) {
+    doFindTestsTest(myFixture.configureByFiles(getTestName(false) + "." + HaxeFileType.DEFAULT_EXTENSION), expectedCount);
   }
 
   private void doFindTestsTest(PsiFile[] files, int size) {
     assertEquals(size, myTestFinder.findTestsForClass(myFixture.getElementAtCaret()).size());
   }
 
-  private void doFindClassesTest(int i) {
-    doFindClassesTest(myFixture.configureByFiles(getTestName(false) + "." + HaxeFileType.DEFAULT_EXTENSION), 1);
+  private void doFindClassesTest(int expectedCount) {
+    doFindClassesTest(myFixture.configureByFiles(getTestName(false) + "." + HaxeFileType.DEFAULT_EXTENSION), expectedCount);
   }
 
   private void doFindClassesTest(PsiFile[] files, int size) {

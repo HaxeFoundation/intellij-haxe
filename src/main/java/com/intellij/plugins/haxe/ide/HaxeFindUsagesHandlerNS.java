@@ -38,7 +38,6 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.SmartList;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,10 +148,12 @@ public abstract class HaxeFindUsagesHandlerNS extends FindUsagesHandler {
 
     HaxeMemberModel classField = null;
 
-    if (StringUtils.startsWith(methodName, GETTER_PREFIX)) {
-      classField = parentModel.getField(methodName.substring(GETTER_PREFIX.length()), null);
-    } else if (StringUtils.startsWith(methodName, SETTER_PREFIX)) {
-      classField = parentModel.getField(methodName.substring(SETTER_PREFIX.length()), null);
+    if (parentModel != null){
+      if (methodName.startsWith(GETTER_PREFIX)) {
+        classField = parentModel.getField(methodName.substring(GETTER_PREFIX.length()), null);
+      } else if (methodName.startsWith(SETTER_PREFIX)) {
+        classField = parentModel.getField(methodName.substring(SETTER_PREFIX.length()), null);
+      }
     }
     return classField == null ? null : new PsiElement[]{classField.getBasePsi()};
   }
@@ -189,7 +190,7 @@ public abstract class HaxeFindUsagesHandlerNS extends FindUsagesHandler {
   @NotNull
   @Override
   public PsiElement[] getSecondaryElements() {
-    PsiElement[] secondaryElements = ReadAction.compute(() -> {
+    PsiElement[] secondaryElements = ReadAction.computeBlocking(() -> {
       if (getPsiElement() instanceof HaxeMethodDeclaration) {
         return HaxeFindUsagesHandlerNS.tryGetProperty((HaxeMethodDeclaration)getPsiElement());
       } else if (getPsiElement() instanceof HaxeFieldDeclaration &&

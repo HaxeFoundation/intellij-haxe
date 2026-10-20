@@ -78,7 +78,7 @@ final public class HaxeHierarchyTimeoutHandler {
     // We have to capture the progress indicator here because the timer fires on a different
     // thread, and won't be able to find it.  So we capture it and hold it in the closure.
     final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-    log.debug("Progress Indicator is" + progressIndicator.toString());
+    if (log.isDebugEnabled()) log.debug("Progress Indicator is" + progressIndicator.toString());
 
     myTimer = new Timer(getClass().getSimpleName());
     myTimer.schedule( new TimerTask() {
@@ -114,7 +114,7 @@ final public class HaxeHierarchyTimeoutHandler {
       }
 
       HaxeDebugTimeLog.logStamp(log, "Canceling hierarchy request. Took too long.");
-      log.debug("Timer canceled after " + (stopTime - startTime) + " milliseconds.");
+      if (log.isDebugEnabled()) log.debug("Timer canceled after " + (stopTime - startTime) + " milliseconds.");
     }
     canceled = true;
   }
@@ -127,7 +127,7 @@ final public class HaxeHierarchyTimeoutHandler {
     stopped = true;
 
     stopTime = System.currentTimeMillis();
-    log.debug("Timer stopped after " + (stopTime - startTime) + " milliseconds.");
+    if (log.isDebugEnabled()) log.debug("Timer stopped after " + (stopTime - startTime) + " milliseconds.");
   }
 
   /**

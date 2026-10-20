@@ -63,6 +63,9 @@
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
+    <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationProxy"/>
+    <psi.referenceContributor language="Haxe" implementation="com.intellij.plugins.haxe.ide.references.HaxeStringLiteralReferenceContributor"/>
+    <psi.referenceContributor language="XML" implementation="com.intellij.plugins.haxe.ide.references.HaxeProjectXmlPathReferenceContributor"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <!-- HAXE_MODULE stays registered so legacy projects still open; the v1
@@ -181,6 +184,7 @@
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
     <typedHandler implementation="com.intellij.plugins.haxe.ide.editor.HaxeTypedHandler" id="haxe"/>
 
+    <findUsagesHandlerFactory implementation="com.intellij.plugins.haxe.ide.HaxeFindUsagesFactoryProxy"/>
     <lang.findUsagesProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider"/>
     <lang.implementationTextSelectioner language="Haxe"
                                         implementationClass="com.intellij.plugins.haxe.ide.HaxeImplementationTextSelectioner"/>
@@ -213,6 +217,10 @@
     <!-- This is "first" to ensure that it is used instead of the Java and default renamers. This is generally discouraged, but the
          pre-existing renamers will take over if they are found first, and our extensions won't be used. -->
     <renamePsiElementProcessor order="first" implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeRenameProcessor"/>
+    <renameHandler implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeConstructorCallInplaceRenameHandler"/>
+    <renameHandler implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxePropertyInplaceRenameHandler"/>
+    <automaticRenamerFactory implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxePropertyAccessorRenamerFactory"/>
+    <nameSuggestionProvider implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeNameSuggestionProvider"/>
     <!-- =============================================================================================== -->
 
     <statementUpDownMover implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeMoveDeclarationHandler" id="HaxeMoveDeclaration"/>
@@ -319,17 +327,27 @@
     <!-- Overriding default to allow completion on "$"-->
     <typedHandler implementation="com.intellij.plugins.haxe.ide.completion.HaxeCompletionAutoPopupHandler"/>
     <!-- String completion for FQN and files (but only when it makes sense) -->
+    <typedHandler implementation="com.intellij.plugins.haxe.ide.references.HaxeStringPathTypedHandler"/>
+    <typedHandler implementation="com.intellij.plugins.haxe.ide.references.HaxeStringQnameTypedHandler"/>
 
     <!-- explicit chain, most specific first: the Set Value guard decides its
          fragment (and answers UNSURE everywhere else), then the string-link
          policy decides ordinary string literals -->
     <completion.confidence language="Haxe" id="haxeSetValueConfidence" implementationClass="com.intellij.plugins.haxe.runner.debugger.HaxeSetValueCompletionConfidence" order="first"/>
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.references.HaxeStringLinkCompletionConfidence" order="after haxeSetValueConfidence"/>
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeCommentCompletionConfidence"/>
+    <completion.confidence language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeLambdaCompletionConfidence"/>
 
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.references.HaxeStringQnameCompletionContributor"/>
 
     <completion.contributor id="DocFenceBlocker" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.injection.HaxeDocFenceCompletionBlocker" order="FIRST"/>
+    <completion.contributor id="DocTagCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeDocTagCompletionContributor" order="FIRST, after DocFenceBlocker"/>
     <!-- compiler-only mode: answers from the compilation server and stops the chain before the IDE's contributors -->
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST, after DocTagCompletion"/>
     <!-- early so the expected values are in the lookup's first shown frame; late arrivals sort below frozen items -->
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeExpectedEnumValueCompletionContributor"/>
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeLambdaCompletionContributor"/>
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeDeclarationNameCompletionContributor"/>
     <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRuntimeCompletionContributor"/>
     <!-- opt-in via compiler diagnostics: macro-generated members of the enclosing class -->
     <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
@@ -431,6 +449,7 @@
     <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoMethodSymbolContributor"/>
 
     <definitionsScopedSearch implementation="com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsSearcher"/>
+    <definitionsScopedSearch implementation="com.intellij.plugins.haxe.ide.HaxeExternImplementationSearcher"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
@@ -549,6 +568,7 @@
 
     <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
     <!-- opts haxe files into problem-file tracking (wavy file names in the Project view) -->
+    <problemFileHighlightFilter implementation="com.intellij.plugins.haxe.ide.HaxeProblemFileHighlightFilter"/>
 
     <!-- Semantic inspections: per-check tools with profile toggles and severities -->
     <localInspection language="Haxe" shortName="HaxeDuplicateClassModifier" bundle="messages.HaxeBundle"
@@ -798,6 +818,11 @@
       <category>Haxe/Strings</category>
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/Strings</category>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesKeepingTextIntention</className>
+    </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
@@ -894,7 +919,6 @@
     <projectOpenProcessor id="openNMEProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenNMEProjectProcessor"/>
     <projectOpenProcessor id="openHxmlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenHxmlProjectProcessor"/>
     <projectImportBuilder implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeProjectImportBuilder"/>
-    <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
     <statusBarWidgetFactory id="HaxeTargetWidget"
                             implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>

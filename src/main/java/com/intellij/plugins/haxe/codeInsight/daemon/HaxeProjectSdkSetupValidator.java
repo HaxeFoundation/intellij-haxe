@@ -19,7 +19,6 @@ import com.intellij.codeInsight.daemon.impl.JavaProjectSdkSetupValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
@@ -30,6 +29,8 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.HaxeProjectBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
+import com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeModuleSdkApplier;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.codeInsight.daemon.SdkValidationResult.*;
 import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX;
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.HAXE_STD_PATH;
 
 public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 
@@ -56,22 +58,31 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
   @Override
   public String getErrorMessage(@NotNull Project project, @NotNull VirtualFile file) {
     SdkValidationResult result = validateSdk(project, file);
-    if (result != null) {
-      switch (result) {
-        case MODULE_SDK_NOT_DEFINED:
-          return HaxeProjectBundle.message("module.sdk.not.defined");
-        case PROJECT_SDK_NOT_DEFINED:
-          return HaxeProjectBundle.message("project.sdk.not.defined");
-        case MULTIPLE_ROOTS_FOUND:
-          return HaxeBundle.message("sdk.roots.multiple");
-        case NO_VALID_SDK_ROOTS_FOUND:
-          return HaxeBundle.message("sdk.roots.no.valid.root");
-      }
-    }
+    if (result == null) return null;
 
-    return null;
+    return switch (result) {
+      // v2 never demands a Project SDK - mixed-language projects use one
+      // SDK per module, configured here or in the tool window's Environment
+      case MODULE_SDK_NOT_DEFINED, PROJECT_SDK_NOT_DEFINED -> HaxeProjectBundle.message("module.haxe.sdk.not.configured");
+      case NO_VALID_SDK_ROOTS_FOUND -> noValidRootMessage();
+    };
   }
 
+  /** With HAXE_STD_PATH set, the SDK's std folders come from the variable alone, so the message names it. */
+  private static String noValidRootMessage() {
+    String stdPathValue = HaxeEnvironmentVariables.value(HAXE_STD_PATH);
+    return stdPathValue == null
+           ? HaxeBundle.message("sdk.roots.no.valid.root")
+           : HaxeBundle.message("sdk.roots.no.valid.root.std.path", stdPathValue);
+  }
+
+  /**
+   * Validates what resolution ACTUALLY uses: the module's own SDK dependency
+   * (the applier mirrors the v2 environment/settings choice into it). No
+   * shortcut through the v2 stores here — a configured-but-unapplied SDK must
+   * keep the banner visible, it means the resolve scope is really missing the
+   * std roots.
+   */
   private SdkValidationResult validateSdk(Project project, VirtualFile file) {
     final Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null && !module.isDisposed()) {
@@ -93,15 +104,7 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 
   private SdkValidationResult validateSdkRoots(Sdk sdk) {
     List<VirtualFile> roots = getDistinctRoots(sdk);
-
-    if (hasNoValidRoots(roots)) {
-      return NO_VALID_SDK_ROOTS_FOUND;
-    }
-    if (hasMultipleOrEmptyRoots(roots)) {
-      return MULTIPLE_ROOTS_FOUND;
-    }
-
-    return null;
+    return hasNoValidRoots(roots) ? NO_VALID_SDK_ROOTS_FOUND : null;
   }
 
   private List<VirtualFile> getDistinctRoots(Sdk sdk) {
@@ -119,10 +122,6 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
     return roots.stream().noneMatch(root -> root.findChild(STD_TYPES_HX) != null);
   }
 
-  private boolean hasMultipleOrEmptyRoots(List<VirtualFile> roots) {
-    return roots.size() != 1;
-  }
-
   @Override
   public @NotNull EditorNotificationPanel.ActionHandler getFixHandler(@NotNull Project project, @NotNull VirtualFile file) {
     return preparePopup(project, file).buildEditorNotificationPanelHandler();
@@ -133,13 +132,22 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
       .newBuilder()
       .withProject(project)
       .withSdkTypeFilter(type -> type instanceof HaxeSdkType)
-      .updateSdkForFile(file);
+      // a detected or newly added SDK is only created by the popup; without
+      // this it never reaches the SDK table and the module names a missing SDK
+      .registerNewSdk()
+      // never the project SDK: the choice lands on the MODULE, via the same
+      // path as the tool window's Environment
+      .onSdkSelected(sdk -> {
+        Module module = ModuleUtilCore.findModuleForFile(file, project);
+        if (module != null) {
+          HaxeModuleSdkApplier.getInstance(project).chooseSdk(module.getName(), sdk.getName());
+        }
+      });
   }
 }
 
 enum SdkValidationResult {
   PROJECT_SDK_NOT_DEFINED,
   MODULE_SDK_NOT_DEFINED,
-  MULTIPLE_ROOTS_FOUND,
   NO_VALID_SDK_ROOTS_FOUND
 }

@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.HaxeCompletionPriorityData;
 import com.intellij.plugins.haxe.ide.lookup.HaxePsiLookupElement;
@@ -15,6 +16,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,7 @@ public class HaxeIndexedClassLookupElement extends LookupElement implements Haxe
     }else {
       PsiFile file = context.getFile();
       PsiElement element = file.findElementAt(context.getStartOffset());
+      boolean packageQualified = isPackageQualified(element);
       if(isNewExpression(element)) {
         HaxeMethod constructor = HaxeConstructorUnifiedIndex.getConstructor(qualifiedInfo, file.getProject(), file.getResolveScope());
         if(constructor != null) {
@@ -74,8 +77,45 @@ public class HaxeIndexedClassLookupElement extends LookupElement implements Haxe
       }
 
       if (qualifiedInfo != null) {
-        addImportIfNecessary(context, element, qualifiedInfo.toShortendImportReferenceString());
+        String path = qualifiedInfo.toShortendImportReferenceString();
+        if (packageQualified) {
+          writePath(context, path);
+        }
+        else {
+          addImportIfNecessary(context, element, path);
+        }
       }
+    }
+  }
+
+  /** Whether the completed name follows a package ({@code pack.sub.Name}); the reference then spells the type's whole path. */
+  private static boolean isPackageQualified(@Nullable PsiElement element) {
+    HaxeReference reference = PsiTreeUtil.getParentOfType(element, HaxeReference.class);
+    HaxeReference qualifier = HaxeResolveUtil.getLeftReference(reference);
+    return qualifier != null && qualifier.resolve() instanceof PsiPackage;
+  }
+
+  /**
+   * Rewrites the whole package-qualified reference, qualifier included, as the
+   * type's path. A type declared inside another module is reachable only
+   * through that module: {@code pack.Kind} becomes {@code pack.Module.Kind}.
+   * Replacing only the completed name would keep the typed qualifier in front
+   * of the path. The text is written to the document directly: a PSI replace
+   * would reformat the surrounding statement.
+   */
+  private static void writePath(@NotNull InsertionContext context, @NotNull String path) {
+    context.commitDocument();
+    PsiElement leaf = context.getFile().findElementAt(context.getStartOffset());
+    HaxeReference reference = PsiTreeUtil.getParentOfType(leaf, HaxeReference.class);
+    if (reference == null || reference.getText().equals(path)) return;
+
+    TextRange range = reference.getTextRange();
+    // a caret past the reference (inside constructor parentheses) moves with the text by itself
+    boolean caretAtEnd = context.getEditor().getCaretModel().getOffset() == range.getEndOffset();
+    context.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), path);
+    context.commitDocument();
+    if (caretAtEnd) {
+      context.getEditor().getCaretModel().moveToOffset(range.getStartOffset() + path.length());
     }
   }
 

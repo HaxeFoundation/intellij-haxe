@@ -24,7 +24,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolConfigs;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +42,10 @@ public class HaxeIconProvider extends IconProvider {
   public Icon getIcon(@NotNull PsiElement element, @Iconable.IconFlags int flags) {
     if (element instanceof HaxeFile) {
       return getHaxeFileIcon((HaxeFile)element, flags);
+    }
+    // TODO: a dedicated hxformat.json icon (it shares haxelib.json's)
+    if (element instanceof PsiFile file && HaxeToolConfigs.FORMATTER_CONFIG_NAME.equals(file.getName())) {
+      return HaxeIcons.HAXELIB_JSON;
     }
     return null;
   }

@@ -21,7 +21,6 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementWeigher;
-import com.intellij.codeInsight.lookup.WeighingContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -31,17 +30,15 @@ import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.patterns.StandardPatterns.not;
@@ -98,6 +95,8 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
           return;
         }
         Module module = ModuleUtil.findModuleForFile(file, project);
+        // an hxml outside any module (a scratch file, say) has no SDK context to answer from
+        if (module == null) return;
         HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
 
         Set<String>  available = cacheManager.getAvailableLibraries().keySet();
@@ -131,9 +130,13 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
           log.error("Unable to provide completion, Project is null");
           return;
         }
-        String text = parameters.getOriginalPosition().getText();
+        PsiElement position = parameters.getOriginalPosition();
+        if (position == null) return;
+        String text = position.getText();
         String libName = text.substring(0,text.indexOf(":")).trim();
         Module module = ModuleUtil.findModuleForFile(file, project);
+        // an hxml outside any module (a scratch file, say) has no SDK context to answer from
+        if (module == null) return;
         HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
 
         List<String> available = cacheManager.fetchAvailableVersions(libName).stream()

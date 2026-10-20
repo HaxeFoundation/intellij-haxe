@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -47,7 +48,11 @@ public abstract class BaseHaxeGenerateAction extends AnAction {
 
     //TODO getData for PSI_FILE does not seem to work anymore?
     if (psiFile == null && editor != null) {
-      psiFile = PsiManager.getInstance(project).findFile(editor.getVirtualFile());
+      // console/preview editors (and editors reached from tool window focus) have no backing file
+      VirtualFile file = editor.getVirtualFile();
+      if (file != null) {
+        psiFile = PsiManager.getInstance(project).findFile(file);
+      }
     }
 
     return Pair.create(editor, psiFile);

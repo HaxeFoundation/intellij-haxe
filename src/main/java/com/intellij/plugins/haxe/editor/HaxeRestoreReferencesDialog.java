@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.editor;
 
 import com.intellij.CommonBundle;
-import com.intellij.codeInsight.CodeInsightBundle;
 import com.intellij.ide.util.FQNameCellRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -30,7 +29,9 @@ import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
+
 import java.awt.*;
+import java.util.List;
 
 import static com.intellij.util.ui.UIUtil.ComponentStyle.SMALL;
 import static com.intellij.util.ui.UIUtil.FontColor.BRIGHTER;
@@ -40,8 +41,8 @@ import static com.intellij.util.ui.UIUtil.FontColor.BRIGHTER;
  */
 public class HaxeRestoreReferencesDialog extends DialogWrapper {
   private final String[] myNamedElements;
-  private JList myList;
-  private String[] mySelectedElements = new String[]{};
+  private JList<String> myList;
+  private List<String> mySelectedElements = List.of();
   //private boolean myContainsClassesOnly = true;
 
   public HaxeRestoreReferencesDialog(final Project project, final String[] elements) {
@@ -71,16 +72,14 @@ public class HaxeRestoreReferencesDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    Object[] values = myList.getSelectedValues();
-    mySelectedElements = new String[values.length];
-    System.arraycopy(values, 0, mySelectedElements, 0, values.length);
+    mySelectedElements = myList.getSelectedValuesList();
     super.doOKAction();
   }
 
   @Override
   protected JComponent createCenterPanel() {
     final JPanel panel = new JPanel(new BorderLayout(UIUtil.DEFAULT_HGAP, UIUtil.DEFAULT_VGAP));
-    myList = new JBList((Object[])myNamedElements);
+    myList = new JBList<>(myNamedElements);
     myList.setCellRenderer(new FQNameCellRenderer());
     panel.add(ScrollPaneFactory.createScrollPane(myList), BorderLayout.CENTER);
 
@@ -104,7 +103,7 @@ public class HaxeRestoreReferencesDialog extends DialogWrapper {
     return "#com.intellij.codeInsight.editorActions.RestoreReferencesDialog";
   }
 
-  public String[] getSelectedElements(){
+  public List<String> getSelectedElements(){
     return mySelectedElements;
   }
 }

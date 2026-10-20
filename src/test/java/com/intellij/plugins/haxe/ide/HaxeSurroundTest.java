@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.generation.surroundWith.SurroundWithHandler;
 import com.intellij.lang.surroundWith.Surrounder;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.surroundWith.*;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
  * @author: Fedor.Korotkov
  */
 @DisplayName("Editor: surround")
-public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeSurroundTest extends HaxeLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/surroundWith/";

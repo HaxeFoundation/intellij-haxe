@@ -21,14 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.intellij.openapi.diagnostic.LogLevel;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.lang.psi.HaxeResolveResult;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
-import com.intellij.plugins.haxe.util.HaxeDebugLogUtil;
-
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext;
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext;
@@ -37,30 +30,16 @@ import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoCon
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-
 /**
  * @author: Fedor.Korotkov
  */
 @DisplayName("Editor: parameter info")
-public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
-
-
-  public void setUp() throws Exception {
-    useHaxeToolkit();
-    super.setUp();
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
-    super.tearDown();
-  }
+public class HaxeParameterInfoTest extends HaxeToolkitLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
     return "/paramInfo/";
   }
-
 
   private void doTest(String infoText, int highlightedParameterIndex) throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
@@ -85,13 +64,6 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
     parameterInfoHandler.updateParameterInfo(element, updateContext);
     assertEquals(highlightedParameterIndex, updateContext.getCurrentParameter());
   }
-
-  private void configureLoggerForDebugging() {
-    HaxeDebugLogUtil.getLogger(HaxeResolveUtil.class).setLevel(LogLevel.DEBUG);
-    HaxeDebugLogUtil.getLogger(HaxeReferenceImpl.class).setLevel(LogLevel.DEBUG);
-    HaxeDebugLogUtil.getLogger(HaxeResolveResult.class).setLevel(LogLevel.DEBUG);
-  }
-
 
   @Test
   @DisplayName("param info 1 - inherited generic method at empty args")
@@ -132,7 +104,6 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
   @Test
   @DisplayName("param info 7 - generic resolved through class chain")
   public void testParamInfo7() throws Throwable {
-    configureLoggerForDebugging();
     doTest("t:Node", 0);
   }
 
@@ -153,16 +124,19 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
   public void testParamInfo10() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:T = null", 3);
   }
+
   @Test
   @DisplayName("param info 11 - rest args at first rest position")
   public void testParamInfo11() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
+
   @Test
   @DisplayName("param info 12 - rest args at middle position")
   public void testParamInfo12() throws Throwable {
     doTest("a:String, ...rest:String", 1);
   }
+
   @Test
   @DisplayName("param info 13 - rest args at last position")
   public void testParamInfo13() throws Throwable {
@@ -180,10 +154,4 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
   public void testParamInfoMacroMethod() throws Throwable {
     doTest("valueB:Int = 1, ValueC:Float = 1.0", 1);
   }
-
-
-  // Disabled - Tests issue #615.
-  //@Test public void testLocalShadowingChainedGenerics() throws Throwable {
-  //  doTest("t:Node", 0);
-  //}
 }
