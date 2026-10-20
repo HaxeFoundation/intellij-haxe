@@ -1,0 +1,347 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "hxformat.json (haxe-formatter 1.18)",
+  "description": "Configuration for HaxeCheckstyle haxe-formatter, the formatter used by vshaxe. Authored from formatter 1.18.0's config sources.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "disableFormatting": { "type": "boolean", "default": false, "description": "Turns formatting off for this folder and all subfolders without their own hxformat.json." },
+    "excludes": { "type": "array", "items": { "type": "string" }, "description": "Regular expressions matched against file paths to exclude from formatting.", "default": ["\\.haxelib", "\\.git", "node_modules"] },
+    "emptyLines": { "$ref": "#/definitions/emptyLinesConfig" },
+    "indentation": { "$ref": "#/definitions/indentationConfig" },
+    "lineEnds": { "$ref": "#/definitions/lineEndConfig" },
+    "sameLine": { "$ref": "#/definitions/sameLineConfig" },
+    "whitespace": { "$ref": "#/definitions/whitespaceConfig" },
+    "wrapping": { "$ref": "#/definitions/wrapConfig" }
+  },
+  "definitions": {
+    "whitespacePolicy": { "type": "string", "enum": ["none", "before", "noneBefore", "onlyBefore", "after", "onlyAfter", "noneAfter", "around"] },
+    "sameLinePolicy": { "type": "string", "enum": ["same", "next", "keep"] },
+    "keepEmptyLinesPolicy": { "type": "string", "enum": ["keep", "remove"] },
+    "lineCommentEmptyLinePolicy": { "type": "string", "enum": ["keep", "one", "none"] },
+    "commentEmptyLinesPolicy": { "type": "string", "enum": ["ignore", "none", "one"] },
+    "leftCurlyPolicy": { "type": "string", "enum": ["none", "after", "before", "both"] },
+    "rightCurlyPolicy": { "type": "string", "enum": ["none", "before", "after", "both"] },
+    "emptyCurlyPolicy": { "type": "string", "enum": ["noBreak", "break"] },
+    "atLineEndPolicy": { "type": "string", "enum": ["none", "after", "afterLast", "forceAfterLast"] },
+    "curlyLineEndPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Overrides the global left/right/empty curly policies for one construct. Missing members reset to after/both/noBreak, NOT to the global values.",
+      "properties": {
+        "leftCurly": { "$ref": "#/definitions/leftCurlyPolicy", "default": "after" },
+        "rightCurly": { "$ref": "#/definitions/rightCurlyPolicy", "default": "both" },
+        "emptyCurly": { "$ref": "#/definitions/emptyCurlyPolicy", "default": "noBreak" }
+      }
+    },
+    "openClosePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "openingPolicy": { "$ref": "#/definitions/whitespacePolicy" },
+        "closingPolicy": { "$ref": "#/definitions/whitespacePolicy" },
+        "removeInnerWhenEmpty": { "type": "boolean", "default": true, "description": "Only effective when openingPolicy allows a space after or closingPolicy a space before." }
+      }
+    },
+    "classFieldsEmptyLines": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "beginType": { "type": "integer", "default": 0 },
+        "endType": { "type": "integer", "default": 0 },
+        "betweenStaticVars": { "type": "integer", "default": 0 },
+        "afterStaticVars": { "type": "integer", "default": 1 },
+        "afterPrivateVars": { "type": "integer", "default": 1 },
+        "betweenVars": { "type": "integer", "default": 0 },
+        "afterVars": { "type": "integer", "default": 1 },
+        "afterStaticFunctions": { "type": "integer", "default": 1 },
+        "betweenStaticFunctions": { "type": "integer", "default": 1 },
+        "afterPrivateFunctions": { "type": "integer", "default": 1 },
+        "betweenFunctions": { "type": "integer", "default": 1 },
+        "existingBetweenFields": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "keep" }
+      }
+    },
+    "interfaceFieldsEmptyLines": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "beginType": { "type": "integer", "default": 0 },
+        "endType": { "type": "integer", "default": 0 },
+        "betweenVars": { "type": "integer", "default": 0 },
+        "afterVars": { "type": "integer", "default": 0 },
+        "betweenFunctions": { "type": "integer", "default": 0 },
+        "existingBetweenFields": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "keep" }
+      }
+    },
+    "typedefFieldsEmptyLines": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "beginType": { "type": "integer", "default": 0 },
+        "endType": { "type": "integer", "default": 0 },
+        "betweenFields": { "type": "integer", "default": 0 },
+        "existingBetweenFields": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "keep" }
+      }
+    },
+    "enumAbstractFieldsEmptyLines": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "beginType": { "type": "integer", "default": 0 },
+        "endType": { "type": "integer", "default": 0 },
+        "betweenVars": { "type": "integer", "default": 0 },
+        "afterVars": { "type": "integer", "default": 1 },
+        "betweenFunctions": { "type": "integer", "default": 1 },
+        "existingBetweenFields": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "keep" }
+      }
+    },
+    "emptyLinesConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "finalNewline": { "type": "boolean", "default": true },
+        "maxAnywhereInFile": { "type": "integer", "default": 1, "description": "Runs last and caps every other empty-lines setting." },
+        "beforePackage": { "type": "integer", "default": 0 },
+        "afterPackage": { "type": "integer", "default": 1 },
+        "importAndUsing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "betweenImports": { "type": "integer", "default": 0 },
+            "betweenImportsLevel": { "type": "string", "default": "all", "enum": ["all", "firstLevelPackage", "secondLevelPackage", "thirdLevelPackage", "fourthLevelPackage", "fifthLevelPackage", "fullPackage"], "description": "betweenImports applies only at package-name group boundaries of this depth." },
+            "beforeUsing": { "type": "integer", "default": 1 },
+            "beforeType": { "type": "integer", "default": 1 }
+          }
+        },
+        "betweenTypes": { "type": "integer", "default": 1 },
+        "lineCommentsBetweenTypes": { "$ref": "#/definitions/lineCommentEmptyLinePolicy", "default": "keep" },
+        "lineCommentsBetweenFunctions": { "$ref": "#/definitions/lineCommentEmptyLinePolicy", "default": "keep" },
+        "betweenSingleLineTypes": { "type": "integer", "default": 0 },
+        "beforeRightCurly": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "remove" },
+        "afterLeftCurly": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "remove" },
+        "afterReturn": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "remove" },
+        "beforeBlocks": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "remove" },
+        "afterBlocks": { "$ref": "#/definitions/keepEmptyLinesPolicy", "default": "remove" },
+        "enumAbstractEmptyLines": { "$ref": "#/definitions/enumAbstractFieldsEmptyLines" },
+        "classEmptyLines": { "$ref": "#/definitions/classFieldsEmptyLines" },
+        "macroClassEmptyLines": { "$ref": "#/definitions/classFieldsEmptyLines" },
+        "abstractEmptyLines": { "$ref": "#/definitions/classFieldsEmptyLines" },
+        "externClassEmptyLines": { "$ref": "#/definitions/interfaceFieldsEmptyLines" },
+        "interfaceEmptyLines": { "$ref": "#/definitions/interfaceFieldsEmptyLines" },
+        "enumEmptyLines": { "$ref": "#/definitions/typedefFieldsEmptyLines" },
+        "typedefEmptyLines": { "$ref": "#/definitions/typedefFieldsEmptyLines" },
+        "conditionalsEmptyLines": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "afterIf": { "type": "integer", "default": 0 },
+            "beforeElse": { "type": "integer", "default": 0 },
+            "afterElse": { "type": "integer", "default": 0 },
+            "beforeEnd": { "type": "integer", "default": 0 },
+            "beforeError": { "type": "integer", "default": 0 },
+            "afterError": { "type": "integer", "default": 0 }
+          }
+        },
+        "beforeDocCommentEmptyLines": { "$ref": "#/definitions/commentEmptyLinesPolicy", "default": "one", "description": "one/none override the between/after member settings; only ignore respects them." },
+        "afterFieldsWithDocComments": { "$ref": "#/definitions/commentEmptyLinesPolicy", "default": "one" },
+        "afterFileHeaderComment": { "type": "integer", "default": 1 },
+        "betweenMultilineComments": { "type": "integer", "default": 0 }
+      }
+    },
+    "indentationConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "conditionalPolicy": { "type": "string", "default": "aligned", "enum": ["fixedZero", "fixedZeroIncrease", "fixedZeroIncreaseBlocks", "aligned", "alignedNestedIncrease", "alignedIncrease", "alignedDecrease"] },
+        "character": { "type": "string", "default": "tab", "description": "The literal indent unit: \"tab\" or a string of spaces." },
+        "tabWidth": { "type": "integer", "default": 4, "description": "Only used to compute line length for wrapping when character is tab." },
+        "trailingWhitespace": { "type": "boolean", "default": false, "description": "true ADDS trailing whitespace to empty lines from the previous line's indent." },
+        "indentObjectLiteral": { "type": "boolean", "default": true },
+        "indentComplexValueExpressions": { "type": "boolean", "default": false },
+        "indentCaseLabels": { "type": "boolean", "default": true }
+      }
+    },
+    "lineEndConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lineEndCharacter": { "type": "string", "default": "auto", "enum": ["auto", "CR", "LF", "CRLF"] },
+        "metadataType": { "$ref": "#/definitions/atLineEndPolicy", "default": "none" },
+        "metadataVar": { "$ref": "#/definitions/atLineEndPolicy", "default": "none" },
+        "metadataFunction": { "$ref": "#/definitions/atLineEndPolicy", "default": "none" },
+        "metadataOther": { "$ref": "#/definitions/atLineEndPolicy", "default": "none" },
+        "caseColon": { "type": "string", "default": "after", "enum": ["none", "after"] },
+        "sharp": { "type": "string", "default": "after", "enum": ["none", "after"] },
+        "leftCurly": { "$ref": "#/definitions/leftCurlyPolicy", "default": "after" },
+        "rightCurly": { "$ref": "#/definitions/rightCurlyPolicy", "default": "both" },
+        "emptyCurly": { "$ref": "#/definitions/emptyCurlyPolicy", "default": "noBreak" },
+        "blockCurly": { "$ref": "#/definitions/curlyLineEndPolicy" },
+        "anonFunctionCurly": { "$ref": "#/definitions/curlyLineEndPolicy" },
+        "anonTypeCurly": { "$ref": "#/definitions/curlyLineEndPolicy" },
+        "objectLiteralCurly": { "$ref": "#/definitions/curlyLineEndPolicy" },
+        "typedefCurly": { "$ref": "#/definitions/curlyLineEndPolicy" }
+      }
+    },
+    "sameLineConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ifBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "elseBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "ifElse": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "ifElseSemicolonNextLine": { "type": "boolean", "default": true },
+        "elseIf": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "expressionIf": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "expressionIfWithBlocks": { "type": "boolean", "default": false, "description": "Only effective when expressionIf is same." },
+        "forBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "comprehensionFor": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "whileBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "doWhileBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "doWhile": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "tryBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "catchBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "tryCatch": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "caseBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "expressionCase": { "$ref": "#/definitions/sameLinePolicy", "default": "keep" },
+        "expressionTry": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "functionBody": { "$ref": "#/definitions/sameLinePolicy", "default": "next" },
+        "anonFunctionBody": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "returnBody": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "returnBodySingleLine": { "$ref": "#/definitions/sameLinePolicy", "default": "same" },
+        "untypedBody": { "$ref": "#/definitions/sameLinePolicy", "default": "same" }
+      }
+    },
+    "whitespaceConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parenConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "metadataParens": { "$ref": "#/definitions/openClosePolicy" },
+            "funcParamParens": { "$ref": "#/definitions/openClosePolicy" },
+            "anonFuncParamParens": { "$ref": "#/definitions/openClosePolicy" },
+            "callParens": { "$ref": "#/definitions/openClosePolicy" },
+            "conditionParens": { "$ref": "#/definitions/openClosePolicy" },
+            "ifConditionParens": { "$ref": "#/definitions/openClosePolicy" },
+            "switchConditionParens": { "$ref": "#/definitions/openClosePolicy" },
+            "whileConditionParens": { "$ref": "#/definitions/openClosePolicy" },
+            "sharpConditionParens": { "$ref": "#/definitions/openClosePolicy" },
+            "catchParens": { "$ref": "#/definitions/openClosePolicy" },
+            "forLoopParens": { "$ref": "#/definitions/openClosePolicy" },
+            "expressionParens": { "$ref": "#/definitions/openClosePolicy" }
+          }
+        },
+        "bracesConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blockBraces": { "$ref": "#/definitions/openClosePolicy" },
+            "typedefBraces": { "$ref": "#/definitions/openClosePolicy" },
+            "anonTypeBraces": { "$ref": "#/definitions/openClosePolicy" },
+            "objectLiteralBraces": { "$ref": "#/definitions/openClosePolicy" },
+            "unknownBraces": { "$ref": "#/definitions/openClosePolicy" }
+          }
+        },
+        "bracketConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accessBrackets": { "$ref": "#/definitions/openClosePolicy" },
+            "comprehensionBrackets": { "$ref": "#/definitions/openClosePolicy" },
+            "arrayLiteralBrackets": { "$ref": "#/definitions/openClosePolicy" },
+            "mapLiteralBrackets": { "$ref": "#/definitions/openClosePolicy" },
+            "unknownBrackets": { "$ref": "#/definitions/openClosePolicy" }
+          }
+        },
+        "typeParamOpenPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "typeParamClosePolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "typeExtensionPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "commaPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "onlyAfter" },
+        "dotPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "colonPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "caseColonPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "onlyAfter" },
+        "objectFieldColonPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "typeHintColonPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "typeCheckColonPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "around" },
+        "ternaryPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "around" },
+        "semicolonPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "onlyAfter" },
+        "ifPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "doPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "whilePolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "forPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "switchPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "tryPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "catchPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "after" },
+        "binopPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "around" },
+        "intervalPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "arrowFunctionsPolicy": { "$ref": "#/definitions/whitespacePolicy", "default": "around" },
+        "functionTypeHaxe3Policy": { "$ref": "#/definitions/whitespacePolicy", "default": "none" },
+        "functionTypeHaxe4Policy": { "$ref": "#/definitions/whitespacePolicy", "default": "around" },
+        "compressSuccessiveParenthesis": { "type": "boolean", "default": true },
+        "formatStringInterpolation": { "type": "boolean", "default": true },
+        "addLineCommentSpace": { "type": "boolean", "default": true }
+      }
+    },
+    "wrappingType": { "type": "string", "enum": ["onePerLine", "onePerLineAfterFirst", "equalNumber", "fillLine", "fillLineWithLeadingBreak", "noWrap", "keep"] },
+    "wrappingLocation": { "type": "string", "enum": ["beforeLast", "afterLast"] },
+    "wrapCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cond"],
+      "properties": {
+        "cond": { "type": "string", "enum": ["itemCount >= n", "itemCount <= n", "anyItemLength >= n", "allItemLengths <= n", "allItemLengths >= n", "anyItemLength <= n", "totalItemLength >= n", "totalItemLength <= n", "lineLength >= n", "lineLength <= n", "hasMultilineItems", "exceedsMaxLineLength", "equalItemLengths"] },
+        "value": { "type": "integer", "default": 1, "description": "The threshold n; for the boolean conditions 1 means true." }
+      }
+    },
+    "wrapRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The FIRST rule whose conditions all hold applies; later rules are dead once one matches. defaultWrap applies when no rule matched.",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["conditions", "type"],
+            "properties": {
+              "conditions": { "type": "array", "items": { "$ref": "#/definitions/wrapCondition" } },
+              "type": { "$ref": "#/definitions/wrappingType" },
+              "location": { "$ref": "#/definitions/wrappingLocation", "default": "afterLast" },
+              "additionalIndent": { "type": "integer", "default": 0 }
+            }
+          }
+        },
+        "defaultWrap": { "$ref": "#/definitions/wrappingType", "default": "noWrap" },
+        "defaultLocation": { "$ref": "#/definitions/wrappingLocation", "default": "afterLast" },
+        "defaultAdditionalIndent": { "type": "integer", "default": 0 }
+      }
+    },
+    "wrapConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxLineLength": { "type": "integer", "default": 160 },
+        "arrayMatrixWrap": { "type": "string", "default": "matrixWrapWithAlign", "enum": ["noMatrixWrap", "matrixWrapNoAlign", "matrixWrapWithAlign"] },
+        "arrayWrap": { "$ref": "#/definitions/wrapRules" },
+        "mapWrap": { "$ref": "#/definitions/wrapRules" },
+        "typeParameter": { "$ref": "#/definitions/wrapRules" },
+        "functionSignature": { "$ref": "#/definitions/wrapRules" },
+        "anonFunctionSignature": { "$ref": "#/definitions/wrapRules" },
+        "callParameter": { "$ref": "#/definitions/wrapRules" },
+        "metadataCallParameter": { "$ref": "#/definitions/wrapRules" },
+        "objectLiteral": { "$ref": "#/definitions/wrapRules" },
+        "anonType": { "$ref": "#/definitions/wrapRules" },
+        "methodChain": { "$ref": "#/definitions/wrapRules" },
+        "opBoolChain": { "$ref": "#/definitions/wrapRules" },
+        "implementsExtends": { "$ref": "#/definitions/wrapRules" },
+        "opAddSubChain": { "$ref": "#/definitions/wrapRules" },
+        "multiVar": { "$ref": "#/definitions/wrapRules" },
+        "casePattern": { "$ref": "#/definitions/wrapRules" }
+      }
+    }
+  }
+}

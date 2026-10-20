@@ -48,6 +48,7 @@
 
   <extensions defaultExtensionNs="JavaScript">
     <JsonSchema.ProviderFactory implementation="com.intellij.plugins.haxe.buildsystem.haxelib.HaxelibJsonSchemaProviderFactory" />
+    <JsonSchema.ProviderFactory implementation="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatJsonSchemaProviderFactory" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -165,6 +166,13 @@
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
+    <postFormatProcessor implementation="com.intellij.plugins.haxe.ide.formatter.HaxeConditionalPostFormatProcessor"/>
+    <postFormatProcessor implementation="com.intellij.plugins.haxe.ide.formatter.HaxeMultilineCommentPostFormatProcessor"/>
+    <postFormatProcessor implementation="com.intellij.plugins.haxe.ide.formatter.HaxeLineCommentPostFormatProcessor"/>
+    <codeStyleSettingsModifier implementation="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatSettingsModifier"/>
+    <schemeImporter name="hxformat.json (haxe-formatter)"
+                    schemeClass="com.intellij.psi.codeStyle.CodeStyleScheme"
+                    implementationClass="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatSchemeImporter"/>
     <lang.ast.factory language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
 
     <lang.syntaxHighlighterFactory language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
@@ -866,10 +874,7 @@
     <projectOpenProcessor id="openNMEProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenNMEProjectProcessor"/>
     <projectOpenProcessor id="openHxmlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenHxmlProjectProcessor"/>
     <projectImportBuilder implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeProjectImportBuilder"/>
-    <lang.rearranger language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
-    <lang.rearranger language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
     <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
-    <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
     <statusBarWidgetFactory id="HaxeTargetWidget"
                             implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
@@ -902,6 +907,12 @@
     <action id="Haxe.NewNMMLFile" class="com.intellij.plugins.haxe.ide.actions.CreateNMMLFileAction"
             text="NMML file" description="Create new NMML file">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
+    </action>
+    <action id="Haxe.UseFormattingRules" class="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatUseAsRulesAction"
+            text="Use as Haxe Formatting Rules"
+            description="Use this hxformat.json for files that have no config of their own above them">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
     </action>
     <action id="Generate.Constructor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateConstructorAction"
             text="Constructor">
