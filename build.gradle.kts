@@ -131,6 +131,7 @@ dependencies {
         pluginComposedModule(implementation(project(":debuggers:eval-debugger")))
         pluginComposedModule(implementation(project(":debuggers:browser-debugger")))
         pluginComposedModule(implementation(project(":display-protocol")))
+        pluginComposedModule(implementation(project(":profilers:core")))
 
     }
 

@@ -17,6 +17,8 @@ include(":debuggers:eval-debugger")
 include(":debuggers:browser-debugger")
 include(":debuggers:compat-matrix")
 
+// profilers: neutral snapshot model + per-format translators (no IDE dependencies)
+include(":profilers:core")
 
 // haxe JSON-RPC display protocol (allow the IDE to communicate with Haxe Compiler)
 include(":display-protocol")
