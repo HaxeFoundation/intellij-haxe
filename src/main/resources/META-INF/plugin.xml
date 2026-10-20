@@ -478,6 +478,11 @@
     <projectService serviceInterface="com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings"
                     serviceImplementation="com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerProjectSettings"/>
 
+    <projectConfigurable instance="com.intellij.plugins.haxe.v2.compiler.settings.ui.HaxeCompilerConfigurable"
+                         parentId="project.propCompiler"
+                         id="settings.haxe.compiler"
+                         key="haxe.compiler.configurable.name" bundle="messages.HaxeBundle"
+                         nonDefaultProject="true"/>
 
 
     <!-- V2 build system: build tool settings (Settings | Build, Execution, Deployment | Build Tools | Haxe) -->
@@ -497,6 +502,10 @@
     <!-- Settings | Languages & Frameworks | Haxe | Frameworks | Lime/OpenFL/NME:
          the configurable target lists (application-level - targets describe
          the machine's toolchains). The two group pages carry no UI. -->
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$HaxeRoot"
+                             parentId="language"
+                             id="settings.haxe"
+                             key="haxe.settings.root.name" bundle="messages.HaxeBundle"/>
     <applicationConfigurable instance="com.intellij.plugins.haxe.ide.documentation.settings.HaxeDocSettingsConfigurable"
                              parentId="settings.haxe"
                              id="settings.haxe.docs"
@@ -505,6 +514,22 @@
                              parentId="settings.haxe"
                              id="settings.haxe.cc"
                              key="haxe.settings.cc.name" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$Frameworks"
+                             parentId="settings.haxe"
+                             id="settings.haxe.frameworks"
+                             key="haxe.settings.frameworks.name" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$LimeTargets"
+                             parentId="settings.haxe.frameworks"
+                             id="settings.haxe.frameworks.lime"
+                             key="haxe.frameworks.targets.lime" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$OpenflTargets"
+                             parentId="settings.haxe.frameworks"
+                             id="settings.haxe.frameworks.openfl"
+                             key="haxe.frameworks.targets.openfl" bundle="messages.HaxeBundle"/>
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$NmeTargets"
+                             parentId="settings.haxe.frameworks"
+                             id="settings.haxe.frameworks.nme"
+                             key="haxe.frameworks.targets.nme" bundle="messages.HaxeBundle"/>
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
     <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
@@ -893,8 +918,12 @@
     <!-- V2 build system: compilation server stdio console -->
 
     <!-- V2 build system: Build Project / Build Module delegates to configured build commands -->
+    <projectTaskRunner implementation="com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTaskRunner"/>
 
     <!-- V2 build system: build-file classpaths outside a module join its resolve and use scopes; folders outside every module are indexed -->
+    <resolveScopeEnlarger implementation="com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathResolveScopeEnlarger"/>
+    <useScopeEnlarger implementation="com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathUseScopeEnlarger"/>
+    <additionalLibraryRootsProvider implementation="com.intellij.plugins.haxe.v2.buildtools.classpaths.HaxeExternalClasspathLibraryProvider"/>
 
     <!-- V2 build system: "Run Haxe action" before-launch step (compiles before run/debug) -->
     <stepsBeforeRunProvider implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider"/>
@@ -904,6 +933,9 @@
                              order="first, before kotlin, before java"/>
 
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibProjectStartActivity"/>
+    <postStartupActivity implementation="com.intellij.plugins.haxe.v2.HaxeV2ProjectActivity"/>
+    <postStartupActivity implementation="com.intellij.plugins.haxe.v2.migration.HaxeV1MigrationStartup"/>
+    <postStartupActivity implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkFormatUpgrade"/>
 
     <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
     <notificationGroup id="haxe.command" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.command.notification.group"/>
@@ -914,13 +946,6 @@
 
 
     <vfs.asyncListener implementation="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"/>
-    <projectOpenProcessor id="openOpenFlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenOpenFlProjectProcessor"/>
-    <projectOpenProcessor id="openLimeProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenLimeProjectProcessor"/>
-    <projectOpenProcessor id="openNMEProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenNMEProjectProcessor"/>
-    <projectOpenProcessor id="openHxmlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenHxmlProjectProcessor"/>
-    <projectImportBuilder implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeProjectImportBuilder"/>
-    <statusBarWidgetFactory id="HaxeTargetWidget"
-                            implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
   </extensions>
 
@@ -935,6 +960,8 @@
     <listener class="com.intellij.plugins.haxe.model.HaxeResolveCachePsiChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildFileChangeListener"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     <listener class="com.intellij.plugins.haxe.model.HaxeResolveCacheRootsListener"
               topic="com.intellij.openapi.roots.ModuleRootListener"/>
@@ -974,40 +1001,12 @@
             text="Getter and Setter">
       <add-to-group anchor="after" relative-to-action="Generate.SetAccessor.Haxe" group-id="GenerateGroup"/>
     </action>
-    <action id="Haxe.project.openfl.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsOpenFlProjectAction"
-            text="Load As Project"
-            icon="HaxeIcons.OPENFL_LOGO">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-    </action>
-    <action id="Haxe.project.nme.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsNmeProjectAction"
-            text="Load As Project"
-            icon="HaxeIcons.NMML_LOGO">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-    </action>
-    <action id="Haxe.project.hxml.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsHxmlProjectAction"
-            text="Load As Project"
-            icon="HaxeIcons.HAXE_LOGO">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-    </action>
-    <action id="Haxe.project.sync-libs" class="com.intellij.plugins.haxe.ide.actions.haxelib.SyncProjectLibraryListAction"
-            text="Reload Haxe Project"
-            description="Reloads project and imports all libraries"
-            icon="AllIcons.Actions.Refresh">
-    </action>
-    <action id="Haxe.haxlib.update-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.UpdateHaxeLibCacheAction"
-            text="Purge Haxelib Cache"
-            description="Removes all cached haxelib values"
-            icon="AllIcons.Actions.Refresh">
-    </action>
-    <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe" class="com.intellij.plugins.haxe.ide.actions.haxelib.HaxeActionGroup">
-      <reference ref="Haxe.project.sync-libs"/>
-      <reference ref="Haxe.haxlib.update-cache"/>
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-      <add-to-group group-id="EditorPopupMenu"/>
-    </group>
   </actions>
 
   <actions resource-bundle="messages.HaxeProjectBundle">
+    <action id="Haxe.ConvertV1Modules" class="com.intellij.plugins.haxe.v2.migration.HaxeConvertV1ModulesAction">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
   </actions>
 
 </idea-plugin>

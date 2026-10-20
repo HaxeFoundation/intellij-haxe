@@ -28,11 +28,11 @@ hxmlFile ::= ((DOTDOT | DOT | IDENTIFER) SLASH)* IDENTIFER (DOT  !<<eofHxmlExten
 {mixin="com.intellij.plugins.haxe.buildsystem.hxml.psi.mixin.HxmlFileReferenceMixin"}
 
 qualifiedName ::= (IDENTIFER !(HXML_EXTENSION | SLASH) (DOT IDENTIFER)*) | CLASS_NAME
-{methods=[getQName]}
+{mixin="com.intellij.plugins.haxe.buildsystem.hxml.psi.mixin.HxmlQualifiedNameMixin"}
 
 private option ::= (lib | define | classpath | main | property | COMMENT)
 
-value ::= path | qualifiedName  | VALUE_TOKEN
+value ::= hxmlFile | path | qualifiedName  | VALUE_TOKEN
 private endOfLine ::= CRLF
 
 path ::= (DOTDOT | DOT | IDENTIFER | SLASH)+

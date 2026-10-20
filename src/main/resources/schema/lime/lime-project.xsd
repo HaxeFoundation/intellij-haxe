@@ -617,6 +617,55 @@
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
+    <xs:complexType name="module">
+        <xs:annotation>
+            <xs:documentation>A named set of classes built as a separate module.</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="source" type="module-source"/>
+            <xs:element name="class" type="module-class"/>
+            <xs:element name="haxedef" type="haxedef"/>
+            <xs:element name="haxeflag" type="haxeflag"/>
+            <xs:element name="include" type="module-type-filter"/>
+            <xs:element name="exclude" type="module-type-filter"/>
+        </xs:choice>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="source" type="xs:string"/>
+        <xs:attribute name="package" type="xs:string"/>
+        <xs:attribute name="include" type="xs:string"/>
+        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="module-source">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="package" type="xs:string"/>
+        <xs:attribute name="include" type="xs:string"/>
+        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="module-class">
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="remove" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="module-type-filter">
+        <xs:attribute name="type" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="templatePath">
+        <xs:annotation>
+            <xs:documentation>A folder searched for templates.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
     <xs:element name="project">
         <xs:annotation>
             <xs:documentation>Root element of the OpenFL project descriptor.</xs:documentation>
@@ -665,6 +714,8 @@
                 <xs:element name="error" type="error" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="prebuild" type="prebuild" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="postbuild" type="postbuild" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="module" type="module" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="templatePath" type="templatePath" maxOccurs="unbounded" minOccurs="0"/>
             </xs:choice>
         </xs:complexType>
     </xs:element>
@@ -714,8 +765,12 @@
             <xs:element name="error" type="error" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="prebuild" type="prebuild" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="postbuild" type="postbuild" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="module" type="module" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="templatePath" type="templatePath" maxOccurs="unbounded" minOccurs="0"/>
         </xs:choice>
     </xs:complexType>
+
+    <xs:element name="extension" type="extension"/>
 
     <xs:complexType name="section">
         <xs:annotation>
@@ -764,6 +819,8 @@
             <xs:element name="error" type="error" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="prebuild" type="prebuild" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="postbuild" type="postbuild" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="module" type="module" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="templatePath" type="templatePath" maxOccurs="unbounded" minOccurs="0"/>
         </xs:choice>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>

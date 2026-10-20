@@ -21,12 +21,11 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.PsiParser;
-import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.buildsystem.hxml.lexer.HXMLLexerAdapter;
 import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.hxml.HXMLParser;
-import com.intellij.plugins.haxe.hxml.lexer.HXMLLexer;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
@@ -36,7 +35,6 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Reader;
 
 /**
  * Created by eliasku on 8/8/14.
@@ -50,7 +48,7 @@ public class HXMLParserDefinition implements ParserDefinition {
   @NotNull
   @Override
   public Lexer createLexer(Project project) {
-    return new FlexAdapter(new HXMLLexer((Reader) null));
+    return new HXMLLexerAdapter();
   }
 
   @NotNull
