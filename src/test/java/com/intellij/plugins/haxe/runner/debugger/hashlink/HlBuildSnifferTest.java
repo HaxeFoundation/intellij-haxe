@@ -7,9 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.FieldSource;
+
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /** hxml/argument scanning for the HashLink-bytecode gate. */
 @DisplayName("Debugger: hl build sniffer")
@@ -17,33 +23,22 @@ public class HlBuildSnifferTest {
   @TempDir
   Path temp;
 
-  @Test
-  @DisplayName("finds hl output in arguments")
-  public void findsHlOutputInArguments() {
-    HlBuildSniffer.HlBuild build = HlBuildSniffer.fromArguments("-main Main -hl out/game.hl -debug");
-    assertTrue(build.hlBytecode());
-    assertEquals("out/game.hl", build.output());
-  }
+  /** (compiler arguments, expected bytecode gate, expected -hl output). */
+  static final List<Arguments> ARGUMENT_SNIFFS = List.of(
+    arguments("-main Main -hl out/game.hl -debug", true, "out/game.hl"),
+    arguments("--hl out.hl", true, "out.hl"),
+    // HL/C native output cannot be debugged as bytecode
+    arguments("-hl out/main.c", false, "out/main.c"),
+    arguments("-main Main -js out.js", false, null),
+    arguments(null, false, null));
 
-  @Test
-  @DisplayName("double dash form is accepted")
-  public void doubleDashFormIsAccepted() {
-    assertTrue(HlBuildSniffer.fromArguments("--hl out.hl").hlBytecode());
-  }
-
-  @Test
-  @DisplayName("hl c native output is not bytecode")
-  public void hlCNativeOutputIsNotBytecode() {
-    HlBuildSniffer.HlBuild build = HlBuildSniffer.fromArguments("-hl out/main.c");
-    assertFalse(build.hlBytecode(), "HL/C native output cannot be debugged as bytecode");
-    assertEquals("out/main.c", build.output());
-  }
-
-  @Test
-  @DisplayName("non hl arguments yield none")
-  public void nonHlArgumentsYieldNone() {
-    assertFalse(HlBuildSniffer.fromArguments("-main Main -js out.js").hlBytecode());
-    assertFalse(HlBuildSniffer.fromArguments(null).hlBytecode());
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("ARGUMENT_SNIFFS")
+  @DisplayName("sniffs hl output from arguments")
+  public void sniffsHlOutputFromArguments(String compilerArguments, boolean hlBytecode, String output) {
+    HlBuildSniffer.HlBuild build = HlBuildSniffer.fromArguments(compilerArguments);
+    assertEquals(hlBytecode, build.hlBytecode(), "hl bytecode gate");
+    assertEquals(output, build.output(), "sniffed -hl output");
   }
 
   @Test

@@ -164,6 +164,8 @@
     <programRunner implementation="com.intellij.plugins.haxe.runner.neko.NekoRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppRunner"/>
+    <programRunner  implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.legacy.LegacyHxcppDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.v2.runconfig.HaxeActionRunner"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
     <!-- ONE exception breakpoint category shared by the HashLink and HXCPP

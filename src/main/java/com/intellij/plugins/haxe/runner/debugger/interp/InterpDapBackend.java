@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.interp;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
 import com.intellij.plugins.haxe.runner.debugger.eval.EvalDebugAdapter;
@@ -8,6 +9,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Backend over the in-process {@link EvalDebugAdapter} (the haxe compiler's
@@ -18,6 +22,9 @@ import java.net.Socket;
  * this session).
  */
 public class InterpDapBackend implements DapBackend {
+  /** Generous: the eval VM connects during compiler startup, typically instantly. */
+  public static final long DEFAULT_VM_CONNECT_TIMEOUT_MILLIS = 30_000;
+
   private final EvalDebugAdapter adapter;
   private volatile ServerSocket loopback;
 
@@ -28,6 +35,17 @@ public class InterpDapBackend implements DapBackend {
   /** The port for the spawned haxe's {@code -D eval-debugger=127.0.0.1:<port>}. */
   public int getVmPort() {
     return adapter.getVmPort();
+  }
+
+  /**
+   * The compiler arguments of the spawned haxe: {@code -debug}, which every
+   * lane's debug build compiles with (the {@code debug} define selects the
+   * program's debug branches), and the define that makes the eval VM connect
+   * to this backend before running main.
+   */
+  @NotNull
+  public List<String> debuggeeArguments() {
+    return List.of("-debug", "-D", "eval-debugger=127.0.0.1:" + getVmPort());
   }
 
   @Override
@@ -65,6 +83,11 @@ public class InterpDapBackend implements DapBackend {
   @Override
   public boolean supportsToStringRendering() {
     return false; // eval values are already rendered by the VM; not controllable
+  }
+
+  @Override
+  public @Nullable String conditionProblem(Project project, @NotNull String condition) {
+    return InterpConditionValidator.problem(project, condition);
   }
 
   @Override

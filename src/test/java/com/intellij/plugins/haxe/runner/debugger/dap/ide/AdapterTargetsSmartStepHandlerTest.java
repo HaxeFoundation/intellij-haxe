@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.runner.debugger.hashlink;
+package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,8 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStepHandler;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInTarget;
 import com.intellij.psi.PsiElement;
 import com.intellij.xdebugger.XDebuggerUtil;
@@ -28,8 +27,8 @@ import java.util.List;
  * the highlights — and the user, choosing by highlight, stepped into the
  * wrong method.
  */
-@DisplayName("Debugger: hashlink smart step into order")
-public class HashLinkSmartStepIntoOrderTest extends HaxeCodeInsightFixtureTestCase {
+@DisplayName("Debugger: adapter targets smart step handler")
+public class AdapterTargetsSmartStepHandlerTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
