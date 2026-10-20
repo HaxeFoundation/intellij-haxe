@@ -35,6 +35,7 @@
   <depends optional="true" config-file="glsl-support.xml">OpenGL-Plugin</depends>
   <depends optional="true" config-file="haxe-grazie.xml">tanvd.grazi</depends>
   <!-- IU-only: the Profiler tool window integration (snapshot parsers, jump-to-source) -->
+  <depends optional="true" config-file="haxe-profiler-support.xml">com.intellij.modules.profiler</depends>
 
   <!-- Leave the '999' at the start of unreleased version numbers so that it's always newer than any released version. -->
   <version>DEV @plugin.dev.version@ for @plugin.compatibility.description@</version>
@@ -979,7 +980,6 @@
 
 
     <vfs.asyncListener implementation="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"/>
-    <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
   </extensions>
 
   <applicationListeners>
