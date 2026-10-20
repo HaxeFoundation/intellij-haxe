@@ -67,6 +67,8 @@
     <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationProxy"/>
     <psi.referenceContributor language="Haxe" implementation="com.intellij.plugins.haxe.ide.references.HaxeStringLiteralReferenceContributor"/>
     <psi.referenceContributor language="XML" implementation="com.intellij.plugins.haxe.ide.references.HaxeProjectXmlPathReferenceContributor"/>
+    <defaultHighlightingSettingProvider implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewHighlightingSetting"/>
+    <highlightErrorFilter implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewErrorFilter"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <!-- HAXE_MODULE stays registered so legacy projects still open; the v1
@@ -75,6 +77,7 @@
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
     <editorNotificationProvider implementation="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureNotificationProvider"/>
+    <editorNotificationProvider implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewStaleNotificationProvider"/>
     <statusBarWidgetFactory id="HaxeResolveContext" implementation="com.intellij.plugins.haxe.v2.editor.HaxeResolveContextWidgetFactory"
                             order="after encodingWidget"/>
     <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
@@ -357,6 +360,7 @@
     <completion.contributor id="DocFenceBlocker" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.injection.HaxeDocFenceCompletionBlocker" order="FIRST"/>
     <completion.contributor id="DocTagCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeDocTagCompletionContributor" order="FIRST, after DocFenceBlocker"/>
     <!-- compiler-only mode: answers from the compilation server and stops the chain before the IDE's contributors -->
+    <completion.contributor id="CompilerCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerCompletionContributor" order="FIRST, after DocTagCompletion, before ControllingCompletion"/>
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST, after DocTagCompletion"/>
     <!-- early so the expected values are in the lookup's first shown frame; late arrivals sort below frozen items -->
     <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeExpectedEnumValueCompletionContributor"/>
@@ -364,6 +368,7 @@
     <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeDeclarationNameCompletionContributor"/>
     <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRuntimeCompletionContributor"/>
     <!-- opt-in via compiler diagnostics: macro-generated members of the enclosing class -->
+    <completion.contributor language="Haxe" order="after ControllingCompletion" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeBlueprintCompletionContributor"/>
     <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
 
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetadataCompletionContributor" order="after ControllingCompletion"/>
@@ -602,6 +607,9 @@
     <!-- opt-in (Haxe Compiler settings): problems from the compilation server's display/diagnostics.
          Each annotator pairs with a batch inspection below so Inspect Code runs it and files its
          findings under the Haxe group. -->
+    <externalAnnotator language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerDiagnosticsAnnotator"/>
+    <externalAnnotator language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerUnusedImportAnnotator"/>
+    <externalAnnotator language="Haxe" implementationClass="com.intellij.plugins.haxe.v2.display.HaxeCompilerRemovableCodeAnnotator"/>
     <localInspection language="Haxe" shortName="HaxeCompilerDiagnostics" bundle="messages.HaxeBundle"
                      key="haxe.inspections.compiler.diagnostics.name"
                      groupPath="Haxe" groupKey="inspections.group.compiler.diagnostics" enabledByDefault="true" level="ERROR"
@@ -992,12 +1000,16 @@
   <projectListeners>
     <listener class="com.intellij.plugins.haxe.model.HaxeResolveCachePsiChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
+    <listener class="com.intellij.plugins.haxe.v2.display.HaxeDisplayCacheInvalidator"
+              topic="com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener"/>
     <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
               topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
     <listener class="com.intellij.plugins.haxe.v2.testing.run.HaxeTestCompileStepResync"
               topic="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener"/>
     <listener class="com.intellij.plugins.haxe.v2.editor.HaxeBuildToolFailureBannerRefresh"
               topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewStaleRefresh"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFileMoveTracker"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     <listener class="com.intellij.plugins.haxe.v2.runconfig.HaxeRunConfigurationBuildFileTracker"
@@ -1064,6 +1076,10 @@
 
   <actions resource-bundle="messages.HaxeProjectBundle">
     <action id="Haxe.ConvertV1Modules" class="com.intellij.plugins.haxe.v2.migration.HaxeConvertV1ModulesAction">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
+    <action id="Haxe.ShowPostMacroFile" class="com.intellij.plugins.haxe.v2.display.HaxeShowPostMacroFileAction">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
     </action>
   </actions>

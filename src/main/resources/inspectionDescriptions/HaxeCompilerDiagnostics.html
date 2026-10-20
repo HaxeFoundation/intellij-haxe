@@ -1,0 +1,17 @@
+<html>
+<body>
+Reports errors and warnings exactly as the Haxe compilation server's
+<code>display/diagnostics</code> reports them: compiler and parser errors,
+deprecation warnings, unresolved identifiers and missing interface fields.
+<p>
+Because the real compiler runs the build's macros, this also covers code the
+static analysis cannot see, such as macro-generated fields.
+<!-- tooltip end -->
+<p>
+Active only while <b>Use compiler diagnostics</b> and its
+<b>Errors and warnings</b> toggle are enabled on the
+<b>Haxe Compiler</b> settings page, and the project uses the compilation
+server. Deprecation warnings whose replacement does not exist at the module's
+language level are filtered out.
+</body>
+</html>

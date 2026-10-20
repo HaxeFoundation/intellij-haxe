@@ -1,0 +1,19 @@
+<html>
+<body>
+Reports code spans the Haxe compiler proves removable, such as unused
+pattern variables, with a quick fix that deletes the span (or applies the
+compiler's suggested replacement when it provides one).
+<p><b>Example:</b></p>
+<pre><code>
+switch (value) {
+    case Some(inner): trace("got one");   // `inner` is never used
+    case None:
+}
+</code></pre>
+<!-- tooltip end -->
+<p>
+Active only while <b>Use compiler diagnostics</b> and its unused-code toggle
+are enabled on the <b>Haxe Compiler</b> settings page; while on, it replaces
+the plugin's static unused-code inspections.
+</body>
+</html>
