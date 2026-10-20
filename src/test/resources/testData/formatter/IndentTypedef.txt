@@ -1,8 +1,10 @@
 typedef Point2D = {x:Int, y:Int}
+
 typedef Point3D = {
     > Point2D,
     z:Int
 }
+
 typedef FormattingTest = {
     var x = 0;
     var y = 0;
@@ -16,5 +18,5 @@ typedef FormattingTest = {
 }
 
 class MyClass<T:{x:Int, y:Int}> {
-    var point:T = {x:1, y:2};
+    var point:T = {x: 1, y: 2};
 }

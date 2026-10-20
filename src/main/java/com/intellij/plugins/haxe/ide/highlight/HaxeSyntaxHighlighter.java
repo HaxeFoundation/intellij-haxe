@@ -22,10 +22,13 @@ import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeHighlightingLexer;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,10 +41,18 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
  */
 public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<IElementType, TextAttributesKey>();
-  private Project myProject;
+  private final Project myProject;
+  // the file being highlighted; null for the color settings page
+  @Nullable
+  private final VirtualFile myFile;
 
   public HaxeSyntaxHighlighter(Project project) {
+    this(project, null);
+  }
+
+  public HaxeSyntaxHighlighter(Project project, @Nullable VirtualFile file) {
     myProject = project;
+    myFile = file;
   }
 
   static {
@@ -80,7 +91,12 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     ATTRIBUTES.put(DOC_COMMENT, HaxeSyntaxHighlighterColors.DOC_COMMENT);
 
     fillMap(ATTRIBUTES, BAD_TOKENS, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
-    fillMap(ATTRIBUTES, CONDITIONALLY_NOT_COMPILED, HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
+    // the CC color covers directives and their conditions only; branch BODIES
+    // stay default text at the lexer level, so freshly typed dead code shows
+    // as plain text until HaxeInactiveCodeDimAnnotator repaints it dimmed
+    fillMap(ATTRIBUTES,
+            TokenSet.andNot(CONDITIONALLY_NOT_COMPILED, TokenSet.create(PPBODY)),
+            HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
 
     ATTRIBUTES.put(HaxeMetadataTokenTypes.CT_META_PREFIX,  HaxeSyntaxHighlighterColors.METADATA);
     ATTRIBUTES.put(HaxeMetadataTokenTypes.RT_META_PREFIX, HaxeSyntaxHighlighterColors.METADATA);
@@ -101,9 +117,19 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     ATTRIBUTES.put(XML_MARKUP_ATTRIBUTE_NAME, HaxeSyntaxHighlighterColors.INLINE_XML_ATTRIBUTE_NAME);
   }
 
+  /**
+   * The lexer-level color for a token type; null when the type has no dedicated key.
+   * Used by the inactive-branch dim annotator, whose tokens never reach the
+   * highlighting lexer with their real types (dead code lexes as one PPBODY blob).
+   */
+  @Nullable
+  public static TextAttributesKey tokenAttributesKey(IElementType tokenType) {
+    return ATTRIBUTES.get(tokenType);
+  }
+
   @NotNull
   public Lexer getHighlightingLexer() {
-    return new HaxeHighlightingLexer(myProject);
+    return new HaxeHighlightingLexer(myProject, myFile);
   }
 
   @NotNull

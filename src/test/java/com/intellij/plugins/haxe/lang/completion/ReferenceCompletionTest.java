@@ -49,30 +49,6 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("StdType2.txt");
   }
 
-// Auto-detection is too slow in medium to large code bases (e.g. HashLink),
-// so it was (temporarily?) removed in favor of showing only specific tagged types.
-//
-//  @Test public void testAutodetectMethod() throws Throwable {
-//    doTestInclude();
-//  }
-//
-//  @Test public void testAutodetectMethod2() throws Throwable {
-//    myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
-//    doTestInclude();
-//  }
-//
-//  @Test public void testAutodetectConstant() throws Throwable {
-//    doTestInclude();
-//  }
-//
-//  @Test public void testAutodetectProperties() throws Throwable {
-//    doTestInclude();
-//  }
-//
-//  @Test public void testAbstractThisSemantics() throws Throwable {
-//    doTestInclude();
-//  }
-
   @Test
   @DisplayName("string code")
   public void testStringCode() throws Throwable {
@@ -284,12 +260,6 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
       doTestVariantsInner("ImportStaticStatement.txt");
     }
 
-    // FIXME Generic params declared by methods must be considered to make this test works.
-    //@Test public void testGenericToGenericInnerReference() throws Throwable {
-    //  myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
-    //  doTestInclude();
-    //}
-
     @Test
     @DisplayName("import generic sub type")
     public void testImportGenericSubType() throws Throwable {
@@ -382,18 +352,6 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
                                  "std/StdTypes.hx");
       doTestVariantsInner("UsingUtil3.txt");
     }
-
-    //@Test public void testUsingStringTools() throws Throwable {
-    //  myFixture.configureByFiles("UsingStringTools.hx", "std/StringTools.hx", "std/String.hx", "std/StdTypes.hx");
-    //  doTestVariantsInner("UsingStringTools.txt");
-    //}
-
-    // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
-    /*
-    @Test public void testExtensionMethod1() throws Throwable {
-      doTestInclude("ExtensionMethodExt.hx");
-    }
-    */
 
     @Test
     @DisplayName("extensions 1 - interface receiver gets interface extension")

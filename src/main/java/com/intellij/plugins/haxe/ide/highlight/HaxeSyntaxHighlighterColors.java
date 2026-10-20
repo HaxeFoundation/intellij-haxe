@@ -21,12 +21,10 @@ package com.intellij.plugins.haxe.ide.highlight;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
+import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 import static com.intellij.openapi.editor.colors.EditorColors.INJECTED_LANGUAGE_FRAGMENT;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
@@ -59,11 +57,22 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey("HAXE_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
   public static final TextAttributesKey DOC_COMMENT =
     createTextAttributesKey("HAXE_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
+  public static final TextAttributesKey DOC_CODE =
+    createTextAttributesKey("HAXE_DOC_CODE", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE);
+  public static final TextAttributesKey DOC_TAG =
+    createTextAttributesKey("HAXE_DOC_TAG", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG);
 
   public static final TextAttributesKey DEFINED_VAR = createTextAttributesKey("HAXE_DEFINED_VAR");
   public static final TextAttributesKey UNDEFINED_VAR = createTextAttributesKey("HAXE_UNDEFINED_VAR");
   public static final TextAttributesKey CONDITIONALLY_NOT_COMPILED = createTextAttributesKey("HAXE_CONDITIONALLY_NOT_COMPILED");
   public static final TextAttributesKey UNPARSEABLE_DATA = createTextAttributesKey(HAXE_UNPARSEABLE_DATA);
+
+  // string-literal navigation links (file paths / qualified names); both
+  // inherit the platform's Highlighted-reference styling until customized
+  public static final TextAttributesKey STRING_FILE_LINK =
+    createTextAttributesKey("HAXE_STRING_FILE_LINK", DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE);
+  public static final TextAttributesKey STRING_CODE_LINK =
+    createTextAttributesKey("HAXE_STRING_CODE_LINK", DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE);
 
   public static final TextAttributesKey METADATA =
     createTextAttributesKey("HAXE_METADATA", DefaultLanguageHighlighterColors.METADATA);
@@ -101,7 +110,7 @@ public class HaxeSyntaxHighlighterColors {
   createTextAttributesKey("HAXE_TYPE_REIFICATION", DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE);
 
   public static final TextAttributesKey CONDITIONAL_ERROR =
-  createTextAttributesKey("HAXE_CONDITIONAL_ERROR",getConditionalErrorFallback());
+  createTextAttributesKey("HAXE_CONDITIONAL_ERROR", CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES); //closest color available as fallback
 
   public static final TextAttributesKey INTERFACE =
     createTextAttributesKey(HAXE_INTERFACE, DefaultLanguageHighlighterColors.INTERFACE_NAME);
@@ -131,11 +140,5 @@ public class HaxeSyntaxHighlighterColors {
     return TextAttributesKey.createTextAttributesKey(  HaxeLanguage.INSTANCE.getID() + ":INJECTED_LANGUAGE_FRAGMENT", INJECTED_LANGUAGE_FRAGMENT);
   }
 
-
-  private static TextAttributes getConditionalErrorFallback() {
-    TextAttributes textAttributes = new TextAttributes();
-    textAttributes.setBackgroundColor(Color.decode("#b25c5e"));
-    return textAttributes;
-  }
 
 }

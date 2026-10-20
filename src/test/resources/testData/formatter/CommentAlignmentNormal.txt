@@ -6,7 +6,6 @@ package;
 /* Indented Single-line comment at file level */
 
 class Main {
-
     // Left-Aligned Line-ending comment at class level
     // Brace-aligned Line-ending comment at class level
     /* Left-Aligned Single-line comment at class level */

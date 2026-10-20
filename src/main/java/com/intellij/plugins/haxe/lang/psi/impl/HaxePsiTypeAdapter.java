@@ -43,6 +43,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.ArrayFactory;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.OpenSourceUtil;
 import lombok.CustomLog;
 
 import org.jetbrains.annotations.NonNls;
@@ -327,7 +328,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
   @Override
   public void navigate(boolean requestFocus) {
-    myType.navigate(requestFocus);
+    OpenSourceUtil.navigate(requestFocus, myType);
   }
 
   @Override

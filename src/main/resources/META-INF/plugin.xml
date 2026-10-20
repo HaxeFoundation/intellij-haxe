@@ -482,6 +482,8 @@
     <!-- metadata is its own PSI language; without this registration dead @:meta
          stays uncolored (its lexer-layer yellow only exists in active code) -->
 
+    <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeDocCommentManipulator"/>
+    <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.impl.HaxeStringLiteralImpl" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeStringLiteralManipulator"/>
 
 
     <annotator language="HXML" id="hxmlFastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeHxmlFastColorAnnotator" order="first"/>
