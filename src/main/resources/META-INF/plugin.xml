@@ -914,8 +914,17 @@
                 factoryClass="com.intellij.plugins.haxe.ide.toolWindow.HaxelibConsoleWindowFactory"/>
 
     <!-- V2 build system: Gradle/Maven-style Haxe tool window -->
+    <toolWindow id="Haxe"
+                anchor="right"
+                icon="icons.HaxeIcons.HAXE_LOGO_GRAY_13"
+                factoryClass="com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowFactory"/>
 
     <!-- V2 build system: compilation server stdio console -->
+    <toolWindow id="Haxe Compilation Server"
+                anchor="bottom"
+                canCloseContents="true"
+                icon="icons.HaxeIcons.HAXE_LOGO_GRAY_13"
+                factoryClass="com.intellij.plugins.haxe.v2.toolwindow.HaxeServerConsoleWindowFactory"/>
 
     <!-- V2 build system: Build Project / Build Module delegates to configured build commands -->
     <projectTaskRunner implementation="com.intellij.plugins.haxe.v2.buildtools.HaxeProjectTaskRunner"/>
@@ -978,6 +987,10 @@
     <action id="Haxe.NewNMMLFile" class="com.intellij.plugins.haxe.ide.actions.CreateNMMLFileAction"
             text="NMML file" description="Create new NMML file">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
+    </action>
+    <action id="Haxe.RegisterBuildFile" class="com.intellij.plugins.haxe.v2.toolwindow.actions.HaxeRegisterBuildFileAction"
+            text="Add as Haxe Build File" description="Register this file as a Haxe build file of a module">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
     </action>
     <action id="Haxe.UseFormattingRules" class="com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatUseAsRulesAction"
             text="Use as Haxe Formatting Rules"
