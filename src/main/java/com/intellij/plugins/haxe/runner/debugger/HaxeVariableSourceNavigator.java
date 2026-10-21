@@ -5,13 +5,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
-import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.runner.debugger.dap.EvaluationPath;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeQnameResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +51,7 @@ public final class HaxeVariableSourceNavigator {
   // frontend/backend-split debugger also routes every node's INLINE-values
   // lookup through it (FrontendXValue.computeInlineDebuggerData), so one
   // re-render of a populated Variables view fires dozens of navigations at
-  // once. Unbounded, those tripped the platform's submission tracker ("Too
+  // once. Unbounded, those trip the platform's submission tracker ("Too
   // many non-blocking read actions submitted at once"). A small bounded
   // executor queues the resolves instead of stampeding them — still off the
   // EDT, still cancellable/expirable, and the platform's own per-call
@@ -94,7 +93,7 @@ public final class HaxeVariableSourceNavigator {
       .submit(RESOLVE_EXECUTOR)
       .onSuccess(target -> {
         if (target == null) {
-          LOG.debug("jump-to-source: no target for path '" + path + "'");
+          if (LOG.isDebugEnabled()) LOG.debug("jump-to-source: no target for path '" + path + "'");
         }
         navigatable.setSourcePosition(target);
       })
@@ -111,13 +110,15 @@ public final class HaxeVariableSourceNavigator {
                          : null;
     if (context == null) {
       // without a frame context nothing (locals, imports) can resolve
-      LOG.debug("jump-to-source: no context element (frame position " + frame + ")");
+      if (LOG.isDebugEnabled()) LOG.debug("jump-to-source: no context element (frame position " + frame + ")");
       return null;
     }
 
     if (path.equals("this")) {
       HaxeClass enclosing = PsiTreeUtil.getParentOfType(context, HaxeClass.class);
-      LOG.debug("jump-to-source: bare this -> enclosing class " + (enclosing != null ? enclosing.getName() : null));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("jump-to-source: bare this -> enclosing class " + (enclosing != null ? enclosing.getName() : null));
+      }
       return enclosing != null ? XDebuggerUtil.getInstance().createPositionByElement(enclosing.getNavigationElement()) : null;
     }
 
@@ -145,33 +146,18 @@ public final class HaxeVariableSourceNavigator {
     if (typeName == null || memberName == null || !EvaluationPath.isIdentifier(memberName)) {
       return null;
     }
-    String bare = typeName;
-    int typeParams = bare.indexOf('<');
-    if (typeParams >= 0) {
-      bare = bare.substring(0, typeParams); // "Array<Circle>" -> "Array"
-    }
-    bare = bare.trim();
-    String shortName = bare.substring(bare.lastIndexOf('.') + 1);
-    boolean qualified = bare.indexOf('.') >= 0;
-    if (shortName.isBlank()) {
-      return null;
-    }
-    for (HaxeClass candidate : HaxeClassNameUnifiedIndex.getByNameFiltered(
-      shortName, project, GlobalSearchScope.allScope(project))) {
-      // compare RUNTIME-style names (package + bare name) — PSI's
-      // getQualifiedName() inserts the module segment for ancillary classes
-      // ("openfl.display.Preloader.DefaultPreloader") and would reject the
-      // adapter-reported "openfl.display.DefaultPreloader"
-      if (qualified && !bare.equals(HaxeDebuggerSupportUtils.runtimeClassName(candidate))) {
-        continue;
-      }
+    for (HaxeClass candidate : HaxeQnameResolveUtil.findRuntimeTypes(typeName, project)) {
       HaxeBaseMemberModel member = candidate.getModel().getMember(memberName, null);
       if (member != null) {
-        LOG.debug("jump-to-source: member '" + memberName + "' found on runtime type '" + bare + "'");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("jump-to-source: member '" + memberName + "' found on runtime type '" + typeName + "'");
+        }
         return XDebuggerUtil.getInstance().createPositionByElement(member.getBasePsi().getNavigationElement());
       }
     }
-    LOG.debug("jump-to-source: runtime type '" + typeName + "' / member '" + memberName + "' not found");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("jump-to-source: runtime type '" + typeName + "' / member '" + memberName + "' not found");
+    }
     return null;
   }
 
@@ -179,12 +165,12 @@ public final class HaxeVariableSourceNavigator {
     PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(project, expression, context, false);
     HaxeReference chain = outermostReference(fragment);
     if (chain == null) {
-      LOG.debug("jump-to-source: no reference parsed from '" + expression + "'");
+      if (LOG.isDebugEnabled()) LOG.debug("jump-to-source: no reference parsed from '" + expression + "'");
       return null;
     }
     PsiElement resolved = chain.resolve();
     if (resolved == null) {
-      LOG.debug("jump-to-source: '" + chain.getText() + "' did not resolve");
+      if (LOG.isDebugEnabled()) LOG.debug("jump-to-source: '" + chain.getText() + "' did not resolve");
       return null;
     }
     return XDebuggerUtil.getInstance().createPositionByElement(resolved.getNavigationElement());

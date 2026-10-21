@@ -8,12 +8,15 @@ import org.jetbrains.annotations.Nullable;
  * Expression dialog from a selected node.
  *
  * A node only gets a path when the WHOLE chain is a valid field/index access:
- * every segment must be a Haxe identifier (a field) or an array index. Adapters
+ * every segment must be a Haxe identifier (a field) or an index. Adapters
  * name children in two conventions — hxcpp renders array elements as "[0]",
- * HashLink as bare "0" — and both are accepted. Anything else (a map keyed by
- * a string/object, the "…" truncation marker, a synthetic "captured" slot)
- * makes the path inexpressible, so its whole subtree returns null and the
- * dialog simply opens empty rather than pre-filling something that won't parse.
+ * HashLink as bare "0" — and both are accepted; HashLink also names an enum
+ * value's constructor parameters and an int-keyed map's entries that way, and
+ * its evaluator indexes them. A synthetic child with an identifier name (a
+ * closure's "captured" environment) is a path like any field. Anything else
+ * (a quoted string key, an enum-valued key, the "…" truncation marker) makes
+ * the path inexpressible, so its whole subtree returns null and the dialog
+ * simply opens empty rather than pre-filling something that won't parse.
  */
 public final class EvaluationPath {
   private EvaluationPath() {

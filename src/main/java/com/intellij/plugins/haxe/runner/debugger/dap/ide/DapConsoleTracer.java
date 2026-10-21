@@ -8,9 +8,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
  * DAP console tracing (developer diagnostics, off in production): flip
  * {@link #ENABLED} (in code, rebuild) to mirror every DAP request/response/
  * timeout and incoming event into the session console as grey [dap] lines —
- * command, thread/frame/reference ids, seq numbers, durations. This is how
- * the firefox worker-actor wedges were pinned; deliberately NOT exposed as
- * UI, it is a developer tool.
+ * command, thread/frame/reference ids, seq numbers, durations. Deliberately
+ * NOT exposed as UI, it is a developer tool.
  */
 final class DapConsoleTracer {
   static final boolean ENABLED = false;

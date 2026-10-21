@@ -54,14 +54,20 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
-  @DisplayName("statement 1 - statement keywords in method body")
+  @DisplayName("statement 1 - statement keywords in method body, no else or catch without context")
   public void testStatement1() throws Throwable {
+    doTestInclude();
+  }
+
+  @Test
+  @DisplayName("line comment")
+  public void testLineComment() throws Throwable {
     doTest();
   }
 
   @Test
-  @DisplayName("statement 2 - excludes else and catch without context")
-  public void testStatement2() throws Throwable {
+  @DisplayName("doc comment")
+  public void testDocComment() throws Throwable {
     doTest();
   }
 

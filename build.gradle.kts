@@ -1,3 +1,4 @@
+import java.time.Duration
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
@@ -128,10 +129,18 @@ dependencies {
         pluginComposedModule(implementation(project(":debuggers:hashlink-debug-adapter")))
         pluginComposedModule(implementation(project(":debuggers:vshaxe-hxcpp-debugger-adapter")))
         pluginComposedModule(implementation(project(":debuggers:eval-debugger")))
-        pluginComposedModule(implementation(project(":debuggers:browser-debugger")))
+        pluginComposedModule(implementation(project(":debuggers:javascript-debugger")))
+        pluginComposedModule(implementation(project(":display-protocol")))
+        pluginComposedModule(implementation(project(":profilers:core")))
 
     }
 
+}
+
+// No test here runs on JUnit 4. The platform's tests-bootstrap adds a vintage engine of its own
+// JUnit (6.x on 2026.3), which fails at discovery against the catalog's JUnit platform.
+configurations.configureEach {
+    exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -174,8 +183,35 @@ tasks {
 
     test {
         useJUnitPlatform()
-        // watchdog-extension tuning lives in src/test/resources/junit-platform.properties;
-        // a system property set here would be overwritten by the IJ launcher session listener
+        // Tests usually takes 3-6 minutes, so 15 min should be an acceptable timeout (in case of Debugger deadlocks)
+        timeout.set(Duration.ofMinutes(15))
+
+        // platform switch: fixture comparisons OVERWRITE their expected files
+        // instead of failing - the sanctioned way to regenerate test data after
+        // an intended formatter/generator behavior change. Review the git diff!
+        systemProperty("idea.tests.overwrite.data", System.getProperty("idea.tests.overwrite.data", "false"))
+
+        // The light test fixture installs no look and feel. With a display present the
+        // platform treats every HTML component created in a test as a missing global
+        // style sheet and logs it ("Missing global CSS sheet"); headless, it does not.
+        systemProperty("java.awt.headless", "true")
+
+        // Compiler integration tests (`haxe --wait`) used in IDE services (catalog, resolve, completion).
+        // Tests are opt-in as they depend on haxe being installed and might be sensitive to what version is installed.
+        val liveCompilerTests = providers.gradleProperty("liveCompilerTests").getOrElse("false").toBoolean()
+        if (!liveCompilerTests) {
+            logger.lifecycle("SKIPPING live compiler integration tests (opt in with -PliveCompilerTests=true)")
+            filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.display.HaxeLiveCompilerIntegrationTest")
+            filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.display.HaxeLiveHaxe3IntegrationTest")
+        }
+
+        // The test-runner pipeline test runs real haxe/haxelib/neko/adl processes end to end.
+        // Opt-in for the same reason: it depends on the installed toolchain and takes minutes.
+        val liveTestRunnerTests = providers.gradleProperty("liveTestRunnerTests").getOrElse("false").toBoolean()
+        if (!liveTestRunnerTests) {
+            logger.lifecycle("SKIPPING live test-runner pipeline test (opt in with -PliveTestRunnerTests=true)")
+            filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunnerPipelineTest")
+        }
     }
 
     buildPlugin {
@@ -281,13 +317,20 @@ tasks {
     }
 
 
-    // ship the DAP debug adapter bytecode inside the plugin directory (not a jar):
-    // the hl executable needs a real file path to run it
+    //Makes sure the latest Hashlink debugger and LimeProjectParser is added to the sandbox
     withType<PrepareSandboxTask> {
+
         dependsOn(":debuggers:hashlink-debug-adapter:buildDebugAdapter")
         from(project(":debuggers:hashlink-debug-adapter").layout.buildDirectory.file("hl/hl-debug-adapter.hl")) {
             into(pluginName.map { "$it/adapter" })
         }
+
+        // Note: the lime project parser/evaluator is a jar that contains compiled java and Haxe sources
+        dependsOn(":tools:LimeProjectParser:buildParser")
+        from(project(":tools:LimeProjectParser").layout.buildDirectory.file("libs/LimeProjectParser.jar")) {
+            into(pluginName.map { "$it/tools" })
+        }
+
     }
 
 

@@ -8,20 +8,23 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	Resolves a runtime `hl_type*` (found in value headers: object/vdynamic/venum
-	headers, a varray's element type) back to a module HLType.
+	Resolves a runtime `hl_type*`, as found in the headers of objects,
+	vdynamics and venums or as a varray's element type, back to a module HLType.
 
-	hl_type layout: kind i32 @ +0, kind-specific data pointer @ +ptr.
-	- primitive kinds map directly (format HLType constructor order matches the
-	  C hl_type_kind indices exactly);
-	- HOBJ/HSTRUCT: data -> hl_type_obj { i32 nfields/nproto/nbindings, then the
-	  uchar* name at Align.objTypeName } -> resolve the UCS-2 name against the
-	  module's types;
-	- HENUM: data -> hl_type_enum { uchar* name @ +0 } -> resolve by name;
-	- HNULL/HREF: data is the wrapped hl_type*.
-	All offsets come from the `ijhaxe.debug.layout.Align` arch descriptor. Anything
-	unknown or unresolvable returns null; callers fall back to the static
-	(bytecode) type.
+	An hl_type holds its kind (i32 @ +0) and a pointer to kind-specific data
+	(@ +ptr):
+	 - Primitive kinds map directly: the order of format's HLType constructors
+	   matches the C hl_type_kind values.
+	 - HOBJ and HSTRUCT: the data is an hl_type_obj, whose UCS-2 name (at
+	   Align.objTypeName) is looked up among the module's types.
+	 - HENUM: the data is an hl_type_enum with the name @ +0, looked up the same
+	   way. An enum WITHOUT a name is one the compiler generated, a closure's
+	   capture environment: it is read from the hl_type_enum itself, since the
+	   module holds many such enums under the same empty name, and carries a
+	   null name like the bytecode reader gives its "fake enum".
+	 - HNULL and HREF: the data is the wrapped hl_type*.
+	Unknown or unresolvable types return null, and callers keep the static
+	type from the bytecode.
 **/
 class RuntimeTypes {
 	static inline var KFUN = 10;
@@ -45,8 +48,8 @@ class RuntimeTypes {
 	final align:Align;
 	final resolveName:String->Null<HLType>;
 	final cache:Map<String, HLType> = new Map(); // keyed by the hl_type* address
-	// in-flight resolutions: a (theoretical) self-referential signature must
-	// not recurse forever through its own arg/ret types
+	// types being resolved right now, so a function type that refers to itself
+	// through its argument or return types cannot recurse forever
 	final resolving:Map<String, Bool> = new Map();
 
 	public function new(mem:MemoryReader, align:Align, resolveName:String->Null<HLType>) {
@@ -68,7 +71,7 @@ class RuntimeTypes {
 			return cached;
 		}
 		if (resolving.exists(key)) {
-			return null; // cycle: let the outer resolution degrade this leg
+			return null; // a cycle: the outer resolution treats this part as unresolved
 		}
 		resolving.set(key, true);
 		var resolved = resolve(typePtr);
@@ -93,15 +96,19 @@ class RuntimeTypes {
 				var name = readName(dataPtr(typePtr));
 				name == "" ? null : HAbstract(name);
 			case KGUID:
-				// the format lib has no HGUID constructor; a GUID is stored as an
-				// i64, so display it as its raw Int64 value
+				// the format lib has no HGUID; a GUID is stored as an i64, so it shows as an Int64
 				HI64;
 			case KOBJ, KSTRUCT:
 				var data = dataPtr(typePtr);
-				data.isNull() ? null : resolveName(readName(offsetName(data)));
+				data.isNull() ? null : resolveName(readName(objectNamePointer(data)));
 			case KENUM:
 				var data = dataPtr(typePtr);
-				data.isNull() ? null : resolveName(readName(mem.readPointer(data)));
+				if (data.isNull()) {
+					null;
+				} else {
+					var name = readName(mem.readPointer(data));
+					name == "" ? anonymousEnum(data) : resolveName(name);
+				}
 			case KNULL, KREF:
 				var inner = typeAt(dataPtr(typePtr));
 				inner == null ? null : (kind == KNULL ? HNull(inner) : HRef(inner));
@@ -113,12 +120,10 @@ class RuntimeTypes {
 	}
 
 	// hl_type_fun: hl_type **args @ +0, hl_type *ret @ +ptr, i32 nargs @ +ptr*2.
-	// Reconstructing the signature makes a closure reached through a DYNAMIC
-	// slot (an Array<()->Int> element, a Dynamic local) render exactly like a
-	// statically typed one — "function Holder.grab" with its "() -> Int"
-	// signature, via the readClosure path — instead of a bare "Dynamic" leaf.
-	// Unresolvable pieces degrade to HDyn; the closure still renders, just
-	// with a looser signature.
+	// With the signature, a closure held in a Dynamic slot (an Array<() -> Int>
+	// element, a Dynamic local) displays like a statically typed one, e.g.
+	// "function Holder.grab" of type "() -> Int", instead of a bare "Dynamic".
+	// An argument or return type that cannot be resolved becomes HDyn.
 	function resolveFun(typePtr:Pointer):HLType {
 		var data = dataPtr(typePtr);
 		if (data.isNull()) {
@@ -126,7 +131,7 @@ class RuntimeTypes {
 		}
 		var nargs = mem.readI32(Int64.add(data, Int64.ofInt(align.ptr * 2)));
 		if (nargs < 0 || nargs > MAX_FUN_ARGS) {
-			return HFun(null); // a corrupt count must never drive a huge read
+			return HFun(null); // a corrupt count must not cause a huge read
 		}
 		var argsPtr = mem.readPointer(data);
 		var args:Array<HLType> = [];
@@ -139,17 +144,48 @@ class RuntimeTypes {
 		return HFun({args: args, ret: ret != null ? ret : HDyn});
 	}
 
+	// hl_type_enum: name @ +0, nconstructs i32 @ +ptr, constructs @ +ptr*2.
+	// hl_enum_construct: name @ +0, nparams i32 @ +ptr, params (hl_type**)
+	// @ +ptr*2, then size, hasptr and offsets; ptr*4 + 8 bytes per entry.
+	// A parameter type that cannot be resolved becomes HDyn.
+	function anonymousEnum(data:Pointer):Null<HLType> {
+		var count = mem.readI32(Int64.add(data, Int64.ofInt(align.ptr)));
+		if (count < 0 || count > MAX_FUN_ARGS) {
+			return null;
+		}
+		var constructs = mem.readPointer(Int64.add(data, Int64.ofInt(align.ptr * 2)));
+		var stride = align.ptr * 4 + 8;
+		var prototypes = [];
+		for (i in 0...count) {
+			var construct = Int64.add(constructs, Int64.ofInt(i * stride));
+			var nparams = mem.readI32(Int64.add(construct, Int64.ofInt(align.ptr)));
+			if (nparams < 0 || nparams > MAX_FUN_ARGS) {
+				return null;
+			}
+			var paramsPtr = mem.readPointer(Int64.add(construct, Int64.ofInt(align.ptr * 2)));
+			var params:Array<HLType> = [];
+			for (p in 0...nparams) {
+				var param = paramsPtr.isNull() ? null
+					: typeAt(mem.readPointer(Int64.add(paramsPtr, Int64.ofInt(p * align.ptr))));
+				params.push(param != null ? param : HDyn);
+			}
+			prototypes.push({name: "", params: params});
+		}
+		return HEnum({name: null, globalValue: null, constructs: prototypes});
+	}
+
 	function dataPtr(typePtr:Pointer):Pointer {
 		return mem.readPointer(Int64.add(typePtr, Int64.ofInt(align.ptr)));
 	}
 
-	// name pointer for HOBJ/HSTRUCT lives inside hl_type_obj (Align.objTypeName)
-	function offsetName(objData:Pointer):Pointer {
+	// the name pointer inside an hl_type_obj
+	function objectNamePointer(objData:Pointer):Pointer {
 		return mem.readPointer(Int64.add(objData, Int64.ofInt(align.objTypeName)));
 	}
 
-	// null-terminated UCS-2, capped; a failed/zeroed read yields "" which simply
-	// fails the name lookup and falls back to the static type
+	// A NUL-terminated UCS-2 name, capped at MAX_NAME_CHARS. A null pointer or
+	// zeroed memory yields "", which matches no type, so the caller keeps the
+	// static type.
 	function readName(namePtr:Pointer):String {
 		if (namePtr.isNull()) {
 			return "";

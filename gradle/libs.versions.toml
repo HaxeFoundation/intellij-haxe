@@ -7,7 +7,7 @@ junit = "4.13.2"
 junit5 = "5.14.4"
 junitPlatform = "1.14.4"
 lombok = "1.18.44"
-jackson = "3.1.0"
+jackson = "3.2.3"
 commonmark = "0.21.0"
 commonsText = "1.14.0"
 commonsCompress = "1.26.2"
@@ -28,6 +28,7 @@ junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.re
 junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatform" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 jacksonDatabind = { group = "tools.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jacksonDataformatXml = { group = "tools.jackson.dataformat", name = "jackson-dataformat-xml", version.ref = "jackson" }
 commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }
 commonmarkAutolink = { group = "org.commonmark", name = "commonmark-ext-autolink", version.ref = "commonmark" }
 commonmarkGfmTables = { group = "org.commonmark", name = "commonmark-ext-gfm-tables", version.ref = "commonmark" }

@@ -10,7 +10,9 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeNameKind;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
+import com.intellij.plugins.haxe.util.HaxeSuggestedNames;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReference;
@@ -213,7 +215,8 @@ public class ExtractMethodBuilder {
     Set<String> usedNames = HaxeRefactoringUtil.collectUsedNames(compositeElement);
     List<String> candidates = new ArrayList<>();
     if (compositeElement instanceof HaxeExpression expression) {
-      candidates.addAll(HaxeNameSuggesterUtil.getSuggestedNames(expression, false));
+      HaxeSuggestedNames suggested = HaxeNameSuggesterUtil.suggest(expression, null, HaxeNameKind.METHOD, expression, Set.of());
+      candidates.addAll(suggested.names());
     }else {
       candidates.add("extracted");
     }

@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getReferenceTextFromStubOrPsi;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 public abstract class HaxeImportableModel implements HaxeExposableModel {
   protected final PsiElement basePsi;
@@ -140,7 +141,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
         PsiElement resolve = type.getReferenceExpression().resolve();
         if (resolve instanceof HaxeTypedefDeclaration declaration) {
           typedefDeclarationRecursionKey recursionKey = new typedefDeclarationRecursionKey(name, declaration);
-          HaxeModel haxeModel = typeDefRecursionGuard.doPreventingRecursion(recursionKey, true, () ->
+          HaxeModel haxeModel = HaxeEvaluationTaint.computeOrTaint(typeDefRecursionGuard, recursionKey, true, () ->
           {
              return getExposedMemberFromTypeDefReference(name, declaration.getModel(), declaration);
           });

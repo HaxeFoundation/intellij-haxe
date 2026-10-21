@@ -1,0 +1,19 @@
+<html>
+<body>
+Reports implemented interface members whose signature or type does not
+conform to the interface's declaration - wrong parameter or return types,
+missing optionality, incompatible property access - for both methods and
+fields.
+<p><b>Example:</b></p>
+<pre><code>
+interface Shape {
+    function area():Float;
+}
+class Circle implements Shape {
+    public function area():Int {   // return type must be Float
+        return 0;
+    }
+}
+</code></pre>
+</body>
+</html>

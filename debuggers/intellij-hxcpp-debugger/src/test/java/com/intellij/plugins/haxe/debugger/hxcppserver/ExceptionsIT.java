@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The M6 exception matrix against the scenario fixture: an uncatchable throw
+ * The exception matrix against the scenario fixture: an uncatchable throw
  * stops AT the throw site before unwinding; a caught throw never stops; null
  * access stops as a critical error EVEN inside try/catch (a runtime property
  * under an attached debugger); disabled filters resume silently.
@@ -145,8 +145,8 @@ public class ExceptionsIT {
   }
 
   /**
-   * The user-reported bug's server half: enabling the "thrown" filter DURING a
-   * live session (not just at startup) must take effect. The debuggee loops
+   * Enabling the "thrown" filter DURING a live session (not just at startup)
+   * must take effect on the server. The debuggee loops
    * throwing+catching an AppError; the session starts with thrown OFF (runs
    * freely), then setExceptionBreakpoints turns it on and the next throw stops.
    */
@@ -167,10 +167,11 @@ public class ExceptionsIT {
   }
 
   /**
-   * Regression guard: ordinary LINE breakpoints inside a try AND inside its
-   * catch fire like any other breakpoint. (The exception FILTERS are a
-   * separate mechanism — "break on all/caught exceptions" is not supportable,
-   * see README gotcha 15 — but a line breakpoint on such a line always works.)
+   * Ordinary LINE breakpoints inside a try AND inside its catch fire like any
+   * other breakpoint. (The exception FILTERS are a separate mechanism —
+   * "break on all/caught exceptions" is not supportable, see the README,
+   * Exception breakpoints: NOT SUPPORTABLE — but a line breakpoint on such a
+   * line always works.)
    */
   @Test
   @DisplayName("line breakpoints inside try and catch fire")

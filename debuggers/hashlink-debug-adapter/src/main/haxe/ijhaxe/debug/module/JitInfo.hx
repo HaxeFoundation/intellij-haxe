@@ -5,11 +5,10 @@ import ijhaxe.debug.Pointer;
 import haxe.Int64;
 
 /**
-	The runtime JIT/memory map the debuggee VM sends over the --debug socket
-	(the "HLD1" handshake). Bridges source opcodes ↔ absolute machine addresses.
-
-	Wire layout empirically verified against HashLink 1.15 (protocol version 1):
-	see JitInfoReader.
+	What the debuggee VM reports in its "HLD1" handshake on the --debug socket:
+	its runtime version and bitness, key runtime addresses, and where the JIT
+	placed each function. It maps between opcodes and machine addresses. The
+	wire format is described in JitInfoReader.
 **/
 class JitInfo {
 	public var is64(default, null):Bool;
@@ -31,7 +30,7 @@ class JitInfo {
 	public var structSizes(default, null):Array<Int>;
 	public var functions(default, null):Array<JitFunction>;
 
-	// functions sorted by start, for address→function binary search
+	// functions sorted by start, to binary-search the function containing an address
 	var sortedByStart:Array<{start:Int, end:Int, fidx:Int}>;
 
 	public function new(fields:{
@@ -72,10 +71,9 @@ class JitInfo {
 	}
 
 	/**
-		The function's true machine entry point — the start of its JIT prologue
-		(frame setup, callee-saved register saves). This is the address to CALL,
-		unlike `addressOf(fidx, 0)`, which points at opcode 0 AFTER the prologue
-		(correct for a breakpoint, fatal for a call — it skips frame setup).
+		The function's entry point: the start of its JIT prologue, which sets up
+		the frame. Calls must use this address. `addressOf(fidx, 0)` points past
+		the prologue; it suits a breakpoint, but a call there crashes.
 	**/
 	public function functionEntry(fidx:Int):Pointer {
 		return Int64.add(jitCodeBase, Int64.ofInt(functions[fidx].start));
@@ -115,7 +113,7 @@ class JitInfo {
 		}
 		var fn = functions[fidx];
 		var relInFn = rel - fn.start;
-		// last opcode whose offset is <= relInFn
+		// the opcode whose machine code contains relInFn
 		var op = 0;
 		for (i in 0...fn.nops) {
 			if (fn.offsets[i] <= relInFn && relInFn < fn.offsets[i + 1]) {

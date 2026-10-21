@@ -20,31 +20,36 @@ package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-
+import com.intellij.plugins.haxe.display.client.HaxeVersionProbe;
+import com.intellij.plugins.haxe.display.protocol.InitializeResult.SemVer;
+import com.intellij.plugins.haxe.util.HaxeEnvironmentVariables;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeToolPathResolver;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Set;
+
+import static com.intellij.plugins.haxe.util.HaxeEnvironmentVariables.*;
 
 @CustomLog
 public class HaxeSdkUtil extends HaxeSdkUtilBase {
-  private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
-  private static final String DEFAULT_STD_LINUX_PATH = "/usr/share/haxe/std";
-  private static final String DEFAULT_STD_MAC_PATH = "/usr/local/lib/haxe/std";
+  private static final String UNKNOWN_VERSION = "NA";
 
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
@@ -54,36 +59,28 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       return null;
     }
 
-    List<String> command = new ArrayList<>();
-    command.add(exePath);
-    command.add("-help");
+    // -version is the one spelling every supported compiler knows
+    List<String> command = List.of(exePath, "-version");
 
     try {
       VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(HaxeFileUtil.fixUrl(path));
-      List<String> output = new ArrayList<>();
+      List<String> stdout = new ArrayList<>();
+      List<String> stderr = new ArrayList<>();
       int exitCode;
       if (ApplicationManager.getApplication().isDispatchThread()) {
-        exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, true, dir, output, null, null, true);
+        exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, dir, stdout, stderr, null, true);
       }
       else {
-        exitCode = HaxeProcessUtil.runProcess(command, true, dir, output, null, null, true);
+        exitCode = HaxeProcessUtil.runProcess(command, dir, stdout, stderr, null);
       }
       if (exitCode != 0) {
         log.error("Haxe compiler exited with invalid exit code: " + exitCode);
         return null;
       }
 
-      String haxeVersion = "NA";
-      for (String s : output) {
-        final Matcher matcher = VERSION_MATCHER.matcher(s);
-        if (matcher.find()) {
-          haxeVersion = matcher.group(1);
-          break;
-        }
-      }
-      final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
+      final HaxeSdkData haxeSdkData = new HaxeSdkData(path, versionOf(stdout, stderr));
       haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
-      haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
+      haxeSdkData.setNekoBinPath(suggestNekoBinPath());
       return haxeSdkData;
     }
     catch (Exception e) {
@@ -92,82 +89,73 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     }
   }
 
+  /** The version a {@code -version} answer names, {@code NA} when none: haxe 3 prints it to stderr, haxe 4 and 5 to stdout. */
+  @NotNull
+  private static String versionOf(List<String> stdout, List<String> stderr) {
+    String answer = String.join("\n", stdout) + "\n" + String.join("\n", stderr);
+    SemVer version = HaxeVersionProbe.parse(answer);
+    return version != null ? version.toString() : UNKNOWN_VERSION;
+  }
+
   public static void setupSdkPaths(@Nullable VirtualFile sdkRoot, SdkModificator modificator) {
     if (sdkRoot == null) {
       return;
     }
-    VirtualFile stdRoot;
-    final String stdPath = System.getenv("HAXE_STD_PATH");
-    if (stdPath != null) {
-      stdRoot = VirtualFileManager.getInstance().findFileByUrl("file://" + stdPath);
-    }
-    else {
-      stdRoot = sdkRoot.findChild("std");
-    }
-    // if standard lib not found and not on windows check default install path for linux and macOS
-    if (stdRoot == null && SystemInfo.isLinux) {
-      stdRoot = VirtualFileManager.getInstance().findFileByUrl("file://" + DEFAULT_STD_LINUX_PATH);
-    }
-    if (stdRoot == null && SystemInfo.isMac) {
-      stdRoot = VirtualFileManager.getInstance().findFileByUrl("file://" + DEFAULT_STD_MAC_PATH);
-    }
-    if (stdRoot != null) {
+    for (VirtualFile stdRoot : findStdRoots(sdkRoot)) {
       modificator.addRoot(stdRoot, OrderRootType.SOURCES);
       modificator.addRoot(stdRoot, OrderRootType.CLASSES);
     }
-    VirtualFile docRoot;
-    final String docPath = System.getenv("HAXE_DOC_PATH");
-    if (docPath != null) {
-      docRoot = VirtualFileManager.getInstance().findFileByUrl(docPath);
+  }
+
+  /** The std folders the SDK's compiler searches that exist, in its order; a missing folder cannot be a root. */
+  @NotNull
+  private static Set<VirtualFile> findStdRoots(@NotNull VirtualFile sdkRoot) {
+    Set<VirtualFile> stdRoots = new LinkedHashSet<>();
+    for (String candidate : stdFolderCandidates(sdkRoot)) {
+      VirtualFile stdRoot = findDirectory(candidate);
+      if (stdRoot != null) stdRoots.add(stdRoot);
     }
-    else {
-      docRoot = sdkRoot.findChild("doc");
-    }
-    if (docRoot != null) {
-      modificator.addRoot(docRoot, JavadocOrderRootType.getInstance());
-    }
+    return stdRoots;
+  }
+
+  @NotNull
+  private static Set<String> stdFolderCandidates(@NotNull VirtualFile sdkRoot) {
+    String compilerPath = getCompilerPathByFolderPath(sdkRoot.getPath());
+    if (compilerPath == null) return Set.of();
+
+    Path compilerDirectory = HaxeStdClassPaths.compilerDirectory(Path.of(compilerPath));
+    String stdPathValue = HaxeEnvironmentVariables.value(HAXE_STD_PATH);
+    return HaxeStdClassPaths.candidates(stdPathValue, compilerDirectory, !SystemInfo.isWindows);
   }
 
   @Nullable
-  private static String suggestNekoBinPath(@NotNull String path) {
-    final String binName = "neko";
-    String result = null;
+  private static VirtualFile findDirectory(@NotNull String path) {
+    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+    return file != null && file.isDirectory() ? file : null;
+  }
 
-    String nekoDir = System.getenv("NEKOPATH");
-    if (nekoDir == null) {
-      nekoDir = System.getenv("NEKO_INSTPATH");
-    }
-    if(nekoDir != null) {
-      File nekoFile =  new File(nekoDir, binName);
-      if(nekoFile.exists()) {
-        result = nekoFile.getPath();
-      }
-    }
-
-    if(result == null) {
-      result = locateExecutable(binName);
-    }
-
-    log.debug("returning neko path: " + String.valueOf(result));
-    return result;
+  /** The neko a new SDK starts with: the one Neko's own variables name, else the PATH's. */
+  @Nullable
+  private static String suggestNekoBinPath() {
+    return HaxeRuntimeTool.NEKO.fromEnvironmentOrPath(HaxeRuntimeTool.PROCESS_ENVIRONMENT);
   }
 
   @Nullable
   public static String suggestHomePath() {
     //HAXEPATH is created by windows installer. Used by haxelib.
-    String haxePath = System.getenv("HAXEPATH");
+    String haxePath = HaxeEnvironmentVariables.value(HAXEPATH);
     if(haxePath != null) {
       return haxePath;
     }
 
     //Specifies the path to `std` directory in SDK. Used by Haxe compiler.
-    String stdPath = System.getenv("HAXE_STD_PATH");
-    if(stdPath != null) {
-      return new File(stdPath).getParent();
+    List<String> stdPaths = HaxeEnvironmentVariables.pathList(HAXE_STD_PATH);
+    if(!stdPaths.isEmpty()) {
+      return new File(stdPaths.getFirst()).getParent();
     }
 
     //Try to locate SDK path relative to the compiler executable.
-    String compilerPath = locateExecutable("haxe");
+    String compilerPath = canonicalCompilerOnPath();
     if(compilerPath != null) {
       return new File(compilerPath).getParent();
     }
@@ -175,24 +163,16 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     return null;
   }
 
-  /**
-   * Look for specified program in directories which are listed in the PATH environment variable.
-   * @return Canonical path (absolute, symlinks resolved) to `executable` if found. `null` otherwise.
-   */
+  /** The compiler a PATH lookup finds, canonical (symlinks resolved) so the SDK home derived from it is the real install; null when absent. */
   @Nullable
-  private static String locateExecutable(String executable) {
-    executable = getExecutableName(executable);
-    String pathEnv = System.getenv("PATH");
-    String[] paths = pathEnv.split(SystemInfo.isWindows ? ";" : ":");
-    for(String path:paths) {
-      File file = new File(path, executable);
-      if(file.exists()) {
-        try {
-          return file.getCanonicalPath();
-        }
-        catch (IOException e) {}
-      }
+  private static String canonicalCompilerOnPath() {
+    String found = HaxeToolPathResolver.pathDetectedExecutable("haxe");
+    if (found == null) return null;
+    try {
+      return new File(found).getCanonicalPath();
     }
-    return null;
+    catch (IOException e) {
+      return null;
+    }
   }
 }

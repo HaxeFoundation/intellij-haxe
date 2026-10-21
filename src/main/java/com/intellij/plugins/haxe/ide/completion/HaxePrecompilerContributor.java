@@ -3,7 +3,7 @@ package com.intellij.plugins.haxe.ide.completion;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
+import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ public class HaxePrecompilerContributor extends CompletionContributor {
   }
 
   private static void addDefinitions(CompletionResultSet resultSet, PsiFile targetFile) {
-    Map<String, String> allDefinitions = HaxeDefineDetectionManager.getInstance(targetFile.getProject()).getAllDefinitions();
+    Map<String, String> allDefinitions = HaxeConditionalExpression.definitionsFor(targetFile.getProject(), targetFile);
     Set<String> names = allDefinitions.keySet();
     for (String name : names) {
       if(!name.trim().isEmpty()) {

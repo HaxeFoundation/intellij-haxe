@@ -1,0 +1,4 @@
+-cp src
+-lib buddy
+--main BuddyMain
+--interp

@@ -6,11 +6,12 @@ import ijhaxe.debug.target.MemoryReader;
 import haxe.Int64;
 
 /**
-	Reads native HashLink maps (what haxe.ds.StringMap/IntMap/ObjectMap wrap in
-	their first field). Port of hld makeMap for the HL RUNTIME >= 1.13 layout —
-	older runtimes get no entry listing (callers fall back to a raw display).
+	Reads native HashLink maps, which haxe.ds.StringMap, IntMap and ObjectMap
+	keep in their first field. A port of hld makeMap for the layout of HL
+	runtime 1.13 and later. Older runtimes get no entries, and callers show
+	the raw map instead.
 
-	Native layout (64-bit):
+	Layout:
 
 	| field     | offset   | purpose                                       |
 	|-----------|----------|-----------------------------------------------|
@@ -19,9 +20,10 @@ import haxe.Int64;
 	| `entries` | `+2*ptr` | key storage (Int keys)                        |
 	| `values`  | `+3*ptr` | value storage (+ keys for String/Object maps) |
 
-	then a freelist (ptr+8 bytes) and the ncells/nentries/maxEntries i32s.
-	Small maps (maxEntries < 128) use BYTE cells/nexts with 255 as the chain
-	terminator; larger maps use i32 arrays with negative terminators.
+	A freelist (ptr + 8 bytes) and the i32s ncells, nentries and maxEntries
+	follow. Small maps (maxEntries < 128) store cells and nexts as bytes, with
+	255 ending a chain. Larger maps use i32 arrays, where a negative value
+	ends a chain.
 **/
 class MapReader {
 	static inline var MAX_ENTRIES = 512; // same cap as array listing
@@ -39,7 +41,7 @@ class MapReader {
 	}
 
 	/**
-		Live entry count, or -1 when the layout is unsupported/implausible.
+		The number of entries, or -1 when the layout is unsupported or the count is implausible.
 	**/
 	public function entryCount(native:Pointer):Int {
 		if (!supported || native.isNull()) {
@@ -51,10 +53,10 @@ class MapReader {
 	}
 
 	/**
-		The live entries. `dynPreview` renders Object keys (read as HDyn) for
-		display. Capped at 512 entries.
+		The entries, at most MAX_ENTRIES of them. `objectKeyPreview` renders the
+		Dynamic key at an address, for ObjectMap keys.
 	**/
-	public function entries(native:Pointer, kind:MapKeyKind, dynPreview:Pointer->String):Array<MapEntrySlot> {
+	public function entries(native:Pointer, kind:MapKeyKind, objectKeyPreview:Pointer->String):Array<MapEntrySlot> {
 		var total = entryCount(native);
 		if (total <= 0) {
 			return [];
@@ -71,7 +73,7 @@ class MapReader {
 		}
 		var small = maxEntries < SMALL_MAP_LIMIT;
 
-		// per-kind strides (HL >= 1.13)
+		// where each key kind stores its keys and values
 		var keyInValue;
 		var valuePos;
 		var keyStride;
@@ -115,7 +117,7 @@ class MapReader {
 					case StringKey: '"${readUcs2(mem.readPointer(keyAddress))}"';
 					case IntKey: Std.string(mem.readI32(keyAddress));
 					case Int64Key: haxe.Int64.toStr(mem.readI64(keyAddress));
-					case ObjectKey: dynPreview(keyAddress);
+					case ObjectKey: objectKeyPreview(keyAddress);
 				}
 				result.push({key: key, valueAddress: valueAddress});
 				c = small ? mem.readU8(nexts.offset(c)) : mem.readI32(nexts.offset(c << 2));
@@ -124,12 +126,12 @@ class MapReader {
 		return result;
 	}
 
-	// freelist (ptr + 4 + 4 bytes) sits after the four table pointers
+	// the counts follow the four table pointers and the freelist (ptr + 4 + 4 bytes)
 	inline function countsOffset():Int {
 		return align.ptr * 4 + (align.ptr + 4 + 4);
 	}
 
-	// null-terminated UCS-2 key bytes (not a String object)
+	// a NUL-terminated UCS-2 key: raw characters, not a String object
 	function readUcs2(bytes:Pointer):String {
 		if (bytes.isNull()) {
 			return "";

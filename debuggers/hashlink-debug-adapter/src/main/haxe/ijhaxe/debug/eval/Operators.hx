@@ -6,18 +6,19 @@ import ijhaxe.debug.values.ValueReader;
 import haxe.Int64;
 
 /**
-	Pure adapter-side operator folding over EvalValue — Haxe semantics:
+	The operators over EvalValue, computed inside the adapter with Haxe
+	semantics:
 
-	- `/` is ALWAYS Float (like Haxe, unlike C).
-	- `+` concatenates when either side is a String (numbers/bools/null are
-	  stringified; raw objects refuse — we won't silently call toString).
-	- `%` and the other arithmetic ops stay Int when both sides are Int.
-	- bitwise ops and shifts use 32-bit Int semantics (HL's Int is 32-bit).
-	- `==`/`!=` compare strings by CONTENT, objects by pointer; mismatched
-	  kinds are simply not equal (never an error).
-	- `< <= > >=` work on numbers and on strings (lexicographic).
+	- `/` always yields a Float, as in Haxe and unlike C.
+	- `+` concatenates when either side is a String. Numbers, bools and null
+	  become text; an object is refused rather than silently calling toString.
+	- `%` and the other arithmetic operators stay Int when both sides are Int.
+	- Bitwise operators and shifts use 32-bit Int semantics, as HL's Int is 32-bit.
+	- `==`/`!=` compare strings by CONTENT and objects by pointer. Values of
+	  different kinds are unequal, never an error.
+	- `<`, `<=`, `>`, `>=` accept two numbers or two strings (lexicographic).
 
-	`&&`/`||` are NOT here: they short-circuit in the interpreter.
+	`&&` and `||` are NOT here, because the interpreter short-circuits them.
 **/
 class Operators {
 	public static function binop(op:String, a:EvalValue, b:EvalValue):EvalValue {
@@ -58,7 +59,8 @@ class Operators {
 	}
 
 	/**
-		Bool coercion for logical operators and conditions.
+		The Bool held by an operand of a logical operator or condition. Any
+		other value throws; `op` names the operator in the message.
 	**/
 	public static function asBool(v:EvalValue, op:String):Bool {
 		return switch (v) {
@@ -68,7 +70,7 @@ class Operators {
 	}
 
 	/**
-		Haxe-ish Std.string for concat results and messages.
+		The text of a value for string concatenation, as Std.string would give it.
 	**/
 	public static function stringify(v:EvalValue):String {
 		return switch (v) {
@@ -122,7 +124,7 @@ class Operators {
 			case [VInt(x), VInt(y)]: Int64.eq(x, y);
 			case [VInt(_) | VFloat(_), VInt(_) | VFloat(_)]: asFloat(a, "==") == asFloat(b, "==");
 			case [VBool(x), VBool(y)]: x == y;
-			case [VString(x, _), VString(y, _)]: x == y; // content, like Haxe
+			case [VString(x, _), VString(y, _)]: x == y; // by content, as in Haxe
 			case [VObject(x, _), VObject(y, _)]: Int64.eq(x, y); // pointer identity
 			default: false; // mismatched kinds: not equal, never an error
 		}
@@ -171,6 +173,9 @@ class Operators {
 		}
 	}
 
+	/**
+		The kind of a value, phrased for error messages ("an Int").
+	**/
 	public static function describe(v:EvalValue):String {
 		return switch (v) {
 			case VInt(_): "an Int";

@@ -1,0 +1,5 @@
+-cp src/main/haxe
+-cp src/test/haxe
+-resource src/main/resources/HxpRunner.hx@HxpRunner.hx
+-main limeparser.TestMain
+--interp

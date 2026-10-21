@@ -16,20 +16,29 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<!--
+   NOTE MLO:
+    Unable to find an official schema for NMMLfiles so updated based on
+    NMMLParser.hx, with some help from Claude guessing the attribute list.
+    (some values might be deprecated and/or replaced, but we allow all for now)
+-->
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:element name="project" type="projectType"/>
     <xs:complexType name="projectType">
-        <xs:choice>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element type="appType" name="meta"/>
             <xs:element type="appType" name="app"/>
             <xs:element type="windowType" name="window"/>
             <xs:element type="setType" name="set"/>
             <xs:element type="nameType" name="unset"/>
             <xs:element type="nameType" name="classpath"/>
+            <xs:element type="nameType" name="cp"/>
             <xs:element type="sourceType" name="source"/>
-            <xs:element type="nameType" name="haxelib"/>
+            <xs:element type="haxelibType" name="haxelib"/>
+            <xs:element type="haxelibType" name="lib"/>
             <xs:element type="iconType" name="icon"/>
+            <xs:element type="iconType" name="banner"/>
             <xs:element type="assetsType" name="assets"/>
             <xs:element type="ndllType" name="ndll"/>
             <xs:element type="extensionType" name="extension"/>
@@ -39,14 +48,32 @@
             <xs:element type="haxeflagType" name="compilerflag"/>
             <xs:element type="nameType" name="haxedef"/>
             <xs:element type="setenvType" name="setenv"/>
-
             <xs:element type="valueType" name="path"/>
             <xs:element type="templateType" name="template"/>
-            <xs:element type="pathType" name="library"/>
+            <xs:element type="libraryType" name="library"/>
             <xs:element type="pathType" name="java"/>
             <xs:element type="certificateType" name="certificate"/>
             <xs:element type="nameType" name="dependency"/>
             <xs:element type="valueType" name="error"/>
+            <xs:element type="valueType" name="macro"/>
+            <xs:element type="genericType" name="staticlink"/>
+            <xs:element type="genericType" name="stdlibs"/>
+            <xs:element type="genericType" name="export"/>
+            <xs:element type="splashScreenType" name="launchImage"/>
+            <xs:element type="splashScreenType" name="splashScreen"/>
+            <xs:element type="genericType" name="preloader"/>
+            <xs:element type="genericType" name="output"/>
+            <xs:element type="nameType" name="mkdir"/>
+            <xs:element type="valueType" name="echo"/>
+            <xs:element type="genericType" name="fileAssociation"/>
+            <xs:element type="genericType" name="engine"/>
+            <xs:element type="genericType" name="arch"/>
+            <xs:element type="genericType" name="architecture"/>
+            <xs:element type="genericType" name="android"/>
+            <xs:element type="genericType" name="winrt"/>
+            <xs:element type="genericType" name="watchos"/>
+            <xs:element type="genericType" name="ssl"/>
+            <xs:element type="genericType" name="buildExtra"/>
         </xs:choice>
         <xs:attribute type="xs:string" name="if"/>
         <xs:attribute type="xs:string" name="unless"/>
@@ -55,43 +82,71 @@
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute type="xs:string" name="title"/>
+                <xs:attribute type="xs:string" name="description"/>
                 <xs:attribute type="xs:string" name="main"/>
                 <xs:attribute type="xs:string" name="file"/>
                 <xs:attribute type="xs:string" name="package"/>
+                <xs:attribute type="xs:string" name="packageName"/>
+                <xs:attribute type="xs:string" name="package-name"/>
                 <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:string" name="bin"/>
                 <xs:attribute type="xs:string" name="preloader"/>
+                <xs:attribute type="xs:string" name="bootType"/>
                 <xs:attribute type="xs:string" name="version"/>
                 <xs:attribute type="xs:string" name="company"/>
-                <xs:attribute type="xs:byte" name="swf-version"/>
+                <xs:attribute type="xs:string" name="company-id"/>
+                <xs:attribute type="xs:string" name="companyId"/>
+                <xs:attribute type="xs:string" name="build-number"/>
+                <xs:attribute type="xs:string" name="buildNumber"/>
+                <xs:attribute type="xs:integer" name="swf-version"/>
+                <xs:attribute type="xs:integer" name="min-swf-version"/>
                 <xs:attribute type="xs:string" name="if"/>
                 <xs:attribute type="xs:string" name="unless"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
+    <!-- the parser assigns any unrecognized window attribute to the matching
+         Window field reflectively, so unknown attributes stay legal -->
     <xs:complexType name="windowType">
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute type="xs:short" name="width"/>
-                <xs:attribute type="xs:short" name="height"/>
+                <xs:attribute type="xs:integer" name="width"/>
+                <xs:attribute type="xs:integer" name="height"/>
                 <xs:attribute type="xs:string" name="background"/>
-                <xs:attribute type="xs:byte" name="fps"/>
+                <xs:attribute type="xs:string" name="foreground"/>
+                <xs:attribute type="xs:integer" name="fps"/>
                 <xs:attribute type="xs:boolean" name="resizable"/>
                 <xs:attribute type="xs:boolean" name="hardware"/>
                 <xs:attribute type="xs:string" name="borderless"/>
                 <xs:attribute type="xs:string" name="vsync"/>
                 <xs:attribute type="xs:string" name="fullscreen"/>
-                <xs:attribute type="xs:byte" name="antialiasing"/>
-                <xs:attribute type="xs:string" name="unless"/>
-                <xs:attribute type="xs:string" name="if"/>
-                <xs:attribute type="xs:string" name="unless"/>
+                <xs:attribute type="xs:integer" name="antialiasing"/>
+                <xs:attribute type="xs:string" name="parameters"/>
+                <xs:attribute type="xs:string" name="ui"/>
+                <xs:attribute name="scaleMode">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="native"/>
+                            <xs:enumeration value="centre"/>
+                            <xs:enumeration value="center"/>
+                            <xs:enumeration value="game"/>
+                            <xs:enumeration value="ui"/>
+                            <xs:enumeration value="pixels"/>
+                            <xs:enumeration value="stretch"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
                 <xs:attribute name="orientation">
                     <xs:simpleType>
-                        <xs:restriction>
+                        <xs:restriction base="xs:string">
                             <xs:enumeration value="portrait"/>
                             <xs:enumeration value="landscape"/>
                         </xs:restriction>
                     </xs:simpleType>
                 </xs:attribute>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+                <xs:anyAttribute processContents="skip"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -135,6 +190,32 @@
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
+    <!-- name, version, static and nocopy per NMMLParser's "lib"/"haxelib" case -->
+    <xs:complexType name="haxelibType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="version"/>
+                <xs:attribute type="xs:boolean" name="static"/>
+                <xs:attribute type="xs:boolean" name="nocopy"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!-- an asset library (path form); the pathless handler-definition form is tool-internal -->
+    <xs:complexType name="libraryType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:string" name="id"/>
+                <xs:attribute type="xs:boolean" name="embed"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+                <xs:anyAttribute processContents="skip"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
     <xs:complexType name="ndllType">
         <xs:simpleContent>
             <xs:extension base="xs:string">
@@ -160,9 +241,22 @@
             <xs:extension base="xs:string">
                 <xs:attribute type="xs:string" name="name"/>
                 <xs:attribute type="xs:string" name="path"/>
-                <xs:attribute type="xs:byte" name="size"/>
-                <xs:attribute type="xs:byte" name="width"/>
-                <xs:attribute type="xs:byte" name="height"/>
+                <xs:attribute type="xs:integer" name="size"/>
+                <xs:attribute type="xs:integer" name="width"/>
+                <xs:attribute type="xs:integer" name="height"/>
+                <xs:attribute type="xs:string" name="type"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="splashScreenType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:integer" name="width"/>
+                <xs:attribute type="xs:integer" name="height"/>
                 <xs:attribute type="xs:string" name="if"/>
                 <xs:attribute type="xs:string" name="unless"/>
             </xs:extension>
@@ -172,9 +266,9 @@
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute type="xs:string" name="path"/>
-                <xs:attribute type="xs:short" name="password"/>
+                <xs:attribute type="xs:string" name="password"/>
                 <xs:attribute type="xs:string" name="alias"/>
-                <xs:attribute type="xs:short" name="alias-password"/>
+                <xs:attribute type="xs:string" name="alias-password"/>
                 <xs:attribute type="xs:string" name="if"/>
                 <xs:attribute type="xs:string" name="unless"/>
             </xs:extension>
@@ -184,6 +278,7 @@
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="value"/>
                 <xs:attribute type="xs:string" name="if"/>
                 <xs:attribute type="xs:string" name="unless"/>
             </xs:extension>
@@ -193,6 +288,7 @@
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:string" name="name"/>
                 <xs:attribute type="xs:string" name="if"/>
                 <xs:attribute type="xs:string" name="unless"/>
             </xs:extension>
@@ -208,28 +304,35 @@
         </xs:simpleContent>
     </xs:complexType>
     <xs:complexType name="assetsType" mixed="true">
-        <xs:sequence>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element type="assetsType" name="assets"/>
             <xs:element type="assetsType" name="sound"/>
             <xs:element type="assetsType" name="music"/>
             <xs:element type="assetsType" name="font"/>
             <xs:element type="assetsType" name="image"/>
-        </xs:sequence>
+            <xs:element type="assetsType" name="template"/>
+        </xs:choice>
         <xs:attribute type="xs:string" name="path"/>
         <xs:attribute type="xs:string" name="name"/>
         <xs:attribute type="xs:string" name="id"/>
-        <xs:attribute type="xs:string" name="if"/>
-        <xs:attribute type="xs:string" name="unless"/>
         <xs:attribute type="xs:string" name="rename"/>
         <xs:attribute type="xs:string" name="include"/>
         <xs:attribute type="xs:string" name="exclude"/>
-        <xs:attribute type="xs:string" name="type">
+        <xs:attribute type="xs:string" name="from"/>
+        <xs:attribute type="xs:boolean" name="embed"/>
+        <xs:attribute type="xs:boolean" name="recurse"/>
+        <xs:attribute type="xs:string" name="glyphs"/>
+        <xs:attribute type="xs:string" name="alpha"/>
+        <xs:attribute type="xs:string" name="if"/>
+        <xs:attribute type="xs:string" name="unless"/>
+        <xs:attribute name="type">
             <xs:simpleType>
-                <xs:restriction>
+                <xs:restriction base="xs:string">
                     <xs:enumeration value="sound"/>
                     <xs:enumeration value="music"/>
                     <xs:enumeration value="font"/>
                     <xs:enumeration value="image"/>
+                    <xs:enumeration value="template"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
@@ -242,5 +345,13 @@
                 <xs:attribute type="xs:string" name="unless"/>
             </xs:extension>
         </xs:simpleContent>
+    </xs:complexType>
+    <!-- platform grab-bag elements (android/winrt/watchos/ssl/engine/...):
+         attribute-permissive, per-attribute detail lives in the tool -->
+    <xs:complexType name="genericType" mixed="true">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:any processContents="skip"/>
+        </xs:choice>
+        <xs:anyAttribute processContents="skip"/>
     </xs:complexType>
 </xs:schema>

@@ -27,16 +27,6 @@ class StackWalkerTest {
 		});
 	}
 
-	static function pokePtr(api:FakeDebugApi, addr:Int, value:Int):Void {
-		// low 32 bits only (test values fit in an Int); high dword is zero
-		for (i in 0...4) {
-			api.poke(Int64.ofInt(addr + i), (value >>> (8 * i)) & 0xFF);
-		}
-		for (i in 4...8) {
-			api.poke(Int64.ofInt(addr + i), 0);
-		}
-	}
-
 	static function walksFramePointerChain(assert:Assert):Void {
 		var api = new FakeDebugApi();
 		var jit = syntheticJit();
@@ -47,11 +37,11 @@ class StackWalkerTest {
 		api.setRegister(tid, Ebp, Int64.ofInt(0x20000));
 
 		// frame 0x20000: saved ebp -> 0x20010, return addr -> inside fn1 (op1)
-		pokePtr(api, 0x20000, 0x20010);
-		pokePtr(api, 0x20008, 0x10068);
+		api.pokePtr(0x20000, 0x20010);
+		api.pokePtr(0x20008, 0x10068);
 		// frame 0x20010: chain terminates (ebp 0, non-code return)
-		pokePtr(api, 0x20010, 0);
-		pokePtr(api, 0x20018, 0);
+		api.pokePtr(0x20010, 0);
+		api.pokePtr(0x20018, 0);
 
 		var frames = new StackWalker(api, 1, jit).walk(tid);
 		assert.equals(2, frames.length, "two frames walked");
@@ -76,14 +66,14 @@ class StackWalkerTest {
 		api.setRegister(tid, Ebp, Int64.ofInt(0x30010));
 
 		// [Esp] = return into hl_null_access (C, not JIT)
-		pokePtr(api, 0x30000, 0x99500);
+		api.pokePtr(0x30000, 0x99500);
 		// hl_null_access frame @0x30010: saved ebp -> 0x30020 (Haxe frame base),
 		// return addr -> inside fn1 op1 (JIT)
-		pokePtr(api, 0x30010, 0x30020);
-		pokePtr(api, 0x30018, 0x10068);
+		api.pokePtr(0x30010, 0x30020);
+		api.pokePtr(0x30018, 0x10068);
 		// Haxe frame @0x30020: chain terminates
-		pokePtr(api, 0x30020, 0);
-		pokePtr(api, 0x30028, 0);
+		api.pokePtr(0x30020, 0);
+		api.pokePtr(0x30028, 0);
 
 		var frames = new StackWalker(api, 1, jit).walk(tid);
 		assert.equals(1, frames.length, "one Haxe frame recovered from the C entry");
@@ -104,9 +94,9 @@ class StackWalkerTest {
 		api.setRegister(tid, Esp, Int64.ofInt(0x30000));
 		api.setRegister(tid, Ebp, Int64.ofInt(0x30020)); // the throwing frame's base
 
-		pokePtr(api, 0x30000, 0x10068); // [Esp] = return into fn1 op1 (JIT)
-		pokePtr(api, 0x30020, 0); // frame chain terminates
-		pokePtr(api, 0x30028, 0);
+		api.pokePtr(0x30000, 0x10068); // [Esp] = return into fn1 op1 (JIT)
+		api.pokePtr(0x30020, 0); // frame chain terminates
+		api.pokePtr(0x30028, 0);
 
 		var frames = new StackWalker(api, 1, jit).walk(tid);
 		assert.equals(1, frames.length, "one Haxe frame recovered from the direct JIT caller");

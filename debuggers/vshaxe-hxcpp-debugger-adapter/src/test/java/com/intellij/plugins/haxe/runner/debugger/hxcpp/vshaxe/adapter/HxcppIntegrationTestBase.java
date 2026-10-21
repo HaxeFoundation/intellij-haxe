@@ -42,7 +42,7 @@ abstract class HxcppIntegrationTestBase {
   protected Process debuggee;
   protected Path fixtureSource;
 
-  private ServerSocket dapListener;
+  protected ServerSocket dapListener;
   private final StringBuilder debuggeeOutput = new StringBuilder();
 
   /**
@@ -64,6 +64,15 @@ abstract class HxcppIntegrationTestBase {
     adapter.start(new DapConnection(dapListener.accept()));
     dapClient = new DapClient(new DapConnection(clientSide));
 
+    spawnDebuggee(exe);
+  }
+
+  /**
+   * Spawns the fixture debuggee with its output drained into the sink the
+   * failure messages print - a discarded stream would leave a failing test
+   * with nothing to diagnose from.
+   */
+  protected void spawnDebuggee(Path exe) throws IOException {
     debuggee = new ProcessBuilder(exe.toString())
       .directory(exe.getParent().toFile())
       .redirectErrorStream(true)
@@ -138,8 +147,8 @@ abstract class HxcppIntegrationTestBase {
 
   /**
    * Awaits a stop whose TOP frame is at {@code line} of the fixture source.
-   * Stops elsewhere — observed on slow CI runners as the debuggee's startup
-   * hold surfacing late, with a stack of only debugger-internal frames — are
+   * Stops elsewhere — on a slow machine the debuggee's startup hold can
+   * surface late, with a stack of only debugger-internal frames — are
    * released with a continue and waiting resumes, so a test never mistakes
    * such a stray stop for its breakpoint hit.
    */
@@ -153,12 +162,17 @@ abstract class HxcppIntegrationTestBase {
       }
       seen.append("\n  reason=").append(stopped.getBody().getReason())
         .append(" threadId=").append(stopped.getBody().getThreadId())
-        .append(" top=").append(frames.isEmpty() ? "<no frames>"
-                                                 : frames.get(0).getName() + ":" + frames.get(0).getLine());
+        .append(" top=").append(topFrameLabel(frames));
       sendContinue(stopped.getBody().getThreadId());
     }
     throw new AssertionError("No stop at line " + line + "; stray stops seen:" + seen
                              + "\ndebuggee output so far:\n" + output());
+  }
+
+  /// `name:line` of the top frame for the stray-stop log; `<no frames>` on an empty stack.
+  private static String topFrameLabel(List<StackFrame> frames) {
+    if (frames.isEmpty()) return "<no frames>";
+    return frames.get(0).getName() + ":" + frames.get(0).getLine();
   }
 
   protected StackTraceResponse stackTrace(int threadId) throws Exception {
@@ -169,12 +183,16 @@ abstract class HxcppIntegrationTestBase {
     return require(request);
   }
 
-  protected void sendContinue(int threadId) throws Exception {
+  protected static ContinueRequest continueRequest(int threadId) {
     ContinueArguments arguments = new ContinueArguments();
     arguments.setThreadId(threadId);
     ContinueRequest request = new ContinueRequest();
     request.setArguments(arguments);
-    require(request);
+    return request;
+  }
+
+  protected void sendContinue(int threadId) throws Exception {
+    require(continueRequest(threadId));
   }
 
   /** Sends the request and fails with the server's error message rather than a cast error. */

@@ -2,6 +2,7 @@
 .idea/
 .intellijPlatform/
 .gradle/
+.kotlin/
 /idea/
 /build/
 **/build/

@@ -1,26 +1,22 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
-import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
-import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.CONDITIONAL_ERROR;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.MSL_COMMENT;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NOT_NULL;
 import static com.intellij.plugins.haxe.model.HaxeCompilerMetadata.OVERLOAD;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
@@ -36,7 +31,7 @@ import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMeth
 public class HaxeReturnStatementAnnotator implements Annotator {
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-        if(!element.isValid()) return;
+      if (AnnotatorUtil.shouldSkip(element)) return;
 
         if (element instanceof HaxeReturnStatement returnStatement) {
             checkReturnStatement(returnStatement, holder);
@@ -97,7 +92,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         if(expectedType.isVoid() && returnedType.getConstant() != null) {
             holder.newAnnotation(HighlightSeverity.ERROR,  HaxeBundle.message("haxe.semantic.incompatible.return.void",returnedType.getConstant().toString()))
                     .range(highlightElement)
-                    .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
+                    .withFix(replaceReturnTypeFix(returnedType.toTypeString(), typeTag))
                     .create();
         }
 
@@ -111,7 +106,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                                 .create();
                     }
                     if(messages.hasWrongTypeMembers()) {
-                        HaxeStandardAnnotation.addtypeMismatchWrongTypeMembersAnnotations(holder, returnStatement, messages);
+                        HaxeStandardAnnotation.addTypeMismatchWrongTypeMembersAnnotations(holder, returnStatement, messages);
                     }
                 }
                 else {
@@ -121,7 +116,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
                     holder.newAnnotation(HighlightSeverity.ERROR, message)
                             .range(highlightElement)
-                            .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
+                            .withFix(replaceReturnTypeFix(returnedType.toTypeString(), typeTag))
                             .create();
                 }
 
@@ -149,10 +144,10 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                             }else {
                                 message = HaxeBundle.message("haxe.semantic.incompatible.type.null.wrap", typeName);
                             }
-                            String nullWrapped = "Null<" + typeName + ">";
+                            String nullWrapped = HaxePresentableUtil.asNullable(typeName);
                             holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
                                     .range(highlightElement)
-                                    .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))
+                                    .withFix(replaceReturnTypeFix(nullWrapped, typeTag))
                                     .create();
                         }
                     }
@@ -162,22 +157,8 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
     }
 
-    private static @NotNull HaxeFixer ReplaceReturnTypeFix(String newValue, HaxeTypeTag typeTag) {
-        return new HaxeFixer("Replace return type with " + newValue) {
-            @Override
-            public void run() {
-                HaxeDocumentModel.fromElement(typeTag).replaceElementText(typeTag, ":" + newValue);
-            }
-
-            @Override
-            public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
-                int startOffset = typeTag.getTextRange().getStartOffset();
-                int endOffset = typeTag.getTextRange().getEndOffset();
-                editor.getDocument().replaceString(startOffset,endOffset , ":" + newValue);
-
-                return IntentionPreviewInfo.DIFF;
-            }
-        };
+    private static @NotNull HaxeFixer replaceReturnTypeFix(String type, HaxeTypeTag typeTag) {
+        return new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.replace.return.type.with", type), typeTag, type);
     }
 
 

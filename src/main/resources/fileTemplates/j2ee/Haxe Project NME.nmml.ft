@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<app title="${TITLE}" file="${FILE}" package="${PACKAGE}" version="1.0.0" company="" main="Main" />
+
+	<window width="${WIDTH}" height="${HEIGHT}" fps="${FPS}" />
+
+	<classpath name="${SOURCE_DIR}" />
+
+	<haxelib name="nme" />
+
+</project>

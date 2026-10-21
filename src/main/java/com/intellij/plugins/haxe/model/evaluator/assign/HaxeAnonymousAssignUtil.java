@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
-import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
@@ -13,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 @CustomLog
 public class HaxeAnonymousAssignUtil {
@@ -70,7 +70,7 @@ public class HaxeAnonymousAssignUtil {
                 PsiElement memberBasePsi = fromMember.getBasePsi();
                 SpecificFunctionReference toType = methodModel.getFunctionType(toResolver);
 
-                SpecificFunctionReference fromType = containsMembersRecursionGuard.computePreventingRecursion(memberBasePsi, false, () ->
+                SpecificFunctionReference fromType = HaxeEvaluationTaint.computeOrTaint(containsMembersRecursionGuard, memberBasePsi, false, () ->
 //                  fromMember.getResultType(isObjectLiteral ? toResolver : fromResolver)
                   fromMember.getFunctionType(isObjectLiteral ? toResolver : fromResolver)
                 );
@@ -144,10 +144,10 @@ public class HaxeAnonymousAssignUtil {
           }
 
 
-          ResultHolder toType = containsMembersRecursionGuard.computePreventingRecursion(memberBasePsi, false, () ->
+          ResultHolder toType = HaxeEvaluationTaint.computeOrTaint(containsMembersRecursionGuard, memberBasePsi, false, () ->
             toMember.getResultType(toResolver)
           );
-          ResultHolder fromType = containsMembersRecursionGuard.computePreventingRecursion(memberBasePsi, false, () ->
+          ResultHolder fromType = HaxeEvaluationTaint.computeOrTaint(containsMembersRecursionGuard, memberBasePsi, false, () ->
             fromMember.getResultType(isObjectLiteral ? toResolver : fromResolver)
           );
 

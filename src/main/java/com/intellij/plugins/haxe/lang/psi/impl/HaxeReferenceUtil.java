@@ -12,6 +12,9 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveState;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -131,18 +134,30 @@ public class HaxeReferenceUtil {
         HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(expression, HaxeSwitchStatement.class);
         if(switchStatement == null) return false;
 
+        // if no other declaration of that name is visible then this is a capture var
+        return !namesVisibleAt(switchStatement).contains(expression.getText());
+    }
 
-        Set<HaxeComponentName> results = new HashSet<>();
-        PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(results), switchStatement, null, new ResolveState());
+    /**
+     * The names of every component declared in the scopes enclosing the
+     * switch. The result depends on the switch statement alone and is
+     * needed for every reference in every case pattern, so it is cached on
+     * the statement until the next PSI change.
+     */
+    private static Set<String> namesVisibleAt(HaxeSwitchStatement switchStatement) {
+        return CachedValuesManager.getCachedValue(switchStatement, () ->
+            CachedValueProvider.Result.create(collectNamesVisibleAt(switchStatement), PsiModificationTracker.MODIFICATION_COUNT));
+    }
 
-        boolean matchFound = false;
-        for (HaxeComponentName haxeComponentName : results) {
-            if (haxeComponentName.getIdentifier().textMatches(expression)) {
-                return false;
-            }
+    private static Set<String> collectNamesVisibleAt(HaxeSwitchStatement switchStatement) {
+        Set<HaxeComponentName> components = new HashSet<>();
+        PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(components), switchStatement, null, new ResolveState());
+        Set<String> names = new HashSet<>();
+        for (HaxeComponentName component : components) {
+            HaxeIdentifier identifier = component.getIdentifier();
+            if (identifier != null) names.add(identifier.getText());
         }
-        // if no other reference found then this is a capture var
-        return true;
+        return names;
     }
 
 

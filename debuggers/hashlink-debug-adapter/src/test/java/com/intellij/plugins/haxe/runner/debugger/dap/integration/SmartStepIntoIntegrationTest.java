@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * execution order) and stepIn with a targetId enters exactly the chosen one —
  * running through the calls before it without stopping.
  *
- * Uses Main.hx line 20, the demo line with eight calls:
+ * Uses Main.hx line 20, the demo line with its many calls:
  * throwDemo(); inspectDemo(); Rich.demo(); Shadowed.demo(); ...
  */
 @DisplayName("HashLink debugger: smart step into (integration)")
@@ -81,7 +81,7 @@ public class SmartStepIntoIntegrationTest extends DapIntegrationTestBase {
   /**
    * Stepping out of an entered call parks the debuggee at the return address,
    * which maps MID-op back onto the finished call's opcode — the finished call
-   * must NOT be offered as a target again (it was, before startOpCallDone),
+   * must NOT be offered as a target again,
    * while the not-yet-executed calls later on the line still are.
    */
   @Test

@@ -4,6 +4,7 @@ class OtherClass {
 
     }
 }
+
 class Test {
     function test() {
         var ref:OtherClass = null;

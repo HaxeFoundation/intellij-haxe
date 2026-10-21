@@ -40,29 +40,29 @@ import sys.thread.Deque;
 import sys.thread.Thread;
 
 /**
-	Owns the whole debug session on a single dedicated thread — the only thread
-	that touches DebugApi (required on Windows, where WaitForDebugEvent must run
-	on the attaching thread). Commands come in on a Deque; results and stop/exit
-	events go out through the `emit` callback.
+	Runs the whole debug session on one dedicated thread, the only thread that
+	touches DebugApi. Windows requires this: WaitForDebugEvent must run on the
+	thread that attached. Commands arrive on a Deque; results, stops and exits
+	leave through the `emit` callback.
 
-	The session keeps the lifecycle (launch/attach/disconnect), the command
-	loop, the wait-outcome routing and the shared trap machinery (trap dance,
-	enterStopped, force break); the feature logic lives in friend controllers —
-	SteppingController, LineBreakpointController, ExceptionController — plus
-	EvalCallInjector, which access the session's state through
-	@:access(ijhaxe.debug.session.DebugSession).
+	The session owns the lifecycle (launch, attach, disconnect), the command
+	loop, the routing of wait outcomes and the shared trap machinery (the trap
+	dance, enterStopped, forced breaks). The feature logic lives in three
+	controllers: SteppingController, LineBreakpointController and
+	ExceptionController. They are friends of the session: they read and write
+	its state through @:access(ijhaxe.debug.session.DebugSession).
+	EvalCallInjector reaches the session only through its EvalCallHooks.
 **/
 class DebugSession {
 
-	// After attaching, Windows delivers a burst of startup debug events (initial
-	// breakpoint, module/DLL loads, thread creation). drainAttachEvents resumes
-	// past each until a wait Timeout says the queue is empty; this bounds how many
-	// it will clear so an unexpected stream of events cannot loop it forever.
+	// After attaching, Windows delivers a burst of startup debug events (the
+	// initial breakpoint, DLL loads, thread creation). drainAttachEvents resumes
+	// past each until a wait times out. This caps how many it clears, so an
+	// endless stream of events cannot loop forever.
 	static inline var MAX_ATTACH_DRAIN_EVENTS = 20;
-	// A forced break (user pause) is requested now but delivered asynchronously,
-	// possibly behind a few benign auto-continued events. forceBreakAndDrain polls
-	// for it, treating a wait Timeout as "not arrived yet"; this bounds the polling
-	// at MAX_FORCE_BREAK_POLLS * ATTACH_DRAIN_MS (~1s) before giving up.
+	// A forced break (a user pause) arrives asynchronously, possibly behind a few
+	// auto-continued events. forceBreakAndDrain polls for it and gives up after
+	// MAX_FORCE_BREAK_POLLS * ATTACH_DRAIN_MS (about 1s).
 	static inline var MAX_FORCE_BREAK_POLLS = 20;
 
 	static inline var TRAP_FLAG = 0x100;
@@ -70,13 +70,13 @@ class DebugSession {
 	static inline var ATTACH_DRAIN_MS = 50;
 	static inline var CONNECT_RETRIES = 60;
 	static inline var CONNECT_DELAY_MS = 50;
-	// Truncation GUARD on the handshake socket, not a delimiter: the handshake
-	// is parsed to its self-described end, so on a healthy launch no read ever
-	// waits this long. It only fires when the VM dies/stalls mid-handshake,
-	// turning a would-be forever-hang into a clean launch failure.
+	// Guards the handshake socket against a truncated handshake; it does not mark
+	// the end. The parser stops at the handshake's self-described end, so a
+	// healthy launch never waits this long. The timeout fires only when the VM
+	// dies or stalls mid-handshake, and turns that hang into a launch failure.
 	static inline var HANDSHAKE_READ_TIMEOUT_S = 3.0;
-	// spawn attempts when the VM loses its debug port to another socket
-	// (the findFreePort reservation race) - see spawnAndHandshake
+	// spawn attempts when another socket takes the debug port before the VM
+	// binds it (see spawnAndHandshake)
 	static inline var LAUNCH_BIND_ATTEMPTS = 3;
 
 	final api:DebugApi;
@@ -85,24 +85,24 @@ class DebugSession {
 
 	var state:SessionState = NotStarted;
 
-	// In launch mode the adapter spawns and owns the debuggee (`process` set);
-	// in attach mode the client spawned it and `process` stays null. All debug
-	// natives key on the pid, so everything downstream uses `debuggeePid`.
+	// In launch mode the adapter spawns and owns the debuggee, and `process` is
+	// set. In attach mode the client spawned it and `process` stays null. All
+	// debug natives take the pid, so everything downstream uses `debuggeePid`.
 	var process:DebuggeeProcess;
 	var debuggeePid:Int = 0;
 
-	// linux only: the attach SIGSTOP is HELD (not resumed) until
-	// configurationDone, so launch-time breakpoint installs hit a
-	// ptrace-stopped tracee; -1 = nothing held. See drainAttachEvents.
+	// Linux only: the thread of the attach SIGSTOP, held until
+	// configurationDone so that launch-time breakpoint installs hit a
+	// ptrace-stopped tracee. -1 when nothing is held. See drainAttachEvents.
 	var heldAttachStop:Int = -1;
 
 	var jit:JitInfo;
 	var module:ModuleDebugInfo;
 	var breakpoints:Breakpoints;
 
-	// Throw-site enumerator + static try-region analysis + hl_throw entry
-	// control (all built once jit+module are ready); the exception FILTER
-	// state and hit handling live in the ExceptionController.
+	// The throw sites, the static try-region analysis and the hl_throw entry
+	// control, built once jit and module are ready. The exception filter state
+	// and the hit handling live in ExceptionController.
 	var exceptionSites:ExceptionSites;
 	var tryRegions:TryRegions;
 	var nativeThrowResolver:NativeThrowResolver;
@@ -116,36 +116,38 @@ class DebugSession {
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
 
-	// A user pause holds the debug event of the thread the forced break landed on
-	// (on Windows a transient system thread, NOT a real HL thread). That exact
-	// thread must be the one continued to unfreeze the process, so it is stashed
-	// here for the next resume while a real HL thread is reported for inspection.
+	// A user pause holds the debug event of the thread the forced break landed
+	// on. On Windows that is a transient system thread, not an HL thread. The
+	// process unfreezes only when that exact thread is continued, so it is kept
+	// here for the next resume while an HL thread is reported for inspection.
 	// -1 when no pause event is held.
 	var pauseEventThread:Int = -1;
+	// True from a forceBreak until its stop arrives. forceBreakAndDrain
+	// usually takes that stop; when resuming past a racing breakpoint hit
+	// swallows it as a stray trap instead, the drain issues the break again.
+	var forcedBreakPending:Bool = false;
 
 	var alive:Bool = true;
 
 	// The in-flight step (temps planted, landing pending), bound to its thread;
-	// null when no step is active. See ActiveStep for why this is a singleton.
+	// null when no step is active. See ActiveStep for why one field suffices.
 	var activeStep:Null<ActiveStep> = null;
 
-	// A pending debug event from another thread that interrupted an eval-call:
-	// it owns the process freeze and must be processed as a normal stop once
-	// the current command finishes (processing it mid-eval would re-enter the
-	// inspector while its caches are in use).
+	// A pending debug event from another thread that interrupted an eval-call.
+	// It owns the process freeze and is processed as a normal stop once the
+	// current command finishes. Processing it mid-eval would re-enter the
+	// inspector while its caches are in use.
 	var pendingForeignStop:Null<WaitOutcome> = null;
 
-	// variable inspection (created at launch, once jit/module are available);
-	// owns the per-stop frame cache + variablesReference registry
+	// Variable inspection, created at launch once jit and module exist. Owns the
+	// per-stop frame cache and the variablesReference registry.
 	var inspector:VariableInspector;
 
-	// exception-stop text assembly and throw classification (created at launch)
+	// exception-stop texts and throw classification, created at launch
 	var descriptions:StopDescriptions;
 	var throwClassifier:ThrowClassifier;
 
-	// the feature controllers (friends via @:access): stepping, source line
-	// breakpoints and exception breakpoints; the session routes commands and
-	// trap hits to them and provides the shared trap machinery
+	// the feature controllers; the session routes commands and trap hits to them
 	final stepping:SteppingController;
 	final lineBreakpoints:LineBreakpointController;
 	final exceptions:ExceptionController;
@@ -171,15 +173,14 @@ class DebugSession {
 	public function send(command:SessionCommand):Void {
 		commands.add(command);
 		if (debuggeePid != 0 && state == Running && HostPlatform.isPtraceBased()) {
-			// linux: while Running the session thread is parked in the BLOCKING
-			// debug wait (hl's linux debug_wait ignores its timeout), so a queued
-			// command would sit until some debug event happens to arrive —
-			// observable as pause requests timing out. Poke the debuggee
-			// (force-break = kill SIGTRAP on the traced main thread): the wait
-			// returns, the trap matches no known patch site and is resumed silently,
-			// and pollWhileRunning's command interleave runs this command. The
-			// races are benign — a missed nudge just waits for the next event, a
-			// spurious one is a silently-resumed stop.
+			// Linux: while Running, the session thread is parked in the debug wait,
+			// which blocks because hl's linux debug_wait ignores its timeout. A
+			// queued command would wait for the next debug event, and a pause
+			// request would time out. A forced break (SIGTRAP on the traced main
+			// thread) ends the wait: the trap matches no patch site and is resumed
+			// silently, and pollWhileRunning then runs the command. The races are
+			// harmless. A missed nudge waits for the next event, and an extra one
+			// is a silently resumed stop.
 			api.forceBreak(debuggeePid);
 		}
 	}
@@ -203,16 +204,16 @@ class DebugSession {
 	function pollWhileRunning():Void {
 		var outcome = api.wait(debuggeePid, WAIT_POLL_MS);
 		handleWaitOutcome(outcome);
-		// interleave one pending command so setBreakpoints/continue/disconnect are responsive
+		// run one pending command per poll, so setBreakpoints, pause and disconnect stay responsive
 		var command = commands.pop(false);
 		if (command != null) {
 			handleCommand(command);
 		}
 	}
 
-	// A handler bug must never kill the session thread: one dead thread means
-	// every subsequent request times out and the client's views go permanently
-	// blank. Errors reject the one command and the loop lives on.
+	// A handler bug must never kill the session thread. Without it, every later
+	// request times out and the client's views stay blank for good. A failure
+	// therefore rejects only its own command, and the loop carries on.
 	function handleCommand(command:SessionCommand):Void {
 		try {
 			dispatchCommand(command);
@@ -223,9 +224,9 @@ class DebugSession {
 			dbg("cmd " + Type.enumConstructor(command) + " failed: " + Std.string(e));
 			reject(seqOf(command), 'Internal debugger error: ${Std.string(e)}');
 		}
-		// an eval-call may have been interrupted by another thread's stop; that
-		// event owns the process freeze and is processed only now, after the
-		// command settled (never mid-eval: the inspector's caches were in use)
+		// Another thread's stop may have interrupted an eval-call. That event owns
+		// the process freeze and is processed only now that the command has
+		// settled, never mid-eval while the inspector's caches are in use.
 		var foreign = pendingForeignStop;
 		if (foreign != null) {
 			pendingForeignStop = null;
@@ -233,13 +234,13 @@ class DebugSession {
 		}
 	}
 
-	// Reject a request with a DebugError's machine-readable code + variables (the
-	// DAP Message.id / Message.variables the client branches on).
+	// Rejects a request with a DebugError's machine-readable code and variables,
+	// which become the DAP Message.id and Message.variables the client branches on.
 	inline function rejectError(requestSeq:Int, e:DebugError):Void {
 		emit(EvRejected(requestSeq, e.message, e.code, e.variables));
 	}
 
-	// Reject a request with a plain, generic-coded message (no structured detail).
+	// Rejects a request with a plain message and the generic error code.
 	inline function reject(requestSeq:Int, message:String):Void {
 		emit(EvRejected(requestSeq, message, DebugErrorCode.Generic, null));
 	}
@@ -266,7 +267,7 @@ class DebugSession {
 	}
 
 	function dispatchCommand(command:SessionCommand):Void {
-		// runs for every request: don't pay the concat + reflection when tracing is off
+		// this runs for every request: build the trace text only when tracing
 		if (Trace.isEnabled()) {
 			dbg("cmd " + Type.enumConstructor(command));
 		}
@@ -288,11 +289,11 @@ class DebugSession {
 			case CmdSetExceptionBreakpoints(seq, filters, filterTypes):
 				exceptions.setFilters(seq, filters, filterTypes);
 			case CmdSetToStringRendering(seq, enabled):
-				// stored for the fault-proof (hl_dyn_call_safe) rendering to come;
-				// labels stay class names until an injected toString CANNOT fault
-				// (a faulted injected call is unrecoverable — the debug API cannot
-				// continue past it). Accepting and remembering the flag now keeps
-				// the wire contract stable for the IDE's live toggle.
+				// Stored only. Labels stay class names, because a faulting injected
+				// toString cannot be recovered: the debug API cannot continue past
+				// the fault. Accepting the flag keeps the wire contract stable for
+				// the IDE's live toggle.
+				// TODO: render toString labels once the call is fault-proof (hl_dyn_call_safe).
 				if (inspector != null) {
 					inspector.renderWithToString = enabled;
 				}
@@ -325,18 +326,18 @@ class DebugSession {
 
 			if (config.attachPid != null) {
 				// Attach mode: the client spawned `hl --debug <port> --debug-wait`
-				// itself and owns the process's stdio and lifetime. Spawning from
-				// here would go through HL's process.c, which forces SW_HIDE onto
-				// the debuggee's first window on Windows (see docs/README.md).
+				// and owns the process's stdio and lifetime. A spawn from here would
+				// go through HL's process.c, which hides the debuggee's first window
+				// on Windows (see docs/README.md).
 				debuggeePid = config.attachPid;
 				handshakeSocket = connectWithRetries(config.debugPort);
 				jit = readHandshake();
 			} else {
 				jit = spawnAndHandshake(config);
 			}
-			// register reads/writes must use the DEBUGGEE's context layout: with the
-			// wrong bitness a 32-bit debuggee's registers read as garbage and EIP
-			// writes corrupt the thread (crash on the first continue past an INT3)
+			// Register access must use the debuggee's context layout. With the wrong
+			// bitness, a 32-bit debuggee's registers read as garbage and EIP writes
+			// corrupt the thread, which crashes on the first continue past an INT3.
 			api.setTargetIs64(jit.is64);
 
 			if (!api.start(debuggeePid)) {
@@ -359,12 +360,10 @@ class DebugSession {
 
 	/**
 		Launch mode: spawns the debuggee on a reserved port and reads the debug
-		handshake. The reservation (findFreePort) must be RELEASED before the VM
-		can bind it, and in that window another socket can take the port: the VM
-		prints "Could not start debugger on port N" and whatever owns the port
-		drops the connection, surfacing as a connect failure or a handshake EOF.
-		That case retries the whole spawn on a fresh port instead of failing the
-		launch.
+		handshake. findFreePort must release its reservation before the VM can
+		bind the port, and another socket can take the port in between. The VM
+		then prints "Could not start debugger on port N", and the connect or the
+		handshake fails. In that case the whole spawn is retried on a fresh port.
 	**/
 	function spawnAndHandshake(config:LaunchConfig):JitInfo {
 		for (attempt in 1...LAUNCH_BIND_ATTEMPTS + 1) {
@@ -378,7 +377,7 @@ class DebugSession {
 				handshakeSocket = connectWithRetries(port);
 				return readHandshake();
 			} catch (e:DebugError) {
-				if (!lostPortBind()) {
+				if (!debugPortWasTaken()) {
 					throw e;
 				}
 				if (attempt == LAUNCH_BIND_ATTEMPTS) {
@@ -392,9 +391,9 @@ class DebugSession {
 	}
 
 	// The VM prints the bind failure at startup, but the stderr pump may not
-	// have delivered it yet when the connect or handshake fails - give it a
-	// beat before deciding.
-	function lostPortBind():Bool {
+	// have delivered it yet when the connect or handshake fails, so this waits
+	// briefly before deciding.
+	function debugPortWasTaken():Bool {
 		if (process == null) {
 			return false;
 		}
@@ -413,14 +412,12 @@ class DebugSession {
 	}
 
 	/**
-		The VM sends the whole handshake then blocks on the socket. The format
-		is self-delimiting (JitInfoReader derives every size as it parses and
-		never over-reads), so parse straight off a buffered view: it recvs in
-		large chunks but only refills when the parser still NEEDS bytes, so it
-		cannot block after the final handshake byte. The socket timeout is a
-		truncation guard only - on a healthy handshake it never fires. (The
-		previous approach slurped until a 0.5s read timeout marked the end,
-		a dead half-second on EVERY launch.)
+		Parses the handshake, which the VM sends in full before it blocks on the
+		socket. The format is self-delimiting: JitInfoReader derives every size
+		as it parses and never reads past the end. HandshakeInput therefore reads
+		in large chunks but refills only when the parser needs more bytes, so it
+		never blocks after the final handshake byte. The socket timeout only
+		guards against a truncated handshake.
 	**/
 	function readHandshake():JitInfo {
 		handshakeSocket.setTimeout(HANDSHAKE_READ_TIMEOUT_S);
@@ -435,9 +432,9 @@ class DebugSession {
 		}
 	}
 
-	// Builds every attached-session collaborator (breakpoints, walkers, readers,
-	// the inspector) and wires the inspector's session callbacks. Requires
-	// `module`, `jit`, `debuggeePid` and a started debug attach.
+	// Builds the services of an attached session (breakpoints, stack walker,
+	// memory readers, the inspector) and wires the inspector's callbacks into the
+	// session. Requires `module`, `jit`, `debuggeePid` and a completed attach.
 	function initializeSessionServices():Void {
 		breakpoints = new Breakpoints(api, debuggeePid);
 		exceptionSites = new ExceptionSites(module, jit);
@@ -446,39 +443,41 @@ class DebugSession {
 		memReader = new MemoryReader(api, debuggeePid, jit.is64);
 		nativeThrowResolver = new NativeThrowResolver(module, jit, memReader, exceptionSites);
 
-		// one arch descriptor resolved from the handshake, shared by every
-		// raw-memory reader here (the inspector builds its own from the same jit)
+		// one architecture descriptor from the handshake, shared by the raw-memory
+		// readers built here (the inspector builds its own from the same jit)
 		var align = new Align(jit.is64, jit.boolSize4);
 		threadRegistry = new ThreadRegistry(memReader, align, jit.hlVersionMajor, jit.hlVersionMinor);
 		vmExceptions = new VmExceptionControl(api, debuggeePid, memReader, align, jit.threadsPtr);
 
-		// linux: lets the walker recover the interrupted JIT frame through the
-		// kernel signal frame when a VM error arrived via SIGSEGV (null access)
+		// Linux: lets the walker recover the interrupted JIT frame from the VM's
+		// own throw-time stack capture when a VM error arrived as a signal (a null
+		// access raises SIGSEGV).
 		stackWalker.capturedStack = vmExceptions.capturedStack;
 
 		inspector = new VariableInspector(module, jit, memReader);
 		descriptions = new StopDescriptions(module, inspector);
 		throwClassifier = new ThrowClassifier(api, debuggeePid, jit, memReader, stackWalker, tryRegions, inspector);
 
-		// Frames parked at hl_throw's ENTRY serve the stop reported at hl_throw's
-		// own break: by then execution is deep inside hl_throw, where the frame
-		// chain is no longer walkable. Consumed on first use; framesFor caches it
-		// for the rest of the stop.
+		// Frames walked at hl_throw's entry serve the stop reported at hl_throw's
+		// own break, deep inside hl_throw, where the frame chain can no longer be
+		// walked. They are consumed on first use; framesFor caches them for the
+		// rest of the stop.
 		inspector.frameWalker = tid -> {
 			var parked = exceptions.consumeParkedFrames(tid);
-			// an EMPTY parked walk (a signal-delivered VM error on linux: the
-			// entry-time chain is unwalkable AND the VM's exc capture does not
-			// exist yet) must not shadow a live walk — at the throw break the
-			// capture is populated and the signal-frame recovery can use it
+			// An empty parked walk must not hide a live walk. It happens on linux
+			// for a VM error delivered as a signal: at the entry the chain cannot
+			// be walked and the VM's stack capture does not exist yet. At the
+			// throw break the capture is filled in and the walker can recover
+			// from it.
 			return parked != null && parked.length > 0 ? parked : stackWalker.walk(tid);
 		};
 		var cpuRegisters = new CpuRegisters(api, debuggeePid);
-		// CPU registers are only readable while stopped; the callback is invoked
-		// for a stopped thread's top frame, but guard defensively.
+		// CPU registers are readable only while stopped. The inspector asks only
+		// for a stopped thread's top frame, but the state is checked anyway.
 		inspector.cpuRegistersFor = tid -> state.match(Stopped(_)) ? cpuRegisters.rows(tid) : [];
 		inspector.enableWrites(new MemoryWriter(api, debuggeePid, jit.is64));
-		// eval-calls run in the debuggee via the injector; its hooks are the only
-		// session state an injected call touches
+		// eval-calls run in the debuggee through the injector; its hooks are the
+		// only session state an injected call touches
 		var evalCalls = new EvalCallInjector(api, debuggeePid, jit, breakpoints, {
 			keepSuspended: () -> currentStoppedBreakpoint != null ? currentStoppedBreakpoint.address : null,
 			onForeignStop: outcome -> pendingForeignStop = outcome,
@@ -490,10 +489,10 @@ class DebugSession {
 		inspector.xmm0Writer = value -> {
 			var bits = FPHelper.doubleToI64(value);
 			if (jit.is64 && HostPlatform.isPtraceBased()) {
-				// linux: hl's debug_write_register cannot write XMM (its ptrace
-				// write path never handled the FP pseudo-offsets the read path
-				// defines - the write silently fails), so load the register by
-				// running an injected stub, eval-call style
+				// Linux: hl's debug_write_register cannot write XMM registers. Its
+				// ptrace write path lacks the FP offsets the read path defines, and
+				// the write fails silently. An injected stub loads the register
+				// instead, the same way eval-calls run.
 				evalCalls.writeXmm0(stoppedThreadId, bits);
 			} else {
 				api.writeRegister(debuggeePid, stoppedThreadId, Xmm0, bits);
@@ -519,8 +518,8 @@ class DebugSession {
 		throw new DebugError('Could not connect to the debuggee debug port: ${Std.string(lastError)}');
 	}
 
-	// Consume the events the OS raises at attach time (e.g. the Windows attach
-	// breakpoint / module-load events) so the debuggee is back to a clean state.
+	// Consumes the events the OS raises at attach time (the Windows attach
+	// breakpoint, DLL loads), so the debuggee is back in a clean state.
 	function drainAttachEvents():Void {
 		for (_ in 0...MAX_ATTACH_DRAIN_EVENTS) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
@@ -534,16 +533,15 @@ class DebugSession {
 					return;
 				default:
 					if (HostPlatform.isPtraceBased()) {
-						// linux delivers exactly ONE attach stop (the PTRACE_ATTACH
-						// SIGSTOP) and hl's linux debug_wait IGNORES its timeout —
-						// it is a plain blocking waitpid, so a second drain wait
-						// here deadlocks the session (kernel do_wait forever).
-						// Moreover linux ptrace memory writes only work on a
-						// ptrace-STOPPED tracee (Windows' WriteProcessMemory works
-						// on a running process), so the launch-time breakpoint
-						// installs need the debuggee held. Keep the attach stop —
-						// the debuggee is gated on the handshake socket anyway —
-						// and release it when configurationDone opens that gate.
+						// Linux delivers exactly one attach stop (the PTRACE_ATTACH
+						// SIGSTOP), and hl's linux debug_wait ignores its timeout: it
+						// is a plain blocking waitpid, so a second drain wait would
+						// deadlock the session. Linux ptrace memory writes also need
+						// a ptrace-stopped tracee (Windows' WriteProcessMemory works
+						// on a running process), and the launch-time breakpoint
+						// installs are such writes. So the attach stop is held;
+						// the handshake socket holds the debuggee anyway.
+						// configurationDone releases both.
 						heldAttachStop = outcome.threadId;
 						return;
 					}
@@ -552,40 +550,79 @@ class DebugSession {
 		}
 	}
 
-	// Force the running debuggee to stop, so its memory can be patched, then keep
-	// running. Any breakpoint/step event that arrives here is not user-visible.
-	function pauseForMemoryWrite():Void {
+	// Stops the running debuggee so its memory can be patched; the stop is
+	// never shown to the user. Returns true when resumeAfterMemoryWrite must
+	// let the debuggee run again afterwards. Returns false when no forced stop
+	// arrived, or when the debuggee stopped by itself (a breakpoint, a runtime
+	// error) before the interrupt landed: that stop has been reported to the
+	// user and must not be resumed behind their back.
+	function pauseForMemoryWrite():Bool {
 		var outcome = forceBreakAndDrain();
-		if (outcome != null) {
-			stoppedThreadId = outcome.threadId;
+		if (outcome == null) {
+			return false;
 		}
+		stoppedThreadId = outcome.threadId;
+		return true;
 	}
 
-	// Interrupt the running debuggee (forceBreak) and drain auto-continued
-	// lifecycle events until the forced stop lands, returning that stopping
-	// outcome. Returns null when the debuggee exited during the interrupt
-	// (state=Exited, EvExited emitted) or the stop never arrived in the drain
-	// budget. Shared by the silent memory-write pause and the user pause.
+	// Interrupts the running debuggee (forceBreak) and drains events until the
+	// forced stop arrives: a trap at an address the session did not patch
+	// (Windows raises it on a thread of its own, linux sends a SIGTRAP),
+	// possibly after a few auto-continued lifecycle events.
+	// The debuggee may stop by itself before the interrupt lands (a patched
+	// trap, a runtime error). That stop is handled like any other and owns the
+	// frozen debuggee; the forced stop then arrives as a stray trap on a later
+	// resume.
+	// Returns the forced stop, or null when the debuggee exited (EvExited was
+	// emitted), stopped by itself (state is Stopped), or did not stop within
+	// MAX_FORCE_BREAK_POLLS. Serves both the memory-write pause and the user's
+	// pause.
 	function forceBreakAndDrain():Null<WaitOutcome> {
-		api.forceBreak(debuggeePid);
+		var forced = drainForForcedStop();
+		forcedBreakPending = false;
+		return forced;
+	}
 
+	function drainForForcedStop():Null<WaitOutcome> {
+		issueForcedBreak();
 		for (_ in 0...MAX_FORCE_BREAK_POLLS) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case Timeout: // keep waiting for the forced stop
 				case Handled:
-					// auto-continued lifecycle event (no thread is frozen by it):
-					// NOT the forced stop, keep waiting
-				case Exit:
-					state = Exited;
-					releaseExitedProcess(outcome.threadId);
-					emitExitedAfterOutputDrain();
-					return null;
-				default:
+					// an auto-continued lifecycle event that froze no thread: not the
+					// forced stop, keep waiting
+				case Breakpoint if (!isPatchedTrap(outcome.threadId)):
 					return outcome;
+				default:
+					handleWaitOutcome(outcome);
+					if (state != Running) {
+						return null;
+					}
+					// resuming past the racing stop may have consumed the forced
+					// stop as a stray trap; the debuggee runs again, so break anew
+					if (!forcedBreakPending) {
+						issueForcedBreak();
+					}
 			}
 		}
 		return null;
+	}
+
+	function issueForcedBreak():Void {
+		forcedBreakPending = true;
+		api.forceBreak(debuggeePid);
+	}
+
+	// Whether the thread's trap is one of the session's own INT3s rather than
+	// a foreign one (a forced break, the attach or loader breakpoint).
+	function isPatchedTrap(threadId:Int):Bool {
+		if (breakpoints == null) {
+			return false;
+		}
+		// INT3 leaves the instruction pointer one byte past the trap
+		var eip = api.readRegister(debuggeePid, threadId, Eip);
+		return breakpoints.isPatchedSite(Int64.sub(eip, Int64.ofInt(1)));
 	}
 
 	function resumeAfterMemoryWrite():Void {
@@ -596,16 +633,16 @@ class DebugSession {
 
 	function handleConfigurationDone(requestSeq:Int):Void {
 		emit(EvConfigurationDone(requestSeq));
-		// release the debuggee: closing the handshake socket unblocks the VM's
-		// 1-byte recv so it starts running user code
+		// closing the handshake socket releases the debuggee: the VM's 1-byte
+		// recv returns and user code starts
 		if (handshakeSocket != null) {
 			try {
 				handshakeSocket.close();
 			} catch (e:Dynamic) {}
 			handshakeSocket = null;
 		}
-		// linux: the process itself is still in the held attach stop; release
-		// it now that the breakpoints are installed (see drainAttachEvents)
+		// Linux: the process is still in the held attach stop; release it now
+		// that the breakpoints are installed (see drainAttachEvents).
 		if (heldAttachStop != -1) {
 			api.resume(debuggeePid, heldAttachStop);
 			heldAttachStop = -1;
@@ -622,7 +659,7 @@ class DebugSession {
 				state = Running;
 				emit(EvContinued(requestSeq));
 				if (interrupted != null) {
-					// another thread stopped the debuggee during the resume dance:
+					// another thread stopped the debuggee during the trap dance:
 					// report that stop right after the continue response
 					handleWaitOutcome(interrupted);
 				}
@@ -631,12 +668,12 @@ class DebugSession {
 		}
 	}
 
-	// Re-execute the original instruction under the trap flag, re-arm the INT3,
-	// then let the debuggee run. Returns a pending debug event when one from
-	// ANOTHER thread interrupted the dance (all threads run once the pending
-	// event is continued, so e.g. a second thread can hit a breakpoint right
-	// here) — the caller must process it as a normal stop AFTER settling its
-	// own state; resuming past it leaves the whole process frozen.
+	// Lets the debuggee run on from a stop. A stop on a breakpoint first runs
+	// the trap dance over the original instruction and re-arms the INT3. Returns
+	// a pending debug event when one from another thread interrupted the dance:
+	// every thread runs during the single step, so a second thread can hit a
+	// breakpoint here. The caller must settle its own state and then process
+	// that event as a normal stop; resuming past it leaves the process frozen.
 	function stepOverAndResume(threadId:Int):Null<WaitOutcome> {
 		// resuming invalidates the stopped-frame cache and its variablesReferences
 		inspector.invalidate();
@@ -652,30 +689,25 @@ class DebugSession {
 				return interrupted; // a pending event owns the freeze; don't resume
 			}
 		}
-		// A user pause parked on a system break thread whose event must be the one
-		// continued; the inspected Haxe thread is not it. Consume it once.
+		// After a user pause, the event to continue belongs to the thread of the
+		// forced break, not to the inspected Haxe thread. It is used once.
 		var resumeThread = pauseEventThread != -1 ? pauseEventThread : threadId;
 		pauseEventThread = -1;
 		api.resume(debuggeePid, resumeThread);
 		return null;
 	}
 
-	// User pause: interrupt the running debuggee and report a stop with reason
-	// "pause", WITHOUT resuming. The forced break lands on a thread that may not be
-	// a real HL thread (a system break thread on Windows), so its event is stashed
-	// in pauseEventThread for the resume while a real HL thread is reported for
-	// inspection — the user sees a Haxe stack, and continue/step resume correctly.
+	// User pause: interrupts the running debuggee and reports a stop with reason
+	// "pause". The forced break can land on a thread that is not an HL thread (a
+	// system thread on Windows). Its event is kept in pauseEventThread for the
+	// resume, and an HL thread is reported for inspection. The user thus sees a
+	// Haxe stack, and continue and step resume the right event.
 	function handlePause(requestSeq:Int, threadId:Int):Void {
 		switch (state) {
 			case Running:
 				var outcome = forceBreakAndDrain();
-				if (state == Exited) {
-					// the debuggee exited during the interrupt (EvExited already sent)
-					emit(EvPaused(requestSeq));
-					return;
-				}
 				if (outcome == null) {
-					reject(requestSeq, "Could not pause the debuggee");
+					settlePauseWithoutForcedStop(requestSeq);
 					return;
 				}
 				pauseEventThread = outcome.threadId;
@@ -684,16 +716,29 @@ class DebugSession {
 				emit(EvPaused(requestSeq));      // ack the pause request first
 				emit(EvStoppedPause(inspectThread)); // then the stopped(reason:"pause") event
 			case Stopped(_):
-				// already stopped (e.g. a breakpoint hit as the pause arrived): the
-				// client is already showing a stop, so just acknowledge
+				// already stopped (a breakpoint hit as the pause arrived): the client
+				// already shows that stop, so only acknowledge
 				emit(EvPaused(requestSeq));
 			default:
 				reject(requestSeq, "Cannot pause: debuggee is not running");
 		}
 	}
 
-	// The real HL thread to report a pause on: the requested thread when it is a
-	// live HL thread, else the first (main) HL thread, else the raw event thread.
+	// Answers a pause request that got no forced stop. When the debuggee
+	// exited (EvExited already sent) or stopped by itself while the interrupt
+	// was pending (that stop is already reported), the pause is acknowledged.
+	// When it is still running, the pause failed.
+	function settlePauseWithoutForcedStop(requestSeq:Int):Void {
+		switch (state) {
+			case Running:
+				reject(requestSeq, "Could not pause the debuggee");
+			default:
+				emit(EvPaused(requestSeq));
+		}
+	}
+
+	// The HL thread to report a pause on: the requested thread if it is a live
+	// HL thread, else the main (first) HL thread, else the thread of the event.
 	function pauseInspectThread(requested:Int, eventThread:Int):Int {
 		var threads = threadList();
 		if (requested > 0) {
@@ -706,9 +751,10 @@ class DebugSession {
 		return threads.length > 0 ? threads[0].id : eventThread;
 	}
 
-	// The single-step-over-the-patched-instruction sequence. On return the
-	// debuggee is frozen again (either the SingleStep event or an interrupting
-	// event is pending), which is exactly when register writes are reliable.
+	// The trap dance: executes the one instruction under a lifted INT3 by
+	// single-stepping the thread with the CPU trap flag. On return the debuggee
+	// is frozen again, because the single-step event or an interrupting event is
+	// pending; register writes are reliable only then.
 	function trapDance(threadId:Int):Null<WaitOutcome> {
 		setTrapFlag(threadId);
 		api.resume(debuggeePid, threadId);
@@ -718,18 +764,17 @@ class DebugSession {
 		return interrupted;
 	}
 
-	// Waits for the single-step on `threadId` to complete. While the step's one
-	// instruction runs, every other thread runs too, so arbitrary events can
-	// arrive first —
-	//  - Handled(4): thread create/exit/set-name etc. that hl_debug_wait ALREADY
-	//    continued internally. Not a stop; keep waiting. (Treating these as the
-	//    step's completion was the random multithreaded freeze: the early return
-	//    cleared the trap flag while threads were RUNNING — unreliable register
-	//    writes, stuck TF — and the final resume then targeted the wrong event.)
-	//  - Breakpoint/Error/StackOverflow from any thread: a REAL pending event
-	//    that now owns the process freeze. Returned to the caller to be handled
-	//    as a normal stop; continuing it with the stepping thread's id fails and
-	//    leaves the debuggee frozen forever.
+	// Waits for the single step on `threadId` to complete. Every other thread
+	// runs during that one instruction, so other events can arrive first:
+	//  - Handled(4): an event hl_debug_wait already continued (thread create,
+	//    exit or rename). It is not a stop, so keep waiting. Treating it as the
+	//    step's completion clears the trap flag on running threads, which is
+	//    unreliable, and aims the final resume at the wrong event; the
+	//    debuggee then freezes at random.
+	//  - Breakpoint/Error/StackOverflow from any thread: a real pending event
+	//    that now owns the process freeze. It is returned for the caller to
+	//    handle as a normal stop. Continuing it with the stepping thread's id
+	//    fails and leaves the debuggee frozen.
 	function waitForSingleStep(threadId:Int):Null<WaitOutcome> {
 		for (_ in 0...100) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
@@ -738,7 +783,7 @@ class DebugSession {
 					if (outcome.threadId == threadId) {
 						return null;
 					}
-					// another thread's leftover trap: continue it, keep waiting
+					// a leftover single step of another thread: continue it, keep waiting
 					api.resume(debuggeePid, outcome.threadId);
 				case Handled:
 					// already continued inside hl_debug_wait: not a stop
@@ -757,9 +802,9 @@ class DebugSession {
 		return null;
 	}
 
-	// The temp that was hit sits at a deeper (recursive) frame than the step
-	// started in, so it is not the landing. Single-step past it, re-arm it, and
-	// keep running.
+	// Runs on past a step temp that is not this step's landing (hit by another
+	// thread, in a deeper recursive frame, or at a deferred closure call site):
+	// single-steps past it, re-arms it and resumes.
 	function stepPastTempAndResume(threadId:Int, address:Pointer):Void {
 		breakpoints.suspendTemp(address);
 		var interrupted = trapDance(threadId);
@@ -768,9 +813,9 @@ class DebugSession {
 			return;
 		}
 		if (interrupted != null) {
-			// a pending event from another thread owns the freeze: process it as
-			// a normal stop instead of resuming past it (bounded reentry — each
-			// nested call consumes one already-pending event)
+			// A pending event from another thread owns the freeze: process it as a
+			// normal stop instead of resuming. The recursion is bounded, because
+			// each nested call consumes an event that is already pending.
 			handleWaitOutcome(interrupted);
 			return;
 		}
@@ -784,9 +829,9 @@ class DebugSession {
 		activeStep = null;
 	}
 
-	// Enter the Stopped state on `threadId`: end any active step, record the
-	// breakpoint stopped at (null for a step or exception landing), and prime
-	// the inspector for a new stop. The caller emits the specific stopped event.
+	// Enters the Stopped state on `threadId`: ends any active step, records the
+	// breakpoint stopped on (null for a step or exception stop), and prepares
+	// the inspector for a new stop. The caller emits the stopped event.
 	inline function enterStopped(threadId:Int, breakpoint:Null<PatchedBreakpoint>):Void {
 		finishStep();
 		currentStoppedBreakpoint = breakpoint;
@@ -800,14 +845,14 @@ class DebugSession {
 			case Stopped(_):
 				emit(EvThreads(requestSeq, threadList()));
 			default:
-				// not stopped: report the last-known trigger thread so the client
-				// always has at least one thread to attach its views to
+				// not stopped: report the thread of the last stop, so the client
+				// always has a thread for its views
 				emit(EvThreads(requestSeq, [{id: stoppedThreadId == 0 ? 1 : stoppedThreadId, name: "main"}]));
 		}
 	}
 
-	// The live threads (from HL's registry), version-adaptive; falls back to a
-	// single "main" thread when the program was compiled without thread support.
+	// The live threads from HL's thread registry. A program compiled without
+	// thread support reports a single "main" thread.
 	function threadList():Array<ThreadInfo> {
 		return threadRegistry.read(jit.threadsPtr, jit.threads, stoppedThreadId);
 	}
@@ -818,7 +863,7 @@ class DebugSession {
 				var frames:Array<FrameInfo> = [];
 				for (frame in inspector.framesFor(threadId)) {
 					var location = frame.location;
-					var source = module.lookup(location.fidx, location.op);
+					var source = module.sourceLineAt(location.fidx, location.op);
 					frames.push({
 						id: frame.frameId,
 						name: module.functionName(location.fidx),
@@ -882,18 +927,14 @@ class DebugSession {
 		}
 	}
 
-	// A thread's CPU registers for the inspector's Registers scope. Only the
-	// architecture-neutral indexes (0..3 = SP/BP/IP/FLAGS) are read: the only
-	// ones hl_debug_read_register maps on every platform (higher indexes are
-	// x86-specific and fall back to Rax on Windows). All threads are frozen at a
-	// stop, so any thread's registers are readable.
 	function handleDisconnect(requestSeq:Int):Void {
 		if (debuggeePid != 0) {
-			// Free the debuggee before letting go. Launch mode: kill it (the session
-			// owns it). Attach mode: no kill (the client owns its lifetime), so
-			// restore every patched INT3 first — the process may keep running after
-			// the detach and a leftover trap would crash it. Either way, continue any
-			// held stop event so a suspended process does not stall the detach below.
+			// Free the debuggee before letting go. Launch mode kills it, since the
+			// session owns it. Attach mode must not kill (the client owns the
+			// lifetime) and restores every patched INT3 instead: the process may
+			// keep running after the detach, and a leftover trap would crash it.
+			// Both modes then continue any held stop event, so a suspended process
+			// does not stall the detach below.
 			if (process != null) {
 				process.kill();
 				dbg("disconnect: kill done");
@@ -911,12 +952,10 @@ class DebugSession {
 					dbg("disconnect: resumed stopped thread " + threadId);
 				default:
 			}
-			// Drain any still-pending debug events (the just-continued stop, or an
-			// EXIT_PROCESS from a concurrent terminate) and continue them. Windows
-			// DebugActiveProcessStop stalls while a debug event is outstanding, so
-			// detaching from a suspended debuggee without draining leaves the client
-			// stuck on "waiting for process detach" — it cannot die until the
-			// debugger lets go cleanly.
+			// Continue any debug events still pending (the stop just continued, or
+			// an EXIT_PROCESS from the kill). Windows' DebugActiveProcessStop stalls
+			// while an event is outstanding, and the client then hangs on "waiting
+			// for process detach".
 			var drained = 0;
 			while (drained++ < MAX_ATTACH_DRAIN_EVENTS) {
 				var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
@@ -931,11 +970,11 @@ class DebugSession {
 			}
 			dbg("disconnect: drained pending events");
 		}
-		// Answer the disconnect NOW, before the detach. In attach mode
-		// DebugActiveProcessStop can stall for seconds on a just-suspended debuggee;
-		// the client tears the adapter down (killing both processes) the instant it
-		// sees this response — which also unblocks/moots the detach. Answering after
-		// the detach instead leaves the client sitting on its disconnect timeout.
+		// Answer before the detach. In attach mode DebugActiveProcessStop can
+		// stall for seconds on a debuggee that was just suspended. The client tears
+		// the adapter down (killing both processes) as soon as it sees this
+		// response, which makes the detach moot. Answering after the detach would
+		// leave the client waiting for its disconnect timeout.
 		alive = false;
 		emit(EvSessionEnded(requestSeq));
 		dbg("disconnect: response emitted");
@@ -975,20 +1014,19 @@ class DebugSession {
 				enterStopped(outcome.threadId, null);
 				emit(EvStoppedException(outcome.threadId, descriptions.runtimeError(outcome.threadId, outcome.result == StackOverflow)));
 			case Handled:
-				// hl_debug_wait already continued this event internally (thread
-				// create/exit/set-name, dll load, ...). Continuing again is at
-				// best a silent failure and at worst blindly continues a REAL
-				// event that arrived in the meantime — do nothing.
+				// hl_debug_wait already continued this event (thread create, exit or
+				// rename, DLL load). Continuing it again fails silently at best, and
+				// at worst continues a real event that arrived meanwhile, so do
+				// nothing.
 				if (outcome.threadId == -1 && HostPlatform.isPtraceBased()) {
-					// EXCEPT with tid -1: linux waitpid() FAILED (ECHILD) — the
-					// debuggee died without a parseable exit status:
-					// an INT3 executed by an UNTRACED worker thread kills the whole
-					// process (SIGTRAP default action; linux traces per-thread and
-					// only the main thread is attached), debug.c maps the
-					// WIFSIGNALED status to this same code, and every later wait
-					// returns -1 — an infinite spin unless it is treated as death.
-					// (Windows WaitForDebugEvent events always carry a real tid,
-					// but the platform gate keeps this branch provably inert there.)
+					// Except for tid -1 on linux: waitpid() failed (ECHILD) because
+					// the debuggee died without a parseable exit status. An INT3 run
+					// by an untraced worker thread kills the whole process (linux
+					// traces per thread, and only the main thread is attached).
+					// debug.c maps that WIFSIGNALED status to this code, and every
+					// later wait returns -1, so the loop spins forever unless this
+					// counts as the exit. Windows events always carry a real tid; the
+					// platform check keeps this branch inert there.
 					finishStep();
 					state = Exited;
 					releaseExitedProcess(outcome.threadId);
@@ -998,54 +1036,53 @@ class DebugSession {
 	}
 
 	// Classifies an INT3 stop by what is patched at the trap address and routes
-	// it: a user breakpoint always wins, then an armed exception site, then the
-	// hl_throw entry trap, then a step temp; a trap with no known patch site
-	// is an unpatched trap (hl_throw's own break, or attach/loader noise).
+	// it. A user breakpoint wins over an armed throw site, which wins over the
+	// hl_throw entry trap, which wins over a step temp. A trap at no known patch
+	// site goes to handleUnpatchedTrap.
 	function handleBreakpointHit(threadId:Int):Void {
 		// INT3 leaves the instruction pointer one byte past the trap
 		var eip = api.readRegister(debuggeePid, threadId, Eip);
 		var hitAddress = Int64.sub(eip, Int64.ofInt(1));
-		var userBp = breakpoints != null ? breakpoints.atAddress(hitAddress) : null;
-		var temp = breakpoints != null && breakpoints.isTemp(hitAddress);
-		var excEntry = breakpoints != null ? breakpoints.exceptionAt(hitAddress) : null;
-		var nativeThrow = breakpoints != null && breakpoints.isNativeThrow(hitAddress);
-
-		if (userBp == null && !temp && excEntry == null && !nativeThrow) {
+		if (breakpoints == null || !breakpoints.isPatchedSite(hitAddress)) {
 			handleUnpatchedTrap(threadId);
 			return;
 		}
 
-		// rewind past the INT3 so the trapped instruction can run on the next resume
+		// rewind to the INT3's address, so the original instruction runs on the next resume
 		api.writeRegister(debuggeePid, threadId, Eip, hitAddress);
 
+		var userBp = breakpoints.atAddress(hitAddress);
+		var throwSite = breakpoints.exceptionAt(hitAddress);
 		if (userBp != null) {
 			lineBreakpoints.handleHit(threadId, userBp);
-		} else if (excEntry != null) {
-			exceptions.handleSiteHit(threadId, excEntry);
-		} else if (nativeThrow) {
+		} else if (throwSite != null) {
+			exceptions.handleSiteHit(threadId, throwSite);
+		} else if (breakpoints.isNativeThrow(hitAddress)) {
 			exceptions.handleNativeThrowHit(threadId);
 		} else {
 			stepping.handleTempHit(threadId, hitAddress);
 		}
 	}
 
-	// A trap with no known patch site: either hl_throw's own
-	// hl_debug_break completing a parked VM throw (the ExceptionController
-	// reports that stop), or an attach/loader breakpoint / spurious trap,
-	// resumed past silently.
+	// A trap at no known patch site. It is either hl_throw's own hl_debug_break
+	// completing a parked VM throw (ExceptionController reports that stop), or
+	// a forced break, an attach or loader breakpoint or other stray trap, which
+	// is resumed silently.
 	function handleUnpatchedTrap(threadId:Int):Void {
 		if (exceptions.handleVmThrowBreak(threadId)) {
 			return;
 		}
+		// while a forced break is pending, the stray trap is its stop
+		forcedBreakPending = false;
 		api.resume(debuggeePid, threadId);
 	}
 
-	// Resume past a trap that must NOT stop the debuggee (a false breakpoint
-	// condition, a filtered exception, hl_throw's silent passthrough), and
-	// process any stop another thread raised meanwhile.
+	// Resumes past a trap that must not stop the debuggee (a false breakpoint
+	// condition, a filtered exception, a throw the hl_throw entry trap lets
+	// through) and processes any stop another thread raised meanwhile.
 	function resumePastSuppressedTrap(threadId:Int, bp:PatchedBreakpoint):Void {
 		inspector.invalidate();
-		var interrupted = resumePastUserBreakpoint(threadId, bp);
+		var interrupted = stepPastBreakpointAndResume(threadId, bp);
 		if (state == Exited) {
 			return;
 		}
@@ -1054,11 +1091,11 @@ class DebugSession {
 		}
 	}
 
-	// Step over a conditional breakpoint whose condition was false and keep
-	// running, WITHOUT emitting a stop and without disturbing currentStoppedBreakpoint
-	// or an in-flight step. Returns a pending event if another thread interrupted
-	// the single-step dance (the caller settles it as a normal stop).
-	function resumePastUserBreakpoint(threadId:Int, bp:PatchedBreakpoint):Null<WaitOutcome> {
+	// Single-steps past `bp` and resumes without reporting a stop, leaving
+	// currentStoppedBreakpoint and any in-flight step untouched. Returns a
+	// pending event when another thread interrupted the trap dance; the caller
+	// settles it as a normal stop.
+	function stepPastBreakpointAndResume(threadId:Int, bp:PatchedBreakpoint):Null<WaitOutcome> {
 		breakpoints.suspend(bp);
 		var interrupted = trapDance(threadId);
 		breakpoints.rearm(bp);
@@ -1084,12 +1121,12 @@ class DebugSession {
 		api.writeRegister(debuggeePid, threadId, EFlags, Int64.ofInt(flags & ~TRAP_FLAG));
 	}
 
-	// hl_debug_wait returns Exit for the OS's exit-process debug event WITHOUT
+	// hl_debug_wait returns Exit for the exit-process debug event without
 	// continuing it, and Windows keeps the dying process alive until the
-	// debugger continues that event and detaches. Release it so whoever owns
-	// the process (the IDE/test runner in attach mode, the session's Process
-	// handle in launch mode) sees it actually terminate. Call BEFORE reading the
-	// exit code: waitExitCode blocks on full termination.
+	// debugger continues that event and detaches. Releasing it lets the process
+	// owner (the client in attach mode, the Process handle in launch mode) see it
+	// terminate. Call this before reading the exit code: waitExitCode blocks
+	// until the process has fully terminated.
 	function releaseExitedProcess(threadId:Int):Void {
 		try {
 			api.resume(debuggeePid, threadId);
@@ -1100,11 +1137,10 @@ class DebugSession {
 	}
 
 	/**
-		Drains the debuggee's remaining output BEFORE the exited event: a dead
-		process's pipes still hold their buffered tail, and an output event
-		trailing `exited` is lost on clients that stop listening at exit —
-		observable under machine load as a run's final stdout lines missing.
-		The pipes EOF promptly once the process is dead; the timeout is a guard.
+		Forwards the debuggee's remaining output, then emits the exited event. A
+		dead process's pipes still hold buffered output, and clients that stop
+		listening at exit lose any output event that follows `exited`. The pipes
+		reach EOF promptly once the process is dead; the timeout is a guard.
 		Attach mode has no pumps (`process` is null).
 	**/
 	function emitExitedAfterOutputDrain():Void {
@@ -1149,12 +1185,12 @@ class DebugSession {
 }
 
 /**
-	Buffered view over the handshake socket for JitInfoReader: recvs in large
-	chunks (a byte-at-a-time socket parse would be tens of thousands of
-	syscalls) but only refills when the parser still NEEDS bytes — so it can
-	never block waiting for data past the final handshake byte. Safe because
-	the handshake format is self-delimiting and JitInfoReader never over-reads;
-	a refill therefore only happens for bytes the VM has sent or is sending.
+	Buffered view of the handshake socket for JitInfoReader. It reads in large
+	chunks, because parsing byte by byte off the socket costs one syscall per
+	byte. It refills only when the parser needs more bytes, so it never waits
+	for data past the final handshake byte. This holds because the handshake is
+	self-delimiting and JitInfoReader never reads ahead: a refill only asks for
+	bytes the VM has sent or is sending.
 **/
 private class HandshakeInput extends haxe.io.Input {
 	static inline var CHUNK = 65536;
@@ -1191,8 +1227,8 @@ private class HandshakeInput extends haxe.io.Input {
 	}
 
 	function refill():Void {
-		// blocks until SOME data arrives (bounded by the socket's guard
-		// timeout); returns a partial chunk rather than waiting for CHUNK bytes
+		// blocks until some data arrives (bounded by the socket timeout) and
+		// accepts a partial chunk instead of waiting for CHUNK bytes
 		available = source.readBytes(buffer, 0, CHUNK);
 		position = 0;
 		if (available <= 0) {

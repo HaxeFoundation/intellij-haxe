@@ -8,29 +8,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeRuntimeTool;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Precedence tests for the HashLink executable resolution: SDK path first,
- * then the HASHLINK_BIN/HASHLINK/HASHLINKPATH environment variables, then
- * PATH. Pure unit test — the environment is injected.
+ * The HashLink executable resolution beyond what {@code HaxeRuntimeToolTest}
+ * pins for the override / SDK / environment precedence: an SDK path naming a
+ * directory, the HASHLINK_BIN/HASHLINK/HASHLINKPATH order, the PATH fallback
+ * and blank or dangling entries. Pure unit test — the environment is injected.
  */
 @DisplayName("Debugger: hl executable resolver")
 public class HlExecutableResolverTest {
   @TempDir
   Path temp;
-
-  @Test
-  @DisplayName("sdk path wins over environment")
-  public void sdkPathWinsOverEnvironment() throws IOException {
-    Path sdkHl = executableIn("sdk");
-    Path envHl = executableIn("env");
-    Optional<Path> resolved =
-      HlExecutableResolver.resolve(sdkHl.toString(), env(Map.of("HASHLINK_BIN", envHl.toString())));
-    assertEquals(sdkHl, resolved.orElseThrow());
-  }
 
   @Test
   @DisplayName("sdk path may be a directory")
@@ -79,12 +71,14 @@ public class HlExecutableResolverTest {
 
   private Path executableIn(String directory) throws IOException {
     Path dir = Files.createDirectories(temp.resolve(directory));
-    Path exe = dir.resolve("hl.exe");
+    Path exe = dir.resolve(HaxeRuntimeTool.HASHLINK.executableName());
     Files.createFile(exe);
+    // a PATH lookup takes only executable files; a new file is one on windows alone
+    exe.toFile().setExecutable(true);
     return exe;
   }
 
-  private static HlExecutableResolver.Environment env(Map<String, String> values) {
+  private static HaxeRuntimeTool.Environment env(Map<String, String> values) {
     return values::get;
   }
 }

@@ -1,6 +1,6 @@
 package ijhaxe.debug.values;
 
 /**
-	A named location that can be written: an AddressedValue plus the child's name.
+	A slot to write to (an AddressedValue) plus the variable's name, for results and error messages.
 **/
 typedef WriteTarget = {>AddressedValue, name:String}

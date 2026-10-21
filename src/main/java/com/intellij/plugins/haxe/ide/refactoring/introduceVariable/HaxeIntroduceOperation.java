@@ -21,8 +21,10 @@ package com.intellij.plugins.haxe.ide.refactoring.introduceVariable;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.util.HaxeSuggestedNames;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -43,6 +45,7 @@ public class HaxeIntroduceOperation {
   private PsiElement myInitializer;
   private List<PsiElement> myOccurrences = Collections.emptyList();
   private Collection<String> mySuggestedNames;
+  private HaxeSuggestedNames mySuggestion;
   private boolean nameWasAutoSelectedFromSuggestions;
 
   public HaxeIntroduceOperation(Project project,
@@ -67,12 +70,13 @@ public class HaxeIntroduceOperation {
     nameWasAutoSelectedFromSuggestions = false;
   }
 
+  /** Takes the first suggestion as the name; the in-place template then offers all of them. */
   public void suggestName() {
     assert null == myName : "Name has already been assigned.";
 
     if (null != mySuggestedNames && !mySuggestedNames.isEmpty()) {
-      nameWasAutoSelectedFromSuggestions = true;
       setName(mySuggestedNames.iterator().next());
+      nameWasAutoSelectedFromSuggestions = true;
     }
   }
 
@@ -149,7 +153,14 @@ public class HaxeIntroduceOperation {
     return mySuggestedNames;
   }
 
-  public void setSuggestedNames(Collection<String> suggestedNames) {
-    mySuggestedNames = suggestedNames;
+  /** Sets the suggested names together with their description, under which the chosen name is remembered. */
+  public void setSuggestion(@NotNull HaxeSuggestedNames suggestion) {
+    mySuggestion = suggestion;
+    mySuggestedNames = suggestion.names();
+  }
+
+  /** Remembers {@code chosenName} for the next similar value. */
+  public void recordChosenName(@Nullable String chosenName) {
+    if (mySuggestion != null && chosenName != null) mySuggestion.recordChosen(chosenName);
   }
 }

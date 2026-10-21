@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * modelled on the Java debugger's: checkboxes selecting which stops the
  * "Any exception" breakpoint produces. Hidden for per-class breakpoints —
  * those always mean "stop when this class is thrown, caught or not"
- * (neither runtime can type-filter an uncaught or critical stop).
+ * (the backends cannot type-filter an uncaught or critical stop).
  */
 final class HaxeExceptionBreakpointPropertiesPanel
   extends XBreakpointCustomPropertiesPanel<XBreakpoint<HaxeExceptionBreakpointProperties>> {

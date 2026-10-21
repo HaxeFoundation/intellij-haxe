@@ -1,20 +1,17 @@
 package ijhaxe.debug.module;
 
-// One `try` protection range in a function: op `p` is protected (a catch is
-// active) when `start < p <= end`. `start` is the OTrap's op, `end` is the last
-// protected op (the catch handler is at `end+1`). Module-private.
+// The range of one `try` block: op `p` is inside it when `start < p <= end`.
+// `start` is the OTrap op and the catch handler is at `end + 1`.
 private typedef Region = {start:Int, end:Int};
 
 /**
-	Static `try` protection ranges per function, derived from `OTrap` opcodes.
+	The `try` blocks of each function, derived from its `OTrap` opcodes.
 
-	An `OTrap(_, end)` at op `i` opens a try whose catch handler is at `i+1+end`
-	(the same branch target CodeGraph uses), so the protected body is `i+1 .. i+end`
-	— a throw at op `p` is caught by that trap when `i < p <= i+end`. Used to decide
-	whether a throw will be caught: if any live frame's current op is inside a
-	protected range, a `catch` is active up the stack. Typed catches
-	(`catch(e:SpecificType)`) are approximated as always matching — any active try
-	counts as catching. Computed per function, cached.
+	An `OTrap(_, end)` at op `i` opens a `try` whose catch handler is at
+	`i + 1 + end`, the same jump target CodeGraph computes. Its body is
+	therefore ops `i + 1` to `i + end`. A throw will be caught when the current
+	op of any frame on the stack lies inside such a body. Every `catch` counts
+	as matching, even a typed `catch (e:SomeType)`.
 **/
 class TryRegions {
 	final module:ModuleDebugInfo;

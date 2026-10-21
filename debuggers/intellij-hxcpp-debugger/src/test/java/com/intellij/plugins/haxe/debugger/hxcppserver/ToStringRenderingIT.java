@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * toString renders through it, and a THROWING toString degrades back to the
  * class name without harming the session. A self-recursing toString is
  * deliberately untested against the real runtime - on hxcpp that stack
- * overflow kills the process before any handler runs (probe-verified),
+ * overflow kills the process before any handler runs,
  * which is exactly the risk the off-default guards; the eval-target unit
  * tests (ValuesTest) cover the recursion path where it IS catchable.
  */
@@ -28,10 +28,7 @@ public class ToStringRenderingIT {
   @DisplayName("labels follow the live toggle")
   public void labelsFollowTheLiveToggle() throws Exception {
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
-      session.initialize();
-      session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.TOSTRING_LINE}, null);
-      session.configurationDone();
-      int threadId = session.stoppedThread(session.awaitStopped());
+      int threadId = stopAtToStringLine(session);
       int frameId = session.topFrame(threadId).getId();
 
       // default OFF: class names, even for classes that declare toString
@@ -70,14 +67,10 @@ public class ToStringRenderingIT {
   @Test
   @DisplayName("maps list their entries")
   public void mapsListTheirEntries() throws Exception {
-    // A haxe.ds map's raw fields are its native hash handle ("h = Dynamic"),
-    // which is what used to render — entries must list instead, like the
-    // HashLink adapter's map handling (found live on an OpenFL StringMap).
+    // A haxe.ds map's raw fields are its native hash handle ("h = Dynamic");
+    // entries must list instead, like the HashLink adapter's map handling.
     try (FixtureSession session = FixtureSession.launchScenario("tostring")) {
-      session.initialize();
-      session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.TOSTRING_LINE}, null);
-      session.configurationDone();
-      int threadId = session.stoppedThread(session.awaitStopped());
+      int threadId = stopAtToStringLine(session);
       int frameId = session.topFrame(threadId).getId();
 
       List<Variable> locals = session.variables(session.localsReference(frameId));
@@ -92,5 +85,13 @@ public class ToStringRenderingIT {
       session.resume(threadId);
       assertEquals(0, session.awaitExit(), "clean exit");
     }
+  }
+
+  /** Runs the session to the breakpoint on the tostring fixture line and returns the stopped thread id. */
+  private static int stopAtToStringLine(FixtureSession session) throws Exception {
+    session.initialize();
+    session.setBreakpoints(FixtureSession.EX_SOURCE, new int[]{FixtureSession.TOSTRING_LINE}, null);
+    session.configurationDone();
+    return session.stoppedThread(session.awaitStopped());
   }
 }

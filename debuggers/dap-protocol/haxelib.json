@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": ["dap", "debug", "debugger", "protocol"],
 	"description": "Debug Adapter Protocol message typedefs, used by the debugger servers for intellij-haxe",
-	"version": "0.1.0",
-	"releasenote": "Initial release",
+	"version": "0.2.0",
+	"releasenote": "Released with the intellij-haxe plugin v2.0 beta",
 	"contributors": ["m0rkeulv"],
 	"classPath": "src/main/haxe",
 	"dependencies": {}

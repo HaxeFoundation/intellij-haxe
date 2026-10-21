@@ -1,0 +1,20 @@
+<html>
+<body>
+Reports implementing methods whose signature does not conform to a method
+declared in an INHERITED interface - one the implemented interface itself
+extends.
+<p><b>Example:</b></p>
+<pre><code>
+interface Readable {
+    function read():String;
+}
+interface Buffered extends Readable {}
+
+class FileSource implements Buffered {
+    public function read(count:Int):String {   // signature differs from Readable.read
+        return "";
+    }
+}
+</code></pre>
+</body>
+</html>

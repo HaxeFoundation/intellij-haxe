@@ -11,14 +11,12 @@ import ijhaxe.hxcpp.debug.values.Values;
 import ijhaxe.hxcpp.debug.values.VariablesView;
 
 /**
-	Translates decoded DAP request payloads into responses/events, written as
-	JSON strings through the `send` sink (the transport frames them). Pure and
-	synchronous — the Server owns threading and sockets — so every behaviour is
-	unit-testable over a fake DebuggerApi.
+	Answers DAP requests and turns runtime debug events into DAP events. Every
+	response and event leaves as a JSON string through the `send` sink; the
+	transport adds the framing.
 
-	M1 surface: initialize/configurationDone/threads/disconnect plus the
-	runtime-event -> DAP-event mapping. Breakpoints, run control, variables and
-	evaluate arrive with their milestones.
+	The class is synchronous and owns no threads or sockets (the Server does),
+	so every behaviour is unit-testable over a fake DebuggerApi.
 **/
 class Dispatcher {
 	final debugger:DebuggerApi;
@@ -36,31 +34,30 @@ class Dispatcher {
 	/** Set once the client finished configuration (breakpoints may arrive before). */
 	public var configurationDone(default, null):Bool = false;
 
-	// Debug events must not precede the `initialized` event (a debuggee whose
-	// threads already exist fires THREAD_CREATED the moment debugging is enabled,
-	// before the client even sends initialize). Buffer until initialize is
-	// handled, then flush in arrival order.
+	// No debug event may precede the `initialized` event. A debuggee whose
+	// threads already exist fires THREAD_CREATED as soon as debugging is
+	// enabled, before the client has even sent initialize. Such events are
+	// buffered until initialize is handled, then sent in arrival order.
 	var initialized:Bool = false;
 	final pendingEvents:Array<DebugEvent> = [];
-	// the thread most recently reported stopped — hxcpp's continueThreads wants
-	// the specific stopped thread as its "special" argument, not a wildcard
+	// The thread most recently reported stopped. hxcpp's continueThreads needs
+	// that specific thread as its "special" argument, not a wildcard.
 	var lastStoppedThread:Int = -1;
-	// Stacks (innermost-last) of EVERY currently-stopped thread, captured on
-	// each stopping thread — a pause stops them all, and the client asks for
-	// each one's stackTrace. Entries leave when their thread resumes.
+	// The stack (innermost last) of every currently stopped thread, captured
+	// on that thread. A pause stops all threads, and the client then asks for
+	// each one's stackTrace. An entry is removed when its thread resumes.
 	final stoppedStacks = new Map<Int, Array<DebugStackFrame>>();
-	// DAP frameId -> (thread, hxcpp stack index). Frame ids must encode the
-	// thread because scopes/evaluate only receive a frameId. Valid until the
-	// next resume: references die when the program moves, not when another
-	// thread of the same stop-burst reports in.
+	// DAP frameId -> (thread, hxcpp stack index). The id must identify the
+	// thread because scopes and evaluate receive only a frameId. Ids stay valid
+	// until the next resume, so the stop events of other threads in the same
+	// pause do not invalidate them.
 	var nextFrameId:Int = 1;
 	final framesById = new Map<Int, {thread:Int, index:Int}>();
 
-	// An in-flight source-level step: hxcpp stops on the SAME line for multi-
-	// expression lines (and never re-fires a loop-body line), so a step keeps
-	// re-issuing until the source line actually changes — the DAP-level "step
-	// until the line changes" policy. Bounded so a pathological program can
-	// never step forever.
+	// A source-level step in flight. hxcpp stops again on the SAME line when a
+	// line holds several expressions, and it never re-fires a loop-body line.
+	// A step is therefore re-issued until the source line changes, up to
+	// MAX_STEP_ITERATIONS so a pathological program cannot step forever.
 	static inline var MAX_STEP_ITERATIONS = 100000;
 	var stepActive:Bool = false;
 	var stepType:Int = 0;
@@ -68,36 +65,37 @@ class Dispatcher {
 	var stepFromLine:Int = 0;
 	var stepIterations:Int = 0;
 
-	// Smart step into (custom request "custom/stepIntoFunction"): a TEMPORARY
-	// class-function breakpoint at the chosen callee's entry races a STEP_OVER —
-	// whichever lands first is the stop, reported as a plain step. -1 = none.
-	// The temp lives outside the user-breakpoint bookkeeping (no DAP id, no
-	// condition), and dies with the next reported stop or resume.
+	// Smart step into (the custom request "custom/stepIntoFunction"). A
+	// TEMPORARY class-function breakpoint at the chosen callee's entry races a
+	// STEP_OVER; whichever lands first is the stop, reported as a plain step.
+	// -1 means none is armed. The temporary breakpoint has no DAP id and no
+	// condition, and it is deleted at the next reported stop or resume.
 	var tempStepBreakpoint:Int = -1;
 
-	// Occurrence handling for a callee invoked MORE THAN ONCE on the line
-	// (cfg.test1(1)...test1(2)): the class-function breakpoint hits on the
-	// FIRST invocation regardless of which one was chosen, so the request's
-	// optional `occurrence` (1-based) tells how many entries to SKIP. A
-	// skipped entry steps OUT with the temp STILL ARMED — hxcpp's step-out
-	// never lands back on a one-line chain (the remaining chain ops carry no
-	// line marker), so the next invocation's entry hit is what interrupts the
-	// OUT. Known limit: a skipped invocation that recursively calls the same
-	// function lands the leftover entries early (best effort).
+	// How many callee entries smart step into still skips. A callee called
+	// MORE THAN ONCE on the line (`cfg.test1(1)...test1(2)`) hits the entry
+	// breakpoint at its FIRST call, whichever call was chosen. The request's
+	// optional 1-based `occurrence` therefore says how many entries to skip.
+	// A skipped entry steps OUT with the temporary breakpoint still armed.
+	// hxcpp's step-out never lands back on a one-line chain, because the rest
+	// of the chain carries no line marker, so the next call's entry hit is
+	// what interrupts the OUT. Known limit: when a skipped call recursively
+	// calls the same function, the remaining skips are used up too early.
 	var tempStepSkipsRemaining:Int = 0;
 
-	// Exception filters (both default ON, mirroring the advertised defaults —
-	// a client that never sends setExceptionBreakpoints gets the defaults) and
-	// the last exception stop, kept for the exceptionInfo request.
+	// Exception filters. Both default ON, matching the defaults advertised in
+	// initialize, so a client that never sends setExceptionBreakpoints gets
+	// them.
 	static inline var FILTER_UNCAUGHT = "uncaught";
 	static inline var FILTER_CRITICAL = "critical";
 
-	// "Thrown exceptions": there is no runtime hook for a CATCHABLE throw, but
-	// every `new haxe.Exception(...)` — including every subclass constructor,
-	// via super() — runs through haxe.Exception.new, and construction happens
-	// at the throw expression in idiomatic code. A class-function breakpoint
-	// there is "break where a haxe.Exception is thrown" for the whole
-	// hierarchy. Raw-value throws (`throw "str"`) never touch it.
+	// The "thrown exceptions" filter. The runtime has no hook for a CATCHABLE
+	// throw. But every `new haxe.Exception(...)`, including every subclass
+	// constructor through super(), runs haxe.Exception.new, and idiomatic code
+	// constructs the exception in the throw expression. A class-function
+	// breakpoint on that constructor, the "thrown hook", therefore breaks
+	// where any haxe.Exception is thrown. Raw-value throws (`throw "str"`)
+	// never reach it.
 	static inline var FILTER_THROWN = "thrown";
 	static inline var THROWN_HOOK_CLASS = "haxe.Exception";
 
@@ -105,27 +103,30 @@ class Dispatcher {
 	var breakOnCritical:Bool = true;
 	var breakOnThrown:Bool = false;
 
-	// Typed exception filters (DAP filterTypes): class names to stop on. The
-	// hook stop reads the CONCRETE class from `this` and matches it and its
-	// superclass chain, so subclasses match their base's filter and subclasses
-	// with inherited constructors (no own `new` frame) are still caught.
+	// Typed exception filters (DAP filterTypes): the class names to stop on.
+	// A stop at the thrown hook reads the CONCRETE class from `this` and
+	// matches it and its superclasses. A subclass therefore matches its base
+	// class's filter, even when it inherits its constructor and has no `new`
+	// frame of its own.
 	var thrownTypeFilters:Array<String> = [];
-	var thrownHookBreakpoint:Int = -1; // installed while thrown/typed filters are on
+	var thrownHookBreakpoint:Int = -1; // installed while the thrown or a typed filter is on
 
+	// the last exception stop, kept for the exceptionInfo request
 	var lastExceptionDescription:Null<String> = null;
 	var lastExceptionKind:Null<String> = null;
 
-	// Resuming a critical error usually re-faults on the spot (the runtime's
-	// "fixup" path re-executes the null access -> segv -> stop again; observed
-	// live), so auto-resuming with the filter off would livelock the program.
-	// After a few consecutive silent resumes the stop is reported regardless.
+	// Resuming a critical error usually faults again at once: the runtime's
+	// "fixup" path re-executes the null access, which faults and stops again.
+	// Silently resuming with the filter off would therefore livelock the
+	// program, so after this many consecutive silent resumes the stop is
+	// reported anyway.
 	static inline var MAX_SILENT_CRITICAL_RESUMES = 3;
 	var silentCriticalResumes:Int = 0;
 
 	public function new(debugger:DebuggerApi, send:String->Void) {
 		this.debugger = debugger;
 		this.send = send;
-		// the baked executable-line table, when this binary carries one
+		// the executable-line table compiled into this binary, if any
 		this.breakpoints = new Breakpoints(debugger, LineTable.fromResource());
 		this.variablesView = new VariablesView(debugger);
 		this.evaluator = new Evaluator(debugger);
@@ -151,14 +152,12 @@ class Dispatcher {
 		try {
 			dispatch(seq, command, request);
 		} catch (e:Dynamic) {
-			// FAULT ISOLATION: one faulting handler must not kill the session.
-			// Real debuggees fault their readers — a corrupt frame slot raises a
-			// critical error which hxcpp RE-THROWS on this (the debug) thread as
-			// "Critical Error in the debugger thread". Without this catch that
-			// throw unwound into the Server's wire-death catch and the server
-			// silently stopped serving: every later request timed out and resume
-			// never happened. Answer with the error and keep serving. (A hard
-			// segfault still kills the process; nothing catches that.)
+			// Fault isolation: one faulting handler must not end the session.
+			// Reading a corrupt frame slot raises a critical error, which hxcpp
+			// re-throws on this debug thread as "Critical Error in the debugger
+			// thread". Uncaught, it would unwind into the Server's
+			// connection-lost handler and the server would silently stop
+			// serving. A hard segfault still kills the process.
 			sendResponse(seq, command, false, null, "Internal debugger error: " + Std.string(e));
 		}
 	}
@@ -172,9 +171,10 @@ class Dispatcher {
 					supportsEvaluateForHovers: true,
 					supportsSetVariable: true,
 					supportsExceptionInfoRequest: true,
-					// both kinds arrive from the runtime as CRITICAL_ERROR stops and
-					// are told apart by description (see exceptionKind); "break on
-					// caught exceptions" has no runtime hook — docs/README
+					// The runtime reports uncaught throws and critical errors both as
+					// CRITICAL_ERROR stops; exceptionKind tells them apart by their
+					// description. "Break on caught exceptions" has no runtime hook
+					// (see docs/README.md).
 					exceptionBreakpointFilters: [
 						{
 							filter: FILTER_UNCAUGHT,
@@ -210,29 +210,29 @@ class Dispatcher {
 			case "exceptionInfo":
 				handleExceptionInfo(seq, command);
 			case "continue":
-				// hxcpp's continueThreads wants the stopped thread as its "special"
-				// arg (count 1 = stop at the next breakpoint), not a wildcard. It
-				// resumes EVERY stopped thread, hence allThreadsContinued.
+				// hxcpp's continueThreads takes the stopped thread as its "special"
+				// argument, not a wildcard; count 1 stops at the next breakpoint.
+				// It resumes EVERY stopped thread, hence allThreadsContinued.
 				// The response goes out BEFORE the threads are released: a resumed
 				// program can run to exit() before this dispatcher runs again, and
-				// a response not yet written dies with the process's socket.
+				// an unwritten response dies with the process's socket.
 				stepActive = false;
 				clearTempStepBreakpoint();
-				resumed();
+				invalidateReferences();
 				stoppedStacks.clear();
 				sendResponse(seq, command, true, {allThreadsContinued: true});
-				debugger.continueThreads(resumeThread(request.arguments), 1);
+				debugger.continueThreads(requestedThread(request.arguments), 1);
 			case "custom/stepIntoFunction":
 				handleStepIntoFunction(seq, command, request.arguments);
 			case "custom/setToStringRendering":
-				// live toggle for toString object labels (see Values.objectLabel);
-				// the client re-requests variables afterwards, so the current
-				// stop's rows re-describe with the new labels
+				// Switches toString object labels on or off (see
+				// Values.objectLabel). The client then re-requests the variables,
+				// so the current stop's rows are described with the new labels.
 				Values.renderWithToString = request.arguments != null && request.arguments.enabled == true;
 				sendResponse(seq, command, true, null);
 			case "pause":
-				// break the world; the resulting BREAK_IMMEDIATE stop is reported
-				// as reason "pause" (no step is in flight)
+				// stops every thread; with no step in flight, the resulting
+				// BREAK_IMMEDIATE stop is reported as reason "pause"
 				stepActive = false;
 				debugger.breakNow(false);
 				sendResponse(seq, command, true, null);
@@ -269,27 +269,27 @@ class Dispatcher {
 		}
 	}
 
-	// The thread a resume/step/stackTrace acts on: the request's threadId, else
-	// the last stop (a DAP client always names one, but stay safe).
-	function resumeThread(args:Dynamic):Int {
+	// The thread a continue, step or stackTrace request acts on: the request's
+	// threadId, else the last stopped thread. A DAP client always names one.
+	function requestedThread(args:Dynamic):Int {
 		return (args != null && args.threadId != null) ? args.threadId : lastStoppedThread;
 	}
 
-	// Every resume path funnels through here: inspection references (variables
-	// and frame ids) die when the program moves.
-	function resumed():Void {
+	// Called on every resume: variable references and frame ids must not
+	// outlive the stop that created them.
+	function invalidateReferences():Void {
 		variablesView.reset();
 		framesById.clear();
 		nextFrameId = 1;
 	}
 
-	// Begins a source-level step. Records the current line so the stop policy can
-	// re-step until it changes (see emitDebugEvent). Responds immediately; the
-	// stopped(reason:"step") event follows when the step lands.
+	// Begins a source-level step. It records the current line so that
+	// handleThreadStopped can re-step until the line changes. The response goes
+	// out at once; the stopped(reason:"step") event follows when the step lands.
 	function handleStep(seq:Int, command:String, args:Dynamic, type:Int):Void {
-		clearTempStepBreakpoint(); // a fresh user step cancels a pending smart step
+		clearTempStepBreakpoint(); // a new user step cancels a pending smart step
 
-		var threadId = resumeThread(args);
+		var threadId = requestedThread(args);
 		var from = topFrame(stoppedStacks.get(threadId));
 		stepActive = true;
 		stepType = type;
@@ -297,60 +297,61 @@ class Dispatcher {
 		stepFromLine = from != null ? from.lineNumber : 0;
 		stepIterations = 0;
 
-		resumed();
+		invalidateReferences();
 		stoppedStacks.remove(threadId); // stepThread resumes only this thread
-		// respond BEFORE releasing the thread: a step off the program's last
-		// line exits the process, taking an unwritten response with it
+		// Respond BEFORE releasing the thread: a step off the program's last
+		// line exits the process, and an unwritten response dies with it.
 		sendResponse(seq, command, true, null);
 		debugger.stepThread(threadId, type);
 	}
 
 	/**
-		Smart step into: enter the CHOSEN call on the stopped line. The IDE
-		resolves the line's calls through its PSI (the server has no line→calls
-		knowledge — there is no bytecode to mine on hxcpp) and names the callee
-		as (className, functionName). A temporary entry breakpoint on the callee
-		races an ordinary step-over: entering the callee lands the temp (running
-		through earlier calls on the line); if the chosen call never executes
-		(short-circuit, conditional), the step-over lands instead — degrading to
-		a plain step over, exactly like the HashLink implementation. Either
-		landing is reported as reason "step".
+		Smart step into: enters the call on the stopped line that the user
+		CHOSE. The IDE finds the line's calls in its PSI and names the callee as
+		(className, functionName). The server cannot list a line's calls itself,
+		because hxcpp has no bytecode to inspect. A temporary breakpoint at the callee's entry races an
+		ordinary step-over. Entering the callee hits that breakpoint, after any
+		earlier calls on the line have run. If the chosen call never executes
+		(short-circuit, conditional), the step-over lands instead, so the
+		request degrades to a plain step over, as in the HashLink debugger.
+		Either landing is reported as reason "step".
 	**/
 	function handleStepIntoFunction(seq:Int, command:String, args:Dynamic):Void {
 		if (args == null || args.className == null || args.functionName == null) {
 			sendResponse(seq, command, false, null, "Missing className/functionName");
 			return;
 		}
-		clearTempStepBreakpoint(); // replace any previous pending smart step
-		var threadId = resumeThread(args);
+		clearTempStepBreakpoint(); // replaces any pending smart step
+		var threadId = requestedThread(args);
 		var from = topFrame(stoppedStacks.get(threadId));
 		var number = debugger.addClassFunctionBreakpoint(args.className, args.functionName);
 		if (number < 0) {
-			// The runtime REJECTED the class name (hxcpp validates it against its
-			// compiled-in class table; -1 arms nothing — and per gotcha 8, with no
-			// live breakpoint the per-line hook stays disarmed and a step can run
-			// unchecked forever). Do not gamble with the user's session: answer
-			// and re-report the current stop — a visible no-op the user can
-			// follow with a plain step.
+			// The runtime rejected the class name: hxcpp checks it against its
+			// compiled-in class table, and -1 arms nothing. Without any live
+			// breakpoint, hxcpp skips its per-line check, so a step could run
+			// unchecked to the end of the program (see "Stepping needs at least
+			// one breakpoint armed" in docs/README.md). The thread is therefore
+			// not resumed; the current stop is re-reported instead, a visible
+			// no-op the user can follow with a plain step.
 			sendResponse(seq, command, true, null);
 			sendEvent("stopped", {reason: "step", threadId: threadId, allThreadsStopped: true});
 			return;
 		}
 		tempStepBreakpoint = number;
-		// which invocation of the callee on this line was chosen (1-based;
-		// absent/old clients = the first): entries before it are skipped
+		// The chosen call of the callee on this line, 1-based; clients that
+		// omit it mean the first. The entries before it are skipped.
 		var occurrence:Null<Int> = args.occurrence;
 		tempStepSkipsRemaining = occurrence != null && occurrence > 1 ? occurrence - 1 : 0;
-		// bookkeep exactly like a step-over: the same-line re-step policy keeps
-		// the step racing while the temp stays armed
+		// Set up the step state exactly like a step-over, so the same-line
+		// re-step keeps the step racing while the temporary breakpoint is armed.
 		stepActive = true;
 		stepType = StepType.OVER;
 		stepFromFile = from != null ? from.fileName : "";
 		stepFromLine = from != null ? from.lineNumber : 0;
 		stepIterations = 0;
-		resumed();
+		invalidateReferences();
 		stoppedStacks.remove(threadId);
-		// respond BEFORE releasing the thread (same exit race as handleStep)
+		// respond BEFORE releasing the thread, for the same reason as handleStep
 		sendResponse(seq, command, true, null);
 		debugger.stepThread(threadId, StepType.OVER);
 	}
@@ -363,13 +364,14 @@ class Dispatcher {
 	}
 
 	function handleStackTrace(seq:Int, command:String, args:Dynamic):Void {
-		var threadId = resumeThread(args);
+		var threadId = requestedThread(args);
 		var stack = stoppedStacks.get(threadId);
 		var frames:Array<Dynamic> = [];
 		if (stack != null) {
-			// hxcpp orders the stack innermost-LAST; DAP wants the newest frame
-			// first, so walk it in reverse. Each frame gets a registry id that
-			// remembers its (thread, index) — scopes/evaluate only get the id.
+			// hxcpp orders the stack innermost LAST and DAP wants the newest
+			// frame first, so the stack is walked in reverse. Each frame gets an
+			// id that maps back to its (thread, index), because scopes and
+			// evaluate receive only the id.
 			var i = stack.length - 1;
 			while (i >= 0) {
 				var frame = stack[i];
@@ -389,10 +391,10 @@ class Dispatcher {
 		sendResponse(seq, command, true, {stackFrames: frames, totalFrames: frames.length});
 	}
 
-	// A frame's Locals scope. The frameId names a (thread, stack index) pair via
-	// the registry built in stackTrace. hxcpp exposes one flat set of locals per
-	// frame (params + declared vars + `this`), so a single "Locals" scope is
-	// reported rather than splitting arguments out.
+	// Reports a frame's single "Locals" scope. The frameId maps to a (thread,
+	// stack index) pair recorded by stackTrace. hxcpp exposes one flat set of
+	// locals per frame (parameters, declared variables and `this`), so the
+	// arguments are not split into a scope of their own.
 	function handleScopes(seq:Int, command:String, args:Dynamic):Void {
 		var frameId = (args != null && args.frameId != null) ? args.frameId : 0;
 		var location = framesById.get(frameId);
@@ -406,9 +408,9 @@ class Dispatcher {
 		});
 	}
 
-	// evaluate a watch/hover/repl expression against a frame; a bare assignment
-	// writes back to the debuggee. The frameId comes from stackTrace's registry;
-	// a frameless evaluate targets the last stop's innermost frame.
+	// Evaluates a watch, hover or console expression against a frame; a bare
+	// assignment writes back to the debuggee. The frameId comes from
+	// stackTrace; without one, the last stop's innermost frame is used.
 	function handleEvaluate(seq:Int, command:String, args:Dynamic):Void {
 		if (args == null || args.expression == null) {
 			sendResponse(seq, command, false, null, "Missing expression");
@@ -420,7 +422,7 @@ class Dispatcher {
 		if (location != null) {
 			frame = location.index;
 		} else {
-			// default to the innermost frame (highest hxcpp index, innermost-last)
+			// the innermost frame has the highest hxcpp index
 			var stack = stoppedStacks.get(lastStoppedThread);
 			frame = stack != null ? stack.length - 1 : 0;
 		}
@@ -446,8 +448,8 @@ class Dispatcher {
 		sendResponse(seq, command, true, result);
 	}
 
-	// hxcpp replaces the whole breakpoint set for a source; assign each request
-	// a stable DAP id and hand the batch to the Breakpoints manager.
+	// DAP replaces the whole breakpoint set of a source. Each requested
+	// breakpoint gets a new DAP id, and Breakpoints installs the batch.
 	function handleSetBreakpoints(seq:Int, command:String, args:SetBreakpointsArguments):Void {
 		var sourcePath = (args != null && args.source != null && args.source.path != null) ? args.source.path : "";
 		var requested:Array<SourceBreakpoint> = (args != null && args.breakpoints != null) ? args.breakpoints : [];
@@ -457,9 +459,10 @@ class Dispatcher {
 	}
 
 	/**
-		A runtime notification (already re-delivered on the server thread) turned
-		into the matching DAP event — buffered until the initialize handshake so
-		nothing precedes the `initialized` event.
+		Turns a runtime notification, already handed over to the server thread,
+		into the matching DAP event. Before initialize is handled, the
+		notification is buffered, so that nothing precedes the `initialized`
+		event.
 	**/
 	public function handleDebugEvent(event:DebugEvent):Void {
 		if (!initialized) {
@@ -476,9 +479,9 @@ class Dispatcher {
 			case ThreadTerminated(threadNumber):
 				sendEvent("thread", {reason: "exited", threadId: threadNumber});
 			case ThreadStarted(threadNumber):
-				// a thread RESUMED (runtime "started" = running again); its stack
-				// is stale now. DAP resume reporting is implicit in the
-				// continue/step responses.
+				// The runtime's "started" means the thread RESUMED, so its stack
+				// is stale. DAP needs no event: the continue and step responses
+				// already imply the resume.
 				stoppedStacks.remove(threadNumber);
 			case ThreadStopped(threadNumber, status, breakpoint, stack, description):
 				handleThreadStopped(threadNumber, status, breakpoint, stack, description);
@@ -488,17 +491,18 @@ class Dispatcher {
 	function handleThreadStopped(threadNumber:Int, status:Int, breakpoint:Int, stack:Array<DebugStackFrame>, description:Null<String>):Void {
 		lastStoppedThread = threadNumber;
 		stoppedStacks.set(threadNumber, stack);
-		// NO reference reset here: a pause stops every thread and their stop
-		// events arrive as a burst — resetting per event would invalidate frame
-		// ids the client just received for a sibling thread. References die on
-		// resume instead (resumed()).
+		// References are NOT invalidated here. A pause stops every thread, and
+		// their stop events arrive in quick succession; invalidating on each one
+		// would break the frame ids the client just received for another
+		// thread. invalidateReferences() runs on resume instead.
 		lastExceptionDescription = null;
 		lastExceptionKind = null;
 
-		// A step landing that did not change the source line: re-issue the step
-		// (multi-expression line, or a loop-body line that never "changes"), up
-		// to the safety cap. Only for a plain step landing (BREAK_IMMEDIATE) —
-		// a breakpoint or exception hit mid-step wins and is reported.
+		// A step landed without changing the source line (a line with several
+		// expressions, or a loop-body line that never "changes"): re-issue the
+		// step, up to MAX_STEP_ITERATIONS. This applies only to a plain step
+		// landing (BREAK_IMMEDIATE); a breakpoint or exception hit during the
+		// step takes precedence and is reported.
 		if (stepActive && status == DebugThread.STATUS_STOPPED_BREAK_IMMEDIATE) {
 			var top = topFrame(stack);
 			if (top != null && top.fileName == stepFromFile && top.lineNumber == stepFromLine
@@ -517,18 +521,20 @@ class Dispatcher {
 		// Any other stop ends a pending step.
 		stepActive = false;
 
-		// The smart-step temp landing: the chosen callee's entry. Reported as a
-		// plain step stop; any OTHER stop (user breakpoint, exception, pause)
-		// wins the race and reports normally — either way the temp dies here.
+		// A stop at the smart-step breakpoint is the chosen callee's entry and
+		// is reported as a plain step. Any OTHER stop (user breakpoint,
+		// exception, pause) wins the race and is reported normally. Either way
+		// the temporary breakpoint is deleted here.
 		if (tempStepBreakpoint >= 0) {
 			var enteredTarget = status == DebugThread.STATUS_STOPPED_BREAKPOINT && breakpoint == tempStepBreakpoint;
 			if (enteredTarget && tempStepSkipsRemaining > 0) {
-				// a LATER invocation of this callee was chosen: this entry is not
-				// it. Step OUT with the temp STILL ARMED — the next invocation's
-				// entry hit interrupts the OUT (the OUT itself cannot land back
-				// on a one-line chain: its remaining ops carry no line marker,
-				// so an unfired OUT falls through to the next line, the same
-				// step-over degradation as a call that never runs).
+				// A LATER call of this callee was chosen, so this entry is not
+				// the target. Step OUT with the temporary breakpoint still armed:
+				// the next call's entry interrupts the OUT. The OUT cannot land
+				// back on a one-line chain, because the rest of the chain carries
+				// no line marker. If no further call happens, the OUT lands on
+				// the next line, the same fallback as a chosen call that never
+				// runs.
 				tempStepSkipsRemaining--;
 				stepActive = true;
 				stoppedStacks.remove(threadNumber);
@@ -542,26 +548,27 @@ class Dispatcher {
 			}
 		}
 
-		// The thrown-hook landing: haxe.Exception.new is running — an Exception
-		// (or subclass) is being constructed, normally by the throw expression.
-		// Reported when the "thrown" filter is on, or when the concrete class
-		// (or any of its superclasses) matches a typed filter; otherwise resume
-		// silently (the hook also serves typed-only configurations).
+		// A stop at the thrown hook: haxe.Exception.new is running, so an
+		// exception is being constructed, normally by a throw expression. It is
+		// reported when the "thrown" filter is on, or when the concrete class or
+		// one of its superclasses matches a typed filter. Otherwise the thread
+		// resumes silently; the hook is also armed for typed filters alone.
 		if (thrownHookBreakpoint >= 0 && status == DebugThread.STATUS_STOPPED_BREAKPOINT && breakpoint == thrownHookBreakpoint) {
 			var classChain = thrownClassChain(threadNumber, stack);
 			if (!breakOnThrown && !matchesTypeFilter(classChain)) {
-				resumed();
+				invalidateReferences();
 				stoppedStacks.clear(); // continueThreads resumes every thread
 				debugger.continueThreads(threadNumber, 1);
 				return;
 			}
-			// text reads the ctor frame's locals, so build it BEFORE trimming
+			// the text reads the constructor frame's locals, so it is built BEFORE trimming
 			var text = thrownExceptionText(threadNumber, stack, classChain);
 			// Trim the exception's OWN constructor frames (haxe.Exception.new and
-			// any subclass ctor chaining to it) so the reported top frame is the
-			// THROW SITE. Only ctors in the exception's class chain are trimmed —
-			// a user constructor that itself throws stays visible. Trimming the
-			// tail keeps lower hxcpp frame indices valid for scopes/evaluate.
+			// any subclass constructor chaining to it), so the top frame reported
+			// is the THROW SITE. Only constructors of the exception's class chain
+			// are trimmed; a user constructor that itself throws stays visible.
+			// Trimming only the innermost end keeps the remaining hxcpp frame
+			// indices valid for scopes and evaluate.
 			var end = stack.length;
 			while (end > 1) {
 				var frame = stack[end - 1];
@@ -585,21 +592,21 @@ class Dispatcher {
 			return;
 		}
 
-		// An exception/critical-error stop: the thread is blocked AT the throw
-		// site (before unwinding), so the full stack and locals are inspectable.
-		// A disabled filter resumes silently; the runtime then unwinds/terminates
-		// exactly as it would have without the stop.
+		// An uncaught-exception or critical-error stop. The thread is blocked AT
+		// the throw site, before unwinding, so the full stack and the locals can
+		// be inspected. With the filter disabled the thread resumes silently,
+		// and the runtime unwinds or terminates as if it had never stopped.
 		if (status == DebugThread.STATUS_STOPPED_UNCAUGHT_EXCEPTION || status == DebugThread.STATUS_STOPPED_CRITICAL_ERROR) {
 			var kind = exceptionKind(description);
 			var enabled = kind == FILTER_UNCAUGHT ? breakOnUncaught : breakOnCritical;
 			if (!enabled) {
-				// resuming an uncatchable throw unwinds/terminates cleanly; a
-				// critical error re-faults, so cap the silent resumes (livelock)
+				// Resuming an uncatchable throw unwinds or terminates cleanly. A
+				// critical error faults again, so its silent resumes are capped.
 				if (kind != FILTER_CRITICAL || silentCriticalResumes < MAX_SILENT_CRITICAL_RESUMES) {
 					if (kind == FILTER_CRITICAL) {
 						silentCriticalResumes++;
 					}
-					resumed();
+					invalidateReferences();
 					stoppedStacks.clear(); // continueThreads resumes every thread
 					debugger.continueThreads(threadNumber, 1);
 					return;
@@ -618,13 +625,14 @@ class Dispatcher {
 			return;
 		}
 
-		// A conditional breakpoint stops only when its condition is true; a false
-		// condition resumes silently. Evaluated against the INNERMOST frame,
-		// which is the highest hxcpp frame index (stack is innermost-last).
+		// A conditional breakpoint stops only when its condition is true; on a
+		// false condition the thread resumes silently. The condition is
+		// evaluated against the INNERMOST frame, which has the highest hxcpp
+		// frame index.
 		if (status == DebugThread.STATUS_STOPPED_BREAKPOINT && breakpoint >= 0) {
 			var condition = breakpoints.conditionForRuntimeNumber(breakpoint);
 			if (condition != null && condition != "" && !evaluator.conditionHolds(threadNumber, stack.length - 1, condition)) {
-				resumed();
+				invalidateReferences();
 				stoppedStacks.clear(); // continueThreads resumes every thread
 				debugger.continueThreads(threadNumber, 1);
 				return;
@@ -646,8 +654,8 @@ class Dispatcher {
 		sendEvent("stopped", body);
 	}
 
-	// STATUS_* -> DAP stopped reason. BREAK_IMMEDIATE that is NOT a step landing
-	// is a user pause (exception statuses are handled before this is consulted).
+	// Maps a STATUS_* value to the DAP stopped reason. A BREAK_IMMEDIATE that is
+	// not a step landing is a user pause. Exception statuses never get here.
 	static function stopReason(status:Int):String {
 		return switch (status) {
 			case DebugThread.STATUS_STOPPED_BREAKPOINT: "breakpoint";
@@ -655,18 +663,18 @@ class Dispatcher {
 		}
 	}
 
-	// Which filter a stop belongs to. The runtime reports BOTH kinds as
-	// CRITICAL_ERROR (STATUS_STOPPED_UNCAUGHT_EXCEPTION is never emitted by
-	// hxcpp 4.3.2 — verified by source grep); an uncatchable user throw is
-	// distinguished by checkedThrow's "Uncatchable Throw: <value>" prefix.
+	// The filter an exception stop belongs to. The runtime reports both kinds
+	// as CRITICAL_ERROR; hxcpp 4.3.2 never emits
+	// STATUS_STOPPED_UNCAUGHT_EXCEPTION. An uncatchable user throw is recognized
+	// by the "Uncatchable Throw: <value>" prefix that checkedThrow gives it.
 	static function exceptionKind(description:Null<String>):String {
 		return (description != null && StringTools.startsWith(description, "Uncatchable Throw"))
 			? FILTER_UNCAUGHT : FILTER_CRITICAL;
 	}
 
-	// DAP sends the full ACTIVE filter list each time (an omitted filter is off).
-	// filterTypes (non-standard, shared with the HashLink adapter) lists class
-	// names for typed exception breakpoints.
+	// DAP sends the complete list of ACTIVE filters each time; an omitted
+	// filter is off. filterTypes, a non-standard argument shared with the
+	// HashLink adapter, lists the class names of typed exception breakpoints.
 	function handleSetExceptionBreakpoints(seq:Int, command:String, args:Dynamic):Void {
 		var filters:Array<String> = (args != null && args.filters != null) ? args.filters : [];
 		breakOnUncaught = filters.indexOf(FILTER_UNCAUGHT) >= 0;
@@ -675,8 +683,9 @@ class Dispatcher {
 		thrownTypeFilters = (args != null && args.filterTypes != null) ? args.filterTypes : [];
 		var hookWanted = breakOnThrown || thrownTypeFilters.length > 0;
 		if (hookWanted && thrownHookBreakpoint < 0) {
-			// -1 = the class is not compiled into this program (nothing ever
-			// constructs a haxe.Exception): the filter is inert, reported unverified
+			// -1 means haxe.Exception is not compiled into this program, because
+			// nothing constructs one. The filter then has no effect and is
+			// reported unverified.
 			thrownHookBreakpoint = debugger.addClassFunctionBreakpoint(THROWN_HOOK_CLASS, "new");
 		} else if (!hookWanted && thrownHookBreakpoint >= 0) {
 			debugger.deleteBreakpoint(thrownHookBreakpoint);
@@ -699,16 +708,17 @@ class Dispatcher {
 				case _: "Critical error";
 			},
 			description: lastExceptionDescription,
-			// uncaught throws could not have been handled; critical errors stop
-			// unconditionally (even inside try/catch), hence "always"
+			// An uncaught throw cannot be handled. Critical errors and thrown
+			// exceptions stop even inside a try/catch, hence "always".
 			breakMode: lastExceptionKind == FILTER_UNCAUGHT ? "unhandled" : "always"
 		});
 	}
 
-	// The dotted names of the exception under construction: concrete class
-	// first (read from `this` in the haxe.Exception.new frame — a subclass
-	// ctor chains here through super()), then its superclasses. Best-effort —
-	// a corrupt frame yields just the hook class.
+	// The dotted class names of the exception under construction: its
+	// concrete class first, then its superclasses. The concrete class comes
+	// from `this` in the haxe.Exception.new frame, which a subclass
+	// constructor reaches through super(). A corrupt frame yields just
+	// haxe.Exception.
 	function thrownClassChain(threadNumber:Int, stack:Array<DebugStackFrame>):Array<String> {
 		return try {
 			var frame = stack.length - 1; // innermost = haxe.Exception.new
@@ -725,8 +735,8 @@ class Dispatcher {
 		}
 	}
 
-	// A typed filter matches the concrete class OR any superclass ("MyBase"
-	// stops subclass throws too), by dotted name or bare class name.
+	// A typed filter matches the concrete class or any superclass, by dotted
+	// or bare class name. A "MyBase" filter therefore also stops subclass throws.
 	function matchesTypeFilter(classChain:Array<String>):Bool {
 		for (name in classChain) {
 			if (thrownTypeFilters.indexOf(name) >= 0) {
@@ -740,8 +750,9 @@ class Dispatcher {
 		return false;
 	}
 
-	// "<ConcreteClass>: <message>" for a thrown-hook stop; the message is the
-	// ctor's parameter. Best-effort — a corrupt frame must not fail the stop.
+	// The "<ConcreteClass>: <message>" text of a thrown-hook stop; the message
+	// is the constructor's parameter. A corrupt frame must not fail the stop,
+	// so any read error falls back to a generic text.
 	function thrownExceptionText(threadNumber:Int, stack:Array<DebugStackFrame>, classChain:Array<String>):String {
 		return try {
 			var frame = stack.length - 1; // innermost = haxe.Exception.new
@@ -756,8 +767,8 @@ class Dispatcher {
 		return (stack == null || stack.length == 0) ? null : stack[stack.length - 1]; // innermost is last
 	}
 
-	// The runtime file key (short "Main.hx") -> its absolute path, via the
-	// index-aligned files()/filesFullPath() tables. Falls back to the key.
+	// Runtime file key (the short "Main.hx") -> absolute path, built from the
+	// index-aligned files() and filesFullPath() tables on first use.
 	var fullPaths:Null<Map<String, String>> = null;
 
 	function fullPathFor(fileKey:String):String {

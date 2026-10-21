@@ -14,20 +14,23 @@ import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.util.HaxeNameKind;
+import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getLeftReference;
 
@@ -193,16 +196,71 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
   }
 
   protected <T extends PsiElement> T copyFileAndReturnClonedPsiElement(T psiElement) {
-    PsiFile originalFile = psiElement.getContainingFile();
-    PsiFile fileCopy = (PsiFile)originalFile.copy();
-    PsiElement element = fileCopy.findElementAt(psiElement.getTextOffset());
-    while(element != null
-          && (!element.getTextRange().equals(psiElement.getTextRange())
-              || element.getClass() != psiElement.getClass())
-    ) {
-      element = element.getParent();
+    return HaxeIntroduceUtil.copyFileAndReturnClonedPsiElement(psiElement);
+  }
+
+  /** The call's arguments; none for a call without an argument list. */
+  protected static List<HaxeExpression> callArguments(@NotNull HaxeCallExpression call) {
+    HaxeCallExpressionList list = call.getExpressionList();
+    return list == null ? List.of() : list.getExpressionList();
+  }
+
+  /** The arguments' evaluated types in order, for the import check of the generated declaration. */
+  protected static List<ResultHolder> argumentTypes(@NotNull List<HaxeExpression> arguments) {
+    List<ResultHolder> types = new ArrayList<>();
+    for (HaxeExpression expression : arguments) {
+      types.add(HaxeExpressionEvaluator.evaluate(expression, null).result);
     }
-    return (T)element;
+    return types;
+  }
+
+  /**
+   * The parameter list for the arguments ({@code name:Type,...}). An argument
+   * of known type gets that type and a name the suggester derives from the
+   * argument, unique among the earlier parameters and, for a declaration that
+   * joins the call's scope (a local function), among the names visible at the
+   * call. {@code pN} is the fallback name; an argument of unknown type gets it
+   * without a type.
+   */
+  protected String parameterListFromArguments(@NotNull List<HaxeExpression> arguments, boolean avoidNamesVisibleAtCall) {
+    StringBuilder builder = new StringBuilder();
+    Set<String> used = new HashSet<>();
+    for (int i = 0; i < arguments.size(); i++) {
+      HaxeExpression expression = arguments.get(i);
+      ResultHolder type = HaxeExpressionEvaluator.evaluate(expression, null).result;
+      String paramName = "p" + i;
+      String typeTag = "";
+      if (!type.isUnknown()) {
+        HaxeExpression scope = avoidNamesVisibleAtCall ? expression : null;
+        List<String> names = HaxeNameSuggesterUtil.suggest(expression, null, HaxeNameKind.VARIABLE, scope, used).names();
+        if (!names.isEmpty()) {
+          paramName = names.getFirst();
+          used.add(paramName);
+        }
+        typeTag = ":" + getTypeName(type);
+      }
+      builder.append(paramName).append(typeTag);
+      if (i + 1 != arguments.size()) {
+        builder.append(",");
+      }
+    }
+    return builder.toString();
+  }
+
+  /** The statement a generated body needs to compile for the return type: nothing for Void, a zero, false or null return otherwise. */
+  protected static String defaultReturnStatement(@NotNull String returnTypeText) {
+    return switch (returnTypeText) {
+      case SpecificHaxeClassReference.VOID -> "";
+      case SpecificHaxeClassReference.INT -> " return 0;";
+      case SpecificHaxeClassReference.FLOAT -> " return 0.0;";
+      case SpecificHaxeClassReference.BOOL -> " return false;";
+      default -> "return null;";
+    };
+  }
+
+  /** Void for a call used as a statement, else the type the call's context asks for. */
+  protected String callReturnTypeText(@NotNull HaxeCallExpression call) {
+    return call.getParent() instanceof HaxeBlockStatement ? SpecificHaxeClassReference.VOID : guessElementTypeText();
   }
 
 

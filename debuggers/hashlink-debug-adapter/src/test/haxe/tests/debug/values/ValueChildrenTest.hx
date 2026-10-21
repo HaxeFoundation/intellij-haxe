@@ -26,30 +26,6 @@ class ValueChildrenTest {
 		return Int64.ofInt(v);
 	}
 
-	static function pokeI32(api:FakeDebugApi, at:Int, value:Int):Void {
-		for (i in 0...4) {
-			api.poke(addr(at + i), (value >>> (8 * i)) & 0xFF);
-		}
-	}
-
-	static function pokePtr(api:FakeDebugApi, at:Int, value:Int):Void {
-		for (i in 0...4) {
-			api.poke(addr(at + i), (value >>> (8 * i)) & 0xFF);
-		}
-		for (i in 4...8) {
-			api.poke(addr(at + i), 0);
-		}
-	}
-
-	static function pokeUcs2(api:FakeDebugApi, at:Int, s:String):Void {
-		for (i in 0...s.length) {
-			api.poke(addr(at + i * 2), s.charCodeAt(i) & 0xFF);
-			api.poke(addr(at + i * 2 + 1), s.charCodeAt(i) >> 8);
-		}
-		api.poke(addr(at + s.length * 2), 0);
-		api.poke(addr(at + s.length * 2 + 1), 0);
-	}
-
 	static function children(api:FakeDebugApi, ?resolve:String->Null<HLType>):ValueChildren {
 		var mem = new MemoryReader(api, 1, true);
 		var align = new Align(true, false);
@@ -69,11 +45,11 @@ class ValueChildrenTest {
 	static function listsArrayBytesIntElements(assert:Assert):Void {
 		var api = new FakeDebugApi();
 		// wrapper @0x1000: header@0, length@8 = 3, bytes@16 -> 0x2000
-		pokeI32(api, 0x1008, 3);
-		pokePtr(api, 0x1010, 0x2000);
-		pokeI32(api, 0x2000, 2);
-		pokeI32(api, 0x2004, 5);
-		pokeI32(api, 0x2008, 10);
+		api.pokeI32(0x1008, 3);
+		api.pokePtr(0x1010, 0x2000);
+		api.pokeI32(0x2000, 2);
+		api.pokeI32(0x2004, 5);
+		api.pokeI32(0x2008, 10);
 
 		var vars = children(api).of(addr(0x1000), arrayBytesIntType());
 		assert.equals(3, vars.length, "three elements");
@@ -88,23 +64,23 @@ class ValueChildrenTest {
 		var stringType = HObj({name: "String", tsuper: null, fields: [], proto: [], globalValue: null, bindings: []});
 
 		// ArrayObj @0x1000: length@8 = 1, native varray@16 -> 0x3000
-		pokeI32(api, 0x1008, 1);
-		pokePtr(api, 0x1010, 0x3000);
+		api.pokeI32(0x1008, 1);
+		api.pokePtr(0x1010, 0x3000);
 
 		// varray @0x3000: at@8 -> runtime hl_type @0x4000 (HOBJ "String"), size@16 = 4
-		pokePtr(api, 0x3008, 0x4000);
-		pokeI32(api, 0x3010, 4);
+		api.pokePtr(0x3008, 0x4000);
+		api.pokeI32(0x3010, 4);
 
 		// runtime hl_type "String": kind=11 @0x4000, data@0x4008 -> 0x4100, name@0x4110 -> 0x4200
-		pokeI32(api, 0x4000, 11);
-		pokePtr(api, 0x4008, 0x4100);
-		pokePtr(api, 0x4110, 0x4200);
-		pokeUcs2(api, 0x4200, "String");
+		api.pokeI32(0x4000, 11);
+		api.pokePtr(0x4008, 0x4100);
+		api.pokePtr(0x4110, 0x4200);
+		api.pokeUcs2(0x4200, "String");
 		// element slot 0 at varray+24 -> String object @0x5000 with bytes@0x6000 "ok"
-		pokePtr(api, 0x3018, 0x5000);
-		pokePtr(api, 0x5008, 0x6000);
-		pokeI32(api, 0x5010, 2);
-		pokeUcs2(api, 0x6000, "ok");
+		api.pokePtr(0x3018, 0x5000);
+		api.pokePtr(0x5008, 0x6000);
+		api.pokeI32(0x5010, 2);
+		api.pokeUcs2(0x6000, "ok");
 
 		var arrayObjType = HObj({name: "hl.types.ArrayObj", tsuper: null, fields: [], proto: [], globalValue: null, bindings: []});
 		var vars = children(api, name -> name == "String" ? stringType : null).of(addr(0x1000), arrayObjType);
@@ -114,16 +90,16 @@ class ValueChildrenTest {
 
 	static function capsHugeArrays(assert:Assert):Void {
 		var api = new FakeDebugApi();
-		pokeI32(api, 0x1008, 600); // length beyond the cap
-		pokePtr(api, 0x1010, 0x2000);
+		api.pokeI32(0x1008, 600); // length beyond the cap
+		api.pokePtr(0x1010, 0x2000);
 		var vars = children(api).of(addr(0x1000), arrayBytesIntType());
 		assert.equals(513, vars.length, "512 elements + overflow marker");
 		assert.equals("…", vars[512].name, "overflow marker present");
 	}
 
 	static function pokeF64(api:FakeDebugApi, at:Int, low:Int, high:Int):Void {
-		pokeI32(api, at, low);
-		pokeI32(api, at + 4, high);
+		api.pokeI32(at, low);
+		api.pokeI32(at + 4, high);
 	}
 
 	static function vec2Proto():format.hl.Data.ObjPrototype {
@@ -148,7 +124,7 @@ class ValueChildrenTest {
 	static function listsPackedFieldAsExpandableStruct(assert:Assert):Void {
 		var api = new FakeDebugApi();
 		// Holder @0x3000: header, id @8 = 7, packed Vec2 inline @16 (x=1.5, y=2.5)
-		pokeI32(api, 0x3008, 7);
+		api.pokeI32(0x3008, 7);
 		pokeF64(api, 0x3010, 0, 0x3FF80000);
 		pokeF64(api, 0x3018, 0, 0x40040000);
 		var holder = HObj({name: "Holder", tsuper: null, fields: [
@@ -165,9 +141,9 @@ class ValueChildrenTest {
 	static function listsClosureCapturedValue(assert:Assert):Void {
 		var api = new FakeDebugApi();
 		// vclosure @0x1000: fun @+8, hasValue @+16 = 1, value @+24 -> 0x5000
-		pokePtr(api, 0x1008, 0x9990);
-		pokeI32(api, 0x1010, 1);
-		pokePtr(api, 0x1018, 0x5000);
+		api.pokePtr(0x1008, 0x9990);
+		api.pokeI32(0x1010, 1);
+		api.pokePtr(0x1018, 0x5000);
 		var vars = children(api).of(addr(0x1000), HFun({args: [], ret: HVoid}));
 		assert.equals(1, vars.length, "one captured child");
 		assert.equals("captured", vars[0].name, "child named captured");
@@ -176,8 +152,8 @@ class ValueChildrenTest {
 
 	static function boundlessClosureHasNoChildren(assert:Assert):Void {
 		var api = new FakeDebugApi();
-		pokePtr(api, 0x1008, 0x9990);
-		pokeI32(api, 0x1010, 0); // hasValue = 0: a plain function pointer
+		api.pokePtr(0x1008, 0x9990);
+		api.pokeI32(0x1010, 0); // hasValue = 0: a plain function pointer
 		var vars = children(api).of(addr(0x1000), HFun({args: [], ret: HVoid}));
 		assert.equals(0, vars.length, "no children without a bound value");
 	}

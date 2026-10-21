@@ -48,6 +48,7 @@ import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.
 import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getUnknown;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 @CustomLog
 public class HaxeTypeResolver {
@@ -320,7 +321,7 @@ public class HaxeTypeResolver {
       // Resolve any generics on the resolved type as well. myVar:Array<Map<String, Q>> where Q is known
       if (result.getType() instanceof SpecificHaxeClassReference classReference  && !result.isTypeParameter() && result.isOrContainsTypeParameters()) {
 
-        ResultHolder holder = propagateRecursionGuard.computePreventingRecursion(result, true, () ->
+        ResultHolder holder = HaxeEvaluationTaint.computeOrTaint(propagateRecursionGuard, result, true, () ->
            SpecificHaxeClassReference.propagateGenericsToType(classReference.createHolder(), resolver, returnType)
         );
         if (holder != null) result = holder;
@@ -380,7 +381,7 @@ public class HaxeTypeResolver {
       List<HaxeReturnStatement> returnStatementList =
         CachedValuesManager.getCachedValue(methodBody, () -> HaxeTypeResolver.findReturnStatementsForMethod(methodBody));
       List<ResultHolder> returnTypes = returnStatementList.stream().map(statement ->
-                      getReturnTypeRecursionGuard.computePreventingRecursion(statement, true, () ->
+                      HaxeEvaluationTaint.computeOrTaint(getReturnTypeRecursionGuard, statement, true, () ->
                               getPsiElementType(statement, resolver))).filter(Objects::nonNull)
               .toList();
 
@@ -553,19 +554,17 @@ public class HaxeTypeResolver {
     return SpecificHaxeClassReference.wrapInRest(restArgumentType, holder).createHolder();
   }
 
-  /**
-   * Resolves the type reference in HaxeType, including type parameters,
-   * WITHOUT generic parameters being fully resolved.
-   * See {@link SpecificHaxeClassReference#propagateGenericsToType(SpecificHaxeClassReference, HaxeGenericResolver)}
-   * to fully resolve generic parameters.
-   * <p>
-   * NOTE: If types were constrained in scope, (e.g. {@code subClass<T:Constraint> extends superClass<T>})the type
-   * parameter resolves to the constraint type because that's what {@link HaxeResolver#resolve} returns.
-   *
-   * @param type - Type reference.
-   * @return - resolved type with non-generic parameters resolved.
-   * (e.g. &lt;T&gt; will remain an unresolved reference to T.)
-   */
+  /// Resolves the type reference in HaxeType, including type parameters,
+  /// WITHOUT generic parameters being fully resolved.
+  /// See [SpecificHaxeClassReference#propagateGenericsToType(SpecificHaxeClassReference, HaxeGenericResolver)]
+  /// to fully resolve generic parameters.
+  ///
+  /// NOTE: If types were constrained in scope, (e.g. `subClass<T:Constraint> extends superClass<T>`)the type
+  /// parameter resolves to the constraint type because that's what [HaxeResolver#resolve] returns.
+  ///
+  /// @param type - Type reference.
+  /// @return - resolved type with non-generic parameters resolved.
+  /// (e.g. <T> will remain an unresolved reference to T.)
   @NotNull
   static public ResultHolder getTypeFromType(@NotNull HaxeType type) {
     return getTypeFromType(type, null);
@@ -761,7 +760,7 @@ public class HaxeTypeResolver {
 
   @Nullable
   public static ResultHolder getTypeFromGenericConstraint(HaxeGenericConstraintPart constraint) {
-    return genericConstraintRecursionGuard.doPreventingRecursion(constraint, true, () -> {
+    return HaxeEvaluationTaint.computeOrTaint(genericConstraintRecursionGuard, constraint, true, () -> {
 
       HaxeTypeOrAnonymous typeOrAnonymous = constraint.getTypeOrAnonymous();
       if (typeOrAnonymous != null){

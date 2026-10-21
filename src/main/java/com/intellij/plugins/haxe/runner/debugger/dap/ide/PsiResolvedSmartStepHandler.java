@@ -1,30 +1,23 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSupportUtils;
+import com.intellij.plugins.haxe.util.HaxeQnameResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.xdebugger.XSourcePosition;
-import com.intellij.xdebugger.frame.XSuspendContext;
-import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
-import com.intellij.xdebugger.stepping.XSmartStepIntoVariant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.concurrency.AsyncPromise;
-import org.jetbrains.concurrency.Promise;
 
 /**
  * Smart step into for DAP backends with IDE-resolved targets: on a line
@@ -52,41 +45,15 @@ import org.jetbrains.concurrency.Promise;
  * the DECLARED class, so entering an override called through a base-typed
  * reference lands as a step over instead.
  */
-class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmartStepHandler.Variant> {
-  private final DapDebugProcess process;
+class PsiResolvedSmartStepHandler extends DapSmartStepHandlerBase<PsiResolvedSmartStepHandler.Variant> {
 
   PsiResolvedSmartStepHandler(DapDebugProcess process) {
-    this.process = process;
-  }
-
-  // The platform drives this async entry point; compute on the DAP request
-  // thread — the sync computeSmartStepVariants must never block the EDT.
-  @Override
-  public @NotNull Promise<List<Variant>> computeSmartStepVariantsAsync(@NotNull XSourcePosition position) {
-    AsyncPromise<List<Variant>> promise = new AsyncPromise<>();
-    process.onRequestThread(() -> {
-      try {
-        promise.setResult(computeSmartStepVariants(position));
-      } catch (Throwable t) {
-        promise.setError(t);
-      }
-    }, () -> promise.setError("Debug session is shutting down"));
-    return promise;
+    super(process);
   }
 
   @Override
   public @NotNull List<Variant> computeSmartStepVariants(@NotNull XSourcePosition position) {
     return ReadAction.nonBlocking(() -> resolveVariants(position)).executeSynchronously();
-  }
-
-  // The PLAIN Step Into action (F7) consults this — the base implementation
-  // returns a rejected promise, meaning "no variants, just step". Returning the
-  // variants makes F7 behave like the Java debugger: with more than one call on
-  // the line the same highlight/Tab chooser appears; with zero or one the
-  // platform performs an ordinary step into.
-  @Override
-  public @NotNull Promise<List<Variant>> computeStepIntoVariants(@NotNull XSourcePosition position) {
-    return computeSmartStepVariantsAsync(position);
   }
 
   // Every call on the stopped line whose callee resolves to a steppable class
@@ -117,7 +84,7 @@ class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmart
       // runtime name, not PSI's getQualifiedName(): a mismatched name means
       // the entry breakpoint never fires and every choice degrades to step over
       String className = declaringClass != null
-                         ? HaxeDebuggerSupportUtils.runtimeClassName(declaringClass.haxeClass) : null;
+                         ? HaxeQnameResolveUtil.runtimeClassName(declaringClass.haxeClass) : null;
       if (className == null || className.isEmpty()) {
         continue; // closures/local functions: no class-function name to break on
       }
@@ -127,38 +94,24 @@ class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmart
     return variants;
   }
 
-  // The base implementation throws AbstractMethodError, and the frontend/backend
-  // debugger split calls this eagerly while creating the session DTO — an
-  // unimplemented title breaks session initialization, not just the popup.
-  @Override
-  public String getPopupTitle() {
-    return HaxeDebuggerBundle.message("hxcpp.debugger.smart.step.into.title");
-  }
-
   @Override
   public void startStepInto(@NotNull Variant variant) {
     process.stepIntoFunction(variant.className, variant.functionName, variant.occurrence);
   }
 
-  @Override
-  public void startStepInto(@NotNull Variant variant, XSuspendContext context) {
-    startStepInto(variant);
-  }
-
-  static final class Variant extends XSmartStepIntoVariant {
+  static final class Variant extends DapSmartStepHandlerBase.Variant {
     private final String className;
     private final String functionName;
     // which invocation of this callee on the line (1-based): the server's
     // entry breakpoint hits the FIRST invocation, so choosing a later one
     // (cfg.test1(1)...test1(2)) must tell it how many entries to skip
     private final int occurrence;
-    private final @Nullable TextRange highlightRange;
 
     Variant(String className, String functionName, int occurrence, @Nullable TextRange highlightRange) {
+      super(highlightRange);
       this.className = className;
       this.functionName = functionName;
       this.occurrence = occurrence;
-      this.highlightRange = highlightRange;
     }
 
     @Override
@@ -166,16 +119,6 @@ class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmart
       // short label: "Target.combine", not the full dotted package path
       String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
       return simpleClassName + "." + functionName;
-    }
-
-    @Override
-    public Icon getIcon() {
-      return AllIcons.Nodes.Method;
-    }
-
-    @Override
-    public @Nullable TextRange getHighlightRange() {
-      return highlightRange;
     }
   }
 }

@@ -193,6 +193,13 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         return haxeClass.hasCompileTimeMeta(HaxeMeta.GENERIC_BUILD);
     }
 
+    /** The name of the type parameter a {@code @:genericBuild} class declares last to accept any number of type arguments; unrelated to the {@code haxe.Rest} type. */
+    public static final String GENERIC_BUILD_REST_PARAM = "Rest";
+
+    public static boolean isGenericBuildRestParam(@Nullable String name) {
+      return GENERIC_BUILD_REST_PARAM.equals(name);
+    }
+
     // @:genericBuild macro supports "rest"/vararg typeParameters, so we ignore typeParameters mismatch.
     // https://haxe.org/manual/macro-generic-build.html
     // https://gist.github.com/nadako/b086569b9fffb759a1b5
@@ -203,8 +210,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
           List<HaxeGenericParamModel> genericParams = haxeClassModel.getGenericParams();
           if (!genericParams.isEmpty()) {
             HaxeGenericParamModel last = genericParams.getLast();
-            String name = last.haxeClass.getName();
-            return name != null && name.equals("Rest");
+            return isGenericBuildRestParam(last.haxeClass.getName());
           }
         }
       }

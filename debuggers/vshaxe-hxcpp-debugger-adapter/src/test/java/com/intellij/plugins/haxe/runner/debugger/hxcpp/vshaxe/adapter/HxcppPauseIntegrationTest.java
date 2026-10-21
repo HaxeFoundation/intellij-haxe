@@ -38,18 +38,10 @@ public class HxcppPauseIntegrationTest extends HxcppIntegrationTestBase {
     StoppedEvent stopped = (StoppedEvent)awaitEvent(StoppedEvent.class);
     assertEquals("pause", stopped.getBody().getReason());
 
-    StackTraceArguments stackArguments = new StackTraceArguments();
-    stackArguments.setThreadId(stopped.getBody().getThreadId());
-    StackTraceRequest stackRequest = new StackTraceRequest();
-    stackRequest.setArguments(stackArguments);
-    StackTraceResponse stack = require(stackRequest);
+    StackTraceResponse stack = stackTrace(stopped.getBody().getThreadId());
     assertFalse(stack.getBody().getStackFrames().isEmpty(), "paused stop has no frames");
 
-    ContinueArguments continueArguments = new ContinueArguments();
-    continueArguments.setThreadId(stopped.getBody().getThreadId());
-    ContinueRequest continueRequest = new ContinueRequest();
-    continueRequest.setArguments(continueArguments);
-    require(continueRequest);
+    sendContinue(stopped.getBody().getThreadId());
 
     Thread.sleep(300);
     assertTrue(debuggee.isAlive(), "debuggee should still be running after continue");

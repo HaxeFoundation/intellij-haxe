@@ -3,11 +3,12 @@ package ijhaxe.debug.layout;
 import format.hl.Data.EnumPrototype;
 
 /**
-	Computes the byte offsets of an enum value's constructor parameters,
-	replicating the VM's venum layout (a port of hld `getEnumProto` / the VM's
-	hl_init_enum): header = hl_type* + i32 constructor index, then each param
-	aligned with the C struct rules (Align.padStruct) — which can pack a param
-	into the header's tail padding (an i32 param lands at +12 on 64-bit).
+	Computes the byte offsets of an enum value's constructor parameters, the
+	way the VM lays out a venum (a port of hld `getEnumProto`, matching the
+	VM's hl_init_enum). The header is an hl_type* plus the i32 constructor
+	index. Each parameter follows, aligned by the C struct rules
+	(Align.padStruct), so a parameter can occupy the header's tail padding:
+	an i32 parameter lands at +12 on 64-bit.
 **/
 class EnumLayout {
 	final align:Align;
@@ -17,7 +18,7 @@ class EnumLayout {
 	}
 
 	/**
-		Offsets/types of constructor `index`'s params, named by position.
+		Offset and type of each parameter of constructor `index`, named by position.
 	**/
 	public function params(proto:EnumPrototype, index:Int):Array<FieldLayout> {
 		if (index < 0 || index >= proto.constructs.length) {

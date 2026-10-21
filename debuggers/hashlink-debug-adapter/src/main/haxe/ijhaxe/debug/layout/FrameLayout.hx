@@ -3,30 +3,31 @@ package ijhaxe.debug.layout;
 import format.hl.Data.HLType;
 
 /**
-	Reconstructs the JIT's per-register stack layout for a function, so a bytecode
-	register can be read at `ebp + offset`. HashLink 1.x does not transmit register
-	locations, so we replicate the allocator (a port of hld `getFunctionRegs`, which
-	mirrors `jit.c`'s prologue).
+	Computes where the JIT stores each bytecode register of a function, so a
+	register can be read at `ebp + offset`. HashLink 1.x does not send register
+	locations, so this repeats the JIT's own allocation (a port of hld
+	`getFunctionRegs`, which mirrors the `jit.c` prologue).
 
-	Layout: locals and register-passed arguments are placed below the frame base at
-	negative offsets (`ebp - size`, accumulated with type size + alignment); stack-
-	passed arguments sit above it at `argsSize + ptr*2` (skipping the saved base
-	pointer and return address). On Windows x64 every argument is stack-passed; on
-	System V (64-bit non-Windows) the first six of each of the integer and float
-	classes are passed in registers and spilled into the locals area.
+	Locals and register-passed arguments sit below the frame base, at negative
+	offsets that grow by each type's size plus alignment. Stack-passed arguments
+	sit above it, starting at `ptr*2` to skip the saved base pointer and the
+	return address. The Windows x64 convention passes every argument on the
+	stack. System V (64-bit non-Windows) passes the first six integer and the
+	first six float arguments in registers, which the prologue spills into the
+	locals area.
 **/
 class FrameLayout {
 	final align:Align;
-	final isWindows:Bool;
+	final usesWindowsAbi:Bool;
 
-	public function new(align:Align, isWindows:Bool) {
+	public function new(align:Align, usesWindowsAbi:Bool) {
 		this.align = align;
-		this.isWindows = isWindows;
+		this.usesWindowsAbi = usesWindowsAbi;
 	}
 
 	/**
-		Offsets for every register of a function: `regs` are the register types
-		(from the bytecode) and `nargs` how many of them are arguments.
+		The slot of every register of a function: `regs` are the register types
+		from the bytecode, and the first `nargs` of them are the arguments.
 	**/
 	public function registerOffsets(regs:Array<HLType>, nargs:Int):Array<RegisterSlot> {
 		var result:Array<RegisterSlot> = [];
@@ -37,7 +38,7 @@ class FrameLayout {
 
 		for (i in 0...nargs) {
 			var t = regs[i];
-			if (align.is64 && !isWindows) {
+			if (align.is64 && !usesWindowsAbi) {
 				var passedInRegister = align.isFloat(t) ? (++floatRegs <= 6) : (++intRegs <= 6);
 				if (passedInRegister) {
 					// spilled into the locals area, below the frame base

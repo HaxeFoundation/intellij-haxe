@@ -1,23 +1,24 @@
 package ijhaxe.hxcpp.debug.breakpoints;
 
 /**
-	The compile-time-baked executable-line table: which source lines of each
-	compiled file carry code the runtime instruments. Baked by
-	`Macro.bakeLineTable` (a `Context.onGenerate` walk over the typed AST) into
-	a `haxe.Resource`, because hxcpp keeps no queryable line table at runtime —
-	the generated `HXLINE(n)` markers are executed assignments, not data.
+	The executable-line table: for each compiled file, the source lines that
+	carry code the runtime instruments. hxcpp keeps no line table that can be
+	queried at runtime; the generated `HXLINE(n)` markers are executed
+	assignments, not data. `Macro.bakeLineTable` therefore records the table
+	at compile time and stores it in the binary as a `haxe.Resource`.
 
-	Breakpoints uses it to verify requested lines: a line with no code is
-	rejected (unverified) so a stale binary — code edited or commented back in
-	without a recompile — surfaces as a hollow marker instead of a breakpoint
-	that never fires.
+	Breakpoints uses it to verify requested lines. A line without code is
+	rejected (unverified). A stale binary, where code was edited or
+	uncommented without a recompile, thus shows a hollow marker instead of a
+	breakpoint that never fires.
 
-	Format, one file per row: `<path as the compiler recorded it>|l1,l2,...`
-	with lines sorted ascending. A missing resource (older lib build) yields no
-	table and verification degrades to file-level.
+	Format, one file per row: `<path as the compiler recorded it>|l1,l2,...`,
+	with the lines sorted ascending. A binary built with an older version of
+	this library has no such resource; it gets no table, and Breakpoints then
+	checks only the file.
 **/
 class LineTable {
-	/** Resource key; Macro.hx bakes under the same name (kept in sync there). **/
+	/** The resource name; Macro.LINE_TABLE_RESOURCE must spell it the same. **/
 	public static inline var RESOURCE_NAME = "ijhaxe.hxcpp.debug.lineTable";
 
 	// table file path -> sorted executable lines
@@ -30,7 +31,7 @@ class LineTable {
 		matcher = new FileMatcher(files, files);
 	}
 
-	/** The table baked into this binary, or null when none was baked. **/
+	/** The table compiled into this binary, or null when it has none. **/
 	public static function fromResource():Null<LineTable> {
 		var text = haxe.Resource.getString(RESOURCE_NAME);
 		return text == null ? null : parse(text);
@@ -58,9 +59,9 @@ class LineTable {
 	}
 
 	/**
-		The executable lines of the table file best matching `sourcePath`
-		(same suffix matching as the runtime file keys), or null when the
-		table knows no such file — the caller degrades to file-level then.
+		The executable lines of the table file that best matches `sourcePath`,
+		using the same suffix matching as for the runtime file keys. Null when
+		the table knows no such file; the caller then checks only the file.
 	**/
 	public function linesFor(sourcePath:String):Null<Array<Int>> {
 		var file = matcher.resolve(sourcePath);

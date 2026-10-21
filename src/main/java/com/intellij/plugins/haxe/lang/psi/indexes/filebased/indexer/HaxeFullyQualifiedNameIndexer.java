@@ -19,6 +19,19 @@ import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexDataUtil
 
 public class HaxeFullyQualifiedNameIndexer implements DataIndexer<String, HaxeComponentIndexData, FileContent> {
 
+    /** Which qualified names one index keys: each FQN index gets its own indexer instance. */
+    public enum CollectType {
+        TYPES,
+        MEMBERS,
+        MODULES
+    }
+
+    private final CollectType collectType;
+
+    public HaxeFullyQualifiedNameIndexer(CollectType type) {
+        collectType = type;
+    }
+
     @Override
     public @NotNull Map<String, HaxeComponentIndexData> map(@NonNull FileContent inputData) {
         if (inputData.getPsiFile() instanceof HaxeFile haxeFile) {
@@ -30,14 +43,19 @@ public class HaxeFullyQualifiedNameIndexer implements DataIndexer<String, HaxeCo
                 return Map.of();
             }
 
-            Map<String, HaxeComponentIndexData> indexDataMap = new HashMap<>();
-
             HaxeModule module = haxeFile.getModule();
             if(module != null && module.getModel() instanceof HaxeModuleModel moduleModel ) {
                 List<HaxeClassModel> classes = moduleModel.getClasses();
-                indexDataMap.putAll(collectAllClasses(classes));
-                indexDataMap.putAll(collectAllClassMembers(classes));
-                indexDataMap.putAll(collectAllModuleMembers(moduleModel));
+                Map<String, HaxeComponentIndexData> indexDataMap = new HashMap<>();
+                switch (collectType) {
+                    case MODULES -> indexDataMap.put(moduleModel.getQName(), createIndexData(moduleModel));
+                    case TYPES -> indexDataMap.putAll(collectAllClasses(classes));
+                    case MEMBERS -> {
+                        indexDataMap.putAll(collectAllClassMembers(classes));
+                        indexDataMap.putAll(collectAllModuleMembers(moduleModel));
+                    }
+                }
+                return indexDataMap;
             }
 
         }
@@ -103,8 +121,4 @@ public class HaxeFullyQualifiedNameIndexer implements DataIndexer<String, HaxeCo
         }
         return result;
     }
-
-
-
-
 }

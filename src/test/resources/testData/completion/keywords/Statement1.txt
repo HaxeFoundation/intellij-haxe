@@ -1,4 +1,8 @@
-BASIC 1 INCLUDES
+:INCLUDE
 var
 function
 while (<CARET>)
+
+:EXCLUDE
+else
+catch

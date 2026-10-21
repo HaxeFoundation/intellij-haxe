@@ -2,9 +2,12 @@ package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeDocumentationUtil;
+import com.intellij.psi.ElementManipulators;
+import com.intellij.psi.LiteralTextEscaper;
 import com.intellij.psi.PsiDocCommentBase;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.source.tree.PsiCommentImpl;
+import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -12,13 +15,45 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
-
-public class HaxePsiDocCommentImpl extends PsiCommentImpl  implements PsiDocCommentBase, HaxeLazyWithOwner {
+/**
+ * A doc comment as a lazily parsed composite: consumers reading only the text
+ * never trigger the sub-tree; the formatter parses it to manage the interior
+ * line indentation. The token type stays DOC_COMMENT. As an injection host it
+ * carries the markdown code fences' injected fragments (see HaxeDocFenceInjector).
+ */
+public class HaxePsiDocCommentImpl extends LazyParseablePsiElement
+  implements PsiDocCommentBase, HaxeLazyWithOwner, PsiLanguageInjectionHost {
 
     private String extractedDocs;
 
-    public HaxePsiDocCommentImpl(@NotNull IElementType type, @NotNull CharSequence text) {
+    public HaxePsiDocCommentImpl(@NotNull IElementType type, @Nullable CharSequence text) {
         super(type, text);
+    }
+
+    @Override
+    public @NotNull IElementType getTokenType() {
+        return getElementType();
+    }
+
+    // the label PsiCommentImpl used - keeps parse-tree dumps (and their test goldens) stable
+    @Override
+    public String toString() {
+        return "PsiComment(" + getElementType() + ")";
+    }
+
+    @Override
+    public boolean isValidHost() {
+        return true;
+    }
+
+    @Override
+    public PsiLanguageInjectionHost updateText(@NotNull String text) {
+        return ElementManipulators.handleContentChange(this, text);
+    }
+
+    @Override
+    public @NotNull LiteralTextEscaper<? extends PsiLanguageInjectionHost> createLiteralTextEscaper() {
+        return LiteralTextEscaper.createSimple(this);
     }
 
     @Override
@@ -43,13 +78,7 @@ public class HaxePsiDocCommentImpl extends PsiCommentImpl  implements PsiDocComm
         if(extractedDocs == null) {
             String rawText = this.getText();
             String unwrapped = HaxeDocumentationUtil.unwrapCommentDelimiters(rawText);
-            String trimmed = HaxeDocumentationUtil.removeExcessLines(unwrapped);
-
-            boolean javaDocStyle = HaxeDocumentationUtil.docIsJavadocStyle(trimmed);
-            extractedDocs = HaxeDocumentationUtil.stripIndents(trimmed, javaDocStyle);
-            // hack for rendering tags (@param, @event) as empty lines will cause content to be parsed as indented code
-            extractedDocs = HaxeDocumentationUtil.tryFixIndents(extractedDocs);
-
+            extractedDocs = HaxeDocumentationUtil.stripForRendering(unwrapped);
         }
         return extractedDocs;
     }

@@ -1,7 +1,7 @@
 package ;
 class Test {
     function new() {
-        var kommisar = "Der Kommisar";
-        var whoami = kommisar;
+        var derKommisar = "Der Kommisar";
+        var whoami = derKommisar;
     }
 }

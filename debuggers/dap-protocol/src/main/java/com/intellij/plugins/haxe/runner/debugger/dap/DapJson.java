@@ -14,7 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Encodes/decodes DAP messages as JSON.
  *
  * Decoding discriminates hand-rolled on the DAP envelope: first on {@code type},
- * then on {@code command} (responses) or {@code event} (events). Any response
+ * then on {@code command} (requests and responses) or {@code event} (events). Any response
  * with {@code success == false} decodes as {@link ErrorResponse} regardless of
  * command, since error replies share one body shape.
  */
@@ -71,8 +71,8 @@ public final class DapJson {
       case ExceptionInfoRequest.COMMAND           -> ExceptionInfoRequest.class;
       case SetVariableRequest.COMMAND             -> SetVariableRequest.class;
       case DisconnectRequest.COMMAND              -> DisconnectRequest.class;
-      // custom: needed by JAVA-side DAP servers (the eval adapter emulates
-      // smart step into); the haxe-side servers decode it themselves
+      // custom requests the JAVA-side DAP servers handle (the eval adapter:
+      // smart step into, expression stepping); the haxe-side servers decode them themselves
       case StepIntoFunctionRequest.COMMAND        -> StepIntoFunctionRequest.class;
       case SetExpressionSteppingRequest.COMMAND   -> SetExpressionSteppingRequest.class;
       // reverse request (adapter -> client): js-debug child sessions

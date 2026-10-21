@@ -1,15 +1,10 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
-import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
-import com.intellij.lang.annotation.AnnotationBuilder;
-import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.annotator.HaxeProblemReporter;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
-import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeEnumModel;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
@@ -19,8 +14,8 @@ import com.intellij.plugins.haxe.model.fixer.HaxeRemoveElementFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -35,26 +30,26 @@ public class HaxeSemanticsUtil {
       final HaxeTypeTag tag,
       final HaxeVarInit initExpression,
       boolean requireConstant,
-      final AnnotationHolder holder
+      final HaxeProblemReporter reporter
     ) {
       if (isTypeFromMacroVar(tag))return; // ignore if  macro variable name
 
       final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
       final ResultHolder initType = getTypeFromVarInit(initExpression, varType);
       if (initType.isInvalid()) return;
-        checkNullAssignForNonNullableType(holder, initExpression, tag, initType, varType);
+        checkNullAssignForNonNullableType(reporter, initExpression, tag, initType, varType);
         HaxeAssignEvaluation assignEvaluation = varType.canAssignEvaluation(initType);
       if (!assignEvaluation.result) {
         AssignExplanation messages = assignEvaluation.explanations;
         if(messages.hasMissingMembers()) {
-          typeMismatchMissingMembers(holder, erroredElement, messages).create();
+          typeMismatchMissingMembers(reporter, erroredElement, messages).create();
         }else if(messages.hasWrongTypeMembers()) {
-          addtypeMismatchWrongTypeMembersAnnotations(holder, erroredElement, messages);
+          addTypeMismatchWrongTypeMembersAnnotations(reporter, erroredElement, messages);
         }else if (messages.hasMissingModel()) {
-          typeModelMissing(holder, erroredElement, messages.getMissingModel().getFirst());
+          typeModelMissing(reporter, erroredElement, messages.getMissingModel().getFirst());
         }else{
           PsiElement  element = Optional.ofNullable((PsiElement)initExpression.getExpression()).orElse(erroredElement);
-          AnnotationBuilder builder = typeMismatch(holder, element, initType.toStringWithoutConstant(), varType.toStringWithoutConstant());
+          HaxeProblemReporter.Problem builder = typeMismatch(reporter, element, initType.toStringWithoutConstant(), varType.toStringWithoutConstant());
           if (null != initType.getClassType()) {
             // TODO this also affects parameters, name should reflect type
             boolean isParameter = tag.getParent() instanceof HaxeParameter;
@@ -75,8 +70,8 @@ public class HaxeSemanticsUtil {
 
       }
       else if (requireConstant && !isConstant(initType, initExpression)) {
-        holder.newAnnotation(HighlightSeverity.ERROR,
-                             HaxeBundle.message("haxe.semantic.parameter.default.type.should.be.constant", initType))
+        reporter.problem(HighlightSeverity.ERROR,
+                         HaxeBundle.message("haxe.semantic.parameter.default.type.should.be.constant", initType))
           .range(erroredElement)
           .create();
       }
@@ -142,31 +137,31 @@ public class HaxeSemanticsUtil {
     }
   }
 
-    public static void checkNullAssignForNonNullableType(AnnotationHolder holder, HaxeVarInit initExpression, HaxeTypeTag tag, ResultHolder initType, ResultHolder varType) {
+    public static void checkNullAssignForNonNullableType(HaxeProblemReporter reporter, HaxeVarInit initExpression, HaxeTypeTag tag, ResultHolder initType, ResultHolder varType) {
         if (initType.getConstant() instanceof HaxeNull && initExpression.getExpression() != null) {
             if(varType.getType() instanceof SpecificHaxeClassReference classReference && classReference.isNotNullMeta()) {
                 String typePresentationString = varType.toPresentationString();
                 String nullabilityWarning = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning", typePresentationString);
-                holder.newAnnotation(HighlightSeverity.WEAK_WARNING, nullabilityWarning)
-                        .withFix(NullWrapTypeFix("Null<"+typePresentationString+">", tag))
+                reporter.problem(HighlightSeverity.WEAK_WARNING, nullabilityWarning)
+                        .withFix(nullWrapTypeFix(typePresentationString, tag))
                         .range(initExpression.getExpression())
                         .create();
             }
         }
     }
-    public static void checkNullAssignForNonNullableType(AnnotationHolder holder, ResultHolder initType, ResultHolder varType, PsiElement rhs) {
+    public static void checkNullAssignForNonNullableType(HaxeProblemReporter reporter, ResultHolder initType, ResultHolder varType, PsiElement rhs) {
         if (initType.getConstant() instanceof HaxeNull) {
             if(varType.getType() instanceof SpecificHaxeClassReference classReference && classReference.isNotNullMeta()) {
                 String typePresentationString = varType.toPresentationString();
                 String nullabilityWarning = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning", typePresentationString);
 
-                AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, nullabilityWarning).range(rhs);
+                HaxeProblemReporter.Problem builder = reporter.problem(HighlightSeverity.WEAK_WARNING, nullabilityWarning).range(rhs);
 
                 if(varType.getContext() instanceof  HaxeReferenceExpression referenceExpression) {
                     PsiElement resolve = referenceExpression.resolve();
                     if(resolve instanceof HaxePsiField field) {
                         HaxeTypeTag typeTag = field.getTypeTag();
-                        HaxeFixer fix = NullWrapTypeFix("Null<" + typePresentationString + ">", typeTag);
+                        HaxeFixer fix = nullWrapTypeFix(typePresentationString, typeTag);
                         builder.withFix(fix);
                     }
                 }
@@ -175,22 +170,10 @@ public class HaxeSemanticsUtil {
         }
     }
 
-    private static @NotNull HaxeFixer NullWrapTypeFix(String newValue, HaxeTypeTag typeTag) {
-        return new HaxeFixer("Replace type with " + newValue) {
-            @Override
-            public void run() {
-                HaxeDocumentModel.fromElement(typeTag).replaceElementText(typeTag, ":" + newValue);
-            }
-
-            @Override
-            public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
-                int startOffset = typeTag.getTextRange().getStartOffset();
-                int endOffset = typeTag.getTextRange().getEndOffset();
-                editor.getDocument().replaceString(startOffset,endOffset , ":" + newValue);
-
-                return IntentionPreviewInfo.DIFF;
-            }
-        };
+    /** Replaces the tag's type with its {@code Null<...>} wrapping. */
+    private static @NotNull HaxeFixer nullWrapTypeFix(String type, HaxeTypeTag typeTag) {
+        String nullable = HaxePresentableUtil.asNullable(type);
+        return new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.replace.type.with", nullable), typeTag, nullable);
     }
 
 }

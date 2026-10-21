@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.inspections.intentions;
 import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
@@ -30,7 +31,7 @@ public class HaxeIntroduceMethodParameterIntention extends HaxeUnresolvedSymbolI
 
   @Override
   public @IntentionName @NotNull String getText() {
-    return "Create parameter  '" + expressionText + "' in " + myDeclarationName;
+    return HaxeBundle.message("haxe.intention.create.parameter", expressionText, myDeclarationName);
   }
 
 

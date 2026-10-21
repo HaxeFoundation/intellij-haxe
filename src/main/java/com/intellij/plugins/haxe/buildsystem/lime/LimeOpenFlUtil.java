@@ -1,70 +1,51 @@
 package com.intellij.plugins.haxe.buildsystem.lime;
 
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 @UtilityClass
 public class LimeOpenFlUtil {
-    public boolean isOpenfl(XmlTag rootTag) {
-        return Arrays.stream(rootTag.findSubTags("haxelib"))
-          .map(xmlTag -> xmlTag.getAttribute("name"))
-          .filter(Objects::nonNull)
-          .anyMatch(attribute -> "openfl".equalsIgnoreCase(attribute.getValue()));
-    }
-    public boolean looksLikeALimeProjectFile(XmlTag rootTag) {
-        if(rootTag.getName().equalsIgnoreCase("project")) {
-            XmlTag[] haxelibTags = rootTag.findSubTags("haxelib");
-            XmlTag[] sourceTags = rootTag.findSubTags("source");
-            XmlTag[] appTags = rootTag.findSubTags("app");
-            XmlTag[] metaTags = rootTag.findSubTags("meta");
 
-            int tagTypesFound = 0;
+  /** Whether the file is a Lime or OpenFL project file: under a Lime extension with the lime-family shape. */
+  public boolean isLimeFamilyFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    return shape != null && shape.isLimeFamily();
+  }
 
-            tagTypesFound += haxelibTags.length > 0 ? 1 : 0;
-            tagTypesFound += sourceTags.length > 0 ? 1 : 0;
-            tagTypesFound += appTags.length > 0 ? 1 : 0;
-            tagTypesFound += metaTags.length > 0 ? 1 : 0;
+  /**
+   * Whether the file is a library's include file in the Lime dialect: named as
+   * lime looks for it in a library's folder, with a root lime reads, or rooted
+   * in {@code <extension>} with a library or a source path declared.
+   */
+  public boolean isLibraryIncludeFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    if (shape == null) return false;
+    return ProjectXmlVocabulary.isLibraryIncludeFileName(file.getName())
+           ? shape.hasToolRoot()
+           : shape.isExtensionInclude();
+  }
 
-            // if we found more than 2 known lime/openfl tags (including that the root is project)
-            // we consider that a good enough match (we want to avoid conflicts with maven xml that also starts with <project>)
-            return tagTypesFound >= 2;
-        }
-        return false;
-    }
+  public boolean isOpenFlFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    return shape != null && shape.isOpenfl();
+  }
 
-    public boolean isOpenFlFile(@NotNull XmlFile file) {
-        if(!FileUtilRt.extensionEquals(file.getName(), "xml")) return false;
+  public boolean isLimeFile(@NotNull XmlFile file) {
+    LimeProjectShape shape = shapeOf(file);
+    return shape != null && shape.isLime();
+  }
 
-        XmlDocument document = file.getDocument();
-        if(document == null) return false;
-
-        XmlTag rootTag = document.getRootTag();
-        if(rootTag == null) return false;
-
-        if (!looksLikeALimeProjectFile(rootTag)) return false;
-
-        return LimeOpenFlUtil.isOpenfl(rootTag);
-    }
-
-    public boolean isLimeFile(@NotNull XmlFile file) {
-        if(!FileUtilRt.extensionEquals(file.getName(), "xml")) return false;
-
-        XmlDocument document = file.getDocument();
-        if (document == null) return false;
-
-        XmlTag rootTag = document.getRootTag();
-        if (rootTag == null) return false;
-
-        if (!looksLikeALimeProjectFile(rootTag)) return false;
-
-        return !LimeOpenFlUtil.isOpenfl(rootTag);
-    }
-
+  /** The file's shape, or null when its extension or its document rules it out. */
+  @Nullable
+  private LimeProjectShape shapeOf(@NotNull XmlFile file) {
+    if (!LimeProjectShape.hasFileExtension(file.getName())) return null;
+    XmlDocument document = file.getDocument();
+    XmlTag rootTag = document == null ? null : document.getRootTag();
+    return rootTag == null ? null : LimeProjectShape.of(rootTag);
+  }
 }

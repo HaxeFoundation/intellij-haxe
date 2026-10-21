@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": ["cpp", "hxcpp", "debug", "debugger", "intellij", "dap"],
 	"description": "DAP debug server for HXCPP applications, used by the intellij-haxe plugin's HXCPP debugger.",
-	"version": "0.1.0",
-	"releasenote": "Initial release",
+	"version": "0.2.0",
+	"releasenote": "Released with the intellij-haxe plugin v2.0 beta",
 	"contributors": ["m0rkeulv"],
 	"classPath": "src",
 	"dependencies": {

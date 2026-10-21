@@ -32,11 +32,6 @@ import org.junit.jupiter.api.Test;
 @DisplayName("Code generation: generate action")
 public class HaxeGenerateActionTest extends HaxeLightCodeInsightTestBase {
 
-  @Override
-  protected void tearDown() throws Exception {
-    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
-    super.tearDown();
-  }
   @NotNull
   @Override
   protected String getTestDataPath() {

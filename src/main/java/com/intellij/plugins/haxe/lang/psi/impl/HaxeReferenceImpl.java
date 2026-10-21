@@ -23,7 +23,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
-import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
@@ -40,7 +39,6 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.JavaSourceUtil;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -880,7 +878,11 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
           if (parameterList.getParent() instanceof HaxeFunctionLiteral literal) {
           // if parameter type is unknown  (allowed in function literals) we can try to find it from assignment, ex. callExpression
             ResultHolder holder = tryToFindTypeFromCallExpression(literal, resolve);
-          if (holder != null && !holder.isUnknown()) return holder.getType().asResolveResult();
+          if (holder != null && !holder.isUnknown()) {
+            // SpecificFunctionReference can return null asResolveResult
+            HaxeResolveResult asResult = holder.getType().asResolveResult();
+            if (asResult != null) return asResult;
+          }
         }
           else if (parameterList.getParent() instanceof HaxeMethodDeclaration method) {
           HaxeGenericParam methodGenericParam = method.getGenericParam();
@@ -918,7 +920,11 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
               HaxeGenericConstraintPart constraintPart = listPart.getGenericConstraintPart();
               if(constraintPart != null ) {
                 ResultHolder constraint = HaxeTypeResolver.getTypeFromGenericConstraint(constraintPart);
-                if (constraint != null) return constraint.getType().asResolveResult();
+                if (constraint != null) {
+                  // SpecificFunctionReference can return null asResolveResult
+                  HaxeResolveResult asResult = constraint.getType().asResolveResult();
+                  if (asResult != null) return asResult;
+                }
               }
             }
           }
@@ -930,7 +936,9 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
             HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
             ResultHolder holder = searchReferencesForType(componentName, context, null, method == null ? null : method.getBody());
             if (!holder.isUnknown()) {
-              return holder.getType().asResolveResult();
+              // SpecificFunctionReference can return null asResolveResult
+              HaxeResolveResult asResult = holder.getType().asResolveResult();
+              if (asResult != null) return asResult;
             }
           }
         }
@@ -1282,6 +1290,10 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
       final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
       final boolean chain = references != null && references.length == 2;
       if (chain) return false;
+    }
+    if (element instanceof HaxeComponentName componentName && HaxeIsReferenceToUtil.isLocalScopedTarget(componentName)) {
+      Boolean fastPathAnswer = HaxeIsReferenceToUtil.tryIsReferenceTo(this, componentName);
+      if (fastPathAnswer != null) return fastPathAnswer;
     }
     final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
     if (element instanceof HaxeFile && resolve instanceof HaxeClass) {

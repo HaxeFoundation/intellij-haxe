@@ -3,6 +3,6 @@
 -main Spin
 -cpp build/hxcpp/spin
 -debug
--lib hxcpp-debug-server
+-lib hxcpp-debug-server:1.2.4
 -D HXCPP_DEBUG_HOST=127.0.0.1
 -D HXCPP_DEBUG_PORT=6973

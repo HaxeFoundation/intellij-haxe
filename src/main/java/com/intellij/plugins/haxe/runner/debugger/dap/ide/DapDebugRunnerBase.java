@@ -12,6 +12,7 @@ import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.util.net.NetUtils;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
@@ -40,7 +41,7 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
   /** Fail-fast validation before anything is built (e.g. {@code requireModule()}). */
   protected abstract void validate(C configuration) throws ExecutionException;
 
-  /** Builds the backend; it starts listening in its constructor. */
+  /** Builds the backend; a listening backend binds here, the others connect in {@link DapBackend#connect()}. */
   protected abstract B createBackend(C configuration) throws ExecutionException;
 
   /**
@@ -49,6 +50,17 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
    * adapters launch the browser themselves; nothing is spawned here).
    */
   protected abstract GeneralCommandLine createCommandLine(C configuration, B backend) throws ExecutionException;
+
+  /** A loopback port free right now, for a debuggee or adapter that binds it next. */
+  protected static int findFreePort() throws ExecutionException {
+    // unavoidable race between probing here and the debuggee binding it; in
+    // practice it binds immediately at startup and a collision just fails the session
+    try {
+      return NetUtils.findAvailableSocketPort();
+    } catch (IOException e) {
+      throw new ExecutionException("Cannot allocate a debug port: " + e.getMessage(), e);
+    }
+  }
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
@@ -66,9 +78,7 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
     ColoredProcessHandler debuggeeHandler;
     try {
       GeneralCommandLine commandLine = createCommandLine(configuration, backend);
-      debuggeeHandler = commandLine != null
-                        ? new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString())
-                        : null;
+      debuggeeHandler = commandLine != null ? new MostlySilentColoredProcessHandler(commandLine) : null;
     } catch (ExecutionException | RuntimeException e) {
       closeQuietly(backend);
       throw e;

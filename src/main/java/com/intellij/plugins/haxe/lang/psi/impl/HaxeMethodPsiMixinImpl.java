@@ -26,21 +26,16 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.HaxeEnumValueConstructorModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.SearchScope;
-import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
@@ -94,6 +89,11 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
     return (name != null) ? name : "<unnamed>";
   }
 
+  // implements HaxeMethod.isDeclaredPublic (declared on the interface the concrete impls carry, not the mixin's own supertypes)
+  public boolean isDeclaredPublic() {
+    return getModel().isDeclaredPublic();
+  }
+
   private HaxeMethodModel _model = null;
   public HaxeMethodModel getModel() {
     if (_model == null || !_model.isValid()) {
@@ -108,14 +108,9 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
 
   @Override
   public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
-    if (metadataType == HaxeMetadataCompileTimeMeta.class) {
-      HaxeMethodStub stub = getStub();
-      if (stub != null) {
-        Boolean stubValue = stub.hasMetadata(name.asCompileTimeText());
-        if (stubValue != null) return stubValue;
-      }
-    }
-    return super.hasMetadata(name, metadataType);
+    HaxeMethodStub stub = getStub();
+    Boolean stubValue = stub == null ? null : stub.compileTimeMetadata(name, metadataType);
+    return stubValue != null ? stubValue : super.hasMetadata(name, metadataType);
   }
 
   @Nullable
@@ -266,7 +261,7 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
 
   @Override
   public boolean isDeprecated() {
-    return false;
+    return hasCompileTimeMetadata(HaxeMeta.DEPRECATED);
   }
 
   @Override
@@ -383,7 +378,8 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
       if (stub.isStatic()) {
         list.addModifier(HaxePsiModifier.STATIC);
       }
-      if (stub.isPublic()) {
+      // isPublic also resolves an inherited-visibility override's parent
+      if (isPublic()) {
         list.addModifier(HaxePsiModifier.PUBLIC);
       } else {
         list.addModifier(HaxePsiModifier.PRIVATE);
@@ -431,18 +427,6 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
   public PsiParameterList getParameterList() {
     final HaxeParameterList list = PsiTreeUtil.getStubChildOfType(this, HaxeParameterList.class);
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list", getProject())));
-  }
-
-  @NotNull
-  @Override
-  public SearchScope getUseScope() {
-    if(this instanceof HaxeLocalFunctionDeclaration) {
-      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(this, HaxeBlockStatement.class);
-      if(outerBlock != null) {
-        return new LocalSearchScope(outerBlock);
-      }
-    }
-    return super.getUseScope();
   }
 
   @Nullable

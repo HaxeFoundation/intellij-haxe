@@ -33,7 +33,7 @@ class ModuleDebugInfoTest {
 		assert.equals(FIXTURE_LOOP_LINE, loopHits[0].line, "loop line not moved");
 
 		// reverse lookup of a resolved location returns the same file/line
-		var back = module.lookup(loopHits[0].fidx, loopHits[0].op);
+		var back = module.sourceLineAt(loopHits[0].fidx, loopHits[0].op);
 		assert.isTrue(back != null, "reverse lookup succeeds");
 		assert.equals(FIXTURE_LOOP_LINE, back.line, "reverse lookup line matches");
 		assert.isTrue(StringTools.endsWith(normalizeSlashes(back.file), "Main.hx"), "reverse lookup file is Main.hx");

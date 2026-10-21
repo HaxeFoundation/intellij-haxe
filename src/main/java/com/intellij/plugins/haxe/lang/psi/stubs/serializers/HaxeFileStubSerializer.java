@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.serializers;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeImportHxStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFileStub;
 import com.intellij.psi.stubs.IndexSink;
@@ -7,7 +8,6 @@ import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
 import com.intellij.psi.stubs.StubSerializer;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
@@ -35,7 +35,7 @@ public class HaxeFileStubSerializer implements StubSerializer<HaxeFileStub> {
 
   @Override
   public void indexStub(@NonNull HaxeFileStub stub, @NotNull IndexSink sink) {
-    if("import.hx".equals(stub.getFileName())) {
+    if (HaxeFile.isImportHx(stub.getFileName())) {
       sink.occurrence(HaxeImportHxStubIndex.KEY, stub.getPackageName());
     }
   }

@@ -115,7 +115,7 @@ manifest simply not listing older versions.
 ## Duration
 
 - eval lane: ~1 minute per haxe version (live suite against the real VM).
-- firefox / chromium lanes: the browser-debugger module's live probe for
+- firefox / chromium lanes: the javascript-debugger module's live probe for
   that family, per haxe version x per provisioned NODE runtime (~2 minutes
   per cell; the probes compile their `haxe -js` fixtures with the lane's
   haxe, and the vscode DAP adapters run on the cell's node). Node is
@@ -124,7 +124,7 @@ manifest simply not listing older versions.
   firefox/chromium must be installed on the machine (or pointed at with
   the `WEB_DEBUG_FIREFOX_EXE` / `WEB_DEBUG_CHROMIUM_EXE` environment
   variables — e.g. an ungoogled-chromium build), and the pinned adapters
-  must be present under `<repo>/node` (see the browser-debugger README);
+  must be present under `<repo>/node` (see the javascript-debugger module's live probes);
   without them the probes self-skip and the cells report skipped suites
   instead of failing the run. On linux the distro browser is usually a
   SNAP, whose confinement cannot read the adapters' temp profiles under

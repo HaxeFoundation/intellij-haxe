@@ -9,21 +9,21 @@ import haxe.Int64;
 	Reads the live thread list from HashLink's runtime thread registry (the
 	`threadsPtr` sent in the handshake), a port of hld `Debugger.readThreads`.
 
-	Two format cases (the program's `threads` compile flag):
-	 - NOT compiled with thread support: there is no registry to walk; the
-	   process has a single thread — reported as one entry from the stopped id.
-	 - compiled with thread support: the registry is `count` (i32 @ +0) followed
-	   by the `hl_thread_info*` array (`Align.threadsArray`); each info has its
-	   OS tid @ +0, a flags word (`Align.threadFlags`; bit 16 = invisible,
-	   skipped), and — only on HL runtime >= 1.13 — a 128-byte UTF-8 name eight
-	   bytes past flags (two i32s).
+	The program's `threads` compile flag decides the format:
+	 - Without thread support there is no registry. The process has a single
+	   thread, reported as one entry with the stopped thread's id.
+	 - With thread support, the registry is a `count` (i32 @ +0) followed by the
+	   `hl_thread_info*` array (`Align.threadsArray`). Each info holds the OS tid
+	   @ +0, a flags word (`Align.threadFlags`; flag value 16 marks an invisible
+	   thread, which is skipped) and, only on HL runtime 1.13 and later, a
+	   128-byte UTF-8 name eight bytes past the flags.
 
-	All arch-sensitive offsets come from the `ijhaxe.debug.layout.Align` descriptor
-	(wrong offsets read plausible garbage). The name offset also branches on the
-	runtime version.
+	All architecture-dependent offsets come from the `ijhaxe.debug.layout.Align`
+	descriptor; a wrong offset reads plausible garbage. The name offset also
+	depends on the runtime version.
 
-	"main" is the LOWEST thread id (not wherever we happened to stop): a stop can
-	land in any thread, so tying the name to the stopped thread would be wrong.
+	"main" is the lowest thread id, not the thread of the stop: a stop can land
+	in any thread.
 **/
 class ThreadRegistry {
 	static inline var FLAG_INVISIBLE = 16;
@@ -41,9 +41,9 @@ class ThreadRegistry {
 	}
 
 	/**
-		The live threads. `threadsEnabled` is the handshake `threads` flag;
-		`stoppedThreadId` is the fallback when there is no registry (single-thread
-		program) or the registry is unreadable.
+		The live threads. `threadsEnabled` is the handshake's `threads` flag.
+		`stoppedThreadId` is the fallback when there is no registry (a
+		single-threaded program) or the registry cannot be read.
 	**/
 	public function read(registryPtr:Pointer, threadsEnabled:Bool, stoppedThreadId:Int):Array<ThreadInfo> {
 		var raw:Array<{id:Int, name:Null<String>}> = threadsEnabled && !registryPtr.isNull()
@@ -69,8 +69,8 @@ class ThreadRegistry {
 		if (array.isNull()) {
 			return [];
 		}
-		// thread_name[128] follows flags past exc_stack_count — two i32s, so +8
-		// regardless of bitness; present only on HL runtime >= 1.13
+		// thread_name[128] follows the flags and exc_stack_count, two i32s, so it
+		// is +8 on both bitnesses; it exists only on HL runtime 1.13 and later
 		var namePos = hlVersion >= 1.13 ? align.threadFlags + 8 : -1;
 		var result:Array<{id:Int, name:Null<String>}> = [];
 		for (i in 0...count) {
@@ -88,7 +88,7 @@ class ThreadRegistry {
 		return result;
 	}
 
-	// A fixed-size, null-terminated UTF-8 name buffer; null/empty → no name.
+	// Reads a fixed-size, NUL-terminated UTF-8 name buffer; null when empty.
 	function readName(address:Pointer):Null<String> {
 		var bytes = mem.read(address, NAME_BYTES);
 		var len = 0;

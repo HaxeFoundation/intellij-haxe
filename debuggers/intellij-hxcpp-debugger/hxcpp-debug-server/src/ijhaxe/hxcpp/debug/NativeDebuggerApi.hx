@@ -5,8 +5,8 @@ import cpp.vm.Debugger;
 import ijhaxe.hxcpp.debug.DebuggerApi;
 
 /**
-	The real DebuggerApi over `cpp.vm.Debugger`. Thin by design: the data
-	types are typedef-aliased to the std classes, so runtime results pass
+	The real DebuggerApi over `cpp.vm.Debugger`. It is a thin wrapper: the
+	data types are aliases of the std classes, so runtime results pass
 	through untouched.
 **/
 class NativeDebuggerApi implements DebuggerApi {
@@ -23,23 +23,33 @@ class NativeDebuggerApi implements DebuggerApi {
 	public function setEventHandler(handler:DebugEvent->Void):Void {
 		Debugger.setEventNotificationHandler(
 			(threadNumber:Int, event:Int, stackFrame:Int, className:String, functionName:String, fileName:String, lineNumber:Int) -> {
-				// Runs on the STOPPING thread. The stop STATUS is read here, where
-				// the thread is guaranteed stopped (safe=false), not later from the
-				// server thread — a cross-thread read races the thread's state and
-				// returns RUNNING. Then hand off and return; hxcpp blocks the
-				// thread in DoBreak until continueThreads.
+				// Runs on the thread the event concerns. A stop's STATUS is read
+				// here, where the thread is certain to be stopped (safe=false),
+				// and not later from the server thread: a read from another
+				// thread races the thread's state and returns RUNNING. The
+				// handler then hands the event over and returns; hxcpp blocks a
+				// stopped thread in DoBreak until continueThreads.
 				if (event == Debugger.THREAD_CREATED) {
+					// Runs ON the newly attached thread. hxcpp debugs a thread only
+					// after it opts in, and only a thread can opt ITSELF in.
+					// Without this, code on threads spawned after startup verifies
+					// breakpoints but never hits them; nme runs its whole
+					// application loop on such a thread, and user worker threads
+					// are affected too. The server thread never reaches this
+					// branch: it attaches before registering this handler and
+					// excludes itself right after.
+					Debugger.enableCurrentThreadDebugging(true);
 					handler(ThreadCreated(threadNumber));
 				} else if (event == Debugger.THREAD_TERMINATED) {
 					handler(ThreadTerminated(threadNumber));
 				} else if (event == Debugger.THREAD_STARTED) {
 					handler(ThreadStarted(threadNumber));
 				} else if (event == Debugger.THREAD_STOPPED) {
-					// Capture the thread here (safe read on the stopped thread):
-					// status, hit breakpoint, and the stack. The captured stack has
-					// THIS handler's own frames on top (getThreadInfo, the closure);
-					// trim everything above the reported stop — the innermost user
-					// frame — leaving a clean user stack (innermost last).
+					// Capture the status, the hit breakpoint and the stack while
+					// the thread is stopped. The captured stack has THIS handler's
+					// own frames on top (getThreadInfo, the closure). Everything
+					// above the reported stop location, the innermost user frame,
+					// is trimmed, leaving only user frames (innermost last).
 					var info = Debugger.getThreadInfo(threadNumber, false);
 					if (info != null) {
 						var stack = info.stack;

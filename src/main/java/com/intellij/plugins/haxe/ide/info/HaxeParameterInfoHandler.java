@@ -67,18 +67,19 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   private static @org.jspecify.annotations.Nullable PsiElement findArgumentClosestToCaret(@NonNull UpdateParameterInfoContext context) {
     PsiElement caretElement = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    // null at end of file; the sibling skips null at an argument list's edges
+    if (caretElement == null) return null;
     if(caretElement.textMatches(",")){
       return UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(caretElement);
     }
     if (isWhitespaceOrComment(caretElement)) {
       PsiElement right = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(caretElement);
-      if (!right.textMatches(",")) {
+      if (right != null && !right.textMatches(",")) {
         return right;
-      } else {
-        PsiElement left = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(caretElement);
-        if (!left.textMatches(",")) {
-          return left;
-        }
+      }
+      PsiElement left = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(caretElement);
+      if (left != null && !left.textMatches(",")) {
+        return left;
       }
     }
     return caretElement;

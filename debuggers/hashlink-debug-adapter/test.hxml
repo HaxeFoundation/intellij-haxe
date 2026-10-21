@@ -1,6 +1,7 @@
 -cp src/main/haxe
 -cp src/test/haxe
--lib format
+# same pin as build.hxml - tests must compile against the shipped version
+-lib format:3.7.0
 -lib intellij-dap-protocol
 -main TestMain
 --interp

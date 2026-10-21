@@ -3,11 +3,11 @@ package ijhaxe.debug.target;
 /**
 	CPU register selectors for DebugApi.readRegister/writeRegister.
 
-	Index values verified against HashLink `src/std/debug.c` (Windows x64):
-	0 = stack pointer, 1 = frame pointer, 2 = instruction pointer, 3 = flags,
-	4..9 = debug registers Dr0-Dr3, Dr6, Dr7, 11 = the LOW HALF of XMM0 — the
-	only float register the native exposes (higher indexes silently alias Rax
-	on Windows; never use them).
+	The indexes match HashLink's `src/std/debug.c` (Windows x64): 0 = stack
+	pointer, 1 = frame pointer, 2 = instruction pointer, 3 = flags, 4..9 = the
+	debug registers Dr0-Dr3, Dr6 and Dr7, 11 = the low half of XMM0, the only
+	float register the native exposes. Higher indexes silently read Rax on
+	Windows; never use them.
 **/
 enum abstract Register(Int) from Int to Int {
 	var Esp = 0;
@@ -22,9 +22,9 @@ enum abstract Register(Int) from Int to Int {
 	var Dr6 = 8;
 	var Dr7 = 9;
 
-	// RAX: the integer return register — index 10 in debug.c. Written only to
-	// save/restore it around an injected call (see EvalCaller); higher indexes
-	// are not portable.
+	// RAX, the integer return register (index 10 in debug.c). It is written
+	// only to save and restore it around an injected call (see
+	// EvalCallInjector).
 	var Eax = 10;
 	var Xmm0 = 11;
 }

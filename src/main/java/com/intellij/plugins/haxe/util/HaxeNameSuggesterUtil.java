@@ -18,239 +18,160 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.ide.refactoring.HaxeNamesValidator;
 import com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.codeStyle.NameUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * @author: Fedor.Korotkov
+ * Suggests names for a value, for the refactorings, the create-from-usage
+ * fixes and completion. Candidates come first from the initializer, from
+ * what it is and where it sits ({@link HaxeExpressionNames}), then from the
+ * value's type ({@link HaxeTypeNames}). Each candidate is cased for the kind
+ * of declaration and offered together with its shorter word tails
+ * ({@link HaxeNameKind}). Names the user picked before for a similar value
+ * move to the front ({@link HaxeNameStatistics}). Finally, a name that is a
+ * keyword or already in use around the value gets a numeric suffix.
  */
 public class HaxeNameSuggesterUtil {
+  /** The name offered when nothing about the value suggests one. */
+  private static final String FALLBACK_NAME = "value";
+
   private HaxeNameSuggesterUtil() {
   }
 
-  private static String deleteNonLetterFromString(@NotNull final String string) {
-    Pattern pattern = Pattern.compile("[^a-zA-Z_]+");
-    Matcher matcher = pattern.matcher(string);
-    return matcher.replaceAll("_");
+  /**
+   * Names for a value of {@code type} initialized by {@code initializer};
+   * either may be absent, and the type is inferred from the initializer when
+   * not given. The names avoid those in use around {@code context} and those
+   * in {@code alsoUsed}.
+   */
+  @NotNull
+  public static HaxeSuggestedNames suggest(@Nullable PsiElement initializer,
+                                           @Nullable ResultHolder type,
+                                           @NotNull HaxeNameKind kind,
+                                           @Nullable PsiElement context,
+                                           @NotNull Set<String> alsoUsed) {
+    ResultHolder valueType = type != null ? type : typeOf(initializer);
+    List<String> raw = new ArrayList<>();
+    raw.addAll(HaxeExpressionNames.ofExpression(initializer));
+    raw.addAll(HaxeExpressionNames.ofPlace(initializer));
+    raw.addAll(HaxeTypeNames.of(valueType));
+    if (raw.isEmpty() && initializer != null) raw.add(defaultNameFor(initializer));
+    String propertyName = raw.isEmpty() ? null : raw.getFirst();
+    String typeText = valueType == null || valueType.isUnknown() ? null : valueType.toStringWithoutConstant();
+
+    List<String> names = casedVariants(raw, kind);
+    names.addAll(HaxeNameStatistics.frequentlyChosen(kind, propertyName, typeText, names));
+    names = HaxeNameStatistics.mostChosenFirst(kind, propertyName, typeText, names);
+    if (names.isEmpty()) names = kind.variantsOf(FALLBACK_NAME);
+
+    Set<String> taken = takenNames(context, alsoUsed);
+    return new HaxeSuggestedNames(uniqueAgainst(names, taken), kind, propertyName, typeText);
+  }
+
+  /**
+   * Names for a value known only by the name its declaration gives it, if
+   * any, and the simple name of its type, as a lambda parameter is known.
+   */
+  @NotNull
+  public static List<String> suggestForType(@Nullable String declaredName,
+                                            @Nullable String typeName,
+                                            boolean isFunction,
+                                            @Nullable PsiElement context,
+                                            @NotNull Set<String> alsoUsed) {
+    List<String> raw = new ArrayList<>();
+    if (declaredName != null && !declaredName.isEmpty()) raw.add(declaredName);
+    raw.addAll(HaxeTypeNames.ofTypeName(typeName, isFunction));
+    List<String> names = casedVariants(raw, HaxeNameKind.VARIABLE);
+    if (names.isEmpty()) names = HaxeTypeNames.ofTypeName("Dynamic", false);
+    return uniqueAgainst(names, takenNames(context, alsoUsed));
+  }
+
+  /** Names built from the given raw names: each cased for the kind and offered with its tails, avoiding {@code alsoUsed}. */
+  @NotNull
+  public static List<String> suggestFrom(@NotNull List<String> rawNames, @NotNull HaxeNameKind kind, @NotNull Set<String> alsoUsed) {
+    return uniqueAgainst(casedVariants(rawNames, kind), takenNames(null, alsoUsed));
+  }
+
+  /** The whole name in each casing the kind uses, avoiding {@code alsoUsed}. */
+  @NotNull
+  public static List<String> recased(@NotNull String name, @NotNull HaxeNameKind kind, @NotNull Set<String> alsoUsed) {
+    if (!HaxeNamesValidator.isIdentifier(name)) return List.of();
+    return uniqueAgainst(kind.recased(name), takenNames(null, alsoUsed));
+  }
+
+  /**
+   * Every raw name with its shorter tails in the kind's casing, followed by
+   * the same in the kind's alternate casing. Raw names that are not valid
+   * Haxe identifiers are dropped.
+   */
+  @NotNull
+  private static List<String> casedVariants(@NotNull List<String> raw, @NotNull HaxeNameKind kind) {
+    List<String> identifiers = raw.stream().filter(HaxeNamesValidator::isIdentifier).toList();
+    Set<String> names = new LinkedHashSet<>();
+    for (String name : identifiers) names.addAll(kind.variantsOf(name));
+    for (String name : identifiers) names.addAll(kind.alternateVariantsOf(name));
+    return new ArrayList<>(names);
+  }
+
+  @Nullable
+  private static ResultHolder typeOf(@Nullable PsiElement initializer) {
+    if (initializer == null) return null;
+    return HaxeTypeResolver.getPsiElementType(initializer, new HaxeGenericResolver());
   }
 
   @NotNull
-  public static String prepareNameTextForSuggestions(@NotNull String name) {
-    // Note: decapitalize only changes the first letter to lower case, but won't do if the second letter is also uppercase.
-    name = StringUtil.decapitalize(deleteNonLetterFromString(StringUtil.unquoteString(name.replace('.', '_'))));
-
-    StringBuilder prepped = new StringBuilder();
-    int startPos = 0;
-    int endPos = name.length() - 1;
-
-    // Trim (skip past) underscores and common leading words.
-    // (Leave an underscore or name if that is the entirety of the remaining text.)
-    while (startPos < endPos && '_' == name.charAt(startPos)) ++startPos;
-    while (endPos > startPos && '_' == name.charAt(endPos)) --endPos;
-    for (String prefix : new String[]{"get", "is"}) {
-      if (name.startsWith(prefix) && (endPos - startPos) > prefix.length()) {
-        startPos += prefix.length();
-      }
-    }
-
-    // Copy the string, removing consecutive underscores.
-    char c = '_';  // Assume last char is '_' to skip any underscores after 'get' or 'is', as in get_myVar();
-    for (int i = startPos; i <= endPos; i++) {
-      if (c == '_' && name.charAt(i) == '_') continue;
-      c = name.charAt(i);
-      prepped.append(c);
-    }
-
-    return prepped.toString();
+  private static Set<String> takenNames(@Nullable PsiElement context, @NotNull Set<String> alsoUsed) {
+    Set<String> taken = new HashSet<>(HaxeRefactoringUtil.collectKeywords());
+    taken.addAll(alsoUsed);
+    if (context != null) taken.addAll(HaxeRefactoringUtil.collectUsedNames(context));
+    return taken;
   }
 
-
+  /** A generic name, by kind of expression, for an expression that suggests no name itself and has no known type. */
   @NotNull
-  public static Collection<String> generateNames(@NotNull String name, boolean useUpperCase, boolean isArray) {
-    name = prepareNameTextForSuggestions(name);
-
-    Collection<String> candidates = new LinkedHashSet<String>();
-    if (null != name && !name.isEmpty()) {
-      candidates.addAll(NameUtil.getSuggestionsByName(name, "", "", useUpperCase, false, isArray));
-    }
-    return candidates;
+  private static String defaultNameFor(@NotNull PsiElement expression) {
+    return switch (expression) {
+      case HaxeSwitchCaseExpr ignored -> "result";
+      case HaxeTernaryExpression ignored -> "result";
+      case HaxeCompareExpression ignored -> "result";
+      case HaxeLogicAndExpression ignored -> "result";
+      case HaxeLogicOrExpression ignored -> "result";
+      case HaxeBitwiseExpression ignored -> "bits";
+      case HaxeShiftExpression ignored -> "bits";
+      case HaxeSuperExpression ignored -> "parent";
+      case HaxeThisExpression ignored -> "self";
+      case HaxeIteratorExpression ignored -> "iter";
+      case HaxeMapLiteral ignored -> "map";
+      case HaxeMapInitializerExpression ignored -> "map";
+      case HaxeArrayLiteral ignored -> "arr";
+      case HaxeArrayAccessExpression ignored -> "element";
+      case HaxeObjectLiteral ignored -> "anon";
+      case HaxePropertyAccessor ignored -> "prop";
+      default -> FALLBACK_NAME;
+    };
   }
 
+  /** Each candidate with the smallest numeric suffix that keeps it out of {@code taken}. */
   @NotNull
-  public static String getDefaultExpressionName(PsiElement expression, boolean useUpperCase) {
-    String lower = getDefaultExpressionName(expression);
-    return useUpperCase ? lower.toUpperCase() : lower;
-  }
-
-  @NotNull
-  public static String getDefaultExpressionName(PsiElement expression) {
-    ResultHolder typeResult = HaxeTypeResolver.getPsiElementType(expression, new HaxeGenericResolver());
-    SpecificTypeReference type = typeResult.getType();
-
-    if (type.isDynamic()) { return "obj"; }
-    if (type.isVoid()) { return "v"; }
-    if (type.isInt()) { return "i"; }
-    if (type.isBool()) { return "b"; }
-    if (type.isFloat()) { return "f"; }
-    if (type.isString()) { return "str"; }
-    if (type.isArray()) { return "arr"; }
-    if (type.isMapType()) { return "map"; }
-
-    if (type instanceof SpecificHaxeClassReference) {
-      SpecificHaxeClassReference ref = (SpecificHaxeClassReference)type;
-      HaxeClass clazz = ref.getHaxeClass();
-      String name = null == clazz ? null : clazz.getName();
-      if (null != name) {
-        return HaxeStringUtil.toLowerFirst(name);
-      }
-    }
-
-    // If result typing doesn't work (e.g. it's Unknown or Invalid), then try against
-    // the kind of expression.
-
-    if (expression instanceof HaxeAssignExpression
-        || expression instanceof HaxeReferenceExpression) {
-      return "var"; // Should come out of expression.getType() or a resolve(),
-    }
-    if (expression instanceof HaxePrefixExpression) {  // Wraps statements, like HaxeIfStatement
-      return "expr";
-    }
-    if (expression instanceof HaxeSwitchCaseExpr
-        || expression instanceof HaxeCallExpression
-        || expression instanceof HaxeLogicAndExpression
-        || expression instanceof HaxeLogicOrExpression
-        || expression instanceof HaxeCompareExpression
-        || expression instanceof HaxeTernaryExpression) {
-      return "result";
-    }
-    if (expression instanceof HaxeBitwiseExpression
-        || expression instanceof HaxeShiftExpression) {
-      return "bitResult";
-    }
-    if (expression instanceof HaxeSuperExpression) {
-      return "mysuper";
-    }
-    if (expression instanceof HaxeMapInitializerExpression
-        || expression instanceof HaxeFunctionLiteral) {
-      return "func";
-    }
-    if (expression instanceof HaxeStringLiteralExpression) {
-      return "str";
-    }
-    if (expression instanceof HaxeThisExpression) {
-      return "myself";
-    }
-    if (expression instanceof HaxeIteratorExpression) {
-      return "iter";
-    }
-    if (expression instanceof HaxeAdditiveExpression
-        || expression instanceof HaxeMultiplicativeExpression) {
-      return "f"; // float
-    }
-    if (expression instanceof HaxeMapLiteral) {
-      return "map";
-    }
-    if (expression instanceof HaxeArrayLiteral) {
-      return "arr";
-    }
-    if (expression instanceof HaxeArrayAccessExpression) {
-      return "element";
-    }
-    if (expression instanceof HaxeRegularExpression
-        || expression instanceof HaxeRegularExpressionLiteral) {  // These must come before HaxeLiteralExpression
-      return "regex";
-    }
-    if (expression instanceof HaxeLiteralExpression    // Must come after RegularExpressionXXX
-        || expression instanceof HaxeConstantExpression) {
-      return "const";
-    }
-    if (expression instanceof HaxeNewExpression) {
-      return "newObj";
-    }
-    if (expression instanceof HaxeUnsafeCastExpression || expression instanceof HaxeSafeCastExpression) {
-      return "cast";
-    }
-    if (expression instanceof HaxeObjectLiteral) {
-      return "anon";  // Anonymous structure.  Maybe should be comprised of element names??
-    }
-    if (expression instanceof HaxeParenthesizedExpression) {
-      return "result";  // Should be typed!
-    }
-    if (expression instanceof HaxePropertyAccessor) {
-      return "prop";
-    }
-    if (expression instanceof HaxeTypeCheckExpr) {
-      HaxeTypeCheckExpr expr = (HaxeTypeCheckExpr) expression;
-      HaxeFunctionType functionType = expr.getFunctionType();
-      if (null != functionType) {
-        return functionType.getName();
-      } else {
-        HaxeTypeOrAnonymous toa = expr.getTypeOrAnonymous();
-        if (null != toa) {
-          HaxeType haxeType = toa.getType();
-          if (null == haxeType && null != toa.getAnonymousType()) {
-            return "anon";
-          }
-          if (null != haxeType) {
-            String name = haxeType.getName();
-            if (null != name) {
-              return name;
-            }
-          }
-        }
-      }
-    }
-
-    return "x";
-  }
-
-  @NotNull
-  public static List<String> getSuggestedNames(final PsiElement expression, final boolean wantUpperCase) {
-    return getSuggestedNames(expression, wantUpperCase, true, null);
-  }
-  public static List<String> getSuggestedNames(final PsiElement expression, final boolean wantUpperCase, boolean findUsed, Set<String> customUsedList) {
-    String text = expression.getText();
-    boolean useUpperCase = wantUpperCase;
-    boolean isArray = HaxeExpressionUtil.isArrayExpression(expression);
-    if (expression instanceof HaxeCallExpression) {
-      final HaxeExpression callee = ((HaxeCallExpression)expression).getExpression();
-      text = callee.getText();
-    } else if (expression instanceof HaxeRegularExpression) {
-      text = "REGEX_";
-      useUpperCase = true;
-    }
-
-    Collection<String> candidates = text == null ? new LinkedHashSet<String>()
-                                                 : HaxeNameSuggesterUtil.generateNames(text, useUpperCase, isArray);
-    candidates.add(HaxeNameSuggesterUtil.getDefaultExpressionName(expression, useUpperCase));
-
-    Set<String> ignoreNameList = new HashSet<>(HaxeRefactoringUtil.collectKeywords());
-    if (customUsedList != null) {
-      ignoreNameList.addAll(customUsedList);
-    }
-    if (findUsed) {
-      ignoreNameList.addAll(HaxeRefactoringUtil.collectUsedNames(expression));
-    }
-    final List<String> result = new ArrayList<String>();
+  private static List<String> uniqueAgainst(@NotNull Collection<String> candidates, @NotNull Set<String> taken) {
+    final List<String> result = new ArrayList<>();
     for (String candidate : candidates) {
       int index = 0;
       String suffix = "";
-      while (ignoreNameList.contains(candidate + suffix)) {
+      while (taken.contains(candidate + suffix)) {
         suffix = Integer.toString(++index);
       }
       result.add(candidate + suffix);
     }
-
     return result;
   }
 }

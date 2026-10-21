@@ -10,21 +10,25 @@ on:
         description: "Module name under :debuggers (also the gradle project to build)"
         required: true
         type: string
+
       os:
         description: "Runner image"
         required: false
         type: string
         default: windows-latest
+
       needs-haxe:
         description: "Install the Haxe toolchain"
         required: false
         type: boolean
         default: true
+
       needs-hashlink:
         description: "Download HashLink and export HASHLINK_BIN for the integration tests"
         required: false
         type: boolean
         default: false
+
       haxelibs:
         description: "haxelib install commands, one per line (pins should mirror the module's build.gradle.kts)"
         required: false

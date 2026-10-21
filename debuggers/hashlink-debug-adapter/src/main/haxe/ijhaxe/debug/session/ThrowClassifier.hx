@@ -8,10 +8,10 @@ import ijhaxe.debug.target.MemoryReader;
 import ijhaxe.debug.target.StackWalker;
 
 /**
-	Classifies a throw at stop time: whether anything will catch it, whether it
-	was raised by the VM's C runtime rather than a bytecode OThrow, and whether
-	the thrown value matches the configured exception-type filters. Read-only
-	over the stopped debuggee — no run control.
+	Classifies a throw at stop time: whether anything will catch it, whether the
+	VM's C runtime raised it rather than a bytecode OThrow, and whether the
+	thrown value matches the exception-type filters. It only reads the stopped
+	debuggee and never controls execution.
 **/
 class ThrowClassifier {
 	final api:DebugApi;
@@ -34,11 +34,10 @@ class ThrowClassifier {
 	}
 
 	/**
-		True when no live frame's current op sits inside a `try` block — only HL's
-		root handler would catch the throw. Typed catches are approximated as
-		always matching (any active try counts as catching), so this can
-		under-report an uncaught throw whose only enclosing catch has a
-		non-matching type.
+		True when no live frame's current op sits inside a `try` block, so only
+		HL's root handler would catch the throw. Any enclosing `try` counts as
+		catching, whatever its catch types. A throw whose only enclosing catch
+		has a non-matching type is therefore reported as caught.
 	**/
 	public function isUncaught(threadId:Int):Bool {
 		for (frame in stackWalker.walk(threadId)) {
@@ -50,11 +49,11 @@ class ThrowClassifier {
 	}
 
 	/**
-		At hl_throw's entry, true when the immediate caller is C runtime code (the
-		return address on the stack is NOT in JIT code) — i.e. the throw was
-		raised by the VM (null access, bounds, cast, div0), not by a bytecode
-		OThrow whose caller is jitted. Bytecode throws are left to the
-		OThrow-based breakpoints.
+		At hl_throw's entry, true when the immediate caller is C runtime code: the
+		return address on the stack is not in JIT code. The VM raised the throw
+		then (null access, out of bounds, invalid cast, division by zero). A
+		bytecode OThrow has a jitted caller and is left to the OThrow-site
+		breakpoints.
 	**/
 	public function raisedByRuntime(threadId:Int):Bool {
 		var esp = api.readRegister(debuggeePid, threadId, Esp);
@@ -64,8 +63,8 @@ class ThrowClassifier {
 
 	/**
 		True when the thrown value (register `reg` of the throwing frame) is an
-		instance of one of the `wanted` type filters — by FQN or simple name,
-		including subclasses (the tsuper chain). Empty filter set ⇒ false.
+		instance of a class named in `wanted`, by full or simple name, including
+		subclasses. False for an empty `wanted`.
 	**/
 	public function throwMatchesTypes(threadId:Int, reg:Int, wanted:Array<String>):Bool {
 		if (wanted.length == 0) {

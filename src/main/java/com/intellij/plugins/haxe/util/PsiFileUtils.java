@@ -21,6 +21,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
@@ -66,9 +67,16 @@ public class PsiFileUtils {
       if (null != sdk) {
         roots.addAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
       }
-      // issue #387: add roots from external libraries
+      // issue #387: add roots from external libraries. Skipping non-library
+      // entries loses nothing: module-source entries answer empty for CLASSES
+      // (source roots come from getContentSourceRoots below), and a
+      // module-dependency entry only re-exports library roots of another
+      // project module - this loop visits every module and collects those
+      // directly.
       for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-        Collections.addAll(roots, entry.getFiles(OrderRootType.CLASSES));
+        if (entry instanceof LibraryOrSdkOrderEntry libraryOrSdkEntry) {
+          Collections.addAll(roots, libraryOrSdkEntry.getRootFiles(OrderRootType.CLASSES));
+        }
       }
     }
     roots.addAll(Arrays.asList(ProjectRootManager.getInstance(project).getContentSourceRoots()));

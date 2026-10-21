@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.quickfix.typedialog;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.newclass.CreateWithTemplatesDialogPanel;
 import com.intellij.ide.ui.newItemPopup.NewItemPopupUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
@@ -183,8 +184,10 @@ public class HaxeCreateTypeDialogBuilder {
         PsiPackage packageByQName = HaxeResolveUtil.findPackageByQName(packageName, psiManager, scope);
 
         if (packageByQName == null) {
-            MessageDialogBuilder.YesNo createPackageDialog = MessageDialogBuilder.yesNo("Create missing package(s)", "create '" + packageName + "' package");
-            boolean ask = ReadAction.compute(() -> createPackageDialog.ask(myProject));
+            String title = HaxeBundle.message("haxe.quickfix.create.type.missing.package.title");
+            String question = HaxeBundle.message("haxe.quickfix.create.type.missing.package.message", packageName);
+            MessageDialogBuilder.YesNo createPackageDialog = MessageDialogBuilder.yesNo(title, question);
+            boolean ask = ReadAction.computeBlocking(() -> createPackageDialog.ask(myProject));
             if (ask) {
                 createHaxePackage(myProject, mySourceRoot, packageName);
                 return true;
@@ -196,25 +199,16 @@ public class HaxeCreateTypeDialogBuilder {
         return true;
     }
 
+    /** Creates the package's folder chain under the source root. */
     private void createHaxePackage(Project myProject, VirtualFile sourceRoot, String packageName) {
         CommandProcessor.getInstance().runUndoTransparentAction(() -> {
             WriteCommandAction.writeCommandAction(myProject)
-                    .withName("create package(s)")
+                    .withName(HaxeBundle.message("haxe.quickfix.create.type.create.packages"))
                     .withGlobalUndo()
-                    .compute(() -> {
+                    .run(() -> {
                         try {
-                            String[] pathElements = packageName.split("\\.");
-                            VirtualFile path = sourceRoot;
-                            for (String pathElement : pathElements) {
-                                VirtualFile child = path.findChild(pathElement);
-                                if (child == null) {
-                                    path = path.createChildDirectory(path, pathElement);
-                                    CommandProcessor.getInstance().addAffectedFiles(myProject, path);
-                                } else {
-                                    path = child;
-                                }
-                            }
-                            return path;
+                            VirtualFile packageFolder = VfsUtil.createDirectoryIfMissing(sourceRoot, packageName.replace('.', '/'));
+                            CommandProcessor.getInstance().addAffectedFiles(myProject, packageFolder);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

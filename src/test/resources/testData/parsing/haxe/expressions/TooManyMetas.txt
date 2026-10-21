@@ -64,7 +64,12 @@ Haxe File
                     HaxePsiToken:ID('target')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  PsiComment(DOC_COMMENT)('/** @anon( "anonData" ) */')
+                  PsiComment(DOC_COMMENT)
+                    HaxePsiToken:DOC_START('/**')
+                    HaxePsiToken:DOC_DATA(' ')
+                    HaxePsiToken:DOC_TAG_NAME('@anon')
+                    HaxePsiToken:DOC_DATA('( "anonData" ) ')
+                    HaxePsiToken:DOC_END('*/')
                   OBJECT_LITERAL
                     HaxePsiToken:{('{')
                     OBJECT_LITERAL_ELEMENT

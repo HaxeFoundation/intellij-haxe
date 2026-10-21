@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
-import com.intellij.codeInsight.completion.JavaCompletionUtil;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
@@ -9,8 +8,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -91,6 +89,7 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     }
     else {
       presentableText = model.getName();
+      strikeout = model.hasCompileTimeMeta(HaxeMeta.DEPRECATED);
       if (model.isEnum()) icon = HaxeIcons.Enum;
       else if (model.isTypedef()) icon = HaxeIcons.Typedef;
       else if (model.isInterface()) icon = HaxeIcons.Interface;

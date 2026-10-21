@@ -1,7 +1,7 @@
 package;
 class Test {
     function new() {
-        var this1 = () -> return this;
-        var another = this1;
+        var func = () -> return this;
+        var another = func;
     }
 }

@@ -52,13 +52,16 @@ public class lookupItemImportUtil {
   }
 
 
+  /**
+   * Whether the element belongs to the class the path names. A secondary type's
+   * path carries its module ({@code pack.Module.Type}) while its qualified name
+   * does not ({@code pack.Type}), so both forms count.
+   */
   public static boolean isCorrectClass(PsiElement element, String expectedQname) {
     HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
-    if (haxeClass != null) {
-      String qualifiedName = haxeClass.getQualifiedName();
-      return qualifiedName!= null && qualifiedName.equals(expectedQname);
-    }
-    return false;
+    if (haxeClass == null) return false;
+    return expectedQname.equals(haxeClass.getQualifiedName())
+           || expectedQname.equals(haxeClass.getFullyQualifiedName());
   }
 
   public static @NotNull String createQname(String name, String path) {

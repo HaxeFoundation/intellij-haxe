@@ -65,11 +65,9 @@ import java.util.List;
 public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
   private static final Logger LOG = Logger.getInstance(HaxeModuleLevelBuilder.class);
   @NonNls private static final String BUILDER_NAME = "haxe";
-  private final boolean myDebugBuilder;
 
-  protected HaxeModuleLevelBuilder(boolean debugBuilder) {
+  protected HaxeModuleLevelBuilder() {
     super(BuilderCategory.SOURCE_PROCESSOR);
-    myDebugBuilder = debugBuilder;
   }
 
   @NotNull
@@ -114,10 +112,6 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
   private boolean processModule(final CompileContext context,
                                 final DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> holder,
                                 final JpsModule module) {
-    final boolean isDebugRunner = "HaxeDebugRunner".equals(context.getBuilderParameter("RUNNER_ID"));
-    if (isDebugRunner ^ myDebugBuilder) {
-      return false;
-    }
     final JpsHaxeModuleSettings moduleSettings = JpsHaxeUtil.getModuleSettings(module);
     if (moduleSettings == null) {
       context.processMessage(new CompilerMessage(
@@ -195,7 +189,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
       @Override
       public boolean isDebug() {
-        return isDebugRunner;
+        return false;
       }
 
       @Override

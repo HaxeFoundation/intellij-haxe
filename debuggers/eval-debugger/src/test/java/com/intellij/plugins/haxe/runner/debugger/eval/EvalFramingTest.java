@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * Pins the ASYMMETRIC wire framing: requests carry a 2-byte LE prefix (the
  * VM's Socket.read_string reads a ui16), responses a 4-byte LE prefix (its
  * send_string writes an i32). Getting either side wrong yields the VM's
- * -32700 "Invalid token" — which is exactly how the asymmetry was found.
+ * -32700 "Invalid token".
  */
 @DisplayName("Eval debugger: framing")
 public class EvalFramingTest {

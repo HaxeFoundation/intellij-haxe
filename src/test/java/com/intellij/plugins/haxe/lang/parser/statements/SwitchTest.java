@@ -53,6 +53,28 @@ public class SwitchTest extends StatementTestBase {
   public void testExtractorExpression() throws Throwable {
     doTest(true);
   }
+
+  /** The hxparse stream DSL: an array-pattern element followed by {@code && condition}, which the compiler accepts because it parses a case pattern as an expression. */
+  @Test
+  @DisplayName("stream pattern condition")
+  public void testStreamPatternCondition() throws Throwable {
+    doTest(true, true);
+  }
+
+  /** Any binary operator except {@code |} may follow a pattern, whether it is an array element or a plain pattern. */
+  @Test
+  @DisplayName("pattern operator tail")
+  public void testPatternOperatorTail() throws Throwable {
+    doTest(true, true);
+  }
+
+  /** A capture initialized with a reification expression, as the stream DSL writes it: {@code case [e = macro $b{el}]}. */
+  @Test
+  @DisplayName("capture with reification init")
+  public void testCaptureWithReificationInit() throws Throwable {
+    doTest(true, true);
+  }
+
   @Test
   @DisplayName("chained extractors expression")
   public void testChainedExtractorsExpression() throws Throwable {

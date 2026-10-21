@@ -18,13 +18,14 @@
 package com.intellij.plugins.haxe.buildsystem.hxml;
 
 import com.intellij.openapi.fileTypes.LanguageFileType;
-import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
+import java.nio.charset.StandardCharsets;
 
 public class HXMLFileType extends LanguageFileType {
 
@@ -60,7 +61,7 @@ public class HXMLFileType extends LanguageFileType {
   }
 
   @Override
-  public String getCharset(@NotNull VirtualFile file, byte[] content) {
-    return CharsetToolkit.UTF8;
+  public String getCharset(@NotNull VirtualFile file, byte @NonNull [] content) {
+    return StandardCharsets.UTF_8.name();
   }
 }

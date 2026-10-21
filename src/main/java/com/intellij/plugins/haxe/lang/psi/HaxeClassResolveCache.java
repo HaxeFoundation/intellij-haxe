@@ -52,6 +52,11 @@ public class HaxeClassResolveCache {
   });
   }
 
+  /** Drops every entry; part of the plugin-wide clear ({@code HaxeResolveCaches}), which also runs on roots changes. */
+  public void clear() {
+    myMap.clear();
+  }
+
   public void put(@NotNull HaxeClass haxeClass, @NotNull HaxeResolveResult result) {
     myMap.put(haxeClass, result);
   }

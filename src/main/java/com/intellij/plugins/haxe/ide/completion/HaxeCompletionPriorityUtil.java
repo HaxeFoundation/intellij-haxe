@@ -161,21 +161,6 @@ public class HaxeCompletionPriorityUtil {
     return false;
   }
 
-  private boolean hasIterator(HaxeReference reference) {
-    if (reference == null) return false;
-
-    ResultHolder holder = HaxeExpressionEvaluator.evaluate(reference, null).result;
-    SpecificHaxeClassReference resolvedType = holder.getClassType();
-    if (resolvedType == null) return false;
-
-    return resolvedType.isLiteralArray() || hasIterator(resolvedType);
-  }
-
-  private boolean hasIterator(SpecificHaxeClassReference type) {
-    if (type.getHaxeClassModel() == null) return false;
-    return  type.getHaxeClassModel().getMember("iterator", null) != null;
-  }
-
   /*
    * If part of an inherit list, prioritize classes and interfaces
    *   - if part of an interface, prioritize other interfaces to extend

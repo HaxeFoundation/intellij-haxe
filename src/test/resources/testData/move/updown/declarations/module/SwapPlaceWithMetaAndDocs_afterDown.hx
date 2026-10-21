@@ -3,7 +3,7 @@ function functionA() {
 function functionC() {
 }
 /**
- some docs for ClassMoveB
+    some docs for ClassMoveB
 **/
 @runtime
 @:compile

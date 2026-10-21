@@ -1,0 +1,7 @@
+BASIC 1 EXCLUDES
+public
+function
+abstract
+var
+class
+if

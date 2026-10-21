@@ -7,15 +7,17 @@ import hscript.Tools;
 import ijhaxe.hxcpp.debug.DebuggerApi;
 
 /**
-	Evaluates watch/hover/condition expressions against a stopped frame.
+	Evaluates watch, hover and breakpoint-condition expressions against a
+	stopped frame.
 
-	In-process again pays off: hscript parses the expression and evaluates it by
-	ordinary reflection, so operators, comparisons, field access, indexing and
-	method calls all work with no interpreter of our own. The frame's locals
-	(and `this`) are bridged into hscript's variable scope; a bare `ident = expr`
-	assignment is routed back to the runtime so it persists in the debuggee.
+	The server runs inside the debuggee, so hscript can parse the expression
+	and evaluate it by ordinary reflection over the real values. Operators,
+	comparisons, field access, indexing and method calls therefore all work
+	without a custom interpreter. The frame's locals (and `this`) are copied
+	into hscript's variable scope. A bare `ident = expr` assignment is written
+	back through the runtime, so it persists in the debuggee.
 
-	Pure Haxe, so it runs under the interpreter in the unit tests.
+	It is plain Haxe, so the unit tests run it under the interpreter.
 **/
 class Evaluator {
 	final debugger:DebuggerApi;
@@ -36,8 +38,9 @@ class Evaluator {
 
 		var interp = new ResolvingInterp();
 		for (name in debugger.stackVariables(thread, frame)) {
-			// a corrupt slot must not break the whole expression: skip it (the
-			// expression then fails with EUnknownVariable only if it USES it)
+			// A corrupt slot is skipped rather than failing the whole
+			// expression; only an expression that USES it fails, with
+			// EUnknownVariable.
 			try {
 				interp.variables.set(name, debugger.stackVariableValue(thread, frame, name));
 			} catch (e:Dynamic) {}
@@ -64,10 +67,10 @@ class Evaluator {
 	}
 
 	/**
-		Evaluates `condition` as a Bool for a conditional breakpoint. FAIL SAFE:
-		any error (bad expression, non-Bool, missing local) returns true, so a
-		broken condition stops rather than silently swallowing the breakpoint —
-		the caller surfaces the reason.
+		Evaluates `condition` as a Bool for a conditional breakpoint. It fails
+		safe: any error (a bad expression, a non-Bool result, a missing local)
+		returns true, so a broken condition stops at the breakpoint instead of
+		silently skipping it.
 	**/
 	public function conditionHolds(thread:Int, frame:Int, condition:String):Bool {
 		return try {
@@ -79,8 +82,9 @@ class Evaluator {
 		}
 	}
 
-	// `name = rhs` where `name` is a bare identifier (not `==`, `<=`, etc.).
-	// Returns null when the expression is not such an assignment.
+	// Splits `name = rhs`, where `name` is a bare identifier and `=` is not
+	// part of `==`, `<=` or the like. Null when the expression is not such an
+	// assignment.
 	static function topLevelAssignment(source:String):Null<{name:String, rhs:String}> {
 		var eq = findTopLevelAssign(source);
 		if (eq < 0) {
@@ -93,8 +97,9 @@ class Evaluator {
 		return {name: name, rhs: StringTools.trim(source.substr(eq + 1))};
 	}
 
-	// Index of a top-level `=` that is a plain assignment (not ==, !=, <=, >=),
-	// ignoring anything inside brackets/parens/strings; -1 if none.
+	// The index of the first top-level `=` that is a plain assignment (not
+	// ==, !=, <=, >=), ignoring anything inside brackets, parentheses and
+	// strings; -1 if there is none.
 	static function findTopLevelAssign(source:String):Int {
 		var depth = 0;
 		var inString = false;
@@ -143,43 +148,45 @@ class Evaluator {
 }
 
 /**
-	hscript `Interp` whose identifier lookup falls back to the debuggee's own
-	types, so expressions can call static methods and construct objects
+	An hscript `Interp` whose identifier lookup falls back to the debuggee's
+	own types, so expressions can call static methods and construct objects
 	(`Counter.bump(5)`, `my.pack.Target.fn(x)`, `new Point(1, 2)`).
 
-	Method calls run through `Reflect.callMethod` on the REAL object — hscript
-	is not a sandbox — so an evaluated call executes compiled debuggee code and
-	its side effects persist in the program.
+	hscript is not a sandbox: method calls run through `Reflect.callMethod` on
+	the REAL object. An evaluated call therefore executes compiled debuggee
+	code, and its side effects persist in the program.
 
-	Two mechanisms cover the two shapes a type name takes in an expression:
+	A type name takes one of two shapes in an expression, and each has its
+	own mechanism:
 
-	- a bare identifier (`Math`, `Std`, root-package `Counter`) resolves at
-	  execution time via the `resolve` override;
-	- a dotted path (`my.pack.Target.fn`) parses as field access on the free
-	  identifier `my`, so `bindTypePaths` pre-scans the parsed program and
-	  binds each resolvable dotted prefix into `variables` as nested anonymous
-	  objects (`my` → `{pack: {Target: cls}}`). Binding BEFORE execution (and
-	  only paths that actually resolve) keeps unknown-identifier errors — and
-	  with them the conditional-breakpoint fail-safe — intact.
+	- A bare identifier (`Math`, `Std`, the root-package `Counter`) resolves
+	  at execution time through the `resolve` override.
+	- A dotted path (`my.pack.Target.fn`) parses as field access on the free
+	  identifier `my`. `bindTypePaths` therefore scans the parsed program
+	  first and binds each dotted prefix that names a type into `variables`,
+	  as nested anonymous objects (`my` → `{pack: {Target: cls}}`). Binding
+	  happens BEFORE execution and only for paths that resolve, so unknown
+	  identifiers still raise errors, and a broken breakpoint condition
+	  still fails safe.
 
 	`new my.pack.Target(...)` needs neither: hscript keeps the full dotted
-	path in `ENew` and `Interp.cnew` resolves it directly.
+	path in `ENew`, and `Interp.cnew` resolves it directly.
 **/
 private class ResolvingInterp extends Interp {
-	// package objects created by bindTypePaths, so chains sharing a root
-	// (`a.b.X` and `a.c.Y`) merge instead of clobbering each other
+	// The package objects created by bindTypePaths, so that chains sharing a
+	// root (`a.b.X` and `a.c.Y`) merge instead of overwriting each other.
 	final packageRoots = new Map<String, Dynamic>();
 
 	/**
-		Bypasses `Interp.exprReturn`. On hxcpp, catching by enum type catches
-		ANY enum, so exprReturn's `catch(e:Stop)` also swallows hscript's own
-		`Error` enum: the switch matches no `Stop` case and falls through to
-		`return null` — every runtime error (unknown identifier, null access)
-		silently evaluated to null on the native target while correctly
-		throwing under the interpreter. Calling `expr` directly lets errors
-		propagate; the `Stop` control-flow enums a top-level `return`/`break`
-		would throw are re-handled here by name (`Stop` itself is
-		module-private to hscript, so it cannot be caught by type).
+		Bypasses `Interp.exprReturn`. On hxcpp, a catch typed to one enum
+		catches ANY enum, so exprReturn's `catch(e:Stop)` also catches
+		hscript's own `Error` enum. Its switch matches no `Stop` case and falls
+		through to `return null`. Every runtime error (unknown identifier, null
+		access) would then evaluate to null on the native target, while the
+		interpreter throws correctly. Calling `expr` directly lets errors
+		propagate. The `Stop` values that a top-level `return` or `break`
+		throws are handled here by name, because `Stop` is private to its
+		hscript module and cannot be caught by type.
 	**/
 	override public function execute(program:Expr):Dynamic {
 		depth = 0;
@@ -220,9 +227,9 @@ private class ResolvingInterp extends Interp {
 	}
 
 	/**
-		Walks the parsed program and pre-binds every dotted type path (see the
-		class doc). Call after the frame locals are in `variables` — locals
-		shadow packages — and before `execute`.
+		Walks the parsed program and binds every dotted type path in advance
+		(see the class doc). Call it after the frame locals are in `variables`,
+		because locals shadow packages, and before `execute`.
 	**/
 	public function bindTypePaths(program:Expr):Void {
 		switch (Tools.expr(program)) {
@@ -233,11 +240,11 @@ private class ResolvingInterp extends Interp {
 		Tools.iter(program, bindTypePaths);
 	}
 
-	// `program` is the outermost EField of an `a.b.c.d` chain; binds the
-	// longest dotted prefix that names a class or enum, if any
-	function tryBindChain(program:Expr):Void {
+	// Binds the longest dotted prefix of an `a.b.c.d` chain that names a class
+	// or enum, if there is one. `chain` is the chain's outermost EField.
+	function tryBindChain(chain:Expr):Void {
 		var segments = new Array<String>();
-		var current = program;
+		var current = chain;
 		while (true) {
 			switch (Tools.expr(current)) {
 				case EField(inner, field):
@@ -250,8 +257,8 @@ private class ResolvingInterp extends Interp {
 					return; // rooted in an expression, not a free identifier
 			}
 		}
-		// a frame local (or anything else already bound) owns the root name;
-		// the synthesized package objects are the one thing safe to extend
+		// A frame local, or anything else already bound, owns the root name.
+		// Only the package objects created here may be extended.
 		if (variables.exists(segments[0]) && !packageRoots.exists(segments[0])) {
 			return;
 		}
@@ -271,7 +278,7 @@ private class ResolvingInterp extends Interp {
 		}
 	}
 
-	// materializes `a.b.Cls` as variables["a"] = {b: {Cls: type}}
+	// binds `a.b.Cls` as variables["a"] = {b: {Cls: type}}
 	function bindPath(segments:Array<String>, length:Int, type:Dynamic):Void {
 		var root = packageRoots.get(segments[0]);
 		if (root == null) {

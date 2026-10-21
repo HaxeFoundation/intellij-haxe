@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import com.intellij.plugins.haxe.model.evaluator.HaxeEvaluationTaint;
 
 
 public class HaxeGenericResolverCastUtil {
@@ -24,7 +25,7 @@ public class HaxeGenericResolverCastUtil {
 
     @NotNull
     public static HaxeGenericResolver translateFromTo(@NotNull HaxeGenericResolver resolver, @Nullable HaxeClass source, @Nullable HaxeClass target) {
-        HaxeGenericResolver newResolver = transformRecursionGuard.doPreventingRecursion(new RecursionKey(source, target), true, () -> _translateFromTo(resolver, source, target));
+        HaxeGenericResolver newResolver = HaxeEvaluationTaint.computeOrTaint(transformRecursionGuard, new RecursionKey(source, target), true, () -> _translateFromTo(resolver, source, target));
         if (newResolver == null) return resolver;
         return newResolver;
     }
@@ -215,7 +216,7 @@ public class HaxeGenericResolverCastUtil {
 
     private static boolean findClassHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path, HaxeGenericResolver parentResolver) {
         // stop if "from" is typeParameter without constraints
-        Boolean result = findClassHierarchyRecursionGuard.computePreventingRecursion(from, true, () -> {
+        Boolean result = HaxeEvaluationTaint.computeOrTaint(findClassHierarchyRecursionGuard, from, true, () -> {
             if (from instanceof HaxeGenericListPart part && part.getGenericConstraintPart() == null) return false;
 
             HaxeClassModel fromModel = from.getModel();
@@ -478,9 +479,9 @@ public class HaxeGenericResolverCastUtil {
                             }
                         }
                     }
-                    for (@NotNull ResolverEntry entry : genericResolver.getConstaints()) {
+                    for (@NotNull ResolverEntry entry : genericResolver.getConstraints()) {
                         String lookupName = entry.typeParameter().getName();
-                        for (ResolverEntry constraintEntry : resolver.getConstaints()) {
+                        for (ResolverEntry constraintEntry : resolver.getConstraints()) {
                             if(Objects.equals(constraintEntry.typeParameter().getName(), lookupName)) {
                                 newResolver.addConstraint(entry.withType(constraintEntry.type()));
                             }

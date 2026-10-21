@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hashlink;
 
-import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
@@ -9,10 +9,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapBackend;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugProcess;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapSourceScopes;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.transport.AdapterProcess;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
@@ -20,6 +22,7 @@ import com.intellij.xdebugger.ui.XDebugTabLayouter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,25 +38,38 @@ import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStep
  */
 public class HashLinkBackend implements DapBackend {
   private static final int CONNECT_TIMEOUT_MILLIS = 15_000;
-  private static final long ADAPTER_KILL_WAIT_SECONDS = 2;
 
   private final Path hlExecutable;
   private final Path hlProgram;
   private final int debugPort;
+  private final List<String> sourceDirectories;
 
   private volatile long debuggeePid = -1;
   private volatile Process adapterProcess;
   private volatile BufferedReader adapterStdout;
   private volatile HashLinkRegistersPanel registersPanel;
 
-  public HashLinkBackend(Path hlExecutable, Path hlProgram, int debugPort) {
+  /**
+   * With the build's source directories (absolute, VFS separators): the HL
+   * debug tables carry classpath-relative file names, so without a scope any
+   * same-named file in the IDE project binds breakpoints into this debuggee
+   * and stack frames resolve to an arbitrary same-named editor file. An empty
+   * list disables the scoping.
+   */
+  public HashLinkBackend(Path hlExecutable, Path hlProgram, int debugPort, List<String> sourceDirectories) {
     this.hlExecutable = hlExecutable;
     this.hlProgram = hlProgram;
     this.debugPort = debugPort;
+    this.sourceDirectories = List.copyOf(sourceDirectories);
   }
 
-  int getDebugPort() {
-    return debugPort;
+  /** The debuggee's command line: the HashLink VM runs the program with {@code --debug-wait}, holding it at its first instruction until the adapter attaches on the debug port. */
+  @NotNull
+  public GeneralCommandLine debuggeeCommandLine(@Nullable String workDirectory) {
+    return new GeneralCommandLine()
+      .withExePath(hlExecutable.toString())
+      .withParameters("--debug", Integer.toString(debugPort), "--debug-wait", hlProgram.toString())
+      .withWorkDirectory(workDirectory);
   }
 
   @Override
@@ -63,14 +79,10 @@ public class HashLinkBackend implements DapBackend {
 
   @Override
   public DapClient connect() throws IOException {
-    try {
-      HashLinkAdapterLauncher.LaunchedAdapter launched = HashLinkAdapterLauncher.launch(hlExecutable);
-      adapterProcess = launched.process();
-      adapterStdout = launched.stdout();
-      return DapClient.connect("127.0.0.1", launched.port(), CONNECT_TIMEOUT_MILLIS);
-    } catch (ExecutionException e) {
-      throw new IOException(e.getMessage(), e);
-    }
+    AdapterProcess launched = HashLinkAdapterLauncher.launch(hlExecutable);
+    adapterProcess = launched.process();
+    adapterStdout = launched.stdout();
+    return DapClient.connect("127.0.0.1", launched.port(), CONNECT_TIMEOUT_MILLIS);
   }
 
   // Keeps the adapter's own stdout/stderr drained after the port announcement:
@@ -84,18 +96,7 @@ public class HashLinkBackend implements DapBackend {
     if (reader == null) {
       return;
     }
-    Thread gobbler = new Thread(() -> {
-      try (BufferedReader stdout = reader) {
-        String line;
-        while ((line = stdout.readLine()) != null) {
-          process.printSystem("[adapter] " + line + "\n");
-        }
-      } catch (IOException ignored) {
-        // adapter ended
-      }
-    }, "HashLink adapter output");
-    gobbler.setDaemon(true);
-    gobbler.start();
+    AdapterProcess.drainOutput(reader, line -> process.printSystem(line + "\n"));
   }
 
   @Override
@@ -131,7 +132,7 @@ public class HashLinkBackend implements DapBackend {
       // before the debuggee handler's own destroy runs, avoiding a race where
       // it TerminateProcess-es a still-attached debuggee
       try {
-        adapter.waitFor(ADAPTER_KILL_WAIT_SECONDS, TimeUnit.SECONDS);
+        adapter.waitFor(AdapterProcess.KILL_WAIT_SECONDS, TimeUnit.SECONDS);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
@@ -199,15 +200,26 @@ public class HashLinkBackend implements DapBackend {
 
   @Override
   public @Nullable XSourcePosition resolveSource(Project project, @Nullable String path, StackFrame frame) {
-    return HashLinkSourceResolver.resolve(project, path, frame);
+    return HashLinkSourceResolver.resolve(project, path, frame, sourceDirectories);
   }
 
-  // NOTE: the adapter currently only STORES the flag — labels stay class names
-  // until the hl_dyn_call_safe rendering lands (a faulting toString must be
-  // impossible, not merely handled; see the adapter docs).
+  // The debug tables carry classpath-relative (sometimes bare) file names, so
+  // the adapter can only match a breakpoint by name/suffix - a file outside
+  // the build's source directories must not be offered at all, or its
+  // same-named sibling inside the build binds and stops the debuggee.
+  @Override
+  public boolean acceptsBreakpointFile(String vfsPath) {
+    return DapSourceScopes.acceptsWhenScoped(vfsPath, sourceDirectories);
+  }
+
+  // The adapter accepts custom/setToStringRendering but only STORES the flag;
+  // offering the toggle would show a setting without effect.
+  // TODO: return true once the adapter renders labels through toString (needs
+  //       the hl_dyn_call_safe injection: a faulting toString must be impossible,
+  //       not merely handled; see the adapter docs).
   @Override
   public boolean supportsToStringRendering() {
-    return true;
+    return false;
   }
 
   @Override

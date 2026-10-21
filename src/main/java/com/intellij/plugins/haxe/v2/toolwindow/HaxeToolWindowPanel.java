@@ -1,0 +1,660 @@
+package com.intellij.plugins.haxe.v2.toolwindow;
+
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.ide.CommonActionsManager;
+import com.intellij.ide.DefaultTreeExpander;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.CommonShortcuts;
+import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.ModuleListener;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.vcs.changes.issueLinks.TreeLinkMouseListener;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerListener;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeInstalledLibraries;
+import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeInstalledLibraries.InstalledLibrary;
+import com.intellij.plugins.haxe.v2.buildtools.server.HaxeCompilationServerManager;
+import com.intellij.plugins.haxe.v2.buildtools.settings.*;
+import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowUiState.EmptyRows;
+import com.intellij.plugins.haxe.v2.toolwindow.actions.*;
+import com.intellij.plugins.haxe.v2.toolwindow.HaxeToolWindowModelBuilder.ContainerEntry;
+import com.intellij.plugins.haxe.v2.toolwindow.tree.*;
+import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
+import com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunConfigurations;
+import com.intellij.pom.Navigatable;
+import com.intellij.ui.PopupHandler;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.ui.tree.TreeUtil;
+import lombok.CustomLog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+
+/**
+ * Content panel of the Haxe tool window: a toolbar above the container tree
+ * (the project root and the modules, with their build files, settings and
+ * tools).
+ */
+@CustomLog
+public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements Disposable {
+
+  public static final String TOOLBAR_PLACE = "HaxeToolWindowToolbar";
+  public static final String TREE_POPUP_PLACE = "HaxeToolWindowTreePopup";
+
+  private final Project project;
+  private final DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+  private final Tree tree = new Tree(treeModel);
+  private final HaxeToolWindowModelBuilder modelBuilder;
+  private boolean initialExpansionDone;
+  // a restore expands many rows at once; the persister waits for its end instead of rewriting the state per row
+  private boolean restoringExpansion;
+  // last scan's tests build files per container (EDT only), for the container-row unit-test action
+  private final Map<String, List<String>> testsPathsByContainer = new HashMap<>();
+  private @Nullable String projectRootContainerId;
+
+  public HaxeToolWindowPanel(@NotNull Project project) {
+    super(true, true);
+    this.project = project;
+    this.modelBuilder = new HaxeToolWindowModelBuilder(project);
+
+    tree.setRootVisible(false);
+    tree.setShowsRootHandles(true);
+    HaxeToolWindowTreeRenderer renderer = new HaxeToolWindowTreeRenderer();
+    tree.setCellRenderer(renderer);
+    // per-row tooltips come from the renderer; a plain JTree never shows them unless registered
+    ToolTipManager.sharedInstance().registerComponent(tree);
+    new TreeClickListener(renderer).installOn(tree);
+    tree.addMouseListener(new PopupRowSelector());
+    PopupHandler.installPopupMenu(tree, createTreePopupGroup(), TREE_POPUP_PLACE);
+    TreeSpeedSearch.installOn(tree, true, HaxeToolWindowPanel::speedSearchText);
+    new TreeEnterAction().registerCustomShortcutSet(CommonShortcuts.ENTER, tree, this);
+    new TreeDeleteAction().registerCustomShortcutSet(CommonShortcuts.getDelete(), tree, this);
+    tree.addTreeExpansionListener(new ExpansionPersister());
+
+    setToolbar(createToolbar());
+    setContent(ScrollPaneFactory.createScrollPane(tree));
+
+    project.getMessageBus().connect(this).subscribe(ModuleListener.TOPIC, new ModuleListener() {
+      @Override
+      public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
+        refreshTree();
+      }
+
+      @Override
+      public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
+        refreshTree();
+      }
+    });
+    project.getMessageBus().connect(this)
+      .subscribe(HaxeCompilationServerListener.TOPIC, (HaxeCompilationServerListener)this::refreshTree);
+    // the tree shows every choice and every outcome; store mutations can
+    // originate outside this panel too (the define quickfix edits overrides)
+    project.getMessageBus().connect(this)
+      .subscribe(HaxeBuildEventListener.TOPIC, HaxeBuildEventListener.onAny(this::refreshTree));
+    project.getMessageBus().connect(this)
+      .subscribe(HaxeBuildSettingsListener.TOPIC, HaxeBuildSettingsListener.onAny(this::refreshTree));
+
+    refreshTree();
+  }
+
+  /** The toolbar's filter menu: which empty rows the tree leaves out. */
+  @NotNull
+  private DefaultActionGroup filterGroup() {
+    DefaultActionGroup filters = DefaultActionGroup.createPopupGroup(() -> HaxeBundle.message("haxe.toolwindow.filter"));
+    filters.getTemplatePresentation().setIcon(AllIcons.General.Filter);
+    filters.add(new HaxeHideEmptyRowsAction(EmptyRows.MODULES, this::refreshTree));
+    filters.add(new HaxeHideEmptyRowsAction(EmptyRows.NODES, this::refreshTree));
+    return filters;
+  }
+
+  @NotNull
+  private JComponent createToolbar() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new HaxeSyncProjectAction());
+    group.add(new HaxePurgeCachesAction());
+    group.addSeparator();
+    group.add(new HaxeAddModuleAction());
+    group.add(new HaxeRemoveNodeAction(this));
+    group.addSeparator();
+    group.add(new HaxeExecuteCommandAction());
+    group.addSeparator();
+    group.add(new HaxeSettingsActionGroup());
+
+    group.addSeparator();
+    group.add(filterGroup());
+    CommonActionsManager commonActions = CommonActionsManager.getInstance();
+    DefaultTreeExpander treeExpander = new DefaultTreeExpander(tree);
+    group.add(commonActions.createExpandAllAction(treeExpander, tree));
+    group.add(commonActions.createCollapseAllAction(treeExpander, tree));
+
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(TOOLBAR_PLACE, group, true);
+    toolbar.setTargetComponent(this);
+    return toolbar.getComponent();
+  }
+
+  @NotNull
+  private DefaultActionGroup createTreePopupGroup() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new HaxeRunActionNodeAction(this));
+    group.add(new HaxeRunProgramAction(this, false));
+    group.add(new HaxeRunProgramAction(this, true));
+    group.add(new HaxeProfileProgramAction(this));
+    group.add(new HaxeUnitTestsAction(this, false));
+    group.add(new HaxeUnitTestsAction(this, true));
+    group.add(new HaxeSetAsCompileCommandAction(this));
+    group.add(new HaxeAddCustomActionAction(this));
+    group.add(new HaxeEditCustomActionAction(this));
+    group.add(new HaxeDuplicateActionAction(this));
+    group.add(new HaxeRemoveCustomActionAction(this));
+    group.addSeparator();
+    group.add(new HaxeAddToolAction(this));
+    group.add(new HaxeEditToolAction(this));
+    group.add(new HaxeRemoveToolAction(this));
+    group.add(new HaxeSetActiveBuildFileAction(this));
+    group.add(new HaxeMarkTestsBuildFileAction(this));
+    group.add(new HaxeSetWorkDirectoryAction(this));
+    group.add(new HaxeReloadBuildFileAction(this));
+    group.add(new HaxeAddBuildFileAction(this));
+    group.add(new HaxeRemoveBuildFileAction(this));
+    group.add(new HaxeSelectTargetAction(this));
+    group.add(new HaxeSelectSectionAction(this));
+    group.add(new HaxeInstallLibraryAction(this));
+    group.add(new HaxeInstallAllMissingLibrariesAction(this));
+    group.add(new HaxeShowInHaxelibExplorerAction(this));
+    group.add(new HaxeShowLibraryDependenciesAction(this));
+    group.add(new HaxeConfigureIdeOverridesAction(this));
+    group.add(new HaxeConfigureCompileCommandAction(this));
+    group.add(new HaxeRunCompileCommandAction(this));
+    group.add(new HaxeSelectEnvironmentSdkAction(this));
+    group.add(new HaxeAddDefineAction(this));
+    group.add(new HaxeAddUndefineAction(this));
+    group.add(new HaxeEditDefineAction(this));
+    group.add(new HaxeRemoveDefineAction(this));
+    return group;
+  }
+
+  /**
+   * Rebuilds the tree: scan + parse under a non-blocking read action, then the
+   * installed picture (its snapshot; a haxelib process only while there is
+   * none) outside any read action, then the Swing model update on the EDT.
+   */
+  public void refreshTree() {
+    ReadAction.nonBlocking(modelBuilder::build)
+      .inSmartMode(project)
+      .coalesceBy(this)
+      .expireWith(this)
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess(scan -> AppExecutorUtil.getAppExecutorService().execute(() -> updateTree(scan)));
+  }
+
+  /** Never lets a haxelib failure prevent the tree from updating - install state just becomes unknown. */
+  private void updateTree(@NotNull List<ContainerEntry> scan) {
+    Map<String, InstalledLibrary> installed = null;
+    try {
+      installed = HaxeInstalledLibraries.getInstance(project).current();
+    }
+    catch (ProcessCanceledException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      log.warn("haxelib lookup failed; library install state unknown", e);
+    }
+    boolean hideEmptyNodes = HaxeToolWindowUiState.getInstance(project).isHiding(EmptyRows.NODES);
+    HaxeToolWindowTreeBuilder treeBuilder = new HaxeToolWindowTreeBuilder(project, hideEmptyNodes);
+    DefaultMutableTreeNode root = treeBuilder.buildRoot(visibleContainers(scan), installed);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (project.isDisposed()) return;
+      rememberTestsPaths(scan);
+      applyTreeUpdate(root);
+    });
+  }
+
+  /** The hide-empty-modules toggle removes module rows with no build files, no tools and no user configuration. */
+  @NotNull
+  private List<ContainerEntry> visibleContainers(@NotNull List<ContainerEntry> scan) {
+    if (!HaxeToolWindowUiState.getInstance(project).isHiding(EmptyRows.MODULES)) return scan;
+    return scan.stream()
+      .filter(container -> !container.emptyModule())
+      .toList();
+  }
+
+  /** Keeps the scan's per-container tests build files, so container-row actions resolve them without re-scanning. */
+  private void rememberTestsPaths(@NotNull List<ContainerEntry> scan) {
+    testsPathsByContainer.clear();
+    // reset alongside the map: a scan without a project-root container must
+    // not leave the previous id answering for a container that is gone
+    projectRootContainerId = null;
+    for (ContainerEntry container : scan) {
+      if (!container.testsPaths().isEmpty()) {
+        testsPathsByContainer.put(container.id(), container.testsPaths());
+      }
+      if (container.projectRoot()) {
+        projectRootContainerId = container.id();
+      }
+    }
+  }
+
+  /** The container's FIRST tests build file (marked or convention-suggested) from the last scan, or null - what a container-row run targets. */
+  @Nullable
+  private String testsPathFor(@NotNull String containerId) {
+    List<String> paths = testsPathsByContainer.get(containerId);
+    return paths == null || paths.isEmpty() ? null : paths.get(0);
+  }
+
+  /** The selection's tests build file: the row's own file, or the container's marked/suggested one from the last scan. */
+  @Nullable
+  public String resolveTestsPath(@Nullable Object selection) {
+    return switch (selection) {
+      case TestRunNode node -> node.buildFilePath();
+      case ModuleNode module -> testsPathFor(module.name());
+      case ProjectNode ignored -> projectRootContainerId == null ? null : testsPathFor(projectRootContainerId);
+      case null, default -> null;
+    };
+  }
+
+  /** User object of the tree's selected node, or null. */
+  @Nullable
+  public Object getSelectedUserObject() {
+    TreePath path = tree.getSelectionPath();
+    if (path == null) return null;
+    return path.getLastPathComponent() instanceof DefaultMutableTreeNode node ? node.getUserObject() : null;
+  }
+
+  /**
+   * The missing library rows of the selection's Libraries group — the group row
+   * itself, or any MISSING library row in it (siblings included); empty otherwise.
+   */
+  @NotNull
+  public List<LibraryNode> getSelectedGroupMissingLibraries() {
+    TreePath path = tree.getSelectionPath();
+    if (path == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return List.of();
+
+    DefaultMutableTreeNode groupNode = null;
+    if (node.getUserObject() instanceof GroupNode group && group.kind() == GroupKind.LIBRARIES) {
+      groupNode = node;
+    }
+    else if (node.getUserObject() instanceof LibraryNode library && !library.installed()
+             && node.getParent() instanceof DefaultMutableTreeNode parent) {
+      groupNode = parent;
+    }
+    if (groupNode == null) return List.of();
+
+    List<LibraryNode> missing = new ArrayList<>();
+    for (int i = 0; i < groupNode.getChildCount(); i++) {
+      if (groupNode.getChildAt(i) instanceof DefaultMutableTreeNode child
+          && child.getUserObject() instanceof LibraryNode library
+          && !library.installed()) {
+        missing.add(library);
+      }
+    }
+    return missing;
+  }
+
+  /** The text speed search matches against - the row's primary label as rendered. */
+  @NotNull
+  private static String speedSearchText(@NotNull TreePath path) {
+    if (!(path.getLastPathComponent() instanceof DefaultMutableTreeNode treeNode)) return "";
+    return treeNode.getUserObject() instanceof HaxeToolWindowNode node ? node.label() : "";
+  }
+
+  /** Supplies the selection's jump-to-source target so F4 / Jump to Source works on tree rows. */
+  @Override
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    super.uiDataSnapshot(sink);
+    Navigatable navigatable = HaxeToolWindowNavigation.forSelection(project, getSelectedUserObject());
+    if (navigatable != null) {
+      sink.set(CommonDataKeys.NAVIGATABLE, navigatable);
+    }
+  }
+
+  /** The build file row enclosing the selection (an action or child row), or null. */
+  @Nullable
+  public BuildFileRow getSelectedBuildFileRowAncestor() {
+    TreePath path = tree.getSelectionPath();
+    while (path != null) {
+      if (path.getLastPathComponent() instanceof DefaultMutableTreeNode node
+          && node.getUserObject() instanceof BuildFileRow row) {
+        return row;
+      }
+      path = path.getParentPath();
+    }
+    return null;
+  }
+
+  /** The IDE Overrides row of the selection, walking up from any of its child rows. */
+  @Nullable
+  public IdeOverridesNode getSelectedIdeOverridesNode() {
+    TreePath path = tree.getSelectionPath();
+    while (path != null) {
+      if (path.getLastPathComponent() instanceof DefaultMutableTreeNode node
+          && node.getUserObject() instanceof IdeOverridesNode overridesNode) {
+        return overridesNode;
+      }
+      path = path.getParentPath();
+    }
+    return null;
+  }
+
+  /** Anchor point for popups on the selected row, falling back to the tree's corner. */
+  @NotNull
+  public RelativePoint getSelectionPopupPoint() {
+    TreePath path = tree.getSelectionPath();
+    var bounds = path != null ? tree.getPathBounds(path) : null;
+    if (bounds == null) return new RelativePoint(tree, new Point(0, 0));
+    return new RelativePoint(tree, new Point(bounds.x, bounds.y + bounds.height));
+  }
+
+  /**
+   * Replaces the model while preserving the user's expansion and selection state.
+   * Rows are matched by stable identity (file path, module name), so volatile parts
+   * of a row - counts, the active marker, versions - do not reset the view. The
+   * first fill restores the expansion persisted in the workspace file, so the view
+   * survives an IDE restart the way the Maven/Gradle tool windows do.
+   */
+  private void applyTreeUpdate(@NotNull DefaultMutableTreeNode newRoot) {
+    Set<String> expandedKeys = collectExpandedKeys();
+    String selectedKey = chainKey(tree.getSelectionPath());
+
+    treeModel.setRoot(newRoot);
+    if (!initialExpansionDone) {
+      initialExpansionDone = true;
+      Set<String> savedKeys = HaxeToolWindowUiState.getInstance(project).getExpandedKeys();
+      if (savedKeys.isEmpty()) {
+        // nothing saved yet: project node, modules, Environment/Build groups and build files visible
+        TreeUtil.expand(tree, 4);
+      }
+      else {
+        expandAndSelect(newRoot, savedKeys, null);
+      }
+      return;
+    }
+    expandAndSelect(newRoot, expandedKeys, selectedKey);
+  }
+
+  private void expandAndSelect(@NotNull DefaultMutableTreeNode root,
+                               @NotNull Set<String> expandedKeys,
+                               @Nullable String selectedKey) {
+    restoringExpansion = true;
+    try {
+      forEachNode(root, node -> {
+        TreePath path = new TreePath(node.getPath());
+        String key = chainKey(path);
+        if (expandedKeys.contains(key)) {
+          tree.expandPath(path);
+        }
+        if (key != null && key.equals(selectedKey)) {
+          tree.setSelectionPath(path);
+        }
+      });
+    }
+    finally {
+      restoringExpansion = false;
+    }
+    persistExpansion();
+  }
+
+  private void persistExpansion() {
+    HaxeToolWindowUiState.getInstance(project).setExpandedKeys(collectExpandedKeys());
+  }
+
+  /** Mirrors the user's expand/collapse into the workspace-file state; a restore persists once, at its end. */
+  private final class ExpansionPersister implements TreeExpansionListener {
+    @Override
+    public void treeExpanded(TreeExpansionEvent event) {
+      if (!restoringExpansion) persistExpansion();
+    }
+
+    @Override
+    public void treeCollapsed(TreeExpansionEvent event) {
+      if (!restoringExpansion) persistExpansion();
+    }
+  }
+
+  @NotNull
+  private Set<String> collectExpandedKeys() {
+    Set<String> keys = new HashSet<>();
+    if (treeModel.getRoot() == null) return keys;
+    Enumeration<TreePath> expanded = tree.getExpandedDescendants(new TreePath(treeModel.getRoot()));
+    while (expanded != null && expanded.hasMoreElements()) {
+      String key = chainKey(expanded.nextElement());
+      if (key != null) {
+        keys.add(key);
+      }
+    }
+    return keys;
+  }
+
+  private static void forEachNode(@NotNull DefaultMutableTreeNode node, @NotNull Consumer<DefaultMutableTreeNode> visitor) {
+    visitor.accept(node);
+    for (int i = 0; i < node.getChildCount(); i++) {
+      forEachNode((DefaultMutableTreeNode)node.getChildAt(i), visitor);
+    }
+  }
+
+  /** Stable identity of a row's ancestry, independent of volatile row content. */
+  @Nullable
+  private static String chainKey(@Nullable TreePath path) {
+    if (path == null) return null;
+    StringBuilder key = new StringBuilder();
+    for (Object component : path.getPath()) {
+      if (!(component instanceof DefaultMutableTreeNode node) || node.getUserObject() == null) continue;
+      key.append('|').append(nodeKey(node.getUserObject()));
+    }
+    return key.toString();
+  }
+
+  @NotNull
+  private static String nodeKey(@NotNull Object userObject) {
+    return userObject instanceof HaxeToolWindowNode node ? node.expansionKey() : String.valueOf(userObject);
+  }
+
+  private final class PopupRowSelector extends MouseAdapter {
+    @Override
+    public void mousePressed(MouseEvent e) {
+      selectRowForPopup(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      selectRowForPopup(e);
+    }
+
+    /**
+     * A right-click acts on the row under the cursor: select it BEFORE the
+     * popup handler evaluates the menu actions (a JTree does not select on
+     * right-click by itself, leaving every selection-driven action hidden).
+     * Both pressed and released matter - the popup trigger fires on press or
+     * release depending on the platform.
+     */
+    private void selectRowForPopup(MouseEvent e) {
+      if (!e.isPopupTrigger()) return;
+      TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+      if (path != null && !tree.isPathSelected(path)) {
+        tree.setSelectionPath(path);
+      }
+    }
+  }
+
+  /**
+   * Left clicks on a row. A tagged fragment (a row's value, the server
+   * failure link) answers a single click and shows the hand cursor; the rest
+   * of the row only selects, and a double-click acts on the row like Enter.
+   */
+  private final class TreeClickListener extends TreeLinkMouseListener {
+    TreeClickListener(@NotNull HaxeToolWindowTreeRenderer renderer) {
+      super(renderer);
+    }
+
+    @Override
+    public boolean onClick(@NotNull MouseEvent e, int clickCount) {
+      if (!SwingUtilities.isLeftMouseButton(e)) return false;
+      TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+      Rectangle bounds = path == null ? null : tree.getPathBounds(path);
+      if (bounds == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return false;
+
+      Object userObject = node.getUserObject();
+      // drops down under the row like a combo box, so the click does not land inside the popup it opens
+      RelativePoint below = new RelativePoint(tree, new Point(e.getX(), bounds.y + bounds.height));
+      Object fragmentTag = getTagAt(e);
+      if (fragmentTag != null) {
+        if (clickCount == 1) followFragment(fragmentTag, userObject, below);
+        return true;
+      }
+      return clickCount == 2 && actOnNode(userObject, below);
+    }
+
+    @Override
+    protected boolean doCacheLastNode() {
+      // the tree paints every row with the same renderer, so a cached hit-test row goes stale
+      return false;
+    }
+  }
+
+  /** Opens the server console at the tab serving this container's SDK — the status view holds the failure detail. */
+  private void openServerConsole(@NotNull String containerId) {
+    HaxeServerConsoleWindowFactory.open(project, HaxeCompilationServerManager.serverIdFor(project, containerId));
+  }
+
+  /** What a double-click or Enter does to a row: its activation (run, launch, open), else its chooser or toggle. */
+  private boolean actOnNode(@Nullable Object userObject, @NotNull RelativePoint point) {
+    return activateNode(userObject) || interactWithNode(userObject, point);
+  }
+
+  /** A click on a tagged fragment: the server failure text opens the server console, a row's value its chooser. */
+  private void followFragment(@NotNull Object fragmentTag, @Nullable Object userObject, @NotNull RelativePoint point) {
+    switch (fragmentTag) {
+      case ServerFailureLink link -> openServerConsole(link.containerId());
+      case RowValueLink ignored -> interactWithNode(userObject, point);
+      default -> { }
+    }
+  }
+
+  /** The row's ACTIVATION, the first thing a double-click and Enter try. False when the row has none. */
+  private boolean activateNode(@Nullable Object userObject) {
+    switch (userObject) {
+      case BuildFileRow row when row.buildFile().file().isValid() ->
+        new OpenFileDescriptor(project, row.buildFile().file()).navigate(true);
+      case ActionNode actionNode -> HaxeToolWindowLaunches.runAction(project, actionNode);
+      case ToolNode toolNode -> HaxeToolWindowLaunches.runTool(project, toolNode);
+      case ProgramNode programNode -> HaxeToolWindowLaunches.runProgram(project, programNode, DefaultRunExecutor.getRunExecutorInstance());
+      case TestRunNode testRunNode -> HaxeTestRunConfigurations.run(project, testRunNode.buildFilePath());
+      case null, default -> {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** The row's chooser/toggle INTERACTION: a click on its value, or a double-click/Enter on a row without an activation. */
+  private boolean interactWithNode(@Nullable Object userObject, @NotNull RelativePoint point) {
+    switch (userObject) {
+      case TargetNode targetNode when targetNode.selectable() -> HaxeToolWindowEditors.showTargetPopup(project, targetNode, point);
+      case SectionNode sectionNode -> HaxeToolWindowEditors.showSectionPopup(project, sectionNode, point);
+      case EnvSdkNode sdkNode -> HaxeToolWindowEditors.showEnvironmentSdkPopup(project, sdkNode, point);
+      case EnvLanguageLevelNode levelNode -> HaxeToolWindowEditors.showLanguageLevelPopup(project, levelNode, point);
+      case ServerInstanceNode serverInstance -> HaxeToolWindowEditors.showServerInstancePopup(project, serverInstance, point);
+      case ConnectionModeNode connectionMode -> HaxeToolWindowEditors.showConnectionModePopup(project, connectionMode, point);
+      case IdeCustomTargetNode customTargetNode -> HaxeToolWindowEditors.editCustomTarget(project, customTargetNode);
+      case EnvCompileCommandNode compileCommand -> HaxeToolWindowEditors.configureCompileCommand(project, compileCommand);
+      case CompilationServerNode serverNode -> HaxeToolWindowEditors.toggleCompilationServer(project, serverNode);
+      case null, default -> {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Enter mirrors the mouse: a row's activation (run, launch, open) first,
+   * its chooser/toggle second, and rows with neither toggle their expansion.
+   */
+  private final class TreeEnterAction extends DumbAwareAction {
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      Object selected = getSelectedUserObject();
+      if (actOnNode(selected, getSelectionPopupPoint())) return;
+      toggleSelectedExpansion();
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(tree.getSelectionPath() != null);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+  }
+
+  /** Delete removes the selected removable row after confirmation, through the dispatch the toolbar's Remove shares. */
+  private final class TreeDeleteAction extends DumbAwareAction {
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      HaxeToolWindowEditors.confirmAndRemove(project, getSelectedUserObject());
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(HaxeToolWindowEditors.isRemovable(getSelectedUserObject()));
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+  }
+
+  private void toggleSelectedExpansion() {
+    TreePath path = tree.getSelectionPath();
+    if (path == null) return;
+    if (tree.isExpanded(path)) {
+      tree.collapsePath(path);
+    }
+    else {
+      tree.expandPath(path);
+    }
+  }
+
+  @Override
+  public void dispose() {
+    // message bus connection is tied to this Disposable; nothing else to release
+  }
+}

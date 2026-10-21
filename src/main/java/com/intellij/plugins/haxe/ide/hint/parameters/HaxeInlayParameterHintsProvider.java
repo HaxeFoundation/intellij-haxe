@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 
 public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvider {
 
@@ -208,7 +209,7 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
         HaxeResolveResult result = type.getReferenceExpression().resolveHaxeClass();
 
         if (result.isHaxeClass() && result.getHaxeClass().isTypeDef()) {
-          result = HaxeResolver.fullyResolveTypedef(result.getHaxeClass(), result.getSpecialization());
+          result = HaxeResolveUtil.fullyResolveTypedef(result.getHaxeClass(), result.getSpecialization());
         }
         HaxeClass haxeClass = result.getHaxeClass();
         if (haxeClass != null) {

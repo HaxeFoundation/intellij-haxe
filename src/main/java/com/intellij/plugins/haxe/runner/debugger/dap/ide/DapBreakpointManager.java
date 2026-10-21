@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
@@ -13,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.BreakpointEvent;
 
 /**
@@ -22,8 +24,10 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.BreakpointE
  * live (pre-configurationDone), register/unregister only mutate the maps; the
  * debug process flushes everything once during initialization.
  *
- * Conditions are passed through as written — the hxcpp-debug-server evaluates
- * them with its own expression interpreter at each hit.
+ * Conditions go to the server (qualified by the backend), which evaluates them
+ * at each hit; a breakpoint whose condition the backend cannot take
+ * ({@link DapBackend#conditionProblem}) is withheld and shown invalid with the
+ * reason.
  */
 final class DapBreakpointManager {
   private final DapDebugProcess process;
@@ -77,6 +81,40 @@ final class DapBreakpointManager {
   }
 
   /**
+   * One-line description of the line breakpoints this session armed (file
+   * names with 1-based lines), for the session console. The first thing to
+   * check when a session "does not stop": an empty set means the IDE side
+   * never handed the session any breakpoints, while armed-but-unverified ones
+   * show a rejected icon on their gutter line instead. Files the backend
+   * scoped out (a same-named file from a sibling project) are listed as
+   * skipped so their silence is explained too.
+   */
+  synchronized String armedDescription() {
+    StringBuilder armed = new StringBuilder();
+    StringBuilder skipped = new StringBuilder();
+    for (Map.Entry<String, LinkedHashSet<XLineBreakpoint<XBreakpointProperties>>> entry : byFile.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        continue;
+      }
+      StringBuilder target = process.backend().acceptsBreakpointFile(entry.getKey()) ? armed : skipped;
+      if (!target.isEmpty()) {
+        target.append("; ");
+      }
+      target.append(Path.of(entry.getKey()).getFileName()).append(':');
+      String lines = entry.getValue().stream()
+        .map(breakpoint -> String.valueOf(breakpoint.getLine() + 1))
+        .collect(Collectors.joining(","));
+      target.append(lines);
+    }
+    StringBuilder description = new StringBuilder();
+    description.append(armed.isEmpty() ? "no line breakpoints registered" : "line breakpoints armed: " + armed);
+    if (!skipped.isEmpty()) {
+      description.append(" — outside this build's classpaths, not armed: ").append(skipped);
+    }
+    return description.toString();
+  }
+
+  /**
    * Adds a transient run-to-cursor breakpoint at path:line (1-based) and flushes that
    * file. Returns whether the line resolved to executable code (so the caller knows
    * whether resuming will actually stop there). Runs on the request thread.
@@ -108,6 +146,12 @@ final class DapBreakpointManager {
   // Runs on the request thread (or event pump). Returns whether the transient
   // run-to line for this file (if any) resolved to code; true when there is none.
   private boolean flushFile(String path) {
+    // a file the backend scopes out (outside the build's source directories)
+    // is never offered - the debuggee-side name/suffix matching would bind it
+    // onto a same-named file that IS part of this build
+    if (!process.backend().acceptsBreakpointFile(path)) {
+      return false;
+    }
     List<XLineBreakpoint<XBreakpointProperties>> ordered;
     boolean appendRunTo;
     int runToLineLocal;
@@ -126,19 +170,22 @@ final class DapBreakpointManager {
     source.setName(Path.of(path).getFileName().toString());
     arguments.setSource(source);
 
+    Project project = process.getSession().getProject();
+    List<XLineBreakpoint<XBreakpointProperties>> sent = new ArrayList<>(ordered.size());
     List<SourceBreakpoint> requested = new ArrayList<>(ordered.size() + 1);
     for (XLineBreakpoint<XBreakpointProperties> breakpoint : ordered) {
+      String condition = qualifiedConditionOf(breakpoint);
+      String problem = condition == null ? null : process.backend().conditionProblem(project, condition);
+      if (problem != null) {
+        // withheld: without its condition the breakpoint would stop every time
+        presentBreakpointState(breakpoint, unverified(problem));
+        continue;
+      }
       SourceBreakpoint sb = new SourceBreakpoint();
       sb.setLine(breakpoint.getLine() + 1); // DAP lines are 1-based
-      // the IDE's "Condition" field, evaluated by the server at each hit -
-      // qualified like watch expressions (against the breakpoint's file)
-      String condition = conditionOf(breakpoint);
-      if (condition != null) {
-        condition = process.backend().qualifyExpression(
-          process.getSession().getProject(), breakpoint.getSourcePosition(), condition);
-      }
       sb.setCondition(condition);
       requested.add(sb);
+      sent.add(breakpoint);
     }
     if (appendRunTo) {
       SourceBreakpoint runTo = new SourceBreakpoint();
@@ -152,11 +199,11 @@ final class DapBreakpointManager {
     if (!(response instanceof SetBreakpointsResponse setResponse) || !response.isSuccess()) {
       return false;
     }
-    // responses come back in request order: the breakpoints, then the run-to line
+    // responses come back in request order: the sent breakpoints, then the run-to line
     List<Breakpoint> results = setResponse.getBody().getBreakpoints();
-    for (int i = 0; i < ordered.size() && i < results.size(); i++) {
+    for (int i = 0; i < sent.size() && i < results.size(); i++) {
       Breakpoint result = results.get(i);
-      XLineBreakpoint<XBreakpointProperties> breakpoint = ordered.get(i);
+      XLineBreakpoint<XBreakpointProperties> breakpoint = sent.get(i);
       if (result.getId() != null) {
         synchronized (this) {
           byAdapterId.put(result.getId(), breakpoint);
@@ -164,10 +211,29 @@ final class DapBreakpointManager {
       }
       presentBreakpointState(breakpoint, result);
     }
-    if (appendRunTo && ordered.size() < results.size()) {
-      return results.get(ordered.size()).isVerified();
+    if (appendRunTo && sent.size() < results.size()) {
+      return results.get(sent.size()).isVerified();
     }
     return true;
+  }
+
+  /**
+   * The IDE's "Condition" field of the breakpoint, qualified by the backend
+   * like watch expressions (against the breakpoint's file); null when unset.
+   */
+  private String qualifiedConditionOf(XLineBreakpoint<XBreakpointProperties> breakpoint) {
+    String condition = conditionOf(breakpoint);
+    if (condition == null) {
+      return null;
+    }
+    return process.backend().qualifyExpression(process.getSession().getProject(), breakpoint.getSourcePosition(), condition);
+  }
+
+  private static Breakpoint unverified(String message) {
+    Breakpoint state = new Breakpoint();
+    state.setVerified(false);
+    state.setMessage(message);
+    return state;
   }
 
   /**

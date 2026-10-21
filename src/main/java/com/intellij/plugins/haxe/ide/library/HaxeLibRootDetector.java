@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.haxelib.HaxelibRepositoryLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,7 @@ public class HaxeLibRootDetector extends RootDetector {
           progressIndicator.setText2(file.getPresentableUrl());
         }
 
-        if (file.findChild(".current") != null) {
+        if (file.findChild(HaxelibRepositoryLayout.CURRENT_VERSION_FILE_NAME) != null) {
           for (VirtualFile child : file.getChildren()) {
             if (child.isDirectory() && containsHaxeFiles(child)) {
               result.add(child);

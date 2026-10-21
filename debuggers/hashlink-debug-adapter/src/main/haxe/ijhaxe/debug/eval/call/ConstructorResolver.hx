@@ -10,20 +10,20 @@ import format.hl.Data.Opcode;
 import haxe.Int64;
 
 /**
-	Resolves everything needed to construct `new SomeClass(args)` in the debuggee.
+	Resolves everything needed to run `new SomeClass(args)` in the debuggee.
 
 	================================ HACK ================================
-	There is NO clean, supported way to reach HashLink's object allocator
-	(`hl_alloc_obj`) or a class's runtime `hl_type*` from the debug handshake:
-	the handshake only exposes addresses for *bytecode* functions, and
-	`hl_alloc_obj` is a C runtime native with no findex. So we recover them by
-	DISASSEMBLING the machine code the JIT emits for an `ONew` opcode.
+	The debug handshake offers NO supported way to reach HashLink's object
+	allocator (`hl_alloc_obj`) or a class's runtime `hl_type*`. It only
+	exposes addresses of *bytecode* functions, and `hl_alloc_obj` is a C
+	runtime native without a findex. The resolver therefore DISASSEMBLES the
+	machine code the JIT emits for an `ONew` opcode.
 
-	Every `new` in Haxe compiles to `ONew dst` (allocate) followed by a call to
-	the constructor. For an HOBJ/HSTRUCT, `ONew` is lowered (hashlink `jit.c`,
-	`ONew` -> `call_native_consts(hl_alloc_obj, {dst->t}, 1)`) to a fixed
-	set-argument-then-call sequence — the class type pointer into arg0, then
-	`mov (r/e)ax, <hl_alloc_obj> ; call`:
+	Every Haxe `new` compiles to `ONew dst` (allocate) followed by a call to
+	the constructor. For an HOBJ/HSTRUCT the JIT lowers `ONew` (hashlink
+	`jit.c`: `call_native_consts(hl_alloc_obj, {dst->t}, 1)`) to a fixed
+	sequence: load the class type pointer into argument 0, then
+	`mov (r/e)ax, <hl_alloc_obj>` and `call`:
 
 	```
 	x86-64:  48 B9/BF <typePtr:8>   mov rcx/rdi, <class hl_type*>  (win64/SysV arg0)
@@ -34,19 +34,19 @@ import haxe.Int64;
 	         FF D0                  call eax
 	```
 
-	We scan an `ONew` site for that sequence (MachineCode.mineArgThenCall picks
-	the arch form) and read the type pointer and allocator address. The
-	constructor's findex comes from the `OCall*` that follows, whose first
-	argument is the freshly allocated register. A single `ONew SomeClass` site
-	therefore yields everything to construct that class — and it only exists when
-	the program actually constructs the class, which is exactly the DCE-limited
-	scope we accept (a class the program never `new`s cannot be constructed, and
-	its constructor may have been stripped anyway).
+	The resolver scans an `ONew` site for that sequence
+	(MachineCode.mineArgThenCall picks the architecture's form) and reads the
+	type pointer and the allocator address. The constructor is the target of
+	the `OCall*` that follows and takes the new register as its first
+	argument. One `ONew SomeClass` site therefore yields everything needed to
+	construct the class. Such a site exists only when the program constructs
+	the class itself. That dead-code-elimination limit is accepted: a class
+	the program never instantiates may have lost its constructor to DCE anyway.
 
-	This is FRAGILE: it depends on the exact instruction selection of the
-	HashLink JIT. If the pattern is ever not found the feature reports itself
-	unavailable (see VariableInspector) rather than guessing — construction is
-	explicitly experimental.
+	This is FRAGILE: it depends on the exact instructions the HashLink JIT
+	selects. When the pattern is not found, construction reports itself as
+	unavailable (see DebuggeeCallService.construct) rather than guessing.
+	Construction is explicitly experimental.
 	=====================================================================
 **/
 class ConstructorResolver {
@@ -54,8 +54,8 @@ class ConstructorResolver {
 	final jit:JitInfo;
 	final memory:MemoryReader;
 
-	// hl_alloc_obj is the same across every ONew site; once seen, later sites
-	// must agree with it (a sanity check on the pattern match).
+	// hl_alloc_obj is the same at every ONew site. Once a site has supplied it,
+	// a site that disagrees is treated as a failed pattern match.
 	var allocFnValue:Pointer = Int64.ofInt(0);
 	var allocResolved = false;
 	final cache:Map<String, Null<ConstructorSite>> = new Map();
@@ -68,8 +68,8 @@ class ConstructorResolver {
 
 	/**
 		The construction recipe for `className`, or null when the program never
-		constructs it (so we have no ONew site to mine) or the machine-code
-		pattern is absent (non-x86-64 / a JIT we don't recognise).
+		constructs it (no ONew site to mine) or the machine-code pattern is
+		absent (a JIT whose output is not recognised).
 	**/
 	public function resolve(className:String):Null<ConstructorSite> {
 		if (cache.exists(className)) {
@@ -92,19 +92,19 @@ class ConstructorResolver {
 				}
 				var mined = mineOnew(fidx, op);
 				if (mined == null) {
-					continue; // pattern not found at this site: try another / give up
+					continue; // pattern not found at this site: try the next one
 				}
 				var ctorOp = ctorCallAfter(ops, op, dst);
 				if (ctorOp < 0) {
-					continue; // no constructor call follows (unusual): try another site
+					continue; // no constructor call follows (unusual): try the next site
 				}
-				// map the raw findex in the OCall to a function ARRAY index (what
-				// functionType/functionEntry expect) — findex != array position
+				// the OCall carries a raw findex; functionType/functionEntry expect the
+				// function ARRAY index, which is a different number
 				var ctorIndex = module.callTargetFunction(fidx, ctorOp);
 				if (ctorIndex < 0) {
 					continue;
 				}
-				return {typePointer: mined.typePtr, allocFunction: mined.allocFn, ctorFindex: ctorIndex};
+				return {typePointer: mined.typePtr, allocFunction: mined.allocFn, constructorIndex: ctorIndex};
 			}
 		}
 		return null;
@@ -126,7 +126,7 @@ class ConstructorResolver {
 	}
 
 	// Reads the ONew site's machine code and extracts the class type pointer and
-	// the allocator address from the fixed mov/mov/call sequence.
+	// the allocator address from its set-argument-then-call sequence.
 	function mineOnew(fidx:Int, op:Int):Null<{typePtr:Pointer, allocFn:Pointer}> {
 		var start = jit.addressOf(fidx, op);
 		var end = jit.addressOf(fidx, op + 1);
@@ -135,13 +135,12 @@ class ConstructorResolver {
 			return null; // implausible span
 		}
 		var code = memory.read(start, len);
-		// look for the alloc call: arg0 = type ptr, then mov (r/e)ax,allocFn ; call
 		var i = 0;
 		while (i < len) {
 			var mined = MachineCode.mineArgThenCall(code, i, len, jit.is64, jit.winCall);
 			if (mined != null) {
 				if (allocResolved && !Int64.eq(mined.fn, allocFnValue)) {
-					// two ONew sites disagree on the allocator: don't trust it
+					// this site disagrees with an earlier one on the allocator: reject it
 					return null;
 				}
 				allocFnValue = mined.fn;
@@ -153,9 +152,8 @@ class ConstructorResolver {
 		return null;
 	}
 
-	// The op POSITION of the first OCall after `op` whose first argument is `dst`
-	// (the freshly allocated instance) — the constructor call. -1 if none within
-	// a short window.
+	// The position of the constructor call: the first OCall within 32 opcodes
+	// after `op` whose first argument is `dst`, the new instance. -1 if none.
 	function ctorCallAfter(ops:Array<Opcode>, op:Int, dst:Int):Int {
 		var limit = op + 32 < ops.length ? op + 32 : ops.length;
 		for (i in (op + 1)...limit) {

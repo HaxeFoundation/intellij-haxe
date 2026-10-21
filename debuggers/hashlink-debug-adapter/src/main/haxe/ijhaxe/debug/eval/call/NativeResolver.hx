@@ -9,21 +9,22 @@ import format.hl.Data.Opcode;
 import haxe.Int64;
 
 /**
-	Resolves the runtime address of a HashLink C native (e.g. `alloc_bytes`) by
-	DISASSEMBLING a jitted call site — the same hack as ConstructorResolver, and
-	the same reason: the debug handshake exposes addresses for bytecode functions
-	only, and natives have no findex we can turn into an address.
+	Finds the runtime address of a HashLink C native (e.g. `alloc_bytes`) by
+	DISASSEMBLING a jitted call to it. This is the same hack as
+	ConstructorResolver, for the same reason: the debug handshake gives
+	addresses only for bytecode functions, and a native's findex cannot be
+	turned into an address.
 
-	A bytecode `OCall` to a native compiles (hashlink `jit.c`,
+	The JIT compiles a bytecode `OCall` to a native (hashlink `jit.c`,
 	`op_call_fun` -> `call_native(m->functions_ptrs[findex])`) to the fixed
-	sequence `mov rax, <native> (48 B8 ..); call rax (FF D0)` — the native's
-	absolute address is the imm64. So we find any `OCall` whose target findex is
-	the native's, read that opcode's machine code, and pull the address out.
+	sequence `mov rax, <native>` (48 B8 ..) and `call rax` (FF D0), so the
+	native's absolute address is the imm64. The resolver finds any `OCall`
+	whose target findex is the native's and reads the address out of that
+	opcode's machine code.
 
-	The mining is arch-selected (x86 uses `mov eax, imm32; call eax`); if the
-	native is never called in the program (no site to mine) or the pattern is
-	absent, resolution fails and the caller degrades gracefully. See MachineCode
-	for the shared byte pattern.
+	x86 uses `mov eax, imm32; call eax` instead (see MachineCode). When the
+	program never calls the native, or the pattern is absent, resolution
+	returns null and the caller reports the feature as unavailable.
 **/
 class NativeResolver {
 	final module:ModuleDebugInfo;
@@ -38,7 +39,7 @@ class NativeResolver {
 	}
 
 	/**
-		The runtime address of native `name`, or null when it can't be mined.
+		The runtime address of native `name`, or null when it cannot be mined.
 	**/
 	public function resolve(name:String):Null<Pointer> {
 		if (cache.exists(name)) {
@@ -77,8 +78,8 @@ class NativeResolver {
 		}
 	}
 
-	// Reads the call site's machine code and pulls the native address out of the
-	// `mov rax, imm64 ; call rax` the JIT emitted for it.
+	// Reads the call site's machine code and returns the native address loaded
+	// by its `mov (r/e)ax, imm; call`.
 	function mineCallSite(fidx:Int, op:Int):Null<Pointer> {
 		var start = jit.addressOf(fidx, op);
 		var end = jit.addressOf(fidx, op + 1);

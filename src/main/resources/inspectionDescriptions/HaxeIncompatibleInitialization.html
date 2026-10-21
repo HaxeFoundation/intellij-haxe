@@ -1,0 +1,14 @@
+<html>
+<body>
+Reports initializers whose type does not fit the declared type - on local
+variables and fields - plus <code>Void</code> used as a value and
+null-coalescing (<code>??</code>) operands whose types cannot unify.
+<p><b>Example:</b></p>
+<pre><code>
+var age:Int = "old";           // String is not assignable to Int
+var name:String = count ?? "n/a";   // Int and String do not unify
+</code></pre>
+Quick fixes can change the declared type, remove the initializer, or wrap the
+value in a standard conversion such as <code>Std.string(...)</code>.
+</body>
+</html>

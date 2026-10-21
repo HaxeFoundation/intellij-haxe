@@ -6,13 +6,13 @@ class Test {
     }
 
     /*
-    MML_COMMENT
+        MML_COMMENT
      */
     public function multiline() {
     }
 
     /**
-    DOC_COMMENT
+        DOC_COMMENT
     */
     public function javadoc() {
     }

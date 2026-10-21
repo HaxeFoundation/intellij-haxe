@@ -24,6 +24,9 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +101,7 @@ public class HaxeUsingModel extends HaxeImportableModel {
   @NotNull
   public List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificTypeReference applyTo, @Nullable String name) {
     List<HaxeClassModel> classes = getClassModels();
-    if (classes == null || classes.isEmpty()) return Collections.emptyList();
+    if (classes.isEmpty()) return Collections.emptyList();
 
     List<HaxeMethodModel> result = null;
     HaxeGenericResolver resolver = null;
@@ -113,15 +116,9 @@ public class HaxeUsingModel extends HaxeImportableModel {
       List<HaxeMethodModel> methods = null;
       if (name != null) {
         if(classModel.isTypedef()) {
-          SpecificTypeReference typeReference = classModel.getInstanceReference().fullyResolveTypeDefAndUnwrapNullTypeReference();
-          if (typeReference instanceof SpecificHaxeClassReference classReference) {
-            HaxeClass haxeClass = classReference.getHaxeClass();
-            if (haxeClass != null) {
-              classModel = haxeClass.getModel();
-            }
-          }else {
-            continue;
-          }
+          HaxeClassModel target = resolveTypedefTarget(classModel);
+          if (target == null) continue;
+          classModel = target;
         }
         HaxeMethodModel method = classModel.getMethodSelf(name);
         if (method != null) methods = Collections.singletonList(method);
@@ -158,9 +155,21 @@ public class HaxeUsingModel extends HaxeImportableModel {
     return result == null ? Collections.emptyList() : result;
   }
 
+  /**
+   * The classes this using statement contributes extensions from, cached per
+   * PSI modification: extension lookup runs once per candidate member
+   * resolution.
+   */
+  @NotNull
   public List<HaxeClassModel> getClassModels() {
+    return CachedValuesManager.getCachedValue(basePsi, () ->
+      CachedValueProvider.Result.create(computeClassModels(), PsiModificationTracker.MODIFICATION_COUNT));
+  }
+
+  @NotNull
+  private List<HaxeClassModel> computeClassModels() {
     List<HaxeModel> result = HaxeProjectModel.fromElement(this.basePsi).resolve(getQualifiedInfo(), this.basePsi.getResolveScope());
-    if (result == null || result.isEmpty()) return null;
+    if (result == null || result.isEmpty()) return List.of();
 
     return result.stream()
       .flatMap(model -> (model instanceof HaxeFileModel)
@@ -169,5 +178,19 @@ public class HaxeUsingModel extends HaxeImportableModel {
       .filter(model -> model instanceof HaxeClassModel)
       .map(model -> (HaxeClassModel)model)
       .collect(Collectors.toList());
+  }
+
+  /** A using target that is a typedef contributes the class it aliases; resolved once per psi generation. */
+  @Nullable
+  private static HaxeClassModel resolveTypedefTarget(HaxeClassModel typedefModel) {
+    HaxeClass target = CachedValuesManager.getProjectPsiDependentCache(typedefModel.haxeClass, HaxeUsingModel::computeTypedefTarget);
+    return target != null ? target.getModel() : null;
+  }
+
+  @Nullable
+  private static HaxeClass computeTypedefTarget(HaxeClass typedefClass) {
+    SpecificTypeReference typeReference =
+      typedefClass.getModel().getInstanceReference().fullyResolveTypeDefAndUnwrapNullTypeReference();
+    return typeReference instanceof SpecificHaxeClassReference classReference ? classReference.getHaxeClass() : null;
   }
 }

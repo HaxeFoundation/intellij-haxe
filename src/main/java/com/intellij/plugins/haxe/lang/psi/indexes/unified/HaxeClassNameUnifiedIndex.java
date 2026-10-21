@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeClassN
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.lang.psi.indexes.compiler.HaxeClassNameCompilerIndex;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
@@ -31,8 +32,8 @@ public class HaxeClassNameUnifiedIndex {
         Collection<String> fileKeys = FileBasedIndex.getInstance().getAllKeys(HaxeClassNameFileIndex.INDEX, project);
 
         Set<String> result = new HashSet<>(stubKeys);
-        result.addAll(stubKeys);
         result.addAll(fileKeys);
+        result.addAll(HaxeClassNameCompilerIndex.getAllKeys(project));
 
         return result;
     }
@@ -47,19 +48,26 @@ public class HaxeClassNameUnifiedIndex {
         Collection<HaxeClass> stubResults = HaxeClassNameStubIndex.getByNameFiltered(name, project, scope);
         Collection<HaxeComponentIndexData> values = HaxeClassNameFileIndex.getValues(name, project, scope);
 
-        List<HaxeClassLookupData> listA = stubResults.stream()
+        // the stub filter only covers sdk-root files; library-shipped target
+        // externs need the package check on both paths
+        List<HaxeClassLookupData> stubList = stubResults.stream()
                 .map(HaxeClass::getModel)
+                .filter(model -> LookupUtil.isActiveTargetPackage(model.getQualifiedInfo().getPackageName(), project))
                 .map(HaxeClassLookupData::new)
                 .toList();
 
-        List<HaxeClassLookupData> listB = values.stream()
+        List<HaxeClassLookupData> fileList = values.stream()
+                .filter(indexData -> LookupUtil.isActiveTargetPackage(indexData.getFqn().getPackageName(), project))
                 .map( indexData -> new  HaxeClassLookupData(indexData, ()->{
                     return resolveModel(indexData.getFqn(), project, scope);
                 }))
                 .toList();
 
-        ArrayList<HaxeClassLookupData> result = new ArrayList<>(listA);
-        result.addAll(listB);
+        List<HaxeClassLookupData> compilerList = HaxeClassNameCompilerIndex.getCompletionData(name, project, scope);
+
+        ArrayList<HaxeClassLookupData> result = new ArrayList<>(stubList);
+        result.addAll(fileList);
+        result.addAll(compilerList);
 
         return result;
     }
@@ -95,13 +103,25 @@ public class HaxeClassNameUnifiedIndex {
         if (DumbService.isDumb(project)) return Collections.emptyList();
 
         GlobalSearchScope searchScope = scope != null ? scope : GlobalSearchScope.allScope(project);
+
         Collection<HaxeClass> stubResults = HaxeClassNameStubIndex.getByNameFiltered(name, project, searchScope);
         Collection<HaxeClass> fileResults = HaxeClassNameFileIndex.getByNameFiltered(name, project, searchScope);
+        Collection<HaxeClass> compilerResults = HaxeClassNameCompilerIndex.getByNameFiltered(name, project, searchScope);
 
         ArrayList<HaxeClass> haxeClasses = new ArrayList<>(stubResults);
         haxeClasses.addAll(fileResults);
+        haxeClasses.addAll(compilerResults);
 
-        return haxeClasses;
+        // the stub-side filter only covers sdk-root files, not library-shipped target externs
+        return haxeClasses.stream()
+          .filter(haxeClass -> LookupUtil.isActiveTargetPackage(packageNameOf(haxeClass), project))
+          .toList();
+    }
+
+    @Nullable
+    private static String packageNameOf(@NotNull HaxeClass haxeClass) {
+        HaxeClassModel model = haxeClass.getModel();
+        return model != null ? model.getQualifiedInfo().getPackageName() : null;
     }
 
 

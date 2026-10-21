@@ -4,6 +4,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,9 +20,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HxcppIntellijDebugRunner extends DapDebugRunnerBase<HxcppIntellijRunConfiguration, HxcppIntellijBackend> {
   public static final String RUNNER_ID = "HxcppIntellijDebugRunner";
-
-  /** Generous: the debuggee connects during process startup, typically instantly. */
-  private static final int DEBUGGEE_CONNECT_TIMEOUT_MILLIS = 30_000;
 
   @NotNull
   @Override
@@ -43,7 +41,8 @@ public class HxcppIntellijDebugRunner extends DapDebugRunnerBase<HxcppIntellijRu
   @Override
   protected HxcppIntellijBackend createBackend(HxcppIntellijRunConfiguration configuration) throws ExecutionException {
     try {
-      return new HxcppIntellijBackend(DEBUGGEE_CONNECT_TIMEOUT_MILLIS);
+      return new HxcppIntellijBackend(HxcppIntellijBackend.DEFAULT_CONNECT_TIMEOUT_MILLIS,
+                                      HaxeActionBeforeRunTaskProvider.buildStepSourceDirectories(configuration));
     } catch (IOException e) {
       throw new ExecutionException(HaxeDebuggerBundle.message("hxcpp.intellij.runner.listen.failed", e.getMessage()));
     }
@@ -52,8 +51,6 @@ public class HxcppIntellijDebugRunner extends DapDebugRunnerBase<HxcppIntellijRu
   @Override
   protected GeneralCommandLine createCommandLine(HxcppIntellijRunConfiguration configuration, HxcppIntellijBackend backend)
     throws ExecutionException {
-    return configuration.createCommandLine()
-      .withEnvironment(HxcppIntellijBackend.ENV_DEBUG_HOST, backend.getHost())
-      .withEnvironment(HxcppIntellijBackend.ENV_DEBUG_PORT, Integer.toString(backend.getPort()));
+    return backend.withDebuggeeEnvironment(configuration.createCommandLine());
   }
 }

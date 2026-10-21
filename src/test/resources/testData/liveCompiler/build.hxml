@@ -1,0 +1,5 @@
+-cp .
+-main Main
+--macro GenMacro.define()
+-js out.js
+--no-output

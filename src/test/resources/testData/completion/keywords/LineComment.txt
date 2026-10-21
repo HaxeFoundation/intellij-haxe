@@ -1,0 +1,6 @@
+BASIC 1 INCLUDES
+public
+function
+abstract
+var
+class

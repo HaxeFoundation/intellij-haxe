@@ -9,20 +9,20 @@ import ijhaxe.debug.target.WaitOutcome;
 import haxe.Int64;
 
 /**
-	Source-level stepping (next / stepIn / stepOut / smart step into): computes
-	the landings for a step from the CFG, plants the temporary INT3s, and
-	classifies step-temp hits (foreign threads, the recursion frame guard).
+	Source-level stepping: next, stepIn, stepOut and smart step into. A step's
+	landings are the code addresses where it may stop. This class computes them
+	from the control-flow graph, plants temporary INT3s ("temps") there, and
+	decides whether a temp hit ends the step.
 
-	A friend of DebugSession (@:access): it drives the session's trap machinery
+	A friend of DebugSession (see there): it uses the session's trap machinery
 	(stepOverAndResume, stepPastTempAndResume, enterStopped) and owns the
-	session's `activeStep` transitions; the session routes step commands and
-	step-temp trap hits here.
+	transitions of the session's `activeStep`.
 **/
 @:access(ijhaxe.debug.session.DebugSession)
 class SteppingController {
 	final session:DebugSession;
-	// Register->frame-slot arithmetic for reading a closure operand at a stop
-	// (same layout the locals view uses); lazy — jit exists only after launch.
+	// Maps registers to frame slots, to read a closure operand at a stop (the
+	// layout the locals view uses). Created lazily: jit exists only after launch.
 	var frameLayout:Null<FrameLayout> = null;
 
 	public function new(session:DebugSession) {
@@ -39,20 +39,19 @@ class SteppingController {
 	public function handleStep(requestSeq:Int, threadId:Int, mode:StepMode, targetId:Null<Int>):Void {
 		switch (session.state) {
 			case Stopped(_):
-				var interrupted = planStep(threadId, mode, targetId);
+				var interrupted = plantStepAndResume(threadId, mode, targetId);
 				session.state = Running;
 				session.emit(EvStepStarted(requestSeq)); // ack now; the stopped(reason:"step") event follows
 				if (interrupted != null) {
-					// another thread stopped the debuggee during the resume dance:
+					// another thread stopped the debuggee during the trap dance:
 					// report that stop right after the step response
 					session.handleWaitOutcome(interrupted);
 				} else if (session.activeStep == null) {
-					// No landing could be planted at all (the only "next" is an
-					// unresolvable native return). Behave like continue and report
-					// the debuggee as running rather than leaving the client
-					// waiting for a step stop that cannot exist. NOTE: a step whose
-					// landings ARE planted waits for them however long the code
-					// runs (a slow call is not a reason to give up the step).
+					// No landing could be planted (the only "next" is a native return
+					// that cannot be resolved). Behave like continue and report the
+					// debuggee as running, so the client does not wait for a step
+					// stop that cannot come. A step with planted landings waits for
+					// them however long the code runs.
 					session.emit(EvResumed(threadId));
 				}
 			default:
@@ -69,12 +68,12 @@ class SteppingController {
 		}
 	}
 
-	// The calls on `frameId`'s stopped line, as smart-step-into choices. Only the
-	// newest frame can step, so any other frame gets an empty list (not an error:
-	// the client asks per its UI state). A closure call's callee resolves from
-	// its RUNTIME value (see closureCallEntry) and is labeled with the actual
-	// function; only truly unresolvable callees (an unassigned register, a
-	// native-function closure, vtable dispatch) are omitted.
+	// The calls on the stopped line of `frameId`, offered as smart-step-into
+	// choices. Only the newest frame can step, so any other frame gets an empty
+	// list rather than an error; the client asks according to its UI state. A
+	// closure call is labeled with the function its runtime value holds (see
+	// closureCallEntry). Callees that cannot be resolved (an unassigned register,
+	// a native-function closure, a virtual call) are left out.
 	function computeStepInTargets(frameId:Int, threadId:Int):Array<StepInTargetInfo> {
 		var frame = session.inspector.frameAt(frameId);
 		if (frame == null || frame.index != 0) {
@@ -89,7 +88,7 @@ class SteppingController {
 		var targets = graph.stepTargets(startOp, startLine, (op) -> session.module.lineOf(fidx, op),
 			callAtOpAlreadyRan(eip, fidx, startOp));
 		var callOps = targets.callOps.copy();
-		callOps.sort((a, b) -> a - b); // the CFG walk is DFS; present in execution order
+		callOps.sort((a, b) -> a - b); // the graph walk is depth-first; list in execution order
 
 		var result:Array<StepInTargetInfo> = [];
 		for (op in callOps) {
@@ -107,21 +106,20 @@ class SteppingController {
 		return result;
 	}
 
-	// The runtime callee entry of the closure call at `op`, or null. The
-	// closure operand REGISTER's frame slot holds the vclosure pointer, whose
-	// `fun` field (@ +ptr) is the callee's jitted entry — the one thing a
-	// closure call has instead of a static findex. Null when the op is no
-	// closure call, the register does not (yet) hold a closure (assigned later
-	// on the same line), or the entry is outside known jitted code (a
-	// native-function closure): an INT3 must NEVER land on a guessed address.
+	// Where the callee of the closure call at `op` starts, or null. A closure
+	// call has no static findex: the frame slot of its operand register holds a
+	// vclosure pointer, whose `fun` field (@ +ptr) is the callee's jitted entry.
+	// Null when the op is not a closure call, when the register holds no closure
+	// yet (it is assigned later on the same line), or when the entry lies
+	// outside known jitted code (a native-function closure). An INT3 must never
+	// land on a guessed address.
 	//
-	// The returned address is the callee's OP-0 address (addressOf), NOT the
-	// raw `fun` pointer: `fun` is the function's true entry (prologue start),
-	// which is BEFORE op 0's line-table address, so landing there parks
-	// mid-prologue at an address resolveAddress cannot map — the NEXT step
-	// then finds no bytecode position and degrades to a plain resume (the
-	// callee returns immediately / the caller resumes on the wrong line). A
-	// static call plants at addressOf(callee, 0); a closure landing must match.
+	// The result is the callee's op-0 address (addressOf), not the raw `fun`
+	// pointer. `fun` is the true entry at the start of the prologue, before the
+	// address of op 0. A landing there stops mid-prologue at an address that
+	// resolveAddress cannot map, and the next step then finds no bytecode
+	// position and degrades to a plain resume. Static calls land at
+	// addressOf(callee, 0), and closure calls must match.
 	function closureCallEntry(threadId:Int, fidx:Int, op:Int):Null<Pointer> {
 		var closureReg = session.module.closureCallRegister(fidx, op);
 		if (closureReg < 0) {
@@ -129,7 +127,7 @@ class SteppingController {
 		}
 		var frames = session.stackWalker.walk(threadId);
 		if (frames.length == 0) {
-			return null; // stepping always parks on the newest frame; no frame = no read
+			return null; // no newest frame to read the operand from
 		}
 		var offsets = layout().registerOffsets(session.module.registers(fidx), session.module.argCount(fidx));
 		if (closureReg >= offsets.length) {
@@ -151,16 +149,17 @@ class SteppingController {
 		return session.jit.addressOf(position.fidx, 0);
 	}
 
-	// Plant the temporary breakpoints that mark where this step should land, then
-	// resume (stepping over the instruction the thread is parked on). `activeStep`
-	// afterwards says whether any landing was planted (null = the caller
-	// downgrades the step to a plain continue). Returns a pending debug event
-	// when another thread interrupted the resume dance.
-	// `targetId` (stepIn only): enter ONLY the call at that opcode (a smart step
-	// into choice from stepInTargets); the line-change/return landings stay
-	// planted as a fallback, so a selected call that never executes (short
-	// circuit, conditional) degrades to a step-over stop instead of running away.
-	function planStep(threadId:Int, mode:StepMode, targetId:Null<Int>):Null<WaitOutcome> {
+	// Plants temps at this step's landings, then resumes by stepping over the
+	// instruction the thread is stopped on. Afterwards `activeStep` is null when
+	// no landing could be planted, and the caller downgrades the step to a
+	// continue. Returns a pending debug event when another thread interrupted the
+	// trap dance.
+	//
+	// `targetId` (stepIn only) enters only the call at that opcode, a smart step
+	// into choice from stepInTargets. The line-change and return landings stay
+	// planted as a fallback, so a chosen call that never executes (short circuit,
+	// a condition) ends as a step-over stop instead of running away.
+	function plantStepAndResume(threadId:Int, mode:StepMode, targetId:Null<Int>):Null<WaitOutcome> {
 		session.breakpoints.clearTemps();
 		session.activeStep = null;
 		var startEsp = session.api.readRegister(session.debuggeePid, threadId, Esp);
@@ -211,11 +210,11 @@ class SteppingController {
 							targetedCallSite = {fidx: fidx, op: op};
 						}
 					} else if (targetId == null && session.module.closureCallRegister(fidx, op) >= 0) {
-						// a closure call whose operand register is not populated YET
-						// (the closure is produced earlier on this same line, e.g.
-						// `functions[0]()`): DEFER — trap the call op itself; when
-						// execution reaches it the operand is in hand, the entry
-						// resolves there and the hit resumes into it (never a landing)
+						// A closure call whose operand register is not set yet, because
+						// the closure is produced earlier on this line (`functions[0]()`).
+						// Defer it by trapping the call op itself. When execution gets
+						// there the operand is known, the entry resolves, and the hit
+						// resumes into the callee; it is never a landing.
 						var siteAddress = session.jit.addressOf(fidx, op);
 						session.breakpoints.addTemp(siteAddress);
 						pendingClosureSites.push({address: siteAddress, fidx: fidx, op: op});
@@ -239,18 +238,19 @@ class SteppingController {
 		return frames.length >= 2 ? frames[1].address : null;
 	}
 
-	// Parked MID-op — EIP past the op's first native byte — means the op's call
-	// instruction already ran and the thread sits at its return address (the only
-	// user-visible mid-op stop: temps/user breakpoints are planted at op
-	// starts). That call must not be offered or planted as enterable again.
+	// True when the thread stopped past the first native byte of `op`: the op's
+	// call has already run and the thread sits at its return address. That is the
+	// only mid-op stop a user sees, because temps and user breakpoints sit at op
+	// starts. Such a call must not be offered or planted as enterable again.
 	function callAtOpAlreadyRan(eip:Pointer, fidx:Int, op:Int):Bool {
 		return Int64.compare(eip, session.jit.addressOf(fidx, op)) > 0;
 	}
 
-	// A temporary (step) breakpoint. Temps live at CODE addresses, so any
-	// thread executing that line traps: a hit by a thread that does NOT own
-	// the step is never its landing — step that thread past and keep going.
-	// The owning thread also honours the recursion frame guard (step over/out).
+	// Handles a hit on a step temp. Temps sit at code addresses, so every thread
+	// that executes the line traps on them. A hit by a thread that does not own
+	// the step is never its landing; that thread is stepped past and runs on.
+	// The owning thread must also pass the recursion frame guard (step over and
+	// out).
 	public function handleTempHit(threadId:Int, hitAddress:Pointer):Void {
 		var step = session.activeStep;
 		if (step != null && (threadId != step.threadId || !frameGuardSatisfied(step))) {
@@ -258,10 +258,10 @@ class SteppingController {
 			return;
 		}
 		if (step != null && resolvePendingClosureSite(step, threadId, hitAddress)) {
-			// not a landing: this temp exists only to LOOK at the closure operand
-			// at its call site — the callee entry temp is planted now (or the
-			// callee is unresolvable and the step degrades to its line/return
-			// landings); either way, run on
+			// Not a landing: this temp only reads the closure operand at its call
+			// site. The callee's entry temp is planted now, or the callee cannot be
+			// resolved and the step falls back to its line and return landings.
+			// Either way, run on.
 			session.stepPastTempAndResume(threadId, hitAddress);
 			return;
 		}
@@ -273,10 +273,11 @@ class SteppingController {
 		session.emit(EvStoppedStep(threadId));
 	}
 
-	// True when `hitAddress` is one of this step's DEFERRED closure call sites:
-	// everything before the call has executed, so the closure operand register
-	// finally holds its value — resolve the callee entry and plant its temp.
-	// Consumed on first hit (a loop re-entering the line replants via a new step).
+	// True when `hitAddress` is one of this step's deferred closure call sites.
+	// Everything before the call has executed, so the operand register holds the
+	// closure: this resolves the callee entry and plants its temp. A site is used
+	// up by its first hit; a loop that re-enters the line gets new sites from the
+	// next step.
 	function resolvePendingClosureSite(step:ActiveStep, threadId:Int, hitAddress:Pointer):Bool {
 		var sites = step.pendingClosureSites;
 		if (sites == null) {
@@ -295,11 +296,11 @@ class SteppingController {
 		return false;
 	}
 
-	// A targeted step-in's entry temp is at the callee FUNCTION, which the line
-	// may invoke more than once (cfg.test1(1)...test1(2)): the landing is ours
-	// only when the new frame's return address points back at the CHOSEN call
-	// op. Non-entry landings (line change, return fallback) and untargeted
-	// steps are always valid.
+	// A targeted step-in plants its entry temp at the callee function, which the
+	// line may call more than once (`cfg.test1(1)` ... `test1(2)`). The landing
+	// counts only when the new frame's return address points back at the chosen
+	// call op. Other landings (line change, return) and untargeted steps always
+	// count.
 	function targetedCallSiteSatisfied(step:ActiveStep, threadId:Int, hitAddress:Pointer):Bool {
 		if (step.targetEntry == null || Int64.compare(hitAddress, step.targetEntry) != 0) {
 			return true;
@@ -312,17 +313,17 @@ class SteppingController {
 		if (frames.length < 2) {
 			return false; // no caller frame: cannot be the chosen call site
 		}
-		// resolve one byte BEFORE the return address: that is always inside the
-		// call instruction's op, while the return address itself can fall on the
-		// next op's boundary (a call whose op emits nothing after the call)
+		// Resolve the byte before the return address: it always lies inside the
+		// call's op, while the return address itself can fall on the next op's
+		// start (when the op emits nothing after the call).
 		var caller = session.jit.resolveAddress(Int64.sub(frames[1].address, Int64.ofInt(1)));
 		return caller != null && caller.fidx == site.fidx && caller.op == site.op;
 	}
 
-	// Stack grows down: a shallower-or-equal frame has esp >= the step-start
-	// esp. Only meaningful for the step's OWN thread — every thread has its own
-	// stack, so comparing another thread's esp against step.startEsp is noise
-	// (foreign temp hits are filtered out before this is consulted).
+	// The recursion frame guard. The stack grows down, so a frame at the step's
+	// depth or shallower has esp >= the esp at step start. The comparison only
+	// means something on the step's own thread, since each thread has its own
+	// stack; hits by other threads are filtered out before this runs.
 	function frameGuardSatisfied(step:ActiveStep):Bool {
 		if (step.mode == StepIn) {
 			return true; // any landing (same-frame line change or callee entry) is valid

@@ -4,9 +4,9 @@ import ijhaxe.debug.session.DebugEvent;
 
 
 /**
-	Something for the worker (dispatcher) thread to process. Client frames and
-	session events funnel through one queue so the dispatcher stays single-
-	threaded and message ordering is total.
+	A message for the worker thread, which runs the dispatcher. Client frames
+	and session events share one queue, so the dispatcher stays single-threaded
+	and sees all messages in one order.
 **/
 enum WorkerMessage {
 	ClientPayload(payload:String);

@@ -34,9 +34,9 @@ class StackWalker {
 	}
 
 	/**
-		Set by DebugSession once the exception control exists: the VM's own
-		throw-time stack capture for a thread (exc_stack_trace, top first).
-		Enables the linux VM-capture recovery in seedFromCEntry.
+		The VM's own throw-time stack capture of a thread (exc_stack_trace, top
+		first), set by DebugSession once VmExceptionControl exists. Enables the
+		linux fallback in recoverThroughSignalFrame.
 	**/
 	public var capturedStack:Null<Int->Array<Pointer>> = null;
 
@@ -50,9 +50,9 @@ class StackWalker {
 			// normal stop: RIP is inside a jitted function
 			frames.push({fidx: top.fidx, op: top.op, address: eip, ebp: ebp});
 		} else {
-			// stopped inside a C runtime function (e.g. an INT3 on hl_throw's
-			// entry): RBP still belongs to the caller, so seed the walk from the
-			// return-address chain and continue with the first JIT frame as base.
+			// Stopped inside a C runtime function (an INT3 on hl_throw's entry).
+			// RBP still belongs to the caller, so the walk starts from the chain of
+			// return addresses and continues from the first JIT frame's base.
 			ebp = seedFromCEntry(threadId, ebp, frames);
 		}
 
@@ -73,7 +73,7 @@ class StackWalker {
 			// the caller executes with base savedEbp
 			frames.push({fidx: resolved.fidx, op: resolved.op, address: returnAddress, ebp: savedEbp});
 
-			// caller frame must be at a higher stack address; otherwise stop to avoid loops
+			// the caller's frame must sit at a higher stack address; stop otherwise to avoid loops
 			if (Int64.compare(savedEbp, ebp) <= 0) {
 				break;
 			}
@@ -120,23 +120,23 @@ class StackWalker {
 	}
 
 	/**
-		Linux fallback for stops whose C call chain has no frame pointers: a
-		signal-delivered VM error (null access) reaches hl_throw through
-		-fomit-frame-pointer C frames the RBP unwind above cannot cross. No
-		register or signal frame survives to lean on - hl's SIGSEGV handler
-		patches the context and returns (sigreturn dismantles the sigframe
-		before the error path runs), and by the throw break the C code has
-		repurposed RBP (in practice a heap pointer). What DOES survive is
-		the stack itself plus the VM's own throw capture (exc_stack_trace):
+		Linux fallback for a stop whose C call chain has no frame pointers. A VM
+		error delivered as a signal (a null access) reaches hl_throw through C
+		frames built with -fomit-frame-pointer, which the RBP unwind above
+		cannot cross. No register or signal frame survives to help: hl's SIGSEGV
+		handler patches the context and returns (sigreturn removes the signal
+		frame before the error path runs), and by the throw break the C code has
+		reused RBP. What survives is the stack itself plus the VM's own throw
+		capture (exc_stack_trace):
 
-		- the top frame's IDENTITY is exc_stack_trace[0];
-		- its BASE is found by scanning the stack for the return address into
-		  the CALLER's function (exc_stack_trace[1]) - that word sits at
-		  [top_rbp+8] by the JIT's frame layout, so the base is one slot
-		  below. The candidate must hold a plausible saved-RBP (a stack
-		  address above itself) or the scan moves on - spilled copies of code
-		  pointers fail that test. The outer walk then chains every caller
-		  frame from the recovered base as usual.
+		- the top frame is exc_stack_trace[0];
+		- its base is found by scanning the stack for the return address into
+		  the caller's function (exc_stack_trace[1]). The JIT's frame layout
+		  puts that word at [top_rbp+8], so the base is one slot below it. The
+		  candidate must hold a plausible saved RBP (a stack address above
+		  itself), or the scan moves on; spilled copies of code pointers fail
+		  that test. The outer walk then chains the caller frames from the
+		  recovered base as usual.
 	**/
 	function recoverThroughSignalFrame(threadId:Int, frames:Array<StackFrameLocation>):Pointer {
 		// linux-only by construction: the capture offset in Align is the

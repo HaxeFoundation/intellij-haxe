@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
-import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,33 +52,7 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
   }
   @Override
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
-
-      HaxeClassReference superclassReference = new HaxeClassReference(haxeClass.getModel(), haxeClass);
-      if (resolver != null) {
-        SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
-
-        return reference.createHolder();
-      } else {
-        SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withoutGenerics(superclassReference);
-        return reference.createHolder();
-      }
-    }
-    return SpecificHaxeClassReference.getUnknown(aClass).createHolder();
-  }
-
-
-  @Nullable
-  public HaxeClassModel getDeclaringEnum() {
-    // TODO consider declaringClass (cached) instead
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
-      return haxeClass.getModel();
-    }
-    return null;
+    return declaringEnumType(resolver);
   }
 
   @Override

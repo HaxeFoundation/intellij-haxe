@@ -30,7 +30,6 @@ import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -53,6 +52,8 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil.*;
 
 /**
  * @author dsl
@@ -85,7 +86,7 @@ public class ExtractSuperClassUtil {
     String packageName = PackageIndex.getInstance(targetDirectory.getProject()).getPackageNameByDirectory(targetDirectory.getVirtualFile());
     PsiClass superclass = null;
     try {
-      HaxeFile haxeFile = (HaxeFile)HaxeFileTemplateUtil.createType(superclassName, "", packageName, targetDirectory, "HaxeClass", null);
+      HaxeFile haxeFile = (HaxeFile)HaxeFileTemplateUtil.createType(superclassName, "", packageName, targetDirectory, CLASS_TEMPLATE, null);
       PsiClass[] classes = haxeFile.getClasses();
 
       for (PsiClass psiClass : classes) {

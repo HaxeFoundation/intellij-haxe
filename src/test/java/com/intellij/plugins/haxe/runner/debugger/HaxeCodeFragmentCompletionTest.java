@@ -3,10 +3,9 @@ package com.intellij.plugins.haxe.runner.debugger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -24,24 +23,17 @@ import java.util.List;
  * crossing both typed as Dynamic/unknown and the popup came up empty.
  */
 @DisplayName("Debugger: code fragment completion")
-public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeCodeFragmentCompletionTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
     return "";
   }
 
-  /** Instance frame: stopped inside Widget.update(), where `this` is a Widget extends Base. */
+  /** The caret context of {@link HaxeDebuggerTestFixtures#instanceFrameProject}'s breakpoint. */
   private PsiElement frameContext() {
-    myFixture.addFileToProject("Base.hx",
-                               "class Base { public var inherited:Int = 2; public function baseAction():Void {} }");
-    myFixture.configureByText("Widget.hx", """
-      class Widget extends Base { var count:Int = 1;
-        function update() { trace<caret>(count); }
-        static function main() { new Widget().update(); } }""");
-    PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
-    assertNotNull(context, "context element at the breakpoint");
-    return context;
+    HaxeDebuggerTestFixtures.instanceFrameProject(myFixture);
+    return contextAtCaret();
   }
 
   /** Completion lookup strings at the end of {@code text} typed into an evaluate fragment. */
@@ -55,15 +47,9 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
   }
 
   @Test
-  @DisplayName("this completion lists own members")
-  public void testThisCompletionListsOwnMembers() {
-    assertContainsElements(fragmentCompletions("this."), "count", "update");
-  }
-
-  @Test
-  @DisplayName("this completion lists inherited members")
-  public void testThisCompletionListsInheritedMembers() {
-    assertContainsElements(fragmentCompletions("this."), "inherited", "baseAction");
+  @DisplayName("this completion lists own and inherited members")
+  public void testThisCompletionListsOwnAndInheritedMembers() {
+    assertContainsElements(fragmentCompletions("this."), "count", "update", "inherited", "baseAction");
   }
 
   @Test

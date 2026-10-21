@@ -4,16 +4,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.indexer.HaxeClassNameIndexer;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.plugins.haxe.model.HaxeModuleModel;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -73,21 +69,12 @@ public class HaxeClassNameFileIndex extends HaxeComponentBaseIndex {
                             }
 
                         }
-                        return false;
+                        return true; // keep iterating; false stops at the FIRST file and drops every other candidate
                     }
                 }, scope);
 
 
-//        List<HaxeClass> classes = new ArrayList<>();
-//        PsiManager instance = PsiManager.getInstance(project);
-//        List<HaxeComponentIndexData> values = FileBasedIndex.getInstance().getValues(INDEX, name, scope);
-//        for (HaxeComponentIndexData value : values) {
-//            String qualifiedName = value.getFqn().getQualifiedName(false);
-//            PsiElement classOrMemberByQName = HaxeResolveUtil.findClassOrMemberByQName(qualifiedName, instance, scope);
-//            if(classOrMemberByQName instanceof HaxeClass haxeClass) {
-//                classes.add(haxeClass);
-//            }
-//        }
+
 
         return classes;
     }

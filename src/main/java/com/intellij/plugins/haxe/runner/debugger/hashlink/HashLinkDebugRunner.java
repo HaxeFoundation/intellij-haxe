@@ -4,15 +4,13 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.nio.file.Path;
+import com.intellij.plugins.haxe.v2.runconfig.HaxeActionBeforeRunTaskProvider;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Debug runner for the dedicated HashLink configuration (experimental).
- * Keys on {@link HashLinkRunConfiguration} only, so the legacy Flash/hxcpp
- * debugger is never involved.
+ * Keys on {@link HashLinkRunConfiguration} only, so no other debug runner is
+ * involved.
  *
  * The runner spawns the debuggee itself
  * ({@code hl --debug <port> --debug-wait <program>}), suspended under the
@@ -50,31 +48,17 @@ public class HashLinkDebugRunner extends DapDebugRunnerBase<HashLinkRunConfigura
     Module module = configuration.requireModule();
     return new HashLinkBackend(configuration.resolveHlExecutable(module),
                                configuration.resolveProgram(module),
-                               findFreePort());
+                               findFreePort(),
+                               HaxeActionBeforeRunTaskProvider.buildStepSourceDirectories(configuration));
   }
 
+  // TODO: profiling during debug - add --profile here (co-exists with --debug)
+  //       and a "Get profiler snapshot" session action injecting
+  //       hl.Profile.event(Dump) through the adapter's call-injection machinery.
   @Override
   protected GeneralCommandLine createCommandLine(HashLinkRunConfiguration configuration, HashLinkBackend backend)
     throws ExecutionException {
     Module module = configuration.requireModule();
-    Path hlExecutable = configuration.resolveHlExecutable(module);
-    Path hlProgram = configuration.resolveProgram(module);
-    Path workingDirectory = configuration.resolveWorkingDirectory(module);
-    Path workDir = workingDirectory != null ? workingDirectory : hlProgram.getParent();
-
-    return new GeneralCommandLine()
-      .withExePath(hlExecutable.toString())
-      .withParameters("--debug", Integer.toString(backend.getDebugPort()), "--debug-wait", hlProgram.toString())
-      .withWorkDirectory(workDir != null ? workDir.toString() : null);
-  }
-
-  private static int findFreePort() throws ExecutionException {
-    // unavoidable race between closing here and the VM binding it; in practice
-    // hl binds immediately at startup and a collision just fails the session
-    try (ServerSocket socket = new ServerSocket(0)) {
-      return socket.getLocalPort();
-    } catch (IOException e) {
-      throw new ExecutionException("Cannot allocate a debug port: " + e.getMessage(), e);
-    }
+    return backend.debuggeeCommandLine(configuration.effectiveWorkingDirectory(module).toString());
   }
 }

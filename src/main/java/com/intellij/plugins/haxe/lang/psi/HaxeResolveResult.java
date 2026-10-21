@@ -524,7 +524,7 @@ public class HaxeResolveResult implements Cloneable {
 
   public @Nullable HaxeResolveResult fullyResolveTypedef() {
     if(haxeClass instanceof HaxeTypedefDeclaration typedefDeclaration) {
-      return HaxeResolver.fullyResolveTypedef(this.getHaxeClass(), this.getSpecialization());
+      return HaxeResolveUtil.fullyResolveTypedef(this.getHaxeClass(), this.getSpecialization());
     }
     return null;
   }

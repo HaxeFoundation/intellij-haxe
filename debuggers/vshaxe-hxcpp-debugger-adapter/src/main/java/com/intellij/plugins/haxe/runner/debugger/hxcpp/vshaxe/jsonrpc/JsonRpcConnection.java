@@ -6,27 +6,17 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
  * A jsonrpc session over one TCP socket: sends whole {@link JsonRpcRequest}s
  * and receives whole {@link JsonRpcServerMessage}s. Does not assign ids or
  * match responses to requests — that is {@link JsonRpcClient}'s job.
- *
- * In the normal launch flow the debuggee is the connecting side, so the socket
- * usually comes from a ServerSocket accept rather than {@link #connect}.
  */
 public class JsonRpcConnection implements Closeable {
   private final Socket socket;
   private final InputStream in;
   private final OutputStream out;
-
-  public static JsonRpcConnection connect(String host, int port, int connectTimeoutMillis) throws IOException {
-    Socket socket = new Socket();
-    socket.connect(new InetSocketAddress(host, port), connectTimeoutMillis);
-    return new JsonRpcConnection(socket);
-  }
 
   public JsonRpcConnection(Socket socket) throws IOException {
     this.socket = socket;

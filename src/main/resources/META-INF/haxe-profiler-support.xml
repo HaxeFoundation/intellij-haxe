@@ -1,0 +1,58 @@
+<!--
+  ~ Loaded only when the IU profiler module (com.intellij.modules.profiler) is
+  ~ present. EVERY profiler.* registration lives here and the bridge classes
+  ~ are referenced from nowhere else, so nothing IU-specific loads on IC.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <profiler.api.ProfilerDumpParserProvider
+      implementation="com.intellij.plugins.haxe.profiler.bridge.hashlink.HaxeHlDumpParserProvider"/>
+    <profiler.api.ProfilerDumpParserProvider
+      implementation="com.intellij.plugins.haxe.profiler.bridge.hxcpp.HaxeHxcppDumpParserProvider"/>
+    <profiler.api.ProfilerDumpParserProvider
+      implementation="com.intellij.plugins.haxe.profiler.bridge.HaxeHxtSessionParserProvider"/>
+    <profiler.api.ProfilerDumpParserProvider
+      implementation="com.intellij.plugins.haxe.profiler.bridge.js.HaxeJsCpuProfileParserProvider"/>
+    <profiler.profilerConfigurationType
+      implementation="com.intellij.plugins.haxe.profiler.bridge.hashlink.HaxeHlProfilerConfigurationType"/>
+    <profiler.profilerConfigurationType
+      implementation="com.intellij.plugins.haxe.profiler.bridge.hxcpp.HaxeHxcppProfilerConfigurationType"/>
+    <profiler.profilerConfigurationType
+      implementation="com.intellij.plugins.haxe.profiler.bridge.tracy.HaxeHxcppTracyProfilerConfigurationType"/>
+    <profiler.profilerConfigurationType
+      implementation="com.intellij.plugins.haxe.profiler.bridge.flash.HaxeFlashProfilerConfigurationType"/>
+    <profiler.profilerConfigurationType
+      implementation="com.intellij.plugins.haxe.profiler.bridge.js.HaxeJsProfilerConfigurationType"/>
+    <programRunner implementation="com.intellij.plugins.haxe.profiler.bridge.HaxeProfilerRunner"/>
+    <profiler.performanceHints.listener
+      implementation="com.intellij.plugins.haxe.profiler.bridge.hints.HaxeIuPerformanceHints"/>
+    <applicationService
+      serviceInterface="com.intellij.plugins.haxe.profiler.HaxeProfilerSnapshotOpener"
+      serviceImplementation="com.intellij.plugins.haxe.profiler.bridge.HaxeIuSnapshotOpener"/>
+    <applicationService
+      serviceInterface="com.intellij.plugins.haxe.profiler.HaxeProfilerExecutorSupport"
+      serviceImplementation="com.intellij.plugins.haxe.profiler.bridge.HaxeIuProfilerExecutorSupport"/>
+    <applicationService
+      serviceInterface="com.intellij.plugins.haxe.profiler.HaxeTelemetryCapture"
+      serviceImplementation="com.intellij.plugins.haxe.profiler.bridge.hxcpp.HaxeIuTelemetryCapture"/>
+    <applicationService
+      serviceInterface="com.intellij.plugins.haxe.profiler.HaxeTracyCapture"
+      serviceImplementation="com.intellij.plugins.haxe.profiler.bridge.tracy.HaxeIuTracyCapture"/>
+    <applicationService
+      serviceInterface="com.intellij.plugins.haxe.profiler.HaxeJsProfilerCapture"
+      serviceImplementation="com.intellij.plugins.haxe.profiler.bridge.js.HaxeIuJsProfilerCapture"/>
+    <applicationService
+      serviceInterface="com.intellij.plugins.haxe.profiler.HaxeProfilerProcessUi"
+      serviceImplementation="com.intellij.plugins.haxe.profiler.bridge.HaxeIuProfilerProcessUi"/>
+    <applicationConfigurable parentId="profiler" id="profiler.haxe"
+                             bundle="messages.HaxeProfilerBundle" key="haxe.profiler.configurable.name"
+                             provider="com.intellij.plugins.haxe.profiler.bridge.HaxeProfilerConfigurableProvider"/>
+  </extensions>
+
+  <actions>
+    <action id="Haxe.Profiler.ToggleHints"
+            class="com.intellij.plugins.haxe.profiler.bridge.hints.HaxeToggleProfilerHintsAction">
+      <add-to-group group-id="EditorGutterPopupMenu" anchor="first"/>
+    </action>
+  </actions>
+</idea-plugin>

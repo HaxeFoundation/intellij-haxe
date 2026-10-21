@@ -2,7 +2,7 @@ package;
 
 class AbstractAssignmentFromToAnonymous {
   static function main() {
-    var a:A = new Test();
+    var a:A = new AbstractAssignmentFromToAnonymous();
     var b: { function a():Void; } = a;
   }
 

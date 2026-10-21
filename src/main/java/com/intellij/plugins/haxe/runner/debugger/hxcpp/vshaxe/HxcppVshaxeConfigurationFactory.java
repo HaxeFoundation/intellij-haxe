@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The HXCPP (vshaxe debug server) flavour of the Haxe run configuration
  * group (experimental). The runners key on {@link HxcppVshaxeRunConfiguration}, so
- * the legacy runners (which also carry Flash/Flex debugging) never see an
- * HXCPP run and vice versa.
+ * the other debuggers' runners (legacy hxcpp, Flash, AIR) never see an HXCPP
+ * (vshaxe) run and vice versa.
  */
 public class HxcppVshaxeConfigurationFactory extends ConfigurationFactory {
 

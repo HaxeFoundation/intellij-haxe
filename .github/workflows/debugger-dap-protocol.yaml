@@ -2,14 +2,17 @@ name: "Debugger: dap-protocol"
 
 on:
   push:
-    branches: ['master', 'develop', 'dev/*', 'feature/*']
+    branches:
+      - 'master'
+      - 'develop'
+      #      - 'dev/*'
+      - 'feature/*'
     paths:
       - 'debuggers/dap-protocol/**'
       # shared build inputs that can break any module build
       - 'gradle/**'
       - 'gradle.properties'
       - 'settings.gradle.kts'
-      - 'gradlew*'
       # the CI definition itself
       - '.github/workflows/debugger-build.yaml'
       - '.github/workflows/debugger-dap-protocol.yaml'
@@ -20,7 +23,6 @@ on:
       - 'gradle/**'
       - 'gradle.properties'
       - 'settings.gradle.kts'
-      - 'gradlew*'
       - '.github/workflows/debugger-build.yaml'
       - '.github/workflows/debugger-dap-protocol.yaml'
 

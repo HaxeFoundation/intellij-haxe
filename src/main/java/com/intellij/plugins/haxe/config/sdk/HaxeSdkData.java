@@ -21,8 +21,11 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.plugins.haxe.config.sdk.impl.HaxeSdkAdditionalDataBaseImpl;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.Transient;
 
 public class HaxeSdkData extends HaxeSdkAdditionalDataBaseImpl implements SdkAdditionalData, PersistentStateComponent<HaxeSdkData> {
+  private boolean storedInOldFormat;
+
   public HaxeSdkData() {
     super();
   }
@@ -43,5 +46,15 @@ public class HaxeSdkData extends HaxeSdkAdditionalDataBaseImpl implements SdkAdd
 
   public void loadState(HaxeSdkData state) {
     XmlSerializerUtil.copyBean(state, this);
+  }
+
+  /** Whether the stored entry this was read from differs from what {@link HaxeSdkType} writes now. */
+  @Transient
+  public boolean isStoredInOldFormat() {
+    return storedInOldFormat;
+  }
+
+  void markStoredInOldFormat() {
+    storedInOldFormat = true;
   }
 }

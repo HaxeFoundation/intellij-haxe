@@ -1,0 +1,4 @@
+-cp src
+-lib munit
+-main TestMain
+-neko bin/tests.n

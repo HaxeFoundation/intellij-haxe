@@ -11,8 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Uncaught-exception behaviour of the real server, pinned empirically: the
- * debuggee STOPS AT THE THROW LINE (observed with reason "pause" — the
+ * Uncaught-exception behaviour of the real server: the debuggee STOPS AT
+ * THE THROW LINE (with reason "pause" — the
  * server classifies the critical error only later in the unwind), and after
  * continuing, the thrown text surfaces (as an exception-reason stop and/or
  * the process's Critical Error output) before termination. There is nothing
@@ -58,17 +58,15 @@ public class HxcppUncaughtExceptionIntegrationTest extends HxcppIntegrationTestB
     }
 
     debuggee.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
-    assertTrue(sawExceptionStop || output().contains("kaboom"), "the thrown text should surface somewhere (exception stop or Critical Error output); "
+
+    boolean thrownTextSurfaced = sawExceptionStop || output().contains("kaboom");
+    assertTrue(thrownTextSurfaced, "the thrown text should surface somewhere (exception stop or Critical Error output); "
                + "sawExceptionStop=" + sawExceptionStop + ", output:\n" + output());
   }
 
   private void continueQuietly(int threadId) {
-    ContinueArguments arguments = new ContinueArguments();
-    arguments.setThreadId(threadId);
-    ContinueRequest request = new ContinueRequest();
-    request.setArguments(arguments);
     try {
-      dapClient.sendRequest(request, TIMEOUT);
+      dapClient.sendRequest(continueRequest(threadId), TIMEOUT);
     } catch (Exception ignored) {
       // the dying debuggee may close the connection first
     }

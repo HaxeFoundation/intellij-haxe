@@ -1,52 +1,34 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.intellij.plugins.haxe.config;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
 /**
- * @author: Fedor.Korotkov
+ * The targets the nme command line tool builds for, as listed by {@code nme help}.
  */
-public enum NMETarget {
+public enum NMETarget implements FrameworkTarget {
 
-  // The HaxeTarget values declared here are the most obvious intention.
-  // They may not be correct.  They follow the mapping that the lime command
-  // does when invoked for a target OS.  They are used by the classpath generator
-  // the create the implicit classpath that the Haxe compiler uses.
-  // This may lead to the wrong source file being presented when debugging,
-  // but it's a definite step up from showing the interface file.
-  // Note that the HaxeTarget is only used for IDEA's convenience and is not
-  // passed to the compiler (lime) command, while the flags (third and later
-  // arguments) are passed to the compiler.
-
-  IOS("iOS", HaxeTarget.NEKO, "ios", "-simulator"),
-  ANDROID("Android", HaxeTarget.NEKO, "android"),
-  WEBOS("webOS", HaxeTarget.NEKO, "webos"),
-  BLACKBERRY("BlackBerry", HaxeTarget.NEKO, "blackberry"),
-  WINDOWS("Windows", HaxeTarget.NEKO, "windows"),
-  MAC("Mac OS", HaxeTarget.NEKO, "mac"),
-  LINUX("Linux", HaxeTarget.NEKO, "linux"),
-  LINUX64("Linux 64", HaxeTarget.NEKO,  "linux", "-64"),
+  CPP("Desktop (C++)", HaxeTarget.CPP, "cpp"),
+  CPPIA("Cppia", HaxeTarget.CPPIA, "cppia"),
+  ANDROID("Android", HaxeTarget.CPP, "android"),
+  ANDROIDVIEW("Android (library view)", HaxeTarget.CPP, "androidview"),
+  ANDROIDSIM("Android (simulator)", HaxeTarget.CPP, "androidsim"),
+  IOS("iOS", HaxeTarget.CPP, "ios"),
+  IPHONE("iOS (device debugging)", HaxeTarget.CPP, "iphone"),
+  IPHONESIM("iOS (simulator)", HaxeTarget.CPP, "iphonesim"),
+  IOSVIEW("iOS (library view)", HaxeTarget.CPP, "iosview"),
+  WATCHOS("watchOS", HaxeTarget.CPP, "watchos"),
+  WATCHSIMULATOR("watchOS (simulator)", HaxeTarget.CPP, "watchsimulator"),
   FLASH("Flash", HaxeTarget.FLASH, "flash"),
-  HTML5("HTML5", HaxeTarget.JAVA_SCRIPT, "html5"),
-  NEKO("Neko", HaxeTarget.NEKO, "neko");
+  WINDOWS("Windows", HaxeTarget.CPP, "windows"),
+  ARM64("Windows Arm64", HaxeTarget.CPP, "arm64"),
+  WINRT("WinRT / UWP", HaxeTarget.CPP, "winrt"),
+  MAC("Mac OS", HaxeTarget.CPP, "mac"),
+  LINUX("Linux", HaxeTarget.CPP, "linux"),
+  RPI("Raspberry Pi", HaxeTarget.CPP, "rpi"),
+  RG350("RG350 console", HaxeTarget.CPP, "rg350"),
+  NEKO("Neko", HaxeTarget.NEKO, "neko"),
+  HTML5("HTML5 (jsprime)", HaxeTarget.JAVA_SCRIPT, "html5");
+
+  /** The default target for new projects and unset selections. */
+  public static final NMETarget DEFAULT = CPP;
 
   private final String[] flags;
   private final String description;
@@ -58,20 +40,19 @@ public enum NMETarget {
     this.outputTarget = target;
   }
 
+  @Override
   public String getTargetFlag() {
     return flags.length > 0 ? flags[0] : "";
   }
 
+  @Override
   public String[] getFlags() {
     return flags;
   }
 
-  public HaxeTarget getOutputTarget() { return outputTarget; }
-
-  public static void initCombo(@NotNull DefaultComboBoxModel comboBoxModel) {
-    for (NMETarget target : NMETarget.values()) {
-      comboBoxModel.insertElementAt(target, 0);
-    }
+  @Override
+  public HaxeTarget getOutputTarget() {
+    return outputTarget;
   }
 
   @Override

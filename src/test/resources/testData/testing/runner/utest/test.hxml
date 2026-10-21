@@ -1,0 +1,5 @@
+# single-dash flags: these also run on haxe 3.x, which has no -p/--main
+-cp src
+-lib utest
+-main UtestMain
+--interp

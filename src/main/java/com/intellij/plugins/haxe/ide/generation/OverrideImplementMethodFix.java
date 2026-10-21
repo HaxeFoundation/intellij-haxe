@@ -31,6 +31,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -96,19 +97,23 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     }
     if(componentType == HaxeComponentType.FIELD) {
       result.append(";");
+    } else if (addOverride || element.isOverride()) {
+      result.append(superCallBody(element, type));
     } else {
-      result.append("{\n");
-      if(addOverride || element.isOverride()) {
-        if(type != null && !type.equals("Void")) {
-          result.append("return ");
-        }
-        result.append("super.");
-        appendMethodNameAndParameters(result, element, false, false);
-        result.append(";\n");
-      }
-      result.append("}");
+      result.append(HaxeMemberStubs.bodyFor(type));
     }
     return result.toString();
+  }
+
+  /** {@code { [return ]super.name(args); }}: an override forwards to the parent's implementation. */
+  private String superCallBody(HaxeNamedComponent element, @Nullable String returnType) {
+    StringBuilder body = new StringBuilder("{\n");
+    if (HaxeMemberStubs.returnsValue(returnType)) {
+      body.append("return ");
+    }
+    body.append("super.");
+    appendMethodNameAndParameters(body, element, false, false);
+    return body.append(";\n}").toString();
   }
 
   private String createAccessors(HaxeFieldModel fieldModel, StringBuilder result) {

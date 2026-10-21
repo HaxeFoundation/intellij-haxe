@@ -8,10 +8,10 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
-	Reads runtime dynamic objects (vdynobj) — what a `Dynamic`-typed
-	structure, a Reflect-built object or parsed JSON becomes at runtime.
+	Reads dynamic objects (vdynobj): what a `Dynamic`-typed structure, a
+	Reflect-built object or parsed JSON becomes at run time.
 
-	vdynobj layout (64-bit; port of hld readFieldAddress/dfields):
+	Layout (a port of hld readFieldAddress/dfields):
 
 	| field      | offset   | purpose                                    |
 	|------------|----------|--------------------------------------------|
@@ -20,16 +20,17 @@ import haxe.Int64;
 	| `values`   | `+3*ptr` | storage for pointer field values           |
 	| `nfields`  | `+4*ptr` |                                            |
 
-	Lookup entry `i` @ `lookup + i*Align.fieldLookupStride`: `hl_type*` @ +0,
-	`hashed_name` i32 @ +ptr, `packed` i32 @ +ptr+4 (`packed & 0x1FFFF` = slot
-	offset; `packed >>> 17` = display order index).
+	Lookup entry `i` is at `lookup + i * Align.fieldLookupStride`: `hl_type*`
+	@ +0, `hashed_name` i32 @ +ptr, `packed` i32 @ +ptr+4. The low 17 bits of
+	`packed` are the slot offset; `packed >>> 17` is the field's display order.
 
-	Field names travel as hl_hash values; they are resolved through the module
-	string table (every field name literal exists there).
+	Field names are stored as hl_hash values and turned back into names
+	through the module's string table, which contains every field name that
+	appears in the program's source.
 **/
 class DynObjReader {
 	static inline var OFFSET_MASK = (1 << 17) - 1;
-	static inline var MAX_FIELDS = 4096; // sanity bound against garbage reads
+	static inline var MAX_FIELDS = 4096; // a larger count means corrupt memory
 
 	final mem:MemoryReader;
 	final align:Align;
@@ -44,7 +45,7 @@ class DynObjReader {
 	}
 
 	/**
-		Number of fields of the dynobj at `ptr` (0 when implausible).
+		Number of fields of the dynamic object at `ptr`, or 0 when the count is implausible.
 	**/
 	public function fieldCount(ptr:Pointer):Int {
 		var n = mem.readI32(ptr.offset(align.ptr * 4));
@@ -52,7 +53,7 @@ class DynObjReader {
 	}
 
 	/**
-		All fields, in declaration order when the lookup carries order indexes.
+		All fields, in display order when the lookup entries record one.
 	**/
 	public function fields(ptr:Pointer):Array<DynObjField> {
 		var count = fieldCount(ptr);
@@ -100,7 +101,7 @@ class DynObjReader {
 	}
 
 	/**
-		The slot of a named field (hash + binary search over the lookup), or null.
+		The named field, found by a binary search for its hash in the lookup table, or null.
 	**/
 	public function fieldByName(ptr:Pointer, name:String):Null<DynObjField> {
 		var count = fieldCount(ptr);

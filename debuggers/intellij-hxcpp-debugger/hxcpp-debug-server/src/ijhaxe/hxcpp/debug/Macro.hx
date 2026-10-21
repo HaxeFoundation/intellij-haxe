@@ -8,37 +8,40 @@ import haxe.macro.Type;
 #end
 
 /**
-	Build-time entry points of the debug server library.
+	Compile-time entry points of the debug server library.
 
-	`injectServer` is wired through extraParams.hxml, so adding
+	extraParams.hxml calls `injectServer`, so adding
 	`-lib intellij-hxcpp-debug-server` to a `-debug` cpp build is all a user
-	does: the server class is pulled into the build (it starts itself from its
-	static init) and `HXCPP_DEBUGGER` is defined, which turns on the hxcpp
-	runtime's debugger support (checked throws, breakpoint hooks).
+	does. The macro pulls the Server class into the build (it starts itself
+	from its static init) and defines `HXCPP_DEBUGGER`, which turns on the
+	hxcpp runtime's debugger support (checked throws, breakpoint hooks).
 
-	It also registers the `onGenerate` walk that bakes the executable-line
-	table (see `breakpoints.LineTable`): hxcpp has no runtime line table, so
-	the only reliable "which lines have code" source is the typed AST of this
-	very compilation — the same positions gencpp turns into HXLINE markers.
+	It also registers `bakeLineTable`, which records the executable-line
+	table (see `breakpoints.LineTable`). "Baking" means computing the table at
+	compile time and storing it in the binary. hxcpp has no line table at
+	runtime, so the only reliable source of "which lines have code" is the
+	typed AST of this very compilation: the same positions gencpp turns into
+	HXLINE markers.
 **/
 class Macro {
-	// Must equal LineTable.RESOURCE_NAME. Duplicated (not referenced) so the
-	// init/onGenerate macro context never has to load a runtime type — haxe 5
-	// restricts what initialization macros may touch.
+	// Must equal LineTable.RESOURCE_NAME. It is a copy rather than a reference
+	// so that neither the initialization macro nor its onGenerate callback has
+	// to load a runtime type; haxe 5 restricts what initialization macros may
+	// touch.
 	static inline var LINE_TABLE_RESOURCE = "ijhaxe.hxcpp.debug.lineTable";
 
 	public static function injectServer():Void {
 		#if macro
 		if (Context.defined("cpp") && Context.defined("debug") && !Context.defined("display")) {
-			// define FIRST: Server's whole class is #if HXCPP_DEBUGGER guarded,
-			// so pulling the type in before the define finds an empty module
+			// Define FIRST: the whole Server class sits inside #if HXCPP_DEBUGGER,
+			// so loading the type before the define finds an empty module.
 			Compiler.define("HXCPP_DEBUGGER");
 
-			// force Server (which self-starts from its static init) into the build.
-			// haxe 5 forbids Context.getType from an initialization macro, so defer
-			// it to onAfterInitMacros there — the define above is already set, so the
-			// deferred load still sees an HXCPP_DEBUGGER-enabled module. onAfterInitMacros
-			// only exists on 4.3+, and the direct call is still allowed on 4.1/4.2.
+			// Force Server, which starts itself from its static init, into the
+			// build. haxe 5 forbids Context.getType in an initialization macro,
+			// so the load is deferred to onAfterInitMacros; the define above is
+			// already set by then. onAfterInitMacros exists only on 4.3+, and
+			// 4.1/4.2 still allow the direct call.
 			#if (haxe_ver >= 4.3)
 			Context.onAfterInitMacros(() -> Context.getType("ijhaxe.hxcpp.debug.Server"));
 			#else
@@ -51,8 +54,9 @@ class Macro {
 	}
 
 	/**
-		The value of compile-time define `key`, or `fallback` when absent — the
-		middle link of the env-var -> define -> default configuration chain.
+		The value of the compile-time define `key`, or `fallback` when it is
+		not defined. Server connection settings come from environment
+		variables first, then from these defines, then from the defaults.
 	**/
 	macro public static function definedValue(key:String, fallback:Expr):Expr {
 		var value = Context.definedValue(key);
@@ -61,14 +65,15 @@ class Macro {
 
 	#if macro
 	/**
-		Collects the start line of every typed expression that survives to
-		generation (onGenerate runs after DCE — exactly what gencpp will
-		instrument) and bakes a `file|l1,l2,...` table as a resource. The
-		server reads it back through LineTable to verify breakpoint lines.
+		Collects the start line of every typed expression that reaches code
+		generation and stores a `file|l1,l2,...` table as a resource. onGenerate
+		runs after dead-code elimination, so these are exactly the expressions
+		gencpp instruments. The server reads the table back through LineTable
+		to verify breakpoint lines.
 	**/
 	static function bakeLineTable(types:Array<Type>):Void {
-		// file -> set of expression-start BYTE offsets (dedup before the
-		// offset->line conversion; positions repeat heavily)
+		// file -> set of expression-start BYTE offsets. Positions repeat a lot,
+		// so they are deduplicated before the conversion to lines.
 		var offsetsByFile = new Map<String, Map<Int, Bool>>();
 		for (type in types) {
 			switch (type) {
@@ -111,11 +116,12 @@ class Macro {
 	}
 
 	static function collectExpr(expr:TypedExpr, offsetsByFile:Map<String, Map<Int, Bool>>):Void {
-		// On haxe < 4.2 a TFunction's position starts in the trivia BEFORE the
-		// declaration — a leading comment line enters the table and a
-		// breakpoint there falsely verifies. Skip it there; the body carries
-		// the function's real lines. Haxe 4.2 tightened the position to the
-		// declaration itself (a line hxcpp instruments), so it stays recorded.
+		// Before haxe 4.2, a TFunction's position starts in the comments and
+		// whitespace BEFORE the declaration, so a leading comment line would
+		// enter the table and a breakpoint there would falsely verify. It is
+		// skipped there; the body carries the function's real lines. From 4.2
+		// the position starts at the declaration itself, a line hxcpp
+		// instruments, so it is recorded.
 		#if (haxe_ver < 4.2)
 		var skip = expr.expr.match(TFunction(_));
 		#else
@@ -134,10 +140,10 @@ class Macro {
 		haxe.macro.TypedExprTools.iter(expr, e -> collectExpr(e, offsetsByFile));
 	}
 
-	// Byte offsets -> sorted unique 1-based line numbers, one single pass over
-	// the file per file. Read as BYTES because positions are byte offsets — no
-	// string-encoding assumptions. An unreadable file (macro-generated
-	// positions) simply contributes no lines.
+	// Converts byte offsets to sorted, unique 1-based line numbers in a single
+	// pass over the file. The file is read as BYTES because positions are
+	// byte offsets, which avoids any assumption about the string encoding. An
+	// unreadable file (a macro-generated position) contributes no lines.
 	static function offsetsToLines(file:String, offsets:Array<Int>):Array<Int> {
 		var bytes = try sys.io.File.getBytes(file) catch (e:Dynamic) null;
 		if (bytes == null) {

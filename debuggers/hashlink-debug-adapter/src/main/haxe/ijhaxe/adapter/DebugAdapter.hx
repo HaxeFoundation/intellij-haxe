@@ -16,14 +16,14 @@ import sys.thread.Thread;
 /**
 	Runs one DAP session over a connected socket.
 
-	Threads, so the adapter never blocks on any single activity:
-	 - reader thread: reads client frames into the worker queue
-	 - writer thread: writes outbound frames to the socket
-	 - session thread (created on launch): owns the debuggee and the debug natives
-	 - worker (this thread): the only one that touches the dispatcher
+	Four threads keep the adapter from blocking on any single activity:
+	 - the reader thread reads client frames into the inbound queue;
+	 - the writer thread writes outbound frames to the socket;
+	 - the session thread (created at launch) owns the debuggee and the debug natives;
+	 - the worker (the thread calling `run`) is the only one that touches the dispatcher.
 
 	Client frames and session events share one inbound queue, so the dispatcher
-	remains single-threaded and total message ordering is preserved.
+	stays single-threaded and sees all messages in one order.
 **/
 class DebugAdapter {
 	final socket:Socket;
@@ -55,7 +55,7 @@ class DebugAdapter {
 			var message = inbound.pop(true);
 			switch (message) {
 				case ClientPayload(payload):
-					// runs for every message: don't pay preview() + concat when tracing is off
+					// this runs for every message: build the preview only when tracing
 					if (Trace.isEnabled()) {
 						Trace.log("recv " + preview(payload));
 					}
@@ -64,7 +64,7 @@ class DebugAdapter {
 					dispatcher.handleSessionEvent(event);
 				case ClientEof:
 					clientEofSeen = true;
-					// client vanished: if a debuggee is running, tear it down
+					// the client is gone: tear down a debuggee that is still running
 					if (session != null && !dispatcher.shutdownRequested) {
 						dispatchToSession(CmdDisconnect(-1));
 					} else {
@@ -78,14 +78,12 @@ class DebugAdapter {
 
 		outbound.add(null);
 		writerDone.pop(true);
-		// Let the CLIENT close the connection first. Closing (or exiting) while
-		// the peer has not yet consumed the final response can degenerate into a
-		// TCP RST on Windows, and an RST DISCARDS data already buffered on the
-		// receiving side - observed as the intermittently lost disconnect
-		// response ("Connection reset" on the client while the adapter had
-		// already logged the response as sent). EOF from the reader means the
-		// client received everything and closed; the timeout covers clients
-		// that never close.
+		// Let the client close the connection first. On Windows, closing (or
+		// exiting) before the client has read the final response can turn into
+		// a TCP RST, and an RST discards data already buffered at the receiver:
+		// the client sees "Connection reset" and loses the disconnect response.
+		// EOF on the reader means the client has read everything and closed.
+		// The timeout covers clients that never close.
 		awaitClientClose();
 		try {
 			socket.close();
@@ -104,13 +102,13 @@ class DebugAdapter {
 				case ClientEof:
 					clientEofSeen = true;
 				default:
-					// late messages after shutdown: nothing left to serve them
+					// messages arriving after shutdown are dropped
 			}
 		}
 		Trace.log(clientEofSeen ? "client closed; exiting" : "client did not close within timeout; exiting");
 	}
 
-	// First ~100 chars: enough to identify command/seq without flooding the pipe.
+	// The first 100 characters identify the command and seq without flooding the trace.
 	static function preview(json:String):String {
 		return json.length <= 100 ? json : json.substr(0, 100) + "…";
 	}
@@ -139,7 +137,7 @@ class DebugAdapter {
 				inbound.add(ClientPayload(reader.read()));
 			}
 		} catch (e:Dynamic) {
-			// Eof or socket error: tell the worker the client is gone
+			// EOF or a socket error: tell the worker the client is gone
 			inbound.add(ClientEof);
 		}
 	}
@@ -154,7 +152,7 @@ class DebugAdapter {
 			try {
 				var json = Json.stringify(message);
 				writer.write(json);
-				// runs for every message: don't pay preview() + concat when tracing is off
+				// this runs for every message: build the preview only when tracing
 				if (Trace.isEnabled()) {
 					Trace.log("sent " + preview(json));
 				}

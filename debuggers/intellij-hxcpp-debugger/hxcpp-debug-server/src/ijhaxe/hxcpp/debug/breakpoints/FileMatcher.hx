@@ -1,12 +1,12 @@
 package ijhaxe.hxcpp.debug.breakpoints;
 
 /**
-	Maps an IDE-supplied source path onto the runtime's own file key (the short
-	name `addFileLineBreakpoint` matches against). Matching is by path SUFFIX —
-	the longest run of trailing path segments shared between the IDE path and a
-	runtime full path — so a project built elsewhere (CI, a moved checkout,
-	different drive) still resolves, unlike the runtime's own exact-full-path
-	comparison. Pure; unit-tested.
+	Maps a source path from the IDE onto the runtime's own file key, the short
+	name that `addFileLineBreakpoint` matches against. Matching is by path
+	SUFFIX: the runtime file whose full path shares the most trailing path
+	segments with the IDE path wins. A project built elsewhere (CI, a moved
+	checkout, another drive) therefore still resolves, unlike with the
+	runtime's own exact full-path comparison.
 **/
 class FileMatcher {
 	final fullPaths:Array<String>;
@@ -34,7 +34,7 @@ class FileMatcher {
 		var bestIndex = -1;
 		var bestScore = 0;
 		for (i in 0...fullPaths.length) {
-			var score = sharedSuffix(wanted, segments(fullPaths[i]));
+			var score = sharedSuffixLength(wanted, segments(fullPaths[i]));
 			if (score > bestScore) {
 				bestScore = score;
 				bestIndex = i;
@@ -43,9 +43,10 @@ class FileMatcher {
 		return bestIndex >= 0 ? fileKeys[bestIndex] : null;
 	}
 
-	// Trailing path segments common to both, compared case-insensitively (the
-	// IDE and the runtime can disagree on drive-letter / path casing on Windows).
-	static function sharedSuffix(a:Array<String>, b:Array<String>):Int {
+	// The number of trailing path segments both paths share, compared
+	// case-insensitively: on Windows the IDE and the runtime can disagree on
+	// the casing of the drive letter or the path.
+	static function sharedSuffixLength(a:Array<String>, b:Array<String>):Int {
 		var i = a.length - 1;
 		var j = b.length - 1;
 		var shared = 0;
@@ -57,8 +58,8 @@ class FileMatcher {
 		return shared;
 	}
 
-	// Split on both separators; drop empties so "a//b" and a trailing slash do
-	// not create phantom segments.
+	// Splits on both separators and drops empty parts, so "a//b" and a
+	// trailing slash add no empty segments.
 	static function segments(path:String):Array<String> {
 		if (path == null) {
 			return [];

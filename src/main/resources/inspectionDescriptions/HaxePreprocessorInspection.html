@@ -15,7 +15,14 @@
   -->
 <html>
 <body>
-Highlights compiler conditional (#if/#else/#end) tokens that are unbalanced
-or otherwise incorrect.
+Reports compiler conditionals (<code>#if</code>/<code>#elseif</code>/
+<code>#else</code>/<code>#end</code>) that are unbalanced or otherwise
+malformed.
+<p><b>Example:</b></p>
+<pre><code>
+#if js
+    var target = "browser";
+// missing #end
+</code></pre>
 </body>
 </html>

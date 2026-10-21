@@ -1,3 +1,0 @@
-fooEmpty():Array<Unknown> = []
-fooInt():Array<Int> = [1, 2, 3]
-fooString():Array<String> = [a, b, c]

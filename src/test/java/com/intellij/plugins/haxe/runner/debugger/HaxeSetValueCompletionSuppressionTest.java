@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.plugins.haxe.HaxeLanguage;
@@ -30,7 +30,7 @@ import com.intellij.xdebugger.impl.XDebuggerHistoryManager;
  * editors keep completion.
  */
 @DisplayName("Debugger: set value completion suppression")
-public class HaxeSetValueCompletionSuppressionTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeSetValueCompletionSuppressionTest extends HaxeLightFixtureTestCase {
 
   @Override
   protected String getBasePath() {

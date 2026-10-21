@@ -61,7 +61,7 @@ public class HaxeIcons {
   public static final Icon DEBUGGER_HXCPP= load("/icons/debugger/Haxe_logo_hxcpp.svg");
 
 
-
+  public static final Icon HAXE_LOGO_GRAY_13 = load("/icons/Haxe_logo_gray_13.svg");
 
 
 }

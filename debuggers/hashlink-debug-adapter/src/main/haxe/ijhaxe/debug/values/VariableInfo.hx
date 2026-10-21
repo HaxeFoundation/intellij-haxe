@@ -1,14 +1,14 @@
 package ijhaxe.debug.values;
 
 /**
-	A resolved variable the session hands back: name plus its decoded value.
+	A named, decoded value for the client: a variable, field, element or entry.
 **/
 typedef VariableInfo = {
 	var name:String;
 	var value:String;
 	var type:String;
 	var reference:Int;
-	// A classification the client maps to an icon; absent for elements/entries
-	// that need no special icon.
+	// The client picks the icon from it; absent for elements and entries,
+	// which need no special icon.
 	var ?kind:VariableKind;
 }

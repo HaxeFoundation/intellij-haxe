@@ -22,7 +22,7 @@ import com.intellij.codeInsight.editorActions.smartEnter.SmartEnterProcessor;
 import com.intellij.codeInsight.editorActions.smartEnter.SmartEnterProcessors;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ import java.util.List;
  * Created by as3boyan on 07.10.14.
  */
 @DisplayName("Editor: smart enter")
-public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeSmartEnterTest extends HaxeLightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/smartEnter/";
@@ -74,6 +74,12 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
   @DisplayName("if fixer")
   public void testIfFixer() {
       doTest();
+  }
+
+  @Test
+  @DisplayName("if fixer in dead branch")
+  public void testIfFixerInDeadBranch() {
+    doTest();
   }
 
   @Test

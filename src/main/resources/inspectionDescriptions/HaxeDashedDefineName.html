@@ -1,0 +1,18 @@
+<html>
+<body>
+Reports a define name containing a dash in a build file: <code>-D my-flag</code> in an hxml file, or
+<code>&lt;haxedef name="my-flag"/&gt;</code> and <code>&lt;define name="my-flag"/&gt;</code> in a Lime, OpenFL or NME
+project file.
+<p>For conditional compilation the compiler maps every dash to an underscore, so <code>-D my-flag</code> is tested as
+<code>#if my_flag</code>. <code>#if my-flag</code> tests only <code>my</code>, and <code>#if (my-flag)</code> does not
+compile. Macros accept either spelling.</p>
+<p><b>Example:</b></p>
+<pre><code>-D my-flag
+-D log-level=2
+</code></pre>
+<p>After the quick-fix is applied:</p>
+<pre><code>-D my_flag
+-D log_level=2
+</code></pre>
+</body>
+</html>

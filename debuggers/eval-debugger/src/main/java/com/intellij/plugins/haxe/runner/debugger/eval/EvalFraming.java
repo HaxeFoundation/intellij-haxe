@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Encodes/decodes the eval-debugger wire framing, which is ASYMMETRIC
- * (verified against haxe 4.3.7 and the compiler's src/core/socket.ml):
+ * (the compiler's src/core/socket.ml, haxe 4.3.7):
  * requests TO the VM carry a 2-byte little-endian length prefix
  * ({@code Socket.read_string} reads a ui16), while responses/events FROM
  * the VM carry a 4-byte little-endian prefix ({@code send_string} writes

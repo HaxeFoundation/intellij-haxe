@@ -1,0 +1,15 @@
+<html>
+<body>
+Reports binary operators applied to operand types that do not support the
+operation, and warns when a non-equality operator is applied to a
+<code>Dynamic</code> value (which may raise at runtime on static targets).
+<p><b>Example:</b></p>
+<pre><code>
+var ready:Bool = true;
+var total = ready + 1;      // cannot apply + to Bool and Int
+
+var anything:Dynamic = load();
+var half = anything / 2;    // warning: may fail at runtime on static targets
+</code></pre>
+</body>
+</html>

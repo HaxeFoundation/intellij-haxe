@@ -16,27 +16,26 @@ import sys.thread.Thread;
 	debug server (`hl --debug <port> --debug-wait <program>`), and pumps its
 	stdout/stderr so the pipes never fill and block the debuggee.
 
-	Output is delivered through the `onOutput(category, text)` callback from two
-	dedicated pump threads; nothing here touches the debug natives.
+	Two pump threads deliver the output through the `onOutput(category, text)`
+	callback; nothing here touches the debug natives.
 
-	WINDOWS GOTCHA: this spawn goes through HL's process.c, which sets
-	STARTF_USESHOWWINDOW + SW_HIDE — Windows then overrides the child's FIRST
-	ShowWindow call with SW_HIDE, so a GUI debuggee's window is created but
+	Windows trap: this spawn goes through HL's process.c, which sets
+	STARTF_USESHOWWINDOW and SW_HIDE. Windows then applies SW_HIDE to the
+	child's first ShowWindow call, so a GUI debuggee's window is created but
 	never shown. GUI clients must spawn the debuggee themselves and use attach
-	mode (launch args `attachPid`/`debugPort`); this path remains for headless
-	debuggees and the integration tests.
+	mode (the launch arguments `attachPid` and `debugPort`). This path serves
+	headless debuggees and the integration tests.
 **/
 class DebuggeeProcess {
 	public var pid(default, null):Int;
 
 	/**
-		Set when the VM's FIRST stderr output is its "Could not start debugger
-		on port" startup banner: the reserved debug port was taken between the
-		reservation being released (findFreePort) and the VM binding it. The
-		session retries the launch on a fresh port when this is set. Only the
-		first chunk is ever inspected - it is emitted before the program can
-		run (the debuggee is still held by --debug-wait), so program output
-		containing the same words can never set the flag.
+		Set when the VM's first stderr output is its "Could not start debugger
+		on port" message: another socket took the debug port after findFreePort
+		released it and before the VM bound it. The session then retries the
+		launch on a fresh port. Only the first chunk is inspected. The VM writes
+		it before the program can run (--debug-wait still holds it), so program
+		output with the same words can never set the flag.
 	**/
 	public var debugBindFailed(default, null) = false;
 
@@ -44,10 +43,9 @@ class DebuggeeProcess {
 
 	final process:Process;
 	final onOutput:(category:String, text:String) -> Void;
-	// released by each pump thread when its stream reaches EOF; lets the
-	// session drain the tail output BEFORE reporting the exit (the pipes of a
-	// dead process still hold their buffered bytes, surfacing as the
-	// final stdout lines arriving AFTER the exited event under machine load)
+	// Released by each pump thread when its stream reaches EOF. The pipes of a
+	// dead process still hold buffered output, and the session waits for both
+	// locks so that output reaches the client before the exited event.
 	final stdoutDrained = new sys.thread.Lock();
 	final stderrDrained = new sys.thread.Lock();
 
@@ -62,9 +60,9 @@ class DebuggeeProcess {
 			}
 		}
 
-		// sys.io.Process has no working-directory parameter, so set it around the
-		// spawn. The adapter serves one debuggee at a time, so this is safe; the
-		// previous directory is restored immediately afterwards.
+		// sys.io.Process has no working-directory parameter, so the adapter's own
+		// directory is switched around the spawn and restored right after. This is
+		// safe because the adapter serves one debuggee at a time.
 		var previousCwd:Null<String> = null;
 		if (cwd != null) {
 			previousCwd = Sys.getCwd();
@@ -94,10 +92,10 @@ class DebuggeeProcess {
 	}
 
 	/**
-		Blocks until both pumps hit EOF (all buffered output was forwarded) or
-		the per-stream timeout passes — a dead process EOFs its pipes promptly,
-		so the timeout is a guard, not an expected path. Call BEFORE reporting
-		the process's exit so no output event trails the exited event.
+		Blocks until both pumps reach EOF, meaning all buffered output was
+		forwarded, or until the per-stream timeout passes. A dead process closes
+		its pipes promptly, so the timeout is only a guard. Call this before
+		reporting the exit, so no output event follows the exited event.
 	**/
 	public function awaitOutputDrained(timeoutSec:Float):Void {
 		stdoutDrained.wait(timeoutSec);
@@ -109,8 +107,8 @@ class DebuggeeProcess {
 			var buffer = Bytes.alloc(4096);
 			try {
 				while (true) {
-					// blocks until at least one byte is available; partial reads are fine,
-					// so the debuggee can never stall on a full pipe
+					// blocks until at least one byte is available and accepts a partial
+					// read, so the debuggee never stalls on a full pipe
 					var read = blockingRead(input, buffer);
 					if (read <= 0) {
 						break;
@@ -131,11 +129,11 @@ class DebuggeeProcess {
 		});
 	}
 
-	// The process-pipe read native blocks without yielding to HL's GC, so a
-	// parked pump thread would stall collection for every other thread. Mark the
-	// thread as being in a blocking section around the read so the GC ignores it.
-	// The parked read allocates nothing (it fills a preallocated buffer); only a
-	// terminal EOF throws, which ends the pump anyway.
+	// The process-pipe read native blocks without reaching a GC safepoint, so a
+	// parked pump thread would stall every collection. Marking the read as a
+	// blocking section lets the GC run without it. Nothing may allocate inside
+	// the section: the read fills a preallocated buffer, and only the final EOF
+	// throws, which ends the pump anyway.
 	inline function blockingRead(input:Input, buffer:Bytes):Int {
 		#if hl
 		hl.Gc.blocking(true);
@@ -184,9 +182,9 @@ class DebuggeeProcess {
 	}
 
 	/**
-		Reserves an ephemeral TCP port on the loopback interface and returns it.
-		There is an unavoidable race between closing here and the VM binding it;
-		DebugSession retries the connect to cover it.
+		Finds a free TCP port on the loopback interface. The port is released
+		before returning, so another socket may take it before the VM binds it;
+		DebugSession then relaunches on a fresh port (see debugBindFailed).
 	**/
 	public static function findFreePort():Int {
 		var socket = new Socket();

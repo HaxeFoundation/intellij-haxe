@@ -10,12 +10,12 @@ import haxe.io.Bytes;
 /**
 	Installs and tracks software (INT3) breakpoints in the debuggee.
 
-	All memory access goes through DebugApi, so this class is exercised in tests
-	with a fake API over in-memory bytes. It performs no threading and no event
-	handling; DebugSession drives it from the single debug thread.
+	All memory access goes through DebugApi, so tests run this class against a
+	fake API over in-memory bytes. It does no threading and no event handling;
+	DebugSession drives it from the session thread.
 
-	DAP setBreakpoints replaces the entire breakpoint set for a source file, so
-	breakpoints are grouped by source key and replaced wholesale.
+	A DAP setBreakpoints request replaces all breakpoints of a source file, so
+	breakpoints are grouped by source key and replaced as a whole.
 **/
 class Breakpoints {
 	static inline var INT3 = 0xCC;
@@ -24,14 +24,15 @@ class Breakpoints {
 	final pid:Int;
 	final byAddress:Map<String, PatchedBreakpoint> = new Map();
 	final bySource:Map<String, Array<PatchedBreakpoint>> = new Map();
-	// temporary INT3s planted for a step; `shared` = coincides with a breakpoint
+	// temporary INT3s planted for a step; `shared` marks one at the address of
+	// a breakpoint or throw site, whose INT3 the temp reuses
 	final temps:Map<String, {address:Pointer, originalByte:Int, shared:Bool}> = new Map();
-	// INT3s planted at every throw site while an exception breakpoint is enabled;
-	// `reg` is the HL register holding the thrown value at that site
+	// INT3s at every throw site while exception breakpoints are armed; `reg` is
+	// the HL register holding the thrown value at that site
 	final byException:Map<String, {bp:PatchedBreakpoint, reg:Int}> = new Map();
-	// a single INT3 on hl_throw's entry while the "native exceptions" breakpoint
-	// is on — catches VM-raised errors (null access, bounds, ...) that never
-	// execute an OThrow. Null when disarmed.
+	// One INT3 on hl_throw's entry while the "vm" exception filter is on. It
+	// catches VM-raised errors (null access, out of bounds) that execute no
+	// OThrow. Null when disarmed.
 	var nativeThrow:Null<{address:Pointer, originalByte:Int}> = null;
 
 	public function new(api:DebugApi, pid:Int) {
@@ -76,16 +77,17 @@ class Breakpoints {
 		return byAddress.get(addressKey(address));
 	}
 
-	public function isBreakpointAddress(address:Pointer):Bool {
-		return byAddress.exists(addressKey(address));
-	}
-
-	public function all():Array<PatchedBreakpoint> {
-		return [for (bp in byAddress) bp];
+	/**
+		True when one of the session's own INT3s sits at `address`: a breakpoint,
+		a step temp, an armed throw site or hl_throw's armed entry. A trap
+		anywhere else is foreign (a forced break, the attach or loader breakpoint).
+	**/
+	public function isPatchedSite(address:Pointer):Bool {
+		return atAddress(address) != null || isTemp(address) || exceptionAt(address) != null || isNativeThrow(address);
 	}
 
 	/**
-		Temporarily restores the original byte (before stepping over the breakpoint).
+		Restores the original byte, so the instruction can run when stepping over the breakpoint.
 	**/
 	public function suspend(bp:PatchedBreakpoint):Void {
 		writeByte(bp.address, bp.originalByte);
@@ -99,17 +101,16 @@ class Breakpoints {
 	}
 
 	/**
-		Plants a temporary INT3 (for a step) at `address`. If a breakpoint is
-		already installed there, nothing is written and the temp is marked `shared`
-		so clearTemps leaves the breakpoint intact.
+		Plants a temporary INT3 for a step at `address`. When a breakpoint or an
+		armed throw site already has an INT3 there, nothing is written and the
+		temp is marked `shared`, so clearTemps leaves that INT3 in place.
 	**/
 	public function addTemp(address:Pointer):Void {
 		var key = addressKey(address);
 		if (temps.exists(key)) {
 			return;
 		}
-		// a breakpoint OR an armed throw-site already holds an INT3 here — leave
-		// its byte alone so clearTemps doesn't restore over the wrong original
+		// the byte here is already an INT3, not the original instruction byte
 		var shared = byAddress.exists(key) || byException.exists(key);
 		var original = INT3;
 		if (!shared) {
@@ -120,7 +121,7 @@ class Breakpoints {
 	}
 
 	/**
-		Removes all temporary breakpoints, restoring bytes not shared with a breakpoint.
+		Removes all temps, restoring every byte a temp does not share.
 	**/
 	public function clearTemps():Void {
 		for (temp in temps) {
@@ -136,7 +137,7 @@ class Breakpoints {
 	}
 
 	/**
-		Restores a single temp's original byte (to single-step past it at a wrong frame).
+		Restores one temp's original byte, to single-step past a hit that is not the landing.
 	**/
 	public function suspendTemp(address:Pointer):Void {
 		var temp = temps.get(addressKey(address));
@@ -146,7 +147,7 @@ class Breakpoints {
 	}
 
 	/**
-		Re-installs a single temp's INT3 after stepping past it.
+		Re-installs one temp's INT3 after stepping past it.
 	**/
 	public function rearmTemp(address:Pointer):Void {
 		var temp = temps.get(addressKey(address));
@@ -159,7 +160,7 @@ class Breakpoints {
 		return temps.keys().hasNext();
 	}
 
-	// --- exception breakpoints (one INT3 per throw site while enabled) ---
+	// --- exception breakpoints (one INT3 per throw site while armed) ---
 
 	/**
 		Plants an INT3 at every throw site (skipping addresses already patched).
@@ -201,7 +202,7 @@ class Breakpoints {
 		return byException.get(addressKey(address));
 	}
 
-	// --- native-exception trap (one INT3 on hl_throw's entry) ---
+	// --- the "vm" filter's trap (one INT3 on hl_throw's entry) ---
 
 	/**
 		Plants an INT3 at hl_throw's entry (no-op if already armed there).
@@ -237,10 +238,11 @@ class Breakpoints {
 	}
 
 	/**
-		A synthetic PatchedBreakpoint view of the native-throw trap, so a stop on it
-		flows through the same currentStoppedBreakpoint machinery (suspend / rearm /
-		step-over on continue) as any breakpoint. Not in byAddress, so atAddress
-		lookups (reconcileStoppedBreakpoint) correctly ignore it. Null when disarmed.
+		The hl_throw entry trap as a PatchedBreakpoint, so a stop on it goes
+		through the same currentStoppedBreakpoint handling as any breakpoint
+		(suspend, rearm, step over on continue). It is not in byAddress, so
+		atAddress (and thus reconcileStoppedBreakpoint) ignores it. Null when
+		disarmed.
 	**/
 	public function nativeThrowBreakpoint():Null<PatchedBreakpoint> {
 		if (nativeThrow == null) {
@@ -253,12 +255,12 @@ class Breakpoints {
 	}
 
 	/**
-		Temporarily lifts EVERY planted INT3 (user breakpoints, exception sites,
-		the hl_throw trap) without forgetting them, so an injected eval-call runs
-		like unpatched code — a called function that internally throws/catches or
-		crosses a user breakpoint must not trip OUR traps and derail the call.
-		Paired with rearmAll(). Step temps are left alone (an eval-call runs from a
-		stopped state, not mid-step). Idempotent per byte.
+		Lifts every planted INT3 (user breakpoints, throw sites, the hl_throw
+		trap) without forgetting it, so an injected eval-call runs unpatched
+		code. A called function that throws and catches internally, or passes a
+		user breakpoint, must not trip the adapter's traps and derail the call.
+		Paired with rearmAll(). Step temps stay, because an eval-call runs from a
+		stop, not mid-step. Calling it twice is harmless.
 	**/
 	public function suspendAll():Void {
 		for (bp in byAddress) {
@@ -273,10 +275,10 @@ class Breakpoints {
 	}
 
 	/**
-		Re-plants every INT3 lifted by suspendAll, EXCEPT at `keepSuspended` (the
-		breakpoint the debugger is currently stopped on, whose byte the stop/continue
-		machinery keeps restored until it single-steps past it — re-arming it here
-		would make that step trap on itself).
+		Re-plants every INT3 lifted by suspendAll, except at `keepSuspended`: the
+		breakpoint of the current stop. The continue machinery keeps its original
+		byte restored until it single-steps past it; re-arming it here would make
+		that step trap on itself.
 	**/
 	public function rearmAll(?keepSuspended:Pointer):Void {
 		for (bp in byAddress) {
@@ -295,10 +297,11 @@ class Breakpoints {
 	}
 
 	/**
-		Restores every patched byte (breakpoints and temps). Used before
-		detaching in attach mode: the debuggee keeps running without a debugger,
-		so any leftover INT3 would crash it. Restoring a byte that was already
-		suspended writes the same original value again — harmless.
+		Restores every patched byte: breakpoints, temps, throw sites and the
+		hl_throw trap. Used before detaching in attach mode, where the debuggee
+		keeps running without a debugger and any leftover INT3 would crash it.
+		Restoring a suspended byte writes the same original value again, which
+		is harmless.
 	**/
 	public function removeAll():Void {
 		clearTemps();
@@ -316,8 +319,8 @@ class Breakpoints {
 		var key = addressKey(loc.address);
 		var existing = byAddress.get(key);
 		if (existing != null) {
-			// same address already patched (e.g. two source entries collapse); the
-			// latest request's condition wins so an edited condition takes effect
+			// the address is already patched (two source entries map to it); the
+			// latest condition wins, so an edited condition takes effect
 			existing.condition = loc.condition;
 			return existing;
 		}

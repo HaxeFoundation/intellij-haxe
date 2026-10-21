@@ -23,23 +23,8 @@ class MapReaderTest {
 		return Int64.ofInt(v);
 	}
 
-	static function pokeI32(api:FakeDebugApi, at:Int, value:Int):Void {
-		for (i in 0...4) {
-			api.poke(addr(at + i), (value >>> (8 * i)) & 0xFF);
-		}
-	}
-
-	static function pokePtr(api:FakeDebugApi, at:Int, value:Int):Void {
-		for (i in 0...4) {
-			api.poke(addr(at + i), (value >>> (8 * i)) & 0xFF);
-		}
-		for (i in 4...8) {
-			api.poke(addr(at + i), 0);
-		}
-	}
-
 	static function pokeI64(api:FakeDebugApi, at:Int, low:Int):Void {
-		pokePtr(api, at, low); // high bytes zero
+		api.pokePtr(at, low); // high bytes zero
 	}
 
 	static function reader(api:FakeDebugApi, supported:Bool):MapReader {
@@ -50,20 +35,20 @@ class MapReaderTest {
 	static function walksInt64SmallMap(assert:Assert):Void {
 		var api = new FakeDebugApi();
 
-		pokePtr(api, 0x1000, 0x2000); // cells
-		pokePtr(api, 0x1008, 0x2100); // nexts
-		pokePtr(api, 0x1010, 0x2200); // entries (keys)
-		pokePtr(api, 0x1018, 0x2300); // values
+		api.pokePtr(0x1000, 0x2000); // cells
+		api.pokePtr(0x1008, 0x2100); // nexts
+		api.pokePtr(0x1010, 0x2200); // entries (keys)
+		api.pokePtr(0x1018, 0x2300); // values
 
 		// counts at ptr*4 + (ptr + 4 + 4) = 48
-		pokeI32(api, 0x1000 + 48, 1); // ncells
-		pokeI32(api, 0x1000 + 52, 1); // nentries
-		pokeI32(api, 0x1000 + 56, 1); // maxEntries (<128 -> small)
+		api.pokeI32(0x1000 + 48, 1); // ncells
+		api.pokeI32(0x1000 + 52, 1); // nentries
+		api.pokeI32(0x1000 + 56, 1); // maxEntries (<128 -> small)
 
 		api.poke(addr(0x2000), 0); // cells[0] = entry 0
 		api.poke(addr(0x2100), 255); // nexts[0] = end
 		pokeI64(api, 0x2200, 42); // entries[0] = key 42
-		pokePtr(api, 0x2300, 0xDEAD); // values[0] = value slot
+		api.pokePtr(0x2300, 0xDEAD); // values[0] = value slot
 
 		var map = reader(api, true);
 		assert.equals(1, map.entryCount(addr(0x1000)), "one live entry");
@@ -75,7 +60,7 @@ class MapReaderTest {
 
 	static function unsupportedRuntimeYieldsNoCount(assert:Assert):Void {
 		var api = new FakeDebugApi();
-		pokePtr(api, 0x900, 0x1000);
+		api.pokePtr(0x900, 0x1000);
 		assert.equals(-1, reader(api, false).entryCount(addr(0x1000)), "pre-1.13 layout not supported");
 	}
 }

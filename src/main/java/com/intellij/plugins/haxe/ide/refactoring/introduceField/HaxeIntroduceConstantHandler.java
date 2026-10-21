@@ -26,7 +26,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClassBody;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeNameKind;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
+import com.intellij.plugins.haxe.util.HaxeSuggestedNames;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.PsiWhiteSpace;
@@ -34,8 +36,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by as3boyan on 12.09.14.
@@ -122,7 +124,7 @@ public class HaxeIntroduceConstantHandler extends HaxeIntroduceHandler {
   }
 
   @Override
-  protected Collection<String> getSuggestedNames(PsiElement expression) {
-    return HaxeNameSuggesterUtil.getSuggestedNames(expression, true);
+  protected HaxeSuggestedNames suggestNames(PsiElement expression) {
+    return HaxeNameSuggesterUtil.suggest(expression, null, HaxeNameKind.CONSTANT, expression, Set.of());
   }
 }

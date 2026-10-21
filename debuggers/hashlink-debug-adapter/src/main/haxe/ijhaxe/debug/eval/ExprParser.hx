@@ -4,11 +4,11 @@ import ijhaxe.debug.DebugError;
 import ijhaxe.debug.eval.ExprAst.Expr;
 
 /**
-	Tokenizer + precedence-climbing parser for evaluate expressions.
+	Tokenizer and precedence-climbing parser for evaluate expressions.
 
-	Operator precedence follows HAXE (which differs from C: bitwise ops share
-	one tier and bind tighter than comparisons; shifts sit between additive and
-	bitwise):
+	Operator precedence follows Haxe, which differs from C: the bitwise
+	operators share one tier that binds tighter than comparisons, and shifts
+	sit between additive and bitwise operators.
 
 	| tier | operators                          | notes                       |
 	|------|------------------------------------|-----------------------------|
@@ -29,7 +29,8 @@ import ijhaxe.debug.eval.ExprAst.Expr;
 **/
 class ExprParser {
 	/**
-		Parses a full expression; throws DebugError with a clear message.
+		Parses a complete expression. A syntax error throws DebugError with a
+		user-facing message.
 	**/
 	public static function parse(text:String):Expr {
 		var parser = new ExprParser(text);
@@ -65,7 +66,7 @@ class ExprParser {
 		skipWhitespace();
 		if (peekOp("?")) {
 			pos++;
-			var thenExpr = parseAssign(); // between ? and : anything is allowed
+			var thenExpr = parseAssign(); // any expression may sit between ? and :
 			skipWhitespace();
 			expect(":");
 			var elseExpr = parseAssign(); // right-assoc: a?b:c?d:e = a?b:(c?d:e)
@@ -104,7 +105,7 @@ class ExprParser {
 		var left = parseBitwise();
 		while (true) {
 			skipWhitespace();
-			// `e is Type` — the right operand is a (dotted) type name, not an expr
+			// in `e is Type` the right operand is a (dotted) type name, not an expression
 			if (peekKeyword("is")) {
 				pos += 2;
 				left = EIs(left, readTypePath());
@@ -126,7 +127,7 @@ class ExprParser {
 		}
 	}
 
-	// A dotted type name after `is`, `new`, etc. (`Point`, `pkg.sub.Cls`).
+	// A dotted type name after `is` (`Point`, `pkg.sub.Cls`).
 	function readTypePath():String {
 		var name = readIdent("a type name");
 		while (true) {
@@ -141,8 +142,8 @@ class ExprParser {
 		}
 	}
 
-	// True when the identifier `word` sits at the cursor as a whole token (so
-	// `is` matches but `isReady` does not).
+	// True when `word` sits at the cursor as a whole identifier, so `is`
+	// matches but `isReady` does not.
 	function peekKeyword(word:String):Bool {
 		if (!peekOp(word)) {
 			return false;
@@ -155,7 +156,7 @@ class ExprParser {
 		var left = parseShift();
 		while (true) {
 			skipWhitespace();
-			// single & or | only (never the start of && / ||)
+			// a single & or |, never the start of && or ||
 			if (peekOp("&") && !peekOp("&&")) {
 				pos++;
 				left = EBinop("&", left, parseShift());
@@ -264,7 +265,7 @@ class ExprParser {
 		}
 	}
 
-	// arguments after a consumed "(" up to the matching ")"
+	// the arguments after an already consumed "(", up to the matching ")"
 	function parseArgs():Array<Expr> {
 		var args:Array<Expr> = [];
 		skipWhitespace();
@@ -315,13 +316,13 @@ class ExprParser {
 		throw new DebugError('Unexpected character "' + String.fromCharCode(c) + '" in the expression');
 	}
 
-	// `new pkg.Cls(args)` — the keyword was already consumed
+	// `new pkg.Cls(args)`, after the already consumed keyword
 	function readNew():Expr {
 		skipWhitespace();
 		var name = readIdent("a class name after 'new'");
 		while (true) {
 			skipWhitespace();
-			// a dot ALWAYS extends the class name here: `new a.b.Cls(...)`
+			// here a dot ALWAYS extends the class name: `new a.b.Cls(...)`
 			if (peekOp(".")) {
 				pos++;
 				skipWhitespace();
@@ -355,8 +356,8 @@ class ExprParser {
 			pos++;
 		}
 		var isFloat = false;
-		// a '.' only continues the number when a digit follows (so `1.field` — not
-		// valid Haxe anyway — never mis-tokenizes and `arr[1].x` stays a path)
+		// a '.' continues the number only when a digit follows, so `arr[1].x`
+		// stays a field access
 		if (pos + 1 < text.length && StringTools.fastCodeAt(text, pos) == ".".code
 			&& isDigit(StringTools.fastCodeAt(text, pos + 1))) {
 			isFloat = true;
@@ -456,7 +457,7 @@ class ExprParser {
 		return true;
 	}
 
-	// the first of `ops` present at the cursor (longer options listed first)
+	// the first of `ops` found at the cursor; callers list longer operators first
 	function matchFirst(ops:Array<String>):Null<String> {
 		for (op in ops) {
 			if (peekOp(op)) {

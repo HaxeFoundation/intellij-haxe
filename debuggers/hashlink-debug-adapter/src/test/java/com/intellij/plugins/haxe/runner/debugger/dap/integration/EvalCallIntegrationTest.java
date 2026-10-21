@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,10 +23,11 @@ import org.junit.jupiter.api.Test;
 public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
   @Test
-  @DisplayName("calls functions and returns values")
-  public void callsFunctionsAndReturnsValues() throws Exception {
+  @DisplayName("calls functions return values and leave the process runnable")
+  public void callsFunctionsReturnValuesAndLeaveTheProcessRunnable() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
 
     // integer args + integer return
     assertEquals("23", evaluated(frameId, "add(20, 3)"), "add(20, 3) = 23");
@@ -40,23 +38,17 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // bool arg + bool return
     assertEquals("false", evaluated(frameId, "negate(true)"), "negate(true) = false");
 
-    // the debuggee survived the injected calls and runs to completion
-    request(new DisconnectRequest());
-  }
+    // calls are expression leaves: results feed operators, and arguments are
+    // themselves full expressions
+    assertEquals("10", evaluated(frameId, "add(2, 3) * 2"), "call result in arithmetic");
+    assertEquals("23", evaluated(frameId, "add(base + 1, base + 2)"), "expression arguments");
+    assertEquals("41", evaluated(frameId, "boost(1) + plus(base + 3)"), "bound closures in expressions"); // 16 + 25
+    assertEquals("\"L10!\"", evaluated(frameId, "label(base) + \"!\""), "string return concatenated");
+    assertEquals("true", evaluated(frameId, "scale(4.0) == 10"), "call result in comparison");
 
-  @Test
-  @DisplayName("calls are repeatable and leave the process runnable")
-  public void callsAreRepeatableAndLeaveTheProcessRunnable() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
-
-    // several calls in a row must each restore state cleanly
-    assertEquals("3", evaluated(frameId, "add(1, 2)"), "1");
-    assertEquals("30", evaluated(frameId, "add(10, 20)"), "2");
-    assertEquals("25", evaluated(frameId, "scale(10.0)"), "3");
-
-    // resume: the program's own output must be intact (calls didn't corrupt it)
-    String output = continueToExit(stopped.getBody().getThreadId());
+    // resume: the program's own output must be intact (the calls in a row
+    // each restored state cleanly)
+    String output = continueToExit(threadId);
     assertTrue(output.contains("call:11,25,true,orig10,L10,16,13,6"), "program output intact after injected calls (" + output + ")");
   }
 
@@ -77,23 +69,6 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // the debuggee survived the bound calls: output intact through a clean exit
     String output = continueToExit(threadId);
     assertTrue(output.contains("call:11,25,true,orig10,L10,16,13,6"), "program output intact after bound calls (" + output + ")");
-  }
-
-  @Test
-  @DisplayName("calls inside expressions")
-  public void callsInsideExpressions() throws Exception {
-    // calls are expression leaves — results feed operators, and
-    // arguments are themselves full expressions (base = 10)
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
-
-    assertEquals("10", evaluated(frameId, "add(2, 3) * 2"), "call result in arithmetic");
-    assertEquals("23", evaluated(frameId, "add(base + 1, base + 2)"), "expression arguments");
-    assertEquals("41", evaluated(frameId, "boost(1) + plus(base + 3)"), "bound closures in expressions"); // 16 + 25
-    assertEquals("\"L10!\"", evaluated(frameId, "label(base) + \"!\""), "string return concatenated");
-    assertEquals("true", evaluated(frameId, "scale(4.0) == 10"), "call result in comparison");
-
-    request(new DisconnectRequest());
   }
 
   @Test
@@ -121,7 +96,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // int result into an int local
     assertTrue(evaluate(frameId, "base = add(20, 3)").isSuccess(), "base = add(20, 3)");
-    // the prize: a String PRODUCED by the program's own code, assigned to a local
+    // a String PRODUCED by the program's own code, assigned to a local
     assertTrue(evaluate(frameId, "s = label(7)").isSuccess(), "s = label(7)");
 
     int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
@@ -166,7 +141,8 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // pointer, then run the constructor. Point is constructed elsewhere in the
     // program (Main.inspectDemo), so its ONew site exists to mine.
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
 
     // construct with int + null-string args, expand the result, check fields
     EvaluateResponse p = evaluate(frameId, "new Point(3, 4, null)");
@@ -182,24 +158,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
       variablesByName(evaluate(frameId, "new Point(5, 6, \"hi\")").getBody().getVariablesReference());
     assertEquals("\"hi\"", withLabel.get("label"), "Point.label from a string literal arg");
 
-    request(new DisconnectRequest());
-  }
-
-  @Test
-  @DisplayName("assigns a new object to a local and it reaches execution")
-  public void assignsANewObjectToALocalAndItReachesExecution() throws Exception {
-    // `p = new Point(...)` — but Call.demo has no Point local, so verify via a
-    // fresh construction assigned through evaluate into a Dynamic array slot is
-    // out of scope; instead assert the constructed instance survives a resume by
-    // constructing, reading back, then continuing to a clean exit.
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int threadId = stopped.getBody().getThreadId();
-    int frameId = topFrameId(threadId);
-
-    EvaluateResponse p = evaluate(frameId, "new Point(7, 8, \"z\")");
-    assertEquals("8", variablesByName(p.getBody().getVariablesReference()).get("y"), "y set");
-
-    // the injected allocation + ctor left the debuggee intact
+    // the injected allocations + ctors left the debuggee intact
     String output = continueToExit(threadId);
     assertTrue(output.contains("call:11,25,true,orig10,L10,16,13,6"), "program output intact after construction (" + output + ")");
   }
@@ -224,7 +183,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("call succeeds and stays clean with a breakpoint inside the callee")
   public void callSucceedsAndStaysCleanWithABreakpointInsideTheCallee() throws Exception {
-    // The reported corruption: an injected call whose body trips one of OUR
+    // An injected call whose body trips one of the adapter's
     // planted INT3s (a user breakpoint here; the hl_throw trap when VM-exception
     // breakpoints are on, for a callee that throws/catches internally) aborts
     // mid-call and leaves a half-executed frame that breaks later execution.
@@ -257,7 +216,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   @Test
   @DisplayName("push to int array returns and leaves the process runnable")
   public void pushToIntArrayReturnsAndLeavesTheProcessRunnable() throws Exception {
-    // reproduces the reported corruption: a method call that allocates/grows an
+    // a method call that allocates/grows an
     // Array<Int> (hl.types.ArrayBytes_Int.push) must return AND leave the VM
     // able to keep executing — a botched call teardown crashes later steps.
     StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
@@ -275,19 +234,4 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     assertTrue(output.contains("rich:10"), "program ran to completion intact after the pushes (" + output + ")");
   }
 
-  private String continueToExit(int threadId) throws Exception {
-    assertTrue(request(continueRequest(threadId)).isSuccess(), "continue");
-    List<String> output = new ArrayList<>();
-    while (true) {
-      Event event = client.pollEvent(TIMEOUT);
-      if (event instanceof OutputEvent out) {
-        output.add(out.getBody().getOutput());
-      } else if (event instanceof StoppedEvent stopped) {
-        request(continueRequest(stopped.getBody().getThreadId()));
-      } else if (event instanceof ExitedEvent) {
-        break;
-      }
-    }
-    return String.join("", output);
-  }
 }

@@ -8,13 +8,13 @@ import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 
 /**
-	Emits a 32-bit (x86) call trampoline, the cdecl counterpart of the x86-64
-	`X64CallEmitter`. HashLink's JIT calls natives cdecl on 32-bit: arguments
-	pushed right-to-left, caller cleans the stack, int/pointer returned in EAX,
-	float/double returned on the x87 stack (ST0).
+	Emits the 32-bit (x86) eval-call trampoline, the cdecl counterpart of
+	`X64CallEmitter`. HashLink's 32-bit JIT calls natives with cdecl:
+	arguments are pushed right to left, the caller cleans the stack, an int or
+	pointer returns in EAX, and a float returns on the x87 stack (ST0).
 
-	The caller sets ESP to a scratch top S below the interrupted frame before
-	running this. Layout the trampoline builds:
+	Before running it, the caller points ESP at a scratch stack top S below the
+	interrupted frame. The trampoline is:
 
 	```
 	push ecx ; push edx          save the caller-saved scratch registers
@@ -26,22 +26,19 @@ import haxe.io.BytesBuffer;
 	int3
 	```
 
-	The result: an int/pointer is in EAX (the caller reads it directly); a float
-	is written to [S] — a free 8-byte slot just below the interrupted frame — and
-	the caller reads it from there (ST0 is not exposed by HL's debug register
-	API, so it cannot be read after the trap; it must be spilled here). `wide`
-	float args (HF64) push two dwords; F32 return spills a dword, F64 a qword.
+	An int or pointer result stays in EAX, where the caller reads it. A float
+	result is stored at [S], the top of the scratch stack, and the caller reads
+	it from there: HL's debug register API does not expose ST0, so the value
+	must be stored before the trap. An F32 result is stored as a dword, an F64
+	as a qword, and a `wide` (HF64) argument takes two pushes.
 
-	Pure and unit-tested against exact byte sequences.
+	Pure; unit tests pin the exact byte sequences.
 **/
 class X86CallEmitter implements CallTrampoline {
-	static inline var MAX_ARGS = 16; // cdecl is stack-based; a sane cap vs the scratch stack
+	// cdecl passes every argument on the stack; the cap keeps them well inside the scratch stack
+	static inline var MAX_ARGS = 16;
 
 	public function new() {}
-
-	public function maxArgs():Int {
-		return MAX_ARGS;
-	}
 
 	public function build(funcAddr:Int64, args:Array<CallArg>, floatBits:Int):Bytes {
 		if (args.length > MAX_ARGS) {
@@ -51,8 +48,8 @@ class X86CallEmitter implements CallTrampoline {
 		out.addByte(0x51); // push ecx
 		out.addByte(0x52); // push edx
 
-		// arguments right-to-left; within a wide (8-byte) arg push high then low
-		// so the low dword lands at the lower address (little-endian double)
+		// arguments right to left; a wide (8-byte) argument pushes its high dword
+		// first, so the low dword lands at the lower address of the little-endian double
 		var argBytes = 0;
 
 		for (i in 0...args.length) {
@@ -79,8 +76,8 @@ class X86CallEmitter implements CallTrampoline {
 		}
 
 		if (floatBits != 0) {
-			// spill ST0 into the return slot at [S] (== [esp+8], above the saved
-			// ecx/edx): qword for a double, dword for a single
+			// store ST0 at [S], which is [esp+8] above the saved ecx/edx: a qword
+			// for a double, a dword for a single
 			out.addByte(floatBits == 64 ? 0xDD : 0xD9); // fstp m64 / m32
 			out.addByte(0x5C); // modrm: [esp+disp8], /3
 			out.addByte(0x24); // sib: base=esp
