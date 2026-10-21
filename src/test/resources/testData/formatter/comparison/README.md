@@ -34,8 +34,9 @@ haxelib run formatter -s <rule>\hxformat.hx
 
 Then confirm the two files differ. Generated with formatter 1.18.0.
 
-`default-hxformat.json` is the tool's complete built-in configuration, the
-word `HxformatDefaults` is checked against (`HxformatDefaultsTest`).
+`default-hxformat.json` is the tool's complete built-in configuration: the
+`HxformatImportTest` round trip maps it onto the default profile, and
+`HxformatDefaultsTest` checks the chain rule constant that is no setting.
 The tool only writes it over an EXISTING file:
 
 ```

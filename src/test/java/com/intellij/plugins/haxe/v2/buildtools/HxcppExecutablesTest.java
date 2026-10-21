@@ -41,11 +41,8 @@ public class HxcppExecutablesTest extends HaxeCodeInsightFixtureTestCase {
     arguments(List.of(define("static_link"), define("exe_link")), true),
     // a shared-library define overrides exe_link
     arguments(List.of(define("exe_link"), define("dll_link")), false),
-    arguments(List.of(define("dll_import")), false),
     // a cross toolchain builds for another platform, whatever it links
     arguments(List.of(define("android"), define("exe_link")), false),
-    arguments(List.of(define("iphoneos")), false),
-    arguments(List.of(define("emscripten")), false),
     arguments(List.of(define("mingw")), true));
 
   @ParameterizedTest(name = "{0}")

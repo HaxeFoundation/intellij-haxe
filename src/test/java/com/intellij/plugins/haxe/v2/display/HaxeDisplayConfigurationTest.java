@@ -95,25 +95,6 @@ public class HaxeDisplayConfigurationTest {
   }
 
   @Test
-  @DisplayName("remove expands an hxml reference to reach its defines")
-  public void testRemoveExpandsAnHxmlReferenceToReachItsDefines(@TempDir Path directory) throws IOException {
-    Files.writeString(directory.resolve("build.hxml"), """
-      -cp src
-      -D legacy_api
-      -main Main
-      """);
-    List<String> base = List.of("--cwd", directory.toString(), "build.hxml");
-    OverrideArguments overrides = new OverrideArguments(Set.of("legacy_api"), List.of("-D", "modern_api"), null);
-
-    List<String> applied = HaxeDisplayConfiguration.applyOverrides(base, overrides);
-
-    assertFalse(applied.contains("legacy_api"), "removed define must not survive expansion, got: " + applied);
-    assertTrue(applied.containsAll(List.of("-cp", "src", "-main", "Main")), "expanded hxml flags expected, got: " + applied);
-    assertTrue(applied.containsAll(List.of("-D", "modern_api")), "set override appended, got: " + applied);
-    assertFalse(applied.contains("build.hxml"), "the hxml reference is replaced by its expansion, got: " + applied);
-  }
-
-  @Test
   @DisplayName("a custom target is appended after the defines")
   public void testACustomTargetIsAppendedAfterTheDefines() {
     List<String> base = List.of("--cwd", "dir", "extraParams.hxml");

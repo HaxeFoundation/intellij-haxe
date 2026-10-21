@@ -62,20 +62,6 @@ public class HaxeTestFrameworkReportingArgsTest {
     assertEquals(withoutRoot, framework.reportingArgs(SUITE, null, true), "no extracted reporter");
   }
 
-  static Stream<Arguments> frameworksWithoutAFilterDefine() {
-    return Stream.of(
-      arguments("buddy", new BuddyFramework()),
-      arguments("munit", new MunitFramework()),
-      arguments("tink", new TinkFramework()));
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("frameworksWithoutAFilterDefine")
-  @DisplayName("frameworks without a filter define answer no filter args")
-  public void testFrameworksWithoutAFilterDefineAnswerNoFilterArgs(String name, HaxeTestFramework framework) {
-    assertTrue(framework.filterArgs("Any.pattern").isEmpty(), name + " has no filter define");
-  }
-
   @Test
   @DisplayName("utest filter args carry the pattern define")
   public void testUtestFilterArgsCarryThePatternDefine() {

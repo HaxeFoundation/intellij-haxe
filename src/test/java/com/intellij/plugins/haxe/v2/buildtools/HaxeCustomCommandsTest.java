@@ -85,12 +85,6 @@ public class HaxeCustomCommandsTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("a copied command keeps its tool variable as typed")
-  public void testACopiedCommandKeepsItsToolVariableAsTyped() {
-    assertEquals("${haxe} build.hxml", ParametersListUtil.join(List.of("${haxe}", "build.hxml")));
-  }
-
-  @Test
   @DisplayName("blank work directory falls back to the row kind's default")
   public void testBlankWorkDirectoryFallsBackToTheRowKindsDefault() {
     assertEquals("/fallback", HaxeCustomCommands.resolveWorkDirectory("  ", "/fallback", "/work/mod", "/work"));

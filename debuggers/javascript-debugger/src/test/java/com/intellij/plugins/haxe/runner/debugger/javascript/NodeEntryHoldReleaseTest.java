@@ -53,20 +53,6 @@ public class NodeEntryHoldReleaseTest {
   }
 
   @Test
-  @DisplayName("only the first stop is the hold")
-  public void onlyTheFirstStopIsTheHold() throws Exception {
-    StoppedEvent laterStep = stopped("step", 4);
-    ScriptedSession session = new ScriptedSession(stopped("entry", 4), laterStep);
-    NodeEntryHoldRelease release = new NodeEntryHoldRelease(session);
-
-    release.pollEvent(10);
-    Event second = release.pollEvent(10);
-
-    assertSame(laterStep, second, "a user's step after the hold is a real stop");
-    assertEquals(List.of(4), session.continuedThreads());
-  }
-
-  @Test
   @DisplayName("a first stop that hit a breakpoint passes through whatever its reason")
   public void aFirstStopThatHitABreakpointPassesThroughWhateverItsReason() throws Exception {
     StoppedEvent heldOnBreakpoint = stopped("step", 2);

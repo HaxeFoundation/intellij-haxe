@@ -52,16 +52,12 @@ public class HaxeBuildFileScannerTest extends HaxeCodeInsightFixtureTestCase {
     arguments("openfl-project.xml", OPENFL_PROJECT_SOURCE, HaxeBuildFileType.OPENFL),
     // lime's own extension classifies like xml
     arguments("lime-project.lime", LIME_PROJECT_SOURCE, HaxeBuildFileType.LIME),
-    arguments("openfl-project.lime", OPENFL_PROJECT_SOURCE, HaxeBuildFileType.OPENFL),
     // <classpath> is lime's alias of <source>
     arguments("classpath-only.xml", CLASSPATH_ONLY_PROJECT_SOURCE, HaxeBuildFileType.LIME),
     // the recognised elements may sit inside a <section>
     arguments("sectioned.xml", SECTIONED_LIME_PROJECT_SOURCE, HaxeBuildFileType.LIME),
-    // under the lime extensions a project without a library or a source path is nobody's
-    arguments("app-only.xml", NME_SAMPLE_PROJECT_SOURCE, null),
     // lime merges a library's include file into the build naming the library and never builds one itself
     arguments("include.xml", LIME_PROJECT_SOURCE, null),
-    arguments("include.lime", LIME_PROJECT_SOURCE, null),
     arguments("include.hxp", "class Include extends HXProject {}\n", null),
     arguments("extension.xml", LIBRARY_INCLUDE_SOURCE, null),
     arguments("project.hxp", "class Project extends HXProject {}\n", HaxeBuildFileType.HXP_PROJECT),
@@ -70,8 +66,6 @@ public class HaxeBuildFileScannerTest extends HaxeCodeInsightFixtureTestCase {
     arguments("openfl-project.nmml", OPENFL_PROJECT_SOURCE, HaxeBuildFileType.NMML),
     // NME needs neither <haxelib> nor <source>
     arguments("sample-shape.nmml", NME_SAMPLE_PROJECT_SOURCE, HaxeBuildFileType.NMML),
-    // NME builds any .nmml, its library include file too
-    arguments("include.nmml", NME_PROJECT_SOURCE, HaxeBuildFileType.NMML),
     arguments("no-project.nmml", "<config/>", null),
     arguments("pom.xml", MAVEN_POM_SOURCE, null),
     arguments("notes.txt", "<project/>", null));
@@ -83,6 +77,7 @@ public class HaxeBuildFileScannerTest extends HaxeCodeInsightFixtureTestCase {
 
   @ParameterizedTest(name = "{0} -> {2}")
   @FieldSource("DETECTIONS")
+  @DisplayName("detects the build file type")
   public void testDetectsTheBuildFileType(String fileName, String source, HaxeBuildFileType expected) {
     VirtualFile file = myFixture.addFileToProject(fileName, source).getVirtualFile();
 

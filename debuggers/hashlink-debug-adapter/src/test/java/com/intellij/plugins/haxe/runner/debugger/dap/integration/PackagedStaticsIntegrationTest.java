@@ -28,16 +28,8 @@ public class PackagedStaticsIntegrationTest extends DapIntegrationTestBase {
 
     assertEquals("99", evaluated(frameId, "marker"), "static var, unqualified");
     assertEquals("42", evaluated(frameId, "CONSTANT"), "static final, unqualified");
-    assertEquals("99", evaluated(frameId, "pkg.Deep.marker"), "still resolvable qualified");
-  }
 
-  /** The same mapping drives the Statics scope, so it must appear here too. */
-  @Test
-  @DisplayName("the statics scope appears in a packaged instance frame")
-  public void theStaticsScopeAppearsInAPackagedInstanceFrame() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_DEEP, FIXTURE_DEEP_INSTANCE_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
-
+    // the same mapping drives the Statics scope, so it must appear here too
     Scope statics = scopeByPrefix(frameId, "Statics");
     assertNotNull(statics, "a packaged instance frame has a Statics scope");
     Map<String, String> byName = variablesByName(statics.getVariablesReference());

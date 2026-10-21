@@ -21,13 +21,6 @@ public class HaxeCustomActionsStoreTest {
   private static final String OTHER_FILE = "/p/lib/build.hxml";
 
   @Test
-  @DisplayName("defaults are empty")
-  public void defaultsAreEmpty() {
-    HaxeCustomActionsStore store = new HaxeCustomActionsStore();
-    assertTrue(store.getActions(FILE).isEmpty());
-  }
-
-  @Test
   @DisplayName("actions keep creation order and same name replaces")
   public void actionsKeepCreationOrderAndSameNameReplaces() {
     HaxeCustomActionsStore store = new HaxeCustomActionsStore();

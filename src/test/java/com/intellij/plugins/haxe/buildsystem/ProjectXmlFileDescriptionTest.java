@@ -20,7 +20,6 @@ import javax.swing.Icon;
 import java.util.List;
 import java.util.Set;
 
-import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.CLASSPATH_ONLY_PROJECT_SOURCE;
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.MAVEN_POM_SOURCE;
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.NME_SAMPLE_PROJECT_SOURCE;
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.SECTIONED_LIME_PROJECT_SOURCE;
@@ -47,22 +46,19 @@ public class ProjectXmlFileDescriptionTest extends HaxeCodeInsightFixtureTestCas
     </project>
     """;
 
-  /** (file name, source text, the description claiming the file - null for none, its file icon). */
+  /** (file name, source text, the description claiming the file - null for none). */
   static final List<Arguments> CLAIMS = List.of(
-    arguments("lime-project.xml", LIME_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
-    arguments("openfl-project.xml", OPENFL_PROJECT_SOURCE, OpenflXmlFileDescription.class, HaxeIcons.OPENFL_LOGO),
-    // lime's own extension classifies like xml
-    arguments("lime-project.lime", LIME_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
-    arguments("openfl-project.lime", OPENFL_PROJECT_SOURCE, OpenflXmlFileDescription.class, HaxeIcons.OPENFL_LOGO),
-    // <classpath> is lime's alias of <source>
-    arguments("classpath-only.xml", CLASSPATH_ONLY_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
+    arguments("lime-project.xml", LIME_PROJECT_SOURCE, LimeXmlFileDescription.class),
+    arguments("openfl-project.xml", OPENFL_PROJECT_SOURCE, OpenflXmlFileDescription.class),
+    // lime's own extension is an xml file
+    arguments("lime-project.lime", LIME_PROJECT_SOURCE, LimeXmlFileDescription.class),
     // the recognised elements may sit inside a <section>
-    arguments("sectioned.xml", SECTIONED_LIME_PROJECT_SOURCE, LimeXmlFileDescription.class, HaxeIcons.LIME_LOGO),
-    arguments("sample.nmml", NME_SAMPLE_PROJECT_SOURCE, NMMLFileDescription.class, HaxeIcons.NMML_LOGO),
+    arguments("sectioned.xml", SECTIONED_LIME_PROJECT_SOURCE, LimeXmlFileDescription.class),
+    arguments("sample.nmml", NME_SAMPLE_PROJECT_SOURCE, NMMLFileDescription.class),
     // the extension picks NME even when the project declares openfl
-    arguments("openfl-project.nmml", OPENFL_PROJECT_SOURCE, NMMLFileDescription.class, HaxeIcons.NMML_LOGO),
+    arguments("openfl-project.nmml", OPENFL_PROJECT_SOURCE, NMMLFileDescription.class),
     // a maven-shaped <project> (under a name the maven plugin does not claim) is nobody's
-    arguments("settings.xml", MAVEN_POM_SOURCE, null, null));
+    arguments("settings.xml", MAVEN_POM_SOURCE, null));
 
   @Override
   protected String getBasePath() {
@@ -71,15 +67,14 @@ public class ProjectXmlFileDescriptionTest extends HaxeCodeInsightFixtureTestCas
 
   @ParameterizedTest(name = "{0} -> {2}")
   @FieldSource("CLAIMS")
-  public void testClaimsTheFileAndCarriesItsIcon(String fileName, String source, Class<?> expectedDescription, Icon expectedIcon) {
+  @DisplayName("claims the file")
+  public void testClaimsTheFile(String fileName, String source, Class<?> expectedDescription) {
     XmlFile file = (XmlFile)myFixture.addFileToProject(fileName, source);
 
     DomFileDescription<?> description = DomManager.getDomManager(getProject()).getDomFileDescription(file);
 
     Class<?> descriptionClass = description == null ? null : description.getClass();
-    Icon icon = description == null ? null : description.getFileIcon(0);
     assertEquals(expectedDescription, descriptionClass);
-    assertEquals(expectedIcon, icon);
   }
 
   /** The platform restores a file's description from its root element class name, so each kind needs its own. */

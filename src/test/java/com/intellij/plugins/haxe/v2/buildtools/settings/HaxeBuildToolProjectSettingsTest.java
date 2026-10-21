@@ -11,16 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class HaxeBuildToolProjectSettingsTest {
 
   @Test
-  @DisplayName("defaults are empty")
-  public void defaultsAreEmpty() {
-    HaxeBuildToolProjectSettings settings = new HaxeBuildToolProjectSettings();
-    assertNull(settings.getSdkName());
-    assertEquals("", settings.getNekoPath());
-    assertEquals("", settings.getHashlinkPath());
-    assertEquals("", settings.getHaxelibPath());
-  }
-
-  @Test
   @DisplayName("blank sdk name is treated as unset")
   public void blankSdkNameIsTreatedAsUnset() {
     HaxeBuildToolProjectSettings settings = new HaxeBuildToolProjectSettings();

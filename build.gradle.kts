@@ -204,6 +204,14 @@ tasks {
             filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.display.HaxeLiveCompilerIntegrationTest")
             filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.display.HaxeLiveHaxe3IntegrationTest")
         }
+
+        // The test-runner pipeline test runs real haxe/haxelib/neko/adl processes end to end.
+        // Opt-in for the same reason: it depends on the installed toolchain and takes minutes.
+        val liveTestRunnerTests = providers.gradleProperty("liveTestRunnerTests").getOrElse("false").toBoolean()
+        if (!liveTestRunnerTests) {
+            logger.lifecycle("SKIPPING live test-runner pipeline test (opt in with -PliveTestRunnerTests=true)")
+            filter.excludeTestsMatching("com.intellij.plugins.haxe.v2.testing.run.HaxeTestRunnerPipelineTest")
+        }
     }
 
     buildPlugin {

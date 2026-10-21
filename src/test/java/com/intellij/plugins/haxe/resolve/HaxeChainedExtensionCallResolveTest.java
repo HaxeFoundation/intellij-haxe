@@ -113,30 +113,6 @@ public class HaxeChainedExtensionCallResolveTest extends HaxeToolkitLightFixture
   }
 
   @Test
-  @DisplayName("the last link resolves to the extension method")
-  public void testTheLastLinkResolvesToTheExtensionMethod() {
-    myFixture.configureByText("Main.hx", CHAIN_SOURCE);
-
-    PsiElement resolved = caretReference().resolve();
-
-    HaxeMethodDeclaration method = assertInstanceOf(HaxeMethodDeclaration.class, resolved);
-    assertEquals("replace", method.getName());
-  }
-
-  @Test
-  @DisplayName("evaluating the chain is certain")
-  public void testEvaluatingTheChainIsCertain() {
-    myFixture.configureByText("Main.hx", CHAIN_SOURCE);
-    HaxeCallExpression chain = caretCall();
-
-    long mark = HaxeEvaluationTaint.mark();
-    ResultHolder result = HaxeExpressionEvaluator.evaluate(chain, new HaxeExpressionEvaluatorContext(chain), null).result;
-
-    assertEquals("String", result.toStringWithoutConstant());
-    assertFalse(HaxeEvaluationTaint.taintedSince(mark), "the chain's evaluation re-entered a resolve in progress");
-  }
-
-  @Test
   @DisplayName("the return type survives an inactive conditional link in the chain")
   public void testTheReturnTypeSurvivesAnInactiveConditionalLinkInTheChain() {
     myFixture.configureByText("Main.hx", CONDITIONAL_CHAIN_SOURCE);
@@ -163,7 +139,8 @@ public class HaxeChainedExtensionCallResolveTest extends HaxeToolkitLightFixture
     PsiElement resolved = caretReference().resolve();
     ResultHolder result = HaxeExpressionEvaluator.evaluate(chain, new HaxeExpressionEvaluatorContext(chain), null).result;
 
-    assertInstanceOf(HaxeMethodDeclaration.class, resolved);
+    HaxeMethodDeclaration method = assertInstanceOf(HaxeMethodDeclaration.class, resolved);
+    assertEquals("replace", method.getName());
     assertEquals("String", result.toStringWithoutConstant());
     assertFalse(HaxeEvaluationTaint.taintedSince(mark), "a 20-link chain tripped a recursion guard or budget");
   }

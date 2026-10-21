@@ -13,16 +13,13 @@ import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.breakpointOf;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.breakpointsRequest;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.isStoppedInHx;
-import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.outputTextOf;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.continueRequest;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.firefoxExe;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.haxeOnPath;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.nodeExe;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.nodeRoot;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.probe;
-import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.scopesRequest;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.stackTraceRequest;
-import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.variablesRequest;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
@@ -30,6 +27,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,20 +42,35 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import com.intellij.plugins.haxe.runner.debugger.browser.ContentHttpServer;
 
-/// Live probes of the firefox debug adapter: connecting, starting a session in
-/// Firefox, breakpoints and capabilities. Requires Firefox, the provisioned
-/// portable node with the firefox adapter, and haxe on PATH.
+/// Live probes of the firefox debug adapter (vscode-firefox-debug 2.15.0):
+/// connecting, a served session in Firefox, breakpoint paths and load-time
+/// breakpoints. Requires Firefox, the provisioned portable node with the
+/// firefox adapter, and haxe on PATH.
+///
+/// Wire facts of this adapter, recorded here because the module has no README:
+///
+///   - The `initialized` event follows the launch response, so breakpoints
+///     are registered after the launch; `setBreakpoints` answers them
+///     unverified and a later breakpoint event upgrades each one once the
+///     source map binds it.
+///   - Two launch modes: `file` (a file:// url to the page) and `url` +
+///     `webRoot` (a page served over http, webRoot mapping the served urls
+///     back to the content directory for the source maps). The IDE backend
+///     only ever serves.
+///   - Breakpoint paths are matched LITERALLY against native paths: a
+///     forward-slash spelling (the IDE's VFS form on Windows) never binds.
+///   - Worker frames: scopes and variables answer, but a request the
+///     in-worker devtools server never answers (its previewer crashes on
+///     object inspection) wedges the adapter's per-actor FIFO queue for that
+///     thread, and every later request to it hangs — an upstream Mozilla
+///     limitation; the backend keeps a short request timeout and the Chromium
+///     family is the recommendation for worker-heavy sessions.
+///   - A worker PAUSED at a breakpoint when the served first page reloads
+///     (the load-time strategy below) stays in the thread list after the
+///     reload as a thread whose actor answers nothing.
 @DisplayName("Browser debugger: firefox adapter (live)")
 public class FirefoxAdapterLiveTest {
   private static final long TIMEOUT = 15_000;
-
-  /// The two load-timing variants runLoadVariant is exercised with.
-  private static final List<String> LOAD_VARIANTS = List.of("J", "K");
-
-  // fixture file names; the .hx names come back in reported breakpoint source paths
-  private static final String WORKER_MAIN_HX_NAME = "WorkerMain.hx";
-  private static final String INDEX_FILE = "index.html";
-  private static final String APP_JS = "app.js";
 
   private Process adapter;
   private DapClient client;
@@ -87,131 +100,6 @@ public class FirefoxAdapterLiveTest {
     if (adapter != null) {
       killTree(adapter);
     }
-  }
-
-  @Timeout(30)
-  @Test
-  @DisplayName("initialize handshake and capabilities")
-  public void initializeHandshakeAndCapabilities() throws Exception {
-    Response response = client.sendRequest(initializeRequest(), TIMEOUT);
-    probe("initialize success=" + response.isSuccess() + " class=" + response.getClass().getSimpleName());
-
-    assertTrue(response.isSuccess(), "initialize failed: " + response.getMessage());
-
-    if (response instanceof InitializeResponse init && init.getBody() != null) {
-      probe("capabilities: supportsConfigurationDone="
-            + init.getBody().getSupportsConfigurationDoneRequest()
-            + " supportsSetVariable=" + init.getBody().getSupportsSetVariable()
-            + " supportsConditionalBreakpoints=" + init.getBody().getSupportsConditionalBreakpoints());
-    }
-
-    // event-ordering observation: does an initialized event arrive BEFORE any
-    // launch (some adapters), or only later? poll briefly and report.
-    long deadline = System.currentTimeMillis() + 3_000;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = client.pollEvent(250);
-      if (event != null) {
-        probe("event before launch: " + event.getClass().getSimpleName());
-      }
-    }
-
-    Response disconnect = client.sendRequest(new DisconnectRequest(), TIMEOUT);
-    probe("disconnect success=" + disconnect.isSuccess());
-  }
-
-  // ---------------------------------------------------------- full session
-
-  @Test
-  @Timeout(60)
-  @DisplayName("full session breakpoint in hx source via file url")
-  public void fullSessionBreakpointInHxSourceViaFileUrl() throws Exception {
-    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
-    Path firefox = firefoxExe();
-    Assumptions.assumeTrue(firefox != null, "firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping");
-    Path fixture = buildFixture();
-    probe("fixture at " + fixture);
-
-    assertTrue(client.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "initialize");
-
-    Map<String, Object> launchConfig = baseLaunchConfig(firefox);
-    launchConfig.put("file", fixture.resolve(INDEX_FILE).toString());
-    Response launch = client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
-    probe("launch success=" + launch.isSuccess() + (launch.isSuccess() ? "" : " message=" + launch.getMessage()));
-    assertTrue(launch.isSuccess(), "launch failed: " + launch.getMessage());
-
-    // event order observation: wait for the initialized event (post-launch here)
-    boolean initialized = false;
-    long deadline = System.currentTimeMillis() + 15_000;
-    while (System.currentTimeMillis() < deadline && !initialized) {
-      Event event = client.pollEvent(250);
-      if (event != null) {
-        probe("event: " + event.getClass().getSimpleName());
-        initialized = event instanceof InitializedEvent;
-      }
-    }
-    assertTrue(initialized, "no initialized event after launch");
-
-    // breakpoint by the ORIGINAL .hx path (native absolute path)
-    Response bpResponse = client.sendRequest(breakpointsRequest(fixture, WEB_MAIN_HX_NAME, BP_LINE), TIMEOUT);
-    if (bpResponse instanceof SetBreakpointsResponse ok && ok.getBody() != null) {
-      for (var b : ok.getBody().getBreakpoints()) {
-        probe("breakpoint verified=" + b.isVerified() + " line=" + b.getLine());
-      }
-    }
-    assertTrue(bpResponse.isSuccess(), "setBreakpoints failed");
-
-    // the ticking fixture must hit the breakpoint soon
-    StoppedEvent stopped = null;
-    deadline = System.currentTimeMillis() + 15_000;
-    while (System.currentTimeMillis() < deadline && stopped == null) {
-      Event event = client.pollEvent(250);
-      if (event != null) {
-        probe("event: " + event.getClass().getSimpleName()
-              + (event instanceof StoppedEvent s ? " reason=" + s.getBody().getReason() : ""));
-        if (event instanceof StoppedEvent s) {
-          stopped = s;
-        }
-      }
-    }
-    assertNotNull(stopped, "breakpoint never hit");
-    int threadId = threadIdOf(stopped);
-
-    assertTrue(client.sendRequest(new ThreadsRequest(), TIMEOUT).isSuccess(), "threads");
-
-    Response stResponse = client.sendRequest(stackTraceRequest(threadId), TIMEOUT);
-    assertTrue(stResponse.isSuccess(), "stackTrace");
-
-    List<StackFrame> frames = ((StackTraceResponse)stResponse).getBody().getStackFrames();
-    for (int i = 0; i < Math.min(3, frames.size()); i++) {
-      StackFrame frame = frames.get(i);
-      probe("frame " + i + ": " + frame.getName()
-            + " @ " + (frame.getSource() != null ? frame.getSource().getPath() : "?")
-            + ":" + frame.getLine());
-    }
-    assertFalse(frames.isEmpty(), "no frames");
-    StackFrame top = frames.get(0);
-    assertStoppedInHx(top, WEB_MAIN_HX_NAME, BP_LINE);
-
-    // scopes + a few variables of the top frame
-    Response scResponse = client.sendRequest(scopesRequest(top.getId()), TIMEOUT);
-    assertTrue(scResponse.isSuccess(), "scopes");
-
-    for (var scope : ((ScopesResponse)scResponse).getBody().getScopes()) {
-      Response vResponse =
-        client.sendRequest(variablesRequest(scope.getVariablesReference()), TIMEOUT);
-
-      if (vResponse instanceof VariablesResponse vars && vars.isSuccess() && vars.getBody() != null) {
-        List<Variable> list = vars.getBody().getVariables();
-        List<String> valueStrings = list.stream()
-          .limit(5)
-          .map(v -> v.getName() + "=" + v.getValue())
-          .toList();
-        probe("scope '" + scope.getName() + "': " + valueStrings);
-      }
-    }
-
-    Response disconnect = client.sendRequest(new DisconnectRequest(), TIMEOUT);
-    probe("disconnect success=" + disconnect.isSuccess());
   }
 
   /// The SERVE mode the IDE backend uses: the fixture is hosted by the module's own
@@ -268,13 +156,15 @@ public class FirefoxAdapterLiveTest {
     }
   }
 
-  /// The IDE's breakpoint paths come from IntelliJ's VFS, which uses forward
-  /// slashes on Windows (C:/Users/...). Does the adapter bind those, or only
-  /// native backslash paths?
+  /// Breakpoint paths are matched LITERALLY against native paths: the IDE's
+  /// VFS spelling (forward slashes on Windows) never binds, the native one
+  /// does — the reason BrowserDebugBackend.breakpointSourcePath converts to
+  /// native separators. The two spellings only differ on Windows.
   @Test
   @Timeout(60)
   @DisplayName("breakpoint path separator sensitivity")
   public void breakpointPathSeparatorSensitivity() throws Exception {
+    Assumptions.assumeTrue(File.separatorChar == '\\', "the path spellings only differ on windows - skipping");
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
     Assumptions.assumeTrue(firefox != null, "firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping");
@@ -293,209 +183,46 @@ public class FirefoxAdapterLiveTest {
     }
 
     probe("separator sensitivity: forward=" + forwardBound + " native=" + nativeBound);
+    assertFalse(forwardBound, "a forward-slash breakpoint path must not bind (the backend converts to native for this)");
     assertTrue(nativeBound, "native breakpoint path must bind");
-    // no assert on forwardBound: this test RECORDS the adapter's behaviour;
-    // the IDE-side fix (DapBreakpointManager normalization) covers either way
   }
 
-  // --- worker-frame request behaviour (evaluate vs variables) ---
+  // ------------------------------------------- load-time breakpoints
 
-  private static final int FF_WORKER_TICK_LINE = 4;
-  private static final String FF_WORKER_HX_SOURCE = """
-    class WorkerMain {
-    	static var ticks = 0;
-    	static function tick() {
-    		ticks++; // FF_WORKER_TICK_LINE = 4
-    		js.Syntax.code("console.log({0})", "w" + ticks);
-    	}
-    	static function main() {
-    		js.Syntax.code("setInterval({0}, {1})", tick, 250);
-    	}
-    }
-    """;
-  private static final int FF_PAGE_BEAT_LINE = 4;
-  private static final String FF_PAGE_HX_SOURCE = """
-    class WebPage {
-    	static var beats = 0;
-    	static function heartbeat() {
-    		beats++; // FF_PAGE_BEAT_LINE = 4
-    	}
-    	static function main() {
-    		var worker = new js.html.Worker("worker.js");
-    		js.Browser.console.log("worker: " + (worker != null));
-    		js.Browser.window.setInterval(heartbeat, 300);
-    	}
-    }
-    """;
-
-  /// Pins whether the firefox adapter answers evaluate for a worker thread's
-  /// frame. The suspected shape: variables/scopes answer, evaluate never
-  /// does — and per the adapter's per-actor FIFO queue, one unanswered request
-  /// wedges that thread forever. The TAB thread's evaluate is the control.
-  /// Runs variables before evaluate (evaluate may poison the queue).
+  /// Code in main() runs while the page loads, before the standard flow
+  /// (launch -> initialized -> setBreakpoints) completes, so the first load
+  /// runs through a load-time breakpoint unpaused. The adapter applies
+  /// breakpoints to a load only when they were registered BEFORE the load that
+  /// taught it the sources: serving a synthetic bootstrap page first, or
+  /// registering the breakpoints only when the reloaded page requests its
+  /// script, arms nothing. Register -> load once -> reload once (the served
+  /// first page refreshing itself, as BrowserDebugBackend arms it) is the
+  /// working sequence: the second load stops on the .hx line.
   @Test
   @Timeout(60)
-  @DisplayName("worker frame evaluate behaviour")
-  public void workerFrameEvaluateBehaviour() throws Exception {
-    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
-    Path firefox = firefoxExe();
-    Assumptions.assumeTrue(firefox != null, "firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping");
-
-    Path fixture = Files.createTempDirectory("haxe-ff-worker-probe");
-    probe("fixture dir: " + fixture);
-    Files.writeString(fixture.resolve("WebPage.hx"), FF_PAGE_HX_SOURCE);
-    Files.writeString(fixture.resolve(WORKER_MAIN_HX_NAME), FF_WORKER_HX_SOURCE);
-    Files.writeString(fixture.resolve(INDEX_FILE), LiveProbeUtil.INDEX_HTML);
-
-    LiveProbeUtil.compileHaxeJs(fixture, "WebPage", APP_JS);
-    LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
-
-    try (ContentHttpServer content = new ContentHttpServer(fixture)) {
-      content.setRequestListener(line -> System.out.println("[server] " + line));
-      assertTrue(client.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "initialize");
-
-      Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
-
-      Path adapterLog = fixture.resolve("adapter.log");
-      launchConfig.put("log", Map.of(
-        "fileName", adapterLog.toString(),
-        "fileLevel", Map.of("default", "Debug")));
-
-      assertTrue(client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess(), "launch");
-
-      boolean initialized = awaitInitialized(client, 15_000);
-      assertTrue(initialized, "initialized");
-
-      // breakpoint in the worker only; the ticking line hits ~immediately
-      sendBreakpoint(fixture.resolve(WORKER_MAIN_HX_NAME), FF_WORKER_TICK_LINE);
-      StopSite worker = awaitStopSite("worker breakpoint");
-      probe("worker stop: thread=" + worker.threadId() + " frame=" + worker.frame().getId()
-            + " @ " + frameLabel(worker.frame()));
-
-      // 1) scopes+variables on the worker frame (expected to answer)
-      probe("worker scopes/variables: " + timedScopesAndVariables(worker.frame().getId()));
-
-      // 2) evaluate on the worker frame - the suspected never-answered request
-      probe("worker evaluate(watch): " + timedEvaluate("ticks", worker.frame().getId(), "watch"));
-      probe("worker evaluate(repl):  " + timedEvaluate("ticks", worker.frame().getId(), "repl"));
-
-      // 3) CONTROL: the TAB thread - move the breakpoint to the page heartbeat
-      sendBreakpoints(fixture.resolve(WORKER_MAIN_HX_NAME), List.of()); // clear worker bp
-      sendBreakpoint(fixture.resolve("WebPage.hx"), FF_PAGE_BEAT_LINE);
-
-      resumeThread(worker.threadId());
-      StopSite tab = awaitStopSite("page heartbeat breakpoint");
-      probe("tab stop: thread=" + tab.threadId() + " frame=" + tab.frame().getId());
-      probe("tab scopes/variables: " + timedScopesAndVariables(tab.frame().getId()));
-      probe("tab evaluate(watch): " + timedEvaluate("beats", tab.frame().getId(), "watch"));
-
-      client.sendRequest(new DisconnectRequest(), TIMEOUT);
-    }
-  }
-
-  /// The ZOMBIE question, on a CLEAN instance (unique RDP port): with the
-  /// serve-mode refresh armed and a worker breakpoint hitting BEFORE the
-  /// reload, what does the thread list look like after the reload settles?
-  /// This pins whether doubled worker threads whose actors answer nothing
-  /// occur without a stale browser instance polluting the session.
-  @Test
-  @Timeout(60)
-  @DisplayName("worker threads across refresh")
-  public void workerThreadsAcrossRefresh() throws Exception {
-    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
-    Path firefox = firefoxExe();
-    Assumptions.assumeTrue(firefox != null, "firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping");
-
-    Path fixture = Files.createTempDirectory("haxe-ff-refresh-probe");
-    Files.writeString(fixture.resolve("WebPage.hx"), FF_PAGE_HX_SOURCE);
-    Files.writeString(fixture.resolve(WORKER_MAIN_HX_NAME), FF_WORKER_HX_SOURCE);
-    Files.writeString(fixture.resolve(INDEX_FILE), LiveProbeUtil.INDEX_HTML);
-
-    LiveProbeUtil.compileHaxeJs(fixture, "WebPage", APP_JS);
-    LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
-
-    try (ContentHttpServer content = new ContentHttpServer(fixture)) {
-      content.setRequestListener(line -> System.out.println("[server] " + line));
-      content.refreshFirstPage(2);
-
-      assertTrue(client.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "initialize");
-
-      Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
-
-      assertTrue(client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000).isSuccess(), "launch");
-
-      boolean initialized = awaitInitialized(client, 15_000);
-      assertTrue(initialized, "initialized");
-      sendBreakpoint(fixture.resolve(WORKER_MAIN_HX_NAME), FF_WORKER_TICK_LINE);
-
-      // first stop: the first load's worker hits its ticking bp BEFORE the 2s
-      // reload; then the reload fires while that worker is paused
-      StoppedEvent first = awaitStop(15_000);
-      assertNotNull(first, "worker breakpoint never hit on the first load");
-      probe("first stop: thread=" + first.getBody().getThreadId());
-
-      // let the reload happen and the second load settle (its worker re-hits)
-      StoppedEvent second = awaitStop(15_000);
-      probe("second stop: " + (second == null ? "none" : "thread=" + second.getBody().getThreadId()));
-
-      Response threadsResponse = client.sendRequest(new ThreadsRequest(), TIMEOUT);
-      var threads = ((ThreadsResponse)
-                       threadsResponse).getBody().getThreads();
-      for (var thread : threads) {
-        probe("thread id=" + thread.getId() + " name=" + thread.getName());
-      }
-      probe("thread count after refresh cycle: " + threads.size());
-      client.sendRequest(new DisconnectRequest(), TIMEOUT);
-    }
-  }
-
-  // ------------------------------------------- load-time breakpoint strategies
-
-  /// Which strategy beats the load race: code in main() runs while the page
-  /// loads, likely BEFORE the standard breakpoint flow (launch -> initialized
-  /// -> setBreakpoints) completes. Runs the variants of `LOAD_VARIANTS`:
-  ///   J: the plain standard flow (the baseline);
-  ///   K: refresh-once - the served first page reloads once, and the second
-  ///      load hits the breakpoints registered during the first.
-  /// Each variant gets its own adapter process and DAP connection. Asserts at
-  /// least one variant stops.
-  @Test
-  @Timeout(60)
-  @DisplayName("load time breakpoint strategies")
-  public void loadTimeBreakpointStrategies() throws Exception {
+  @DisplayName("load time breakpoint hits on the refreshed first page")
+  public void loadTimeBreakpointHitsOnTheRefreshedFirstPage() throws Exception {
     Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
     Path firefox = firefoxExe();
     Assumptions.assumeTrue(firefox != null, "firefox not found (set WEB_DEBUG_FIREFOX_EXE or install Firefox) - skipping");
     Path fixture = buildLoadFixture();
 
-    // J: plain standard flow (baseline: does the adapter attach/emit at all?)
-    // K: refresh-once (second load hits via the learned map?)
-    Path appJs = fixture.resolve(APP_JS);
-    String pristineAppJs = Files.readString(appJs);
+    try (ContentHttpServer content = new ContentHttpServer(fixture)) {
+      content.setRequestListener(line -> System.out.println("[server] " + line));
+      content.refreshFirstPage(2);
+      assertTrue(client.sendRequest(initializeRequest(), TIMEOUT).isSuccess(), "initialize");
 
-    // The adapter applies breakpoints to a load only when they were
-    // registered BEFORE the load that taught it the sources, so serving a
-    // synthetic bootstrap page first, or registering the breakpoints only
-    // when the reloaded page requests its script, arms nothing. Register ->
-    // load once -> reload (K) is the single working
-    // sequence; its cost is that a worker PAUSED at a breakpoint when the
-    // reload fires lingers as a zombie thread (pinned by the
-    // workerThreadsAcrossRefresh probe).
-    String worked = null;
-    for (String variant : LOAD_VARIANTS) {
-      Files.writeString(appJs, pristineAppJs);
-      try (ContentHttpServer content = new ContentHttpServer(fixture)) {
-        content.setRequestListener(line -> System.out.println("[server] " + line));
-        boolean stopped = runLoadVariant(variant, fixture, firefox, content);
-        probe("load-variant " + variant + ": " + (stopped ? "STOPPED" : "missed"));
-        if (stopped && worked == null) {
-          worked = variant;
-        }
-      }
+      Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
+      Response launch = client.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
+      assertTrue(launch.isSuccess(), "launch failed: " + launch.getMessage());
+      assertTrue(awaitInitialized(client, 15_000), "no initialized event after launch");
+      assertTrue(client.sendRequest(breakpointsRequest(fixture, WEB_LOAD_HX_NAME, LOAD_BP_LINE), TIMEOUT).isSuccess(), "setBreakpoints failed");
+
+      StackFrame top = awaitStopInHx(WEB_LOAD_HX_NAME, LOAD_BP_LINE, 15_000);
+      assertNotNull(top, "the reloaded page never stopped on the load-time breakpoint");
+
+      client.sendRequest(new DisconnectRequest(), TIMEOUT);
     }
-
-    assertNotNull(worked, "no strategy hit the load-time breakpoint");
-    probe("first working load strategy: " + worked);
   }
 
   // ---------------------------------------------------------------- helpers
@@ -614,143 +341,32 @@ public class FirefoxAdapterLiveTest {
     }
   }
 
-  private boolean runLoadVariant(String variant, Path fixture, Path firefox, ContentHttpServer content)
-    throws Exception {
-    // every variant gets its OWN adapter process + first connection, so no
-    // verdict is polluted by session-reuse behaviour of the adapter server
-    int ownPort = LiveProbeUtil.freePort();
-    Process ownAdapter = LiveProbeUtil.spawnAdapterServer(
-      List.of(nodeExe().toString(), adapterBundle().toString(), "--server=" + ownPort),
-      adapterBundle().getParent(), "waiting for debug protocol", "adapter-" + variant);
-
-    try {
-      DapClient session = connectWithRetry(ownPort);
-      try {
-        if (!session.sendRequest(initializeRequest(), TIMEOUT).isSuccess()) {
-          return false;
-        }
-
-        boolean refreshOnce = !variant.equals("J");
-        if (refreshOnce) {
-          content.refreshFirstPage(2);
-        }
-
-        Map<String, Object> launchConfig = servedLaunchConfig(firefox, content.getBaseUrl(), fixture);
-
-        Response launch = session.sendRequest(new FirefoxLaunchRequest(launchConfig), 20_000);
-        if (!launch.isSuccess()) {
-          probe("  variant " + variant + " launch failed: " + launch.getMessage());
-          return false;
-        }
-
-        boolean initialized = awaitInitialized(session, 15_000);
-        if (!initialized) {
-          probe("  variant " + variant + " no initialized event");
-          return false;
-        }
-
-        Response bpResponse = session.sendRequest(breakpointsRequest(fixture, WEB_LOAD_HX_NAME, LOAD_BP_LINE), TIMEOUT);
-        probe("  variant " + variant + " setBreakpoints success=" + bpResponse.isSuccess());
-
-        // observe everything; an entry pause (non-breakpoint stop) is resumed
-        // after a beat so the map can bind; success = a stop ON the .hx line
-        long deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline) {
-          Event event = session.pollEvent(250);
-          if (event == null) {
-            continue;
-          }
-          String detail = event instanceof StoppedEvent s ? " reason=" + s.getBody().getReason() : "";
-          probe("  variant " + variant + " event '" + event.getEvent() + "' (" + event.getClass().getSimpleName() + ")" + detail);
-          // No-refresh variants: the fixture logs AFTER the breakpoint line,
-          // so page output arriving without a stop is definitive - the load
-          // ran through unpaused. Refresh variants skip this: their FIRST
-          // load is expected to run through, only the reloaded one stops.
-          String pageOutput = outputTextOf(event);
-          if (!refreshOnce && pageOutput != null && pageOutput.contains("-loaded")) {
-            probe("  variant " + variant + " page output without a stop - missed");
-            session.sendRequest(new DisconnectRequest(), TIMEOUT);
-            return false;
-          }
-          if (!(event instanceof StoppedEvent stopped)) {
-            continue;
-          }
-          int threadId = threadIdOf(stopped);
-
-          StackFrame top = firstFrame(session.sendRequest(stackTraceRequest(threadId), TIMEOUT));
-          probe("  variant " + variant + " stop frame: " + frameLabel(top));
-          if (isStoppedInHx(top, WEB_LOAD_HX_NAME, LOAD_BP_LINE)) {
-            session.sendRequest(new DisconnectRequest(), TIMEOUT);
-            return true;
-          }
-          // entry pause or foreign stop: give the adapter a beat to bind, resume
-          Thread.sleep(1_500);
-          session.sendRequest(continueRequest(threadId), TIMEOUT);
-        }
-        session.sendRequest(new DisconnectRequest(), TIMEOUT);
-        return false;
-      } finally {
-        session.close();
-      }
-    } finally {
-      killTree(ownAdapter);
-    }
-  }
-
-  private void sendBreakpoint(Path hxFile, int line) throws Exception {
-    SourceBreakpoint bp = new SourceBreakpoint();
-    bp.setLine(line);
-    sendBreakpoints(hxFile, List.of(bp));
-  }
-
-  private void sendBreakpoints(Path hxFile, List<SourceBreakpoint> bps) throws Exception {
-    SetBreakpointsRequest request = new SetBreakpointsRequest();
-    SetBreakpointsArguments arguments = new SetBreakpointsArguments();
-    Source source = new Source();
-    source.setPath(hxFile.toString());
-    source.setName(hxFile.getFileName().toString());
-    arguments.setSource(source);
-    arguments.setBreakpoints(bps);
-    request.setArguments(arguments);
-    Response response = client.sendRequest(request, TIMEOUT);
-    assertTrue(response.isSuccess(), "setBreakpoints " + hxFile.getFileName());
-
-    if (response instanceof SetBreakpointsResponse ok && ok.getBody() != null && ok.getBody().getBreakpoints() != null) {
-      ok.getBody()
-        .getBreakpoints()
-        .forEach(b -> {
-          probe("bp " + hxFile.getFileName() + " id=" + b.getId() + " verified=" + b.isVerified());
-        });
-    }
-  }
-
-  /// Awaits the next stop and resolves its top frame, failing loud at the step that died.
-  private StopSite awaitStopSite(String what) throws Exception {
-    StoppedEvent stopped = awaitStop(15_000);
-    assertNotNull(stopped, what + " never hit");
-
-    int threadId = threadIdOf(stopped);
-    StackFrame frame = topFrame(threadId);
-    assertNotNull(frame, "no top frame after " + what);
-    return new StopSite(threadId, frame);
-  }
-
-  private StoppedEvent awaitStop(long timeoutMillis) throws InterruptedException {
+  /// The first stop ON the given .hx line within the timeout, or null. Any
+  /// other stop (an entry pause, a foreign stop) is resumed after a beat so
+  /// the adapter can bind the source map.
+  private StackFrame awaitStopInHx(String hxFile, int line, long timeoutMillis) throws Exception {
     long deadline = System.currentTimeMillis() + timeoutMillis;
     while (System.currentTimeMillis() < deadline) {
       Event event = client.pollEvent(250);
-      if (event instanceof StoppedEvent stopped) {
-        return stopped;
+      if (event == null) {
+        continue;
       }
-      if (event != null) {
-        probe("event '" + event.getEvent() + "'" + eventDetail(event));
+      String detail = event instanceof StoppedEvent s ? " reason=" + s.getBody().getReason() : "";
+      probe("event '" + event.getEvent() + "' (" + event.getClass().getSimpleName() + ")" + detail);
+      if (!(event instanceof StoppedEvent stopped)) {
+        continue;
       }
+      int threadId = threadIdOf(stopped);
+
+      StackFrame top = firstFrame(client.sendRequest(stackTraceRequest(threadId), TIMEOUT));
+      probe("stop frame: " + frameLabel(top));
+      if (isStoppedInHx(top, hxFile, line)) {
+        return top;
+      }
+      Thread.sleep(1_500);
+      client.sendRequest(continueRequest(threadId), TIMEOUT);
     }
     return null;
-  }
-
-  private StackFrame topFrame(int threadId) throws Exception {
-    return firstFrame(client.sendRequest(stackTraceRequest(threadId), TIMEOUT));
   }
 
   /// The top frame of a stackTrace response; null when the request failed or the stack is empty.
@@ -767,79 +383,11 @@ public class FirefoxAdapterLiveTest {
     return path + ":" + frame.getLine();
   }
 
-  /// One-line log suffix for the event kinds worth detailing.
-  private static String eventDetail(Event event) {
-    Breakpoint breakpoint = breakpointOf(event);
-    if (breakpoint != null) {
-      return " id=" + breakpoint.getId() + " verified=" + breakpoint.isVerified();
-    }
-    if (event instanceof ThreadEvent te && te.getBody() != null) {
-      return " reason=" + te.getBody().getReason() + " threadId=" + te.getBody().getThreadId();
-    }
-    return "";
-  }
-
   /// The stopped event's thread id; DAP allows it to be absent, 1 is the conventional main thread.
   private static int threadIdOf(StoppedEvent stopped) {
     Integer threadId = stopped.getBody().getThreadId();
     return threadId != null ? threadId : 1;
   }
-
-  /// Variable count of a variables response; -1 when it failed (the caller's log records the shape).
-  private static int variableCount(Response response) {
-    if (response instanceof VariablesResponse vr && vr.isSuccess() && vr.getBody().getVariables() != null) {
-      return vr.getBody().getVariables().size();
-    }
-    return -1;
-  }
-
-  /// The evaluate result text, or the failure message when the adapter said no.
-  private static String evaluateResult(Response response) {
-    if (response instanceof EvaluateResponse ok && ok.isSuccess()) return ok.getBody().getResult();
-    return "error: " + response.getMessage();
-  }
-
-  private void resumeThread(int threadId) throws Exception {
-    client.sendRequest(continueRequest(threadId), TIMEOUT);
-  }
-
-  private String timedScopesAndVariables(int frameId) {
-    long start = System.currentTimeMillis();
-    try {
-      Response scResponse = client.sendRequest(scopesRequest(frameId), 10_000);
-      if (!(scResponse instanceof ScopesResponse ok) || !ok.isSuccess() || ok.getBody().getScopes().isEmpty()) {
-        return "scopes FAILED after " + (System.currentTimeMillis() - start) + "ms";
-      }
-
-      int reference = ok.getBody().getScopes().get(0).getVariablesReference();
-      Response vResponse = client.sendRequest(variablesRequest(reference), 10_000);
-
-      return "OK (" + variableCount(vResponse) + " vars, " + (System.currentTimeMillis() - start) + "ms)";
-
-    } catch (Exception e) {
-      return "HUNG/FAILED after " + (System.currentTimeMillis() - start) + "ms: " + e.getMessage();
-    }
-  }
-
-  private String timedEvaluate(String expression, int frameId, String context) {
-    long start = System.currentTimeMillis();
-    try {
-      EvaluateRequest request = new EvaluateRequest();
-      EvaluateArguments arguments = new EvaluateArguments();
-      arguments.setExpression(expression);
-      arguments.setFrameId(frameId);
-      arguments.setContext(context);
-      request.setArguments(arguments);
-
-      Response response = client.sendRequest(request, 10_000);
-      return "answered in " + (System.currentTimeMillis() - start) + "ms -> " + evaluateResult(response);
-    } catch (Exception e) {
-      return "NO ANSWER after " + (System.currentTimeMillis() - start) + "ms (" + e.getMessage() + ")";
-    }
-  }
-
-  /// A stop's thread id and top frame — what the drive-to-state helper returns.
-  private record StopSite(int threadId, StackFrame frame) {}
 
   /// A launch request whose arguments are the firefox adapter's own vocabulary.
   static final class FirefoxLaunchRequest extends Request {

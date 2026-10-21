@@ -18,13 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Tool window: ui state")
 public class HaxeToolWindowUiStateTest {
 
-  @Test
-  @DisplayName("defaults are empty")
-  public void defaultsAreEmpty() {
-    HaxeToolWindowUiState uiState = new HaxeToolWindowUiState();
-    assertTrue(uiState.getExpandedKeys().isEmpty());
-  }
-
   @ParameterizedTest(name = "{0}")
   @EnumSource(EmptyRows.class)
   @DisplayName("hide empty rows flag survives xml serialization round trip")

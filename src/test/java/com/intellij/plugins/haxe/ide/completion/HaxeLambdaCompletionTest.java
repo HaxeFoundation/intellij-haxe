@@ -95,45 +95,31 @@ public class HaxeLambdaCompletionTest extends HaxeLightFixtureTestCase {
     myFixture.completeBasic();
     List<String> lookups = myFixture.getLookupElementStrings();
 
-    boolean lambdaOffered = lookups != null && lookups.stream().anyMatch(lookup -> lookup.endsWith("->") || lookup.startsWith("function("));
-    assertFalse(lambdaOffered, "no lambda where an Int is expected: " + lookups);
+    assertFalse(offersALambda(lookups), "no lambda where an Int is expected: " + lookups);
   }
 
   @Test
-  @DisplayName("choosing the arrow inserts it with the parameter name")
-  public void testChoosingTheArrowInsertsItWithTheParameterName() {
+  @DisplayName("choosing the arrow inserts it with the parameter name and its stop offers no second lambda")
+  public void testChoosingTheArrowInsertsItWithTheParameterNameAndItsStopOffersNoSecondLambda() {
     myFixture.configureByText("Main.hx", FILTER_ARGUMENT_SOURCE);
     LookupElement[] elements = myFixture.completeBasic();
     LookupElement arrow = Arrays.stream(elements)
       .filter(element -> "i ->".equals(element.getLookupString()))
       .findFirst()
       .orElseThrow();
-
     myFixture.getLookup().setCurrentItem(arrow);
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
-
     String text = myFixture.getEditor().getDocument().getText();
     assertTrue(text.contains("[1, 2, 3].filter(i -> )"), text);
     assertTrue(HaxeLambdaLookups.isLambdaTemplateActive(getProject(), myFixture.getEditor().getDocument()),
                "the parameter stop is being filled in");
-  }
-
-  @Test
-  @DisplayName("completion inside the parameter stop offers no second lambda")
-  public void testCompletionInsideTheParameterStopOffersNoSecondLambda() {
-    myFixture.configureByText("Main.hx", FILTER_ARGUMENT_SOURCE);
-    LookupElement[] elements = myFixture.completeBasic();
-    LookupElement arrow = Arrays.stream(elements)
-      .filter(element -> "i ->".equals(element.getLookupString()))
-      .findFirst()
-      .orElseThrow();
-    myFixture.getLookup().setCurrentItem(arrow);
-    myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
 
     myFixture.completeBasic();
     List<String> lookups = myFixture.getLookupElementStrings();
+    assertFalse(offersALambda(lookups), "no lambda while its parameter stop is filled in: " + lookups);
+  }
 
-    boolean lambdaOffered = lookups != null && lookups.stream().anyMatch(lookup -> lookup.endsWith("->") || lookup.startsWith("function("));
-    assertFalse(lambdaOffered, "no lambda while its parameter stop is filled in: " + lookups);
+  private static boolean offersALambda(List<String> lookups) {
+    return lookups != null && lookups.stream().anyMatch(lookup -> lookup.endsWith("->") || lookup.startsWith("function("));
   }
 }

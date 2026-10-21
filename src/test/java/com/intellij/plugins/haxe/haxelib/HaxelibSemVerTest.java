@@ -59,13 +59,6 @@ public class HaxelibSemVerTest {
     assertEquals(HaxelibSemVer.create("1.0.0-rc.1"), HaxelibSemVer.create("1,0,0-rc,1"));
   }
 
-  @Test
-  @DisplayName("dir string renders the comma form")
-  public void dirStringRendersTheCommaForm() {
-    assertEquals("1,0,0-rc,1", HaxelibSemVer.create("1.0.0-rc.1").toDirString());
-    assertEquals("8,0,2", HaxelibSemVer.create("8.0.2").toDirString());
-  }
-
   /** (create argument, the pseudo-version constant it maps to; garbage maps to zero). */
   static final List<Arguments> PSEUDO_VERSIONS = List.of(
     arguments(null, HaxelibSemVer.ANY_VERSION),

@@ -4,6 +4,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeToolkitLightFixtureTestCase;
+import com.intellij.plugins.haxe.lang.psi.HaxeResolver;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Annotation: recursive std inference (ArraySort)")
 public class HaxeRecursiveStdInferenceTest extends HaxeToolkitLightFixtureTestCase {
 
+  /** A second pass on the same PSI tick is served from the resolve caches; the uncached case runs thousands. */
+  private static final int CACHED_PASS_RUNS_BOUND = 0;
+
   @Override
   protected String getBasePath() {
     return "/annotation/";
@@ -41,18 +45,15 @@ public class HaxeRecursiveStdInferenceTest extends HaxeToolkitLightFixtureTestCa
 
     myFixture.openFileInEditor(file);
     myFixture.enableInspections(getAnnotatorBasedInspection());
+    HaxeResolver resolver = HaxeResolver.getInstance(getProject());
 
-    long firstPassStart = System.nanoTime();
     myFixture.doHighlighting();
-    long firstPassMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - firstPassStart);
 
-    // same PSI tick: evaluation/call caches must hold, so a re-run is cheap
-    long secondPassStart = System.nanoTime();
+    // same PSI tick: evaluation/call caches must hold, so a re-run resolves nothing anew
+    int before = resolver.pipelineRuns();
     myFixture.doHighlighting();
-    long secondPassMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - secondPassStart);
+    int secondPassRuns = resolver.pipelineRuns() - before;
 
-    System.out.println("ArraySort highlighting: first pass " + firstPassMs + "ms, second pass " + secondPassMs + "ms");
-    assertTrue(firstPassMs < 120_000, "first highlighting pass took " + firstPassMs + "ms - inference is not converging");
-    assertTrue(secondPassMs < 10_000, "second pass took " + secondPassMs + "ms - results are not being served from caches");
+    assertTrue(secondPassRuns <= CACHED_PASS_RUNS_BOUND, "pipeline runs on the second pass: " + secondPassRuns);
   }
 }

@@ -1,9 +1,0 @@
-{
-	"lineEnds": {
-		"leftCurly": "both",
-		"rightCurly": "both",
-		"objectLiteralCurly": {
-			"leftCurly": "after"
-		}
-	}
-}

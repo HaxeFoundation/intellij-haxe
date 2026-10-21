@@ -60,17 +60,4 @@ public class TransportFramingTest {
     assertEquals(List.of("a log line\nwith continuation"), response.logs());
     assertTrue(response.hasError());
   }
-
-  @Test
-  @Timeout(10)
-  @DisplayName("plain compiler error output becomes payload with the error flag")
-  public void plainCompilerErrorOutputBecomesPayloadWithTheErrorFlag() throws Exception {
-    String reply = "Main.hx:7: characters 3-15 : Unknown identifier : unknownIdent\n" + ERROR_MARK + "\n";
-    server.replyOnce(reply.getBytes(StandardCharsets.UTF_8));
-
-    DisplayResponse response = HaxeDisplayTransport.request("127.0.0.1", server.port(), List.of("Main"), 5_000);
-
-    assertTrue(response.hasError());
-    assertEquals("Main.hx:7: characters 3-15 : Unknown identifier : unknownIdent", response.payload());
-  }
 }

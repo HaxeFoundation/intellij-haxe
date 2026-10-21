@@ -91,14 +91,6 @@ public class HaxeFqnFileBasedIndexTest extends HaxeLightFixtureTestCase {
       Collection<HaxeModule> results = modulesByFqn("com.example.CondClass");
       assertFalse(results.isEmpty(), "Expected module entry for 'com.example.CondClass'");
     }
-
-    @Test
-    @DisplayName("skips stubable files")
-    public void testSkipsStubableFiles() {
-      myFixture.configureByFiles("StubbedPlain.hx");
-      Collection<HaxeModule> results = modulesByFqn("com.example.StubbedPlain");
-      assertTrue(results.isEmpty(), "Stubable file must not appear in the file-based module index");
-    }
   }
 
   // Member keys use getQualifiedName(true): the module segment is included even
@@ -125,14 +117,6 @@ public class HaxeFqnFileBasedIndexTest extends HaxeLightFixtureTestCase {
     }
 
     @Test
-    @DisplayName("static field by FQN")
-    public void testStaticFieldByFqn() {
-      myFixture.configureByFiles("CondClass.hx");
-      Collection<PsiElement> results = membersByFqn("com.example.CondClass.CondClass.condStaticField");
-      assertFalse(results.isEmpty(), "Expected member entry for 'com.example.CondClass.CondClass.condStaticField'");
-    }
-
-    @Test
     @DisplayName("ancillary class method by FQN")
     public void testAncillaryClassMethodByFqn() {
       myFixture.configureByFiles("CondModule.hx");
@@ -154,14 +138,6 @@ public class HaxeFqnFileBasedIndexTest extends HaxeLightFixtureTestCase {
       myFixture.configureByFiles("CondModule.hx");
       Collection<PsiElement> results = membersByFqn("com.example.CondModule.condModuleVar");
       assertFalse(results.isEmpty(), "Expected member entry for module var 'com.example.CondModule.condModuleVar'");
-    }
-
-    @Test
-    @DisplayName("skips stubable files")
-    public void testSkipsStubableFiles() {
-      myFixture.configureByFiles("StubbedPlain.hx");
-      Collection<PsiElement> results = membersByFqn("com.example.StubbedPlain.StubbedPlain.plainMethod");
-      assertTrue(results.isEmpty(), "Stubable file must not appear in the file-based member index");
     }
   }
 

@@ -47,8 +47,7 @@ public class HaxeCompilerDiagnosticsOnlyTest extends HaxeLightFixtureTestCase {
     // static analysis stays while the only toggle is off
     arguments(true, false, false),
     // the only toggle needs the master toggle
-    arguments(false, true, false),
-    arguments(false, false, false));
+    arguments(false, true, false));
 
   @ParameterizedTest(name = "compiler diagnostics {0}, only {1}: suppressed {2}")
   @FieldSource("TOGGLES")

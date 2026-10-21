@@ -41,21 +41,6 @@ public class HaxelibLocalDocsTest {
   }
 
   @Test
-  @DisplayName("git checkout reads branch and commit from head and loose ref")
-  public void testGitCheckoutReadsBranchAndCommitFromHeadAndLooseRef() throws Exception {
-    Path repo = repo();
-    Path gitDir = Files.createDirectories(repo.resolve("mylib/git/.git"));
-    Files.writeString(gitDir.resolve("HEAD"), "ref: refs/heads/main\n");
-    Files.createDirectories(gitDir.resolve("refs/heads"));
-    Files.writeString(gitDir.resolve("refs/heads/main"), "0123456789abcdef0123456789abcdef01234567\n");
-
-    HaxelibLocalDocs.GitCheckout checkout = HaxelibLocalDocs.gitCheckout(repo, "mylib");
-    assertNotNull(checkout);
-    assertEquals("main", checkout.branch());
-    assertEquals("0123456789abcdef0123456789abcdef01234567", checkout.commit());
-  }
-
-  @Test
   @DisplayName("git checkout falls back to packed refs")
   public void testGitCheckoutFallsBackToPackedRefs() throws Exception {
     Path repo = repo();

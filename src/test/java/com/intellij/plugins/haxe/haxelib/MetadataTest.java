@@ -29,7 +29,7 @@ import static com.intellij.plugins.haxe.haxelib.HaxelibMetadata.*;
 public class MetadataTest {
 
   public static final String NAME_DATA = "useless_lib";
-  public static final String URL_DATA = "https://github.com/jasononeil/useless/";
+  public static final String URL_DATA = "https://example.com/libowner/useless_lib/";
   public static final String LICENSE_DATA = "MIT";
   public static final String TAGS_DATA1 = "cross";
   public static final String TAGS_DATA2 = "useless";
@@ -37,9 +37,9 @@ public class MetadataTest {
   public static final String VERSION_DATA = "1.0.0";
   public static final String CLASSPATH_DATA = "src";
   public static final String RELEASENOTE_DATA = "Initial release, everything is working correctly.";
-  public static final String CONTRIBUTOR1 = "Juraj";
-  public static final String CONTRIBUTOR2 = "Jason";
-  public static final String CONTRIBUTOR3 = "Nicolas";
+  public static final String CONTRIBUTOR1 = "libowner";
+  public static final String CONTRIBUTOR2 = "John Doe";
+  public static final String CONTRIBUTOR3 = "Jane Doe";
   public static final String LIB_NAME1 = "tink_macro";
   public static final String LIB_VERSION1 = "";
   public static final String LIB_NAME2 = "nme";
@@ -88,13 +88,6 @@ public class MetadataTest {
     String testdata = getTestString();
     HaxelibMetadata md = new HaxelibMetadata(testdata);
     return md;
-  }
-
-  @Test
-  @DisplayName("parsing")
-  public void testParsing() throws Exception {
-    HaxelibMetadata md = getTestMetadata();
-    assertEquals(createTestElement(), md.getTestInterface().getRoot());
   }
 
   @Test

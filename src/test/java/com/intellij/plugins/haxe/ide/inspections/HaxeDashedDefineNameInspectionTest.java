@@ -49,14 +49,6 @@ public class HaxeDashedDefineNameInspectionTest extends HaxeLightFixtureTestCase
                 <define name="<warning descr="%s">a-b</warning>" value="1"/>
               </project>
               """.formatted(warning("my-flag", "my_flag"), warning("a-b", "a_b"))),
-    // flags nmml define names with a dash (the NME classification of the project file)
-    arguments("build.nmml",
-              """
-              <project>
-                <haxelib name="nme"/>
-                <haxedef name="<warning descr="%s">my-flag</warning>"/>
-              </project>
-              """.formatted(warning("my-flag", "my_flag"))),
     // ignores xml that is not a project file
     arguments("settings.xml",
               """

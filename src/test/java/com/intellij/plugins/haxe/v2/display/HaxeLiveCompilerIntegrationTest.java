@@ -94,8 +94,8 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
 
   @Test
   @Timeout(180)
-  @DisplayName("catalog discovers the generated type and blueprints materialize its members")
-  public void testCatalogDiscoversTheGeneratedTypeAndBlueprintsMaterializeItsMembers() {
+  @DisplayName("catalog discovers the generated type, blueprints materialize its members and the indexes resolve it")
+  public void testCatalogDiscoversTheGeneratedTypeBlueprintsMaterializeItsMembersAndTheIndexesResolveIt() {
     fillCatalogStably();
     HaxeCompilerTypeCatalogService catalog = HaxeCompilerTypeCatalogService.getInstance(getProject());
 
@@ -107,22 +107,10 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
     assertNotNull(model, "the blueprint must render a class");
     assertNotNull(model.getMember("tag", null), "instance members come from the blueprint");
     assertNotNull(model.getMember("make", null), "static members come from the blueprint");
-  }
-
-  @Test
-  @Timeout(180)
-  @DisplayName("unified indexes resolve the generated type by fqn and by name")
-  public void testUnifiedIndexesResolveTheGeneratedTypeByFqnAndByName() {
-    fillCatalogStably();
-    HaxeCompilerTypeCatalogService catalog = HaxeCompilerTypeCatalogService.getInstance(getProject());
-    for (GeneratedType entry : catalog.byFqn(GENERATED_FQN)) {
-      catalog.materializeNowForTests(entry);
-    }
 
     List<HaxeClass> byFqn = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(GENERATED_FQN, getProject(), null);
     assertFalse(byFqn.isEmpty(), "the compiler leg must resolve the generated FQN");
     assertEquals("GeneratedThing", byFqn.get(0).getName());
-
     Collection<HaxeClass> byName = HaxeClassNameUnifiedIndex.getByNameFiltered("GeneratedThing", getProject(), null);
     assertFalse(byName.isEmpty(), "import-candidate lookups must see the generated type");
   }
@@ -214,6 +202,11 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
     assertTrue(buildServerRuns, "the requests went to the build server");
   }
 
+  /** The project default SDK's shared server instance. */
+  private HaxeServerAssignment sharedServer() {
+    return HaxeServerAssignment.shared(getProject(), null);
+  }
+
   /**
    * The FIRST fill spawns the compilation server, whose start event queues a
    * cache invalidation on the EDT (correct in production: caches die with
@@ -221,11 +214,6 @@ public class HaxeLiveCompilerIntegrationTest extends HaxeCodeInsightFixtureTestC
    * again against the now-running server so the catalog stays stable for the
    * test's assertions.
    */
-  /** The project default SDK's shared server instance. */
-  private HaxeServerAssignment sharedServer() {
-    return HaxeServerAssignment.shared(getProject(), null);
-  }
-
   private void fillCatalogStably() {
     HaxeCompilerTypeCatalogService catalog = HaxeCompilerTypeCatalogService.getInstance(getProject());
     catalog.fillNowForTests();

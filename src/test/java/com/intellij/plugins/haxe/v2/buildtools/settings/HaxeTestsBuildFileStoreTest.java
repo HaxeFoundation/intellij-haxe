@@ -21,42 +21,16 @@ public class HaxeTestsBuildFileStoreTest {
   private static final List<String> PLAIN_FILES = List.of("/p/build.hxml", "/p/project.xml");
 
   @Test
-  @DisplayName("defaults are empty")
-  public void defaultsAreEmpty() {
+  @DisplayName("marked tests files list once each and unmark again")
+  public void markedTestsFilesListOnceEachAndUnmarkAgain() {
     HaxeTestsBuildFileStore store = new HaxeTestsBuildFileStore();
-    assertTrue(store.getTestsFilePaths(MODULE).isEmpty());
-  }
-
-  @Test
-  @DisplayName("tests files can be marked and unmarked")
-  public void testsFilesCanBeMarkedAndUnmarked() {
-    HaxeTestsBuildFileStore store = new HaxeTestsBuildFileStore();
-    store.markTestsFile(MODULE, "/p/tests.hxml");
-    store.markTestsFile(MODULE, "/p/tests.hxml");
-    assertEquals(List.of("/p/tests.hxml"), store.getTestsFilePaths(MODULE));
-
-    store.unmarkTestsFile(MODULE, "/p/tests.hxml");
-    assertTrue(store.getTestsFilePaths(MODULE).isEmpty());
-  }
-
-  @Test
-  @DisplayName("a container may hold several tests files")
-  public void aContainerMayHoldSeveralTestsFiles() {
-    HaxeTestsBuildFileStore store = new HaxeTestsBuildFileStore();
+    store.markTestsFile(MODULE, "/p/utest/test.hxml");
     store.markTestsFile(MODULE, "/p/utest/test.hxml");
     store.markTestsFile(MODULE, "/p/nme/tests/tests.nmml");
     assertEquals(List.of("/p/utest/test.hxml", "/p/nme/tests/tests.nmml"), store.getTestsFilePaths(MODULE));
-  }
 
-  @Test
-  @DisplayName("containers are independent")
-  public void containersAreIndependent() {
-    HaxeTestsBuildFileStore store = new HaxeTestsBuildFileStore();
-    store.markTestsFile("app", "/app/test.hxml");
-    store.markTestsFile("lib", "/lib/tests.hxml");
-
-    assertEquals(List.of("/app/test.hxml"), store.getTestsFilePaths("app"));
-    assertEquals(List.of("/lib/tests.hxml"), store.getTestsFilePaths("lib"));
+    store.unmarkTestsFile(MODULE, "/p/utest/test.hxml");
+    assertEquals(List.of("/p/nme/tests/tests.nmml"), store.getTestsFilePaths(MODULE));
   }
 
   @Test
@@ -104,13 +78,6 @@ public class HaxeTestsBuildFileStoreTest {
                  store.resolveTestsFiles(MODULE, ROOT, candidates));
   }
 
-  @Test
-  @DisplayName("no conventional candidate yields none")
-  public void noConventionalCandidateYieldsNone() {
-    HaxeTestsBuildFileStore store = new HaxeTestsBuildFileStore();
-    assertTrue(store.resolveTestsFiles(MODULE, ROOT, PLAIN_FILES).isEmpty());
-  }
-
   /** (candidate path, container root, conventional tests build?). */
   static final List<Arguments> CONVENTIONAL_PATHS = List.of(
     // the directories above the container root never count
@@ -128,14 +95,6 @@ public class HaxeTestsBuildFileStoreTest {
   @DisplayName("the tests directory rule is relative to the container root")
   public void theTestsDirectoryRuleIsRelativeToTheContainerRoot(String path, String containerRoot, boolean conventional) {
     assertEquals(conventional, HaxeTestsBuildFileStore.isConventionalTestsPath(path, containerRoot));
-  }
-
-  @Test
-  @DisplayName("a checkout under a tests folder suggests only its own tests builds")
-  public void aCheckoutUnderATestsFolderSuggestsOnlyItsOwnTestsBuilds() {
-    List<String> candidates = List.of("/home/tests/app/build.hxml", "/home/tests/app/tests/build.hxml");
-    HaxeTestsBuildFileStore store = new HaxeTestsBuildFileStore();
-    assertEquals(List.of("/home/tests/app/tests/build.hxml"), store.resolveTestsFiles(MODULE, "/home/tests/app", candidates));
   }
 
   @Test

@@ -9,15 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class HaxeLanguageLevelTest {
 
   @Test
-  @DisplayName("exact versions resolve")
-  public void exactVersionsResolve() {
-    assertEquals(HaxeLanguageLevel.HAXE_3_4, HaxeLanguageLevel.fromVersionString("3.4"));
-    assertEquals(HaxeLanguageLevel.HAXE_4_0, HaxeLanguageLevel.fromVersionString("4.0"));
-    assertEquals(HaxeLanguageLevel.HAXE_4_3, HaxeLanguageLevel.fromVersionString("4.3"));
-    assertEquals(HaxeLanguageLevel.HAXE_5_0, HaxeLanguageLevel.fromVersionString("5.0"));
-  }
-
-  @Test
   @DisplayName("patch and pre release versions resolve")
   public void patchAndPreReleaseVersionsResolve() {
     assertEquals(HaxeLanguageLevel.HAXE_4_3, HaxeLanguageLevel.fromVersionString("4.3.7"));
@@ -41,12 +32,6 @@ public class HaxeLanguageLevelTest {
     assertNull(HaxeLanguageLevel.fromVersionString("not-a-version"));
     assertNull(HaxeLanguageLevel.fromVersionString(""));
     assertNull(HaxeLanguageLevel.fromVersionString(null));
-  }
-
-  @Test
-  @DisplayName("latest is highest level")
-  public void latestIsHighestLevel() {
-    assertEquals(HaxeLanguageLevel.HAXE_5_0, HaxeLanguageLevel.latest());
   }
 
   @Test

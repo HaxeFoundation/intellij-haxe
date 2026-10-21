@@ -201,30 +201,12 @@ public class HaxeWrapSettingsTest extends HaxeLightFixtureTestCase {
       """, reformat(steppedOperands, source));
   }
 
-  /** ALWAYS must break EVERY implements clause; only fill mode leaves the first one inline. */
-  @Test
-  @DisplayName("extends list wrap always breaks every clause")
-  public void testExtendsListWrapAlwaysBreaksEveryClause() {
-    String source = """
-      class Foo extends Base implements Drawable implements Resizable {
-      	public function new() {}
-      }
-      """;
-
-    assertEquals("""
-      class Foo extends Base
-              implements Drawable
-              implements Resizable {
-          public function new() {}
-      }
-      """, reformat(commonSettings(common -> common.EXTENDS_LIST_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS), source));
-  }
-
   /**
    * Metadata sits beside its declaration in the PSI; a declaration opened
    * by same-line metadata still anchors its wrapped parts at its own indent:
-   * the extends list two steps in, a member's parameters two steps from the
-   * member, the next-line body brace at the member's level.
+   * the extends list two steps in (ALWAYS breaks EVERY implements clause;
+   * only fill mode leaves the first one inline), a member's parameters two
+   * steps from the member, the next-line body brace at the member's level.
    */
   @Test
   @DisplayName("same line metadata keeps wrap anchors")
@@ -321,8 +303,8 @@ public class HaxeWrapSettingsTest extends HaxeLightFixtureTestCase {
   public void testValueIfPlacement() {
     // KEEP (the plain default) re-breaks a value if exactly where the source
     // broke - a forced break, so even a pass that drops custom line breaks
-    // never pulls the else up - and spaces a snug body; SAME_LINE joins the
-    // whole value onto one line
+    // never pulls the else up - and spaces a snug body; SAME_LINE is pinned
+    // by the expression-same-line comparison fixture
     String source = """
       class Main {
       	static function main() {
@@ -336,6 +318,7 @@ public class HaxeWrapSettingsTest extends HaxeLightFixtureTestCase {
       """;
 
     String kept = reformat(commonSettings(common -> common.KEEP_LINE_BREAKS = false), source);
+
     assertEquals("""
       class Main {
           static function main() {
@@ -347,17 +330,6 @@ public class HaxeWrapSettingsTest extends HaxeLightFixtureTestCase {
           }
       }
       """, kept);
-
-    Consumer<HaxeCodeStyleSettings> sameLine = haxe -> haxe.VALUE_IF_BODY_PLACEMENT = HaxeCodeStyleSettings.BODY_PLACEMENT_SAME_LINE;
-    String joined = reformat(haxeSettings(sameLine), source);
-    assertEquals("""
-      class Main {
-          static function main() {
-              var mode = if (true) "debug" else "release";
-              var a = if (true) 1 else 2;
-          }
-      }
-      """, joined);
   }
 
   @Test

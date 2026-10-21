@@ -30,7 +30,7 @@ import com.intellij.plugins.haxe.runner.debugger.browser.ContentHttpServer;
 /// and checks that the session connects and captures the test output (no
 /// breakpoints). Needs a Chrome-family browser, node, haxe and utest.
 @DisplayName("Browser debugger: test capture (live)")
-public class ChromeAdapterLiveTest {
+public class BrowserTestCaptureLiveTest {
   private static final long TIMEOUT = 15_000;
 
   private static final String PROBE_CASE_HX_SOURCE = """

@@ -48,9 +48,12 @@ public class HaxeCompilerOnlyCompletionTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("ide modes leave the IDE contributors in place")
-  public void testIdeModesLeaveTheIdeContributorsInPlace() {
-    HaxeCompilerSettings.getInstance(getProject()).setCompletionMode(HaxeCompletionMode.IDE_ONLY);
+  @DisplayName("ide and compiler mode keeps the IDE suggestions without a compilation server")
+  public void testIdeAndCompilerModeKeepsTheIdeSuggestionsWithoutACompilationServer() {
+    // no build file in the light project: the compiler leg has no server to ask
+    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
+    settings.setCompilerIdeFeaturesEnabled(true);
+    settings.setCompletionMode(HaxeCompletionMode.IDE_AND_COMPILER);
     myFixture.configureByText("Main.hx", STATEMENT_SOURCE);
 
     myFixture.completeBasic();

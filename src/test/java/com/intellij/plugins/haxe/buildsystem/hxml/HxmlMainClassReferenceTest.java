@@ -81,18 +81,6 @@ public class HxmlMainClassReferenceTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("a packaged main resolves to its class")
-  public void testAPackagedMainResolvesToItsClass() {
-    myFixture.addFileToProject("src/app/Start.hx", START_HX_SOURCE);
-    PsiFile hxml = myFixture.addFileToProject("build.hxml", "-cp src\n-main app.Start\n--interp\n");
-
-    PsiElement target = mainTarget(hxml, 0);
-
-    HaxeClass startClass = assertInstanceOf(HaxeClass.class, target);
-    assertEquals("Start", startClass.getName());
-  }
-
-  @Test
   @DisplayName("a main outside the class paths stays unresolved")
   public void testAMainOutsideTheClassPathsStaysUnresolved() {
     myFixture.addFileToProject("other/Main.hx", MAIN_HX_SOURCE);
@@ -106,10 +94,9 @@ public class HxmlMainClassReferenceTest extends HaxeCodeInsightFixtureTestCase {
   @Test
   @DisplayName("renaming the class rewrites the main type path")
   public void testRenamingTheClassRewritesTheMainTypePath() {
-    PsiFile start = myFixture.addFileToProject("src/app/Start.hx", START_HX_SOURCE);
+    myFixture.addFileToProject("src/app/Start.hx", START_HX_SOURCE);
     PsiFile hxml = myFixture.addFileToProject("build.hxml", "-cp src\n-main app.Start\n--interp\n");
-    HaxeClass startClass = PsiTreeUtil.findChildOfType(start, HaxeClass.class);
-    assertNotNull(startClass);
+    HaxeClass startClass = assertInstanceOf(HaxeClass.class, mainTarget(hxml, 0), "a packaged -main resolves to its class");
 
     myFixture.renameElement(startClass, "Launch");
 

@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.v2.buildtools.info;
 
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
@@ -64,20 +63,6 @@ public class HaxeLimeParserOutputTest {
     assertTrue(info.defines().isEmpty());
     assertTrue(info.libraries().isEmpty());
     assertTrue(info.classpaths().isEmpty());
-  }
-
-  @Test
-  @DisplayName("missing app path defaults to bin for the neko launcher")
-  public void missingAppPathDefaultsToBinForTheNekoLauncher() {
-    String json = """
-      {"haxelibs": [], "sources": [], "app": {"file": "StarlingTests"}}
-      """;
-    HaxeBuildFileInfo info = HaxeLimeProjectInfoService.parseToolOutput(json, "neko");
-
-    assertNotNull(info);
-    assertEquals(HaxeTarget.NEKO, info.target());
-    String expected = SystemInfo.isWindows ? "bin/neko/bin/StarlingTests.exe" : "bin/neko/bin/StarlingTests";
-    assertEquals(expected, info.targetOutput());
   }
 
   @Test

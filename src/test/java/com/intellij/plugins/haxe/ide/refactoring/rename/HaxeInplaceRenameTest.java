@@ -21,6 +21,7 @@ import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.refactoring.rename.RenameHandlerRegistry;
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler;
 import com.intellij.refactoring.rename.inplace.VariableInplaceRenameHandler;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -319,7 +320,7 @@ public class HaxeInplaceRenameTest extends HaxeLightFixtureTestCase {
     assertTrue(live.contains("function set_size("), live);
     assertTrue(live.contains("reset() set_size(0)"), live);
 
-    template.gotoEnd(false);
+    commitTemplate(template);
 
     String committed = myFixture.getFile().getText();
     assertTrue(committed.contains("var size(get, set)"), committed);
@@ -332,6 +333,7 @@ public class HaxeInplaceRenameTest extends HaxeLightFixtureTestCase {
   @DisplayName("the property follows an accessor name while its part after the prefix is typed")
   public void testThePropertyFollowsAnAccessorNameWhileItsPartAfterThePrefixIsTyped() {
     HaxePropertyInplaceRenameHandler.renameAccessorsInTests = true;
+    myFixture.addFileToProject(TALL_SHAPE_HX_NAME, TALL_SHAPE_HX_SOURCE);
     myFixture.configureByText(SHAPE_HX_NAME, SHAPE_GETTER_HX_SOURCE);
     TemplateState template = startPropertyRename();
     TextRange edited = template.getCurrentVariableRange();
@@ -345,29 +347,15 @@ public class HaxeInplaceRenameTest extends HaxeLightFixtureTestCase {
     assertTrue(live.contains("function get_size()"), live);
     assertTrue(live.contains("function set_size("), live);
 
-    template.gotoEnd(false);
+    commitTemplate(template);
 
     String committed = myFixture.getFile().getText();
     assertTrue(committed.contains("var size(get, set)"), committed);
     assertTrue(committed.contains("function get_size()"), committed);
     assertFalse(committed.contains("width"), committed);
-  }
-
-  @Test
-  @DisplayName("an accessor renames in place with its property")
-  public void testAnAccessorRenamesInPlaceWithItsProperty() {
-    HaxePropertyInplaceRenameHandler.renameAccessorsInTests = true;
-    myFixture.addFileToProject(TALL_SHAPE_HX_NAME, TALL_SHAPE_HX_SOURCE);
-    myFixture.configureByText(SHAPE_HX_NAME, SHAPE_GETTER_HX_SOURCE);
-
-    // the template edits the part after get_, so the property name is what gets typed
-    CodeInsightTestUtil.doInlineRename(new HaxePropertyInplaceRenameHandler(), "size", myFixture);
-
-    String shape = myFixture.getFile().getText();
-    assertTrue(shape.contains("var size(get, set)"), shape);
-    assertTrue(shape.contains("get_size()"), shape);
-    assertTrue(shape.contains("set_size("), shape);
-    assertTrue(textOf(TALL_SHAPE_HX_NAME).contains("get_size()"), textOf(TALL_SHAPE_HX_NAME));
+    // the renamer collects the usages in other files on a pooled thread and applies them on the EDT afterwards
+    PlatformTestUtil.waitWithEventsDispatching("the override in TallShape follows the rename",
+                                               () -> textOf(TALL_SHAPE_HX_NAME).contains("get_size()"), 10);
   }
 
   /**
@@ -397,6 +385,12 @@ public class HaxeInplaceRenameTest extends HaxeLightFixtureTestCase {
     assertNotNull(edited);
     Document document = myFixture.getEditor().getDocument();
     WriteCommandAction.writeCommandAction(getProject()).run(() -> document.replaceString(edited.getStartOffset(), edited.getEndOffset(), text));
+  }
+
+  /** Commits the template as Enter does; members in the current file are renamed when this returns, other files follow asynchronously. */
+  private static void commitTemplate(TemplateState template) {
+    template.gotoEnd(false);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
   private PsiElement nameAtCaret() {

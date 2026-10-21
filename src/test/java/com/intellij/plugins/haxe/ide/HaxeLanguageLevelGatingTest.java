@@ -52,12 +52,6 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
   // ---- 3.4 ----
 
   @Test
-  @DisplayName("final keyword below 4.0")
-  public void testFinalKeywordBelow40() throws Exception {
-    doTestAtLevel(HAXE_3_4);
-  }
-
-  @Test
   @DisplayName("arrow function below 4.0")
   public void testArrowFunctionBelow40() throws Exception {
     doTestAtLevel(HAXE_3_4);
@@ -136,12 +130,6 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
   @Test
   @DisplayName("is expression pre 4.2 semantics")
   public void testIsExpressionPre42Semantics() throws Exception {
-    doTestAtLevel(HAXE_4_1);
-  }
-
-  @Test
-  @DisplayName("Std.is deprecated at 4.1")
-  public void testStdIsDeprecatedAt41() throws Exception {
     doTestAtLevel(HAXE_4_1);
   }
 
@@ -261,15 +249,7 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
     doTestAtLevel(HAXE_4_0);
   }
 
-  // ---- syntax migrations: renamed std APIs ----
-
-  @Test
-  @DisplayName("Std.isOfType below 4.1")
-  public void testStdIsOfTypeBelow41() throws Exception {
-    doTestAtLevel(HAXE_4_0);
-  }
-
-  // ---- syntax migration quick fixes, both directions ----
+  // ---- syntax migration quick fixes, both directions (the renamed std APIs at their boundary level) ----
 
   @Test
   @DisplayName("fix enum abstract meta to keyword")
@@ -316,13 +296,13 @@ public class HaxeLanguageLevelGatingTest extends HaxeSemanticAnnotatorTestBase {
   @Test
   @DisplayName("fix Std.is to Std.isOfType")
   public void testFixStdIsToIsOfType() throws Exception {
-    doFixTestAtLevel(HAXE_4_3, "Replace with Std.isOfType");
+    doFixTestAtLevel(HAXE_4_1, "Replace with Std.isOfType");
   }
 
   @Test
   @DisplayName("fix Std.isOfType to Std.is")
   public void testFixStdIsOfTypeToStdIs() throws Exception {
-    doFixTestAtLevel(HAXE_3_4, "Replace with Std.is");
+    doFixTestAtLevel(HAXE_4_0, "Replace with Std.is");
   }
 
   @Test

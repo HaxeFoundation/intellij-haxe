@@ -227,20 +227,12 @@ public class HxmlFileParserTest {
     assertTrue(info.libraries().isEmpty());
   }
 
-  /** (-lib argument, the dependency it declares). */
-  static final List<Arguments> LIBRARY_VERSIONS = List.of(
-    arguments("format", new HaxeLibDependency("format", null)),
-    arguments("openfl:9.2.0", new HaxeLibDependency("openfl", "9.2.0")),
-    // git library versions keep the full suffix
-    arguments("mylib:git:https://example.com/repo.git", new HaxeLibDependency("mylib", "git:https://example.com/repo.git")),
-    // git library versions keep the ref suffix: '#' only starts a comment at line START
-    arguments("mylib:git:https://example.com/repo.git#v1.2.0",
-              new HaxeLibDependency("mylib", "git:https://example.com/repo.git#v1.2.0")));
+  @Test
+  @DisplayName("a git ref hash inside a lib argument is no comment")
+  public void aGitRefHashInsideALibArgumentIsNoComment() {
+    // '#' only starts a comment at line START
+    HaxeBuildFileInfo info = HxmlFileParser.parse("-lib mylib:git:https://example.com/repo.git#v1.2.0");
 
-  @ParameterizedTest(name = "{0}")
-  @FieldSource("LIBRARY_VERSIONS")
-  @DisplayName("lib arguments keep their version suffix")
-  public void libArgumentsKeepTheirVersionSuffix(String libArgument, HaxeLibDependency dependency) {
-    assertEquals(List.of(dependency), HxmlFileParser.parse("-lib " + libArgument).libraries());
+    assertEquals(List.of(new HaxeLibDependency("mylib", "git:https://example.com/repo.git#v1.2.0")), info.libraries());
   }
 }

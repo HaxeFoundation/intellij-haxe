@@ -17,8 +17,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  * kind per test. Every test starts stopped at the loop breakpoint in main, where
  * the next statement is the call to add().
  *
- * Closure step-in has two resolution paths, exercised as the two rows of the
- * parameterized closure tests. STATIC: `var fn = grab; fn()`
+ * Closure step-in has two resolution paths, exercised by the rows of the
+ * parameterized closure test. STATIC: `var fn = grab; fn()`
  * (FIXTURE_CLOSURE_CALL_LINE) — the callee exists only at runtime (OCallClosure
  * has no static findex), so step-into resolves the closure register's vclosure
  * `fun` pointer at the stop and plants the entry temp there; without that, the
@@ -31,41 +31,6 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 @DisplayName("HashLink debugger: stepping (integration)")
 public class SteppingIntegrationTest extends DapIntegrationTestBase {
-  @Test
-  @DisplayName("step into enters callee")
-  public void stepIntoEntersCallee() throws Exception {
-    StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
-    assertEquals("breakpoint", atLoop.getBody().getReason());
-    assertTrue(topFrameName(atLoop.getBody().getThreadId()).endsWith("main"), "stopped in main");
-
-    assertTrue(request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess(), "stepIn accepted");
-    StoppedEvent inAdd = awaitStopped();
-
-    assertEquals("step", inAdd.getBody().getReason());
-    String frame = topFrameName(inAdd.getBody().getThreadId());
-    assertTrue(frame.endsWith("add"), "stepped into add (was " + frame + ")");
-
-    request(new DisconnectRequest());
-  }
-
-  @ParameterizedTest(name = "call line {0}")
-  @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_ARRAY_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
-  @DisplayName("step into enters the closure callee")
-  public void stepIntoEntersTheClosureCallee(int callLine) throws Exception {
-    StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, callLine);
-    int atCallLine = stackTrace(atCall.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine();
-    assertEquals(callLine, atCallLine, "stopped on the closure call line");
-
-    assertTrue(request(stepInRequest(atCall.getBody().getThreadId())).isSuccess(), "stepIn accepted");
-    StoppedEvent inGrab = awaitStopped();
-
-    assertEquals("step", inGrab.getBody().getReason());
-    String frame = topFrameName(inGrab.getBody().getThreadId());
-    assertTrue(frame.endsWith("grab"), "stepped into the closure's target grab (was " + frame + ")");
-
-    request(new DisconnectRequest());
-  }
-
   @ParameterizedTest(name = "call line {0}")
   @ValueSource(ints = {FIXTURE_CLOSURE_CALL_LINE, FIXTURE_CLOSURE_ARRAY_CALL_LINE, FIXTURE_CLOSURE_REAL_ARRAY_LINE})
   @DisplayName("stepping inside the closure entered callee stays inside")
@@ -75,9 +40,15 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     // (with the caller position skipping a line)
     StoppedEvent atCall = runToBreakpoint(FIXTURE_CLOSURE, callLine);
     int threadId = atCall.getBody().getThreadId();
+    int atCallLine = stackTrace(threadId).getBody().getStackFrames().get(0).getLine();
+    assertEquals(callLine, atCallLine, "stopped on the closure call line");
+
     assertTrue(request(stepInRequest(threadId)).isSuccess(), "stepIn accepted");
     StoppedEvent inGrab = awaitStopped();
-    assertEquals(FIXTURE_CLOSURE_BODY_LINE, stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0).getLine(), "landed on grab's first line");
+    assertEquals("step", inGrab.getBody().getReason());
+    var entered = stackTrace(inGrab.getBody().getThreadId()).getBody().getStackFrames().get(0);
+    assertTrue(entered.getName().endsWith("grab"), "stepped into the closure's target grab (was " + entered.getName() + ")");
+    assertEquals(FIXTURE_CLOSURE_BODY_LINE, entered.getLine(), "landed on grab's first line");
 
     assertTrue(request(nextRequest(inGrab.getBody().getThreadId())).isSuccess(), "next accepted");
     StoppedEvent second = awaitStopped();
@@ -92,8 +63,14 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
   @DisplayName("step out returns to caller")
   public void stepOutReturnsToCaller() throws Exception {
     StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
+    assertEquals("breakpoint", atLoop.getBody().getReason());
+    assertTrue(topFrameName(atLoop.getBody().getThreadId()).endsWith("main"), "stopped in main");
+
     assertTrue(request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess(), "stepIn accepted");
     StoppedEvent inAdd = awaitStopped();
+    assertEquals("step", inAdd.getBody().getReason());
+    String callee = topFrameName(inAdd.getBody().getThreadId());
+    assertTrue(callee.endsWith("add"), "stepped into add (was " + callee + ")");
 
     assertTrue(request(stepOutRequest(inAdd.getBody().getThreadId())).isSuccess(), "stepOut accepted");
     StoppedEvent backInMain = awaitStopped();

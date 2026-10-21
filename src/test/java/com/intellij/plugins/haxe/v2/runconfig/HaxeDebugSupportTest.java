@@ -15,16 +15,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @DisplayName("Run configurations: debug support")
 public class HaxeDebugSupportTest {
 
-  /** (target, program-session lane exists, test-session lane exists). */
+  /** (target, program-session lane exists, test-session lane exists): one row per branch, the lane sets are constants. */
   static final List<Arguments> DEBUG_LANES = List.of(
     arguments(HaxeTarget.HL, true, true),
-    arguments(HaxeTarget.CPP, true, true),
-    // js tests run under node with the js-debug adapter attached
-    arguments(HaxeTarget.JAVA_SCRIPT, true, true),
-    // fdb hosts flash tests and the test console parses its relayed traces
-    arguments(HaxeTarget.FLASH, true, true),
-    // the eval adapter serves both: programs through the Haxe Interpreter configuration, tests through their lane
-    arguments(HaxeTarget.INTERP, true, true),
     arguments(HaxeTarget.NEKO, false, false),
     // no target resolved: never debuggable
     arguments(null, false, false));

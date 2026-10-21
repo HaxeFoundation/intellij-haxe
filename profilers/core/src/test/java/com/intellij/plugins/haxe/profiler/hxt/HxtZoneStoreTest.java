@@ -127,29 +127,6 @@ public class HxtZoneStoreTest {
     assertEquals(List.of(new TracyZone(1, 4_900, 94_900, MAIN)), longOnes, "the short zones fall under the duration floor");
   }
 
-  @Test
-  @DisplayName("a capture larger than one chunk splits and reopens whole")
-  public void testACaptureLargerThanOneChunkSplitsAndReopensWhole() throws IOException {
-    Path file = directory.resolve("chunks.hxtsession");
-    int total = 70_000; // crosses the 65 536 zone chunk boundary
-    try (OutputStream out = Files.newOutputStream(file)) {
-      HxtZoneWriter writer = new HxtZoneWriter(out, 0);
-      for (int i = 0; i < total; i++) {
-        writer.zone(1, 0, i * 10L, i * 10L + 5, BURN);
-      }
-      writer.finished(0);
-      writer.finish(emptySmallSession());
-    }
-    HxtZoneStore store = assertInstanceOf(HxtCapture.Zones.class, HxtSessionTranslator.translateCapture(file)).store();
-
-    long[] seen = {0};
-    store.scanZones(-1, 0, Long.MAX_VALUE, 0, (thread, depth, startNs, endNs, location) -> seen[0]++);
-    assertEquals(total, seen[0]);
-    assertEquals(total, store.zoneCount());
-    long rawZoneBytes = (long)total * HxtZoneWriter.ZONE_BYTES;
-    assertTrue(Files.size(file) < rawZoneBytes, "delta + DEFLATE must beat the raw zone encoding");
-  }
-
   /** A LIVE reader catches the file between chunk flushes: no finish(), no INFO — flushed chunks must still serve. */
   @Test
   @DisplayName("a growing capture without its finish records reads with fallbacks")
@@ -182,7 +159,7 @@ public class HxtZoneStoreTest {
   @DisplayName("a live-level capture recompresses to the final level with identical content")
   public void testALiveLevelCaptureRecompressesToTheFinalLevelWithIdenticalContent() throws IOException {
     Path file = directory.resolve("recompress.hxtsession");
-    int total = 70_000; // crosses the chunk boundary
+    int total = 70_000; // crosses the 65 536 zone chunk boundary
     try (OutputStream out = Files.newOutputStream(file)) {
       HxtZoneWriter writer = new HxtZoneWriter(out, 0, HxtZoneWriter.LIVE_LEVEL);
       for (int i = 0; i < total; i++) {
@@ -194,6 +171,8 @@ public class HxtZoneStoreTest {
     long liveSize = Files.size(file);
     HxtZoneStore liveStore = assertInstanceOf(HxtCapture.Zones.class, HxtSessionTranslator.translateCapture(file)).store();
     assertEquals(HxtZoneWriter.LIVE_LEVEL, liveStore.compressionLevel());
+    long rawZoneBytes = (long)total * HxtZoneWriter.ZONE_BYTES;
+    assertTrue(liveSize < rawZoneBytes, "delta + DEFLATE must beat the raw zone encoding");
 
     HxtZoneRecompressor.recompress(file, HxtZoneWriter.FINAL_LEVEL);
 
@@ -202,6 +181,7 @@ public class HxtZoneStoreTest {
     long[] seen = {0};
     store.scanZones(-1, 0, Long.MAX_VALUE, 0, (thread, depth, startNs, endNs, location) -> seen[0]++);
     assertEquals(total, seen[0]);
+    assertEquals(total, store.zoneCount());
     assertEquals(smallSession().memoryCurves(), store.session().memoryCurves(),
                  "non-zone records survive the rewrite verbatim");
     assertEquals(HxtZoneWriter.FINAL_LEVEL, store.compressionLevel(),

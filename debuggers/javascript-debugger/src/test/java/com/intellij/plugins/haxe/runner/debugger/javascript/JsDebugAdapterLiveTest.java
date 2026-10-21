@@ -1,11 +1,8 @@
 package com.intellij.plugins.haxe.runner.debugger.javascript;
 
-import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.BP_LINE;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.LOAD_BP_LINE;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.WEB_LOAD_HX_NAME;
-import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.WEB_MAIN_HX_NAME;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.WEB_LOAD_HX_SOURCE;
-import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.WEB_MAIN_HX_SOURCE;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.assertStoppedInHx;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.awaitStartDebugging;
 import static com.intellij.plugins.haxe.runner.debugger.javascript.LiveProbeUtil.awaitStopped;
@@ -104,13 +101,6 @@ public class JsDebugAdapterLiveTest {
     if (adapter != null) {
       LiveProbeUtil.killTree(adapter);
     }
-  }
-
-  private static Path buildFixture() throws Exception {
-    Path dir = Files.createTempDirectory("haxe-jsdbg-probe");
-    Files.writeString(dir.resolve(WEB_MAIN_HX_NAME), WEB_MAIN_HX_SOURCE);
-    LiveProbeUtil.writePageAndCompile(dir, "WebMain");
-    return dir;
   }
 
   /// As {@link LiveProbeUtil#awaitStopped}, but only a stop owned by a worker session.
@@ -390,51 +380,6 @@ public class JsDebugAdapterLiveTest {
     }
     """;
 
-  // A/B confound check: the WORKING fixture's line is an ASSIGNMENT
-  // (`counter = f2(f1(...))`), the failing one a BARE expression statement
-  // (`abc(cde(1));`). Same timer delivery as the
-  // working fixture, only the statement shape differs.
-  private static final int EXPR_CALLS_LINE = 9;
-  private static final String WEB_EXPR_HX_SOURCE = """
-    class WebExpr {
-    	static function f1(v:Int):Int { return v + 1; }
-
-    	static function f2(v:Int):Int { return v * 2; }
-
-    	static var counter = 0;
-    	static function tick() {
-    		var x = 1;
-    		f2(f1(counter)); // EXPR_CALLS_LINE = 9
-    		counter++;
-    	}
-    	static function main() {
-    		js.Browser.window.setInterval(tick, 250);
-    	}
-    }
-    """;
-
-  @Test
-  @Timeout(60)
-  @DisplayName("step in targets on a bare expression statement")
-  public void stepInTargetsOnABareExpressionStatement() throws Exception {
-    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
-    Path fixture = Files.createTempDirectory("haxe-jsdbg-expr");
-    Files.writeString(fixture.resolve("WebExpr.hx"), WEB_EXPR_HX_SOURCE);
-    LiveProbeUtil.writePageAndCompile(fixture, "WebExpr");
-
-    final int[] targetsAtStop = {-2};
-    atStop = (child, top) -> targetsAtStop[0] = stepInTargetsCount(child, top.getId(), "bare-expression stop");
-    try {
-      driveSessionToStop(fixture, "WebExpr.hx", EXPR_CALLS_LINE);
-    } finally {
-      atStop = null;
-    }
-
-    probe("bare-expression (timer) stepInTargets count=" + targetsAtStop[0]);
-    // diagnostic: no assert on the count - the pairing with the event-handler
-    // test tells whether the trigger is the statement shape or the delivery
-  }
-
   // Same fixture with the call line as the LAST statement (next line is the
   // unmapped closing brace) - the shape that breaks js-debug's target lookup.
   private static final String WEB_CLICK_LAST_HX_SOURCE = WEB_CLICK_HX_SOURCE.replace("\tx++;\n", "");
@@ -625,15 +570,6 @@ public class JsDebugAdapterLiveTest {
         mux.sendRequest(new DisconnectRequest(), TIMEOUT);
       }
     }
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("full session with child via start debugging")
-  public void fullSessionWithChildViaStartDebugging() throws Exception {
-    Assumptions.assumeTrue(haxeOnPath(), "haxe not on PATH - skipping");
-    StackFrame top = driveSessionToStop(buildFixture(), WEB_MAIN_HX_NAME, BP_LINE);
-    assertStoppedInHx(top, WEB_MAIN_HX_NAME, BP_LINE);
   }
 
   /// stackTrace -> scopes -> variables, every one routed by a COMPOSITE id: the

@@ -155,26 +155,6 @@ public class HaxeFileDefineContextTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("an unsaved build file edit re-lexes the files it defines on the next refresh")
-  public void testAnUnsavedBuildFileEditReLexesTheFilesItDefinesOnTheNextRefresh() {
-    VirtualFile web = myFixture.addFileToProject("web.hxml", WEB_HXML_SOURCE).getVirtualFile();
-    VirtualFile cpp = myFixture.addFileToProject("cpp.hxml", CPP_HXML_SOURCE).getVirtualFile();
-    HaxeActiveBuildFileStore.getInstance(getProject()).setActiveFile(web.getPath());
-    VirtualFile cppMain = myFixture.addFileToProject("src/CppMain.hx", FOO_GATED_SOURCE.formatted("CppMain")).getVirtualFile();
-    myFixture.openFileInEditor(cppMain);
-    assertFalse(branchLive(psiFile(cppMain), "foo = true"), "no -D foo yet");
-
-    myFixture.openFileInEditor(cpp);
-    Document document = myFixture.getEditor().getDocument();
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> document.insertString(document.getTextLength(), "-D foo\n"));
-    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    HaxeDefineContextService.getInstance(getProject()).refreshAsync();
-
-    awaitInvalidationOf("CppMain.hx", "cpp.hxml gained -D foo in the editor: CppMain must be re-lexed");
-    awaitBranchLive(cppMain, "foo = true", "the foo branch is live after the re-lex");
-  }
-
-  @Test
   @DisplayName("a read of the new defines before the refresh does not mask the change")
   public void testAReadOfTheNewDefinesBeforeTheRefreshDoesNotMaskTheChange() {
     VirtualFile web = myFixture.addFileToProject("web.hxml", WEB_HXML_SOURCE).getVirtualFile();

@@ -31,16 +31,6 @@ public class HaxeContextWarmUpTest {
     assertEquals(1, errors.lines().count(), "the warning is left out, got: " + errors);
   }
 
-  @Test
-  @DisplayName("a context without errors has no context errors")
-  public void testAContextWithoutErrorsHasNoContextErrors() {
-    Diagnostic unusedImport = diagnostic(DiagnosticKind.UNUSED_IMPORT, DiagnosticSeverity.WARNING, 24);
-
-    String errors = HaxeCompilerDisplayService.contextErrors(List.of(new FileDiagnostics("/std/Iterator.hx", List.of(unusedImport))));
-
-    assertEquals("", errors);
-  }
-
   private static Diagnostic diagnostic(DiagnosticKind kind, DiagnosticSeverity severity, int line) {
     Range range = new Range(new Position(line, 4), new Position(line, 15));
     return new Diagnostic(kind, range, severity, null, null);

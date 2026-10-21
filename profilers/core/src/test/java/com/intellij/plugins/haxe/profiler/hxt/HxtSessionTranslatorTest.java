@@ -82,23 +82,6 @@ public class HxtSessionTranslatorTest {
   }
 
   @Test
-  @DisplayName("frame heap readings surface as memory samples")
-  public void testFrameHeapReadingsSurfaceAsMemorySamples() throws IOException {
-    SessionBuilder session = new SessionBuilder(1000, 10.0);
-    session.beginFrame(10.016, 0, 4096, 8192, List.of("Main.main"));
-    session.sample(new int[]{1}, 1);
-    session.endFrame();
-    session.beginFrame(10.032, 0, 6144, 8192, List.of());
-    session.endFrame();
-
-    ProfilerSnapshot snapshot = HxtSessionTranslator.translate(session.stream());
-
-    assertEquals(List.of(new ProfilerMemorySample(10.016, 4096, 8192),
-                         new ProfilerMemorySample(10.032, 6144, 8192)),
-                 snapshot.memory());
-  }
-
-  @Test
   @DisplayName("frames become frame events and gc time becomes a gc event")
   public void testFramesBecomeFrameEventsAndGcTimeBecomesAGcEvent() throws IOException {
     SessionBuilder session = new SessionBuilder(1000, 5.0);

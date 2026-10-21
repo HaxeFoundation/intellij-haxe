@@ -73,13 +73,6 @@ public class HaxeMissingLibraryInspectionTest extends HaxeLightFixtureTestCase {
                 <haxedef name="flag"/>
               </project>
               """),
-    // nmml (the NME classification of the project file)
-    arguments("build.nmml",
-              """
-              <project>
-                <haxelib name="<warning descr="Library 'nme' is not installed">nme</warning>"/>
-              </project>
-              """),
     // ignores xml that is not a project file
     arguments("settings.xml",
               """

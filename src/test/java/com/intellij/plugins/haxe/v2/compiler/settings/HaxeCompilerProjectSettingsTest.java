@@ -14,17 +14,33 @@ import static org.junit.jupiter.api.Assertions.*;
 public class HaxeCompilerProjectSettingsTest {
 
   @Test
-  @DisplayName("default language level is latest when unset")
-  public void defaultLanguageLevelIsLatestWhenUnset() {
+  @DisplayName("fresh settings defaults")
+  public void freshSettingsDefaults() {
     HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    assertEquals(HaxeLanguageLevel.latest(), settings.getDefaultLanguageLevel());
+
+    assertNull(settings.getExplicitDefaultLanguageLevel(), "use compiler level is the default mode");
+    assertEquals(HaxeLanguageLevel.latest(), settings.getDefaultLanguageLevel(), "no project, no SDK: the latest level");
+    assertTrue(settings.isUseLanguageLevelForConditionals());
+    assertEquals(HaxeCompletionMode.IDE_AND_COMPILER, settings.getCompletionMode());
+    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, settings.getDisplayConnectionMode(HaxeServerGeneration.HAXE_4));
+    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, settings.getDisplayConnectionMode(HaxeServerGeneration.HAXE_3));
+    assertFalse(settings.isCompilerDiagnosticsEnabled());
+    assertTrue(settings.isDiagnosticsErrorsEnabled(), "diagnostics default to errors only");
+    assertFalse(settings.isDiagnosticsUnusedImportsEnabled());
+    assertFalse(settings.isDiagnosticsRemovableCodeEnabled());
+    assertFalse(settings.isCompilerDiagnosticsOnly());
   }
 
   @Test
-  @DisplayName("use compiler level is the default mode")
-  public void useCompilerLevelIsTheDefaultMode() {
+  @DisplayName("each server generation keeps a connection mode of its own")
+  public void eachServerGenerationKeepsAConnectionModeOfItsOwn() {
     HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    assertNull(settings.getExplicitDefaultLanguageLevel());
+
+    settings.setDisplayConnectionMode(HaxeServerGeneration.HAXE_3, HaxeDisplayConnectionMode.SHARED_SERVER);
+
+    assertEquals(HaxeDisplayConnectionMode.SHARED_SERVER, settings.getDisplayConnectionMode(HaxeServerGeneration.HAXE_3));
+    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, settings.getDisplayConnectionMode(HaxeServerGeneration.HAXE_4),
+                 "setting the haxe 3 mode leaves haxe 4 alone");
   }
 
   @Test
@@ -37,79 +53,6 @@ public class HaxeCompilerProjectSettingsTest {
     assertNull(settings.getExplicitDefaultLanguageLevel());
     // without a project there is no SDK to resolve - the fallback is the latest level
     assertEquals(HaxeLanguageLevel.latest(), settings.getDefaultLanguageLevel());
-  }
-
-  @Test
-  @DisplayName("conditional compilation uses the language level by default")
-  public void conditionalCompilationUsesTheLanguageLevelByDefault() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    assertTrue(settings.isUseLanguageLevelForConditionals());
-  }
-
-  @Test
-  @DisplayName("use language level for conditionals survives xml round trip")
-  public void useLanguageLevelForConditionalsSurvivesXmlRoundTrip() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    settings.setUseLanguageLevelForConditionals(false);
-
-    Element serialized = XmlSerializer.serialize(settings.getState());
-    HaxeCompilerProjectSettings.State deserialized =
-      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
-    reloaded.loadState(deserialized);
-
-    assertFalse(reloaded.isUseLanguageLevelForConditionals());
-  }
-
-  @Test
-  @DisplayName("connection modes default to the dedicated process and survive xml round trip")
-  public void connectionModesDefaultToTheDedicatedProcessAndSurviveXmlRoundTrip() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, settings.getDisplayConnectionMode(HaxeServerGeneration.HAXE_4));
-    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, settings.getDisplayConnectionMode(HaxeServerGeneration.HAXE_3));
-    settings.setDisplayConnectionMode(HaxeServerGeneration.HAXE_3, HaxeDisplayConnectionMode.SHARED_SERVER);
-
-    Element serialized = XmlSerializer.serialize(settings.getState());
-    HaxeCompilerProjectSettings.State deserialized =
-      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
-    reloaded.loadState(deserialized);
-
-    assertEquals(HaxeDisplayConnectionMode.SHARED_SERVER, reloaded.getDisplayConnectionMode(HaxeServerGeneration.HAXE_3));
-    assertEquals(HaxeDisplayConnectionMode.DEDICATED_PROCESS, reloaded.getDisplayConnectionMode(HaxeServerGeneration.HAXE_4),
-                 "each generation keeps a mode of its own");
-  }
-
-  @Test
-  @DisplayName("use compiler level survives xml serialization round trip")
-  public void useCompilerLevelSurvivesXmlSerializationRoundTrip() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    settings.setDefaultLanguageLevel(HaxeLanguageLevel.HAXE_4_1);
-    settings.setDefaultLanguageLevel(null);
-
-    Element serialized = XmlSerializer.serialize(settings.getState());
-    HaxeCompilerProjectSettings.State deserialized =
-      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
-    reloaded.loadState(deserialized);
-
-    assertNull(reloaded.getExplicitDefaultLanguageLevel());
-  }
-
-  @Test
-  @DisplayName("completion mode defaults to ide and compiler and survives round trip")
-  public void completionModeDefaultsToIdeAndCompilerAndSurvivesRoundTrip() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    assertEquals(HaxeCompletionMode.IDE_AND_COMPILER, settings.getCompletionMode());
-    settings.setCompletionMode(HaxeCompletionMode.IDE_ONLY);
-
-    Element serialized = XmlSerializer.serialize(settings.getState());
-    HaxeCompilerProjectSettings.State deserialized =
-      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
-    reloaded.loadState(deserialized);
-
-    assertEquals(HaxeCompletionMode.IDE_ONLY, reloaded.getCompletionMode());
   }
 
   @Test
@@ -133,27 +76,6 @@ public class HaxeCompilerProjectSettingsTest {
     settings.setCompilerCompletionEnabled(false);
     assertEquals(HaxeCompletionMode.IDE_ONLY, settings.getEffectiveCompletionMode(), "the stored mode stays, the effective one is IDE only");
     assertEquals(HaxeCompletionMode.IDE_AND_COMPILER, settings.getCompletionMode());
-  }
-
-  @Test
-  @DisplayName("compiler feature toggles survive xml round trip")
-  public void compilerFeatureTogglesSurviveXmlRoundTrip() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    settings.setCompilerInlaysEnabled(false);
-    settings.setCompilerFindUsagesEnabled(false);
-    settings.setGeneratedMemberPreviewEnabled(false);
-
-    Element serialized = XmlSerializer.serialize(settings.getState());
-    HaxeCompilerProjectSettings.State deserialized =
-      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
-    reloaded.loadState(deserialized);
-
-    assertFalse(reloaded.isCompilerInlaysEnabled());
-    assertFalse(reloaded.isCompilerFindUsagesEnabled());
-    assertTrue(reloaded.isCompilerNavigationEnabled());
-    assertFalse(reloaded.isGeneratedMemberPreviewEnabled());
-    assertTrue(reloaded.isCompilerCompletionEnabled());
   }
 
   @Test
@@ -213,6 +135,7 @@ public class HaxeCompilerProjectSettingsTest {
     assertEquals(Map.of("app", HaxeLanguageLevel.HAXE_4_1), settings.getContainerLanguageLevelOverrides());
   }
 
+  /** Every State field set away from its default; loadState only stores the bean, so this pins that each field serializes. */
   @Test
   @DisplayName("state survives xml serialization round trip")
   public void stateSurvivesXmlSerializationRoundTrip() {
@@ -220,17 +143,46 @@ public class HaxeCompilerProjectSettingsTest {
     settings.setDefaultLanguageLevel(HaxeLanguageLevel.HAXE_4_3);
     settings.setContainerLanguageLevelOverride("app", HaxeLanguageLevel.HAXE_5_0);
     settings.setContainerLanguageLevelOverride("legacy", HaxeLanguageLevel.HAXE_3_4);
+    settings.setCompilerDiagnosticsEnabled(true);
+    settings.setDiagnosticsErrorsEnabled(false);
+    settings.setDiagnosticsUnusedImportsEnabled(true);
+    settings.setDiagnosticsRemovableCodeEnabled(true);
+    settings.setCompilerDiagnosticsOnly(true);
+    settings.setUseLanguageLevelForConditionals(false);
+    settings.setCompletionMode(HaxeCompletionMode.COMPILER_ONLY);
+    settings.setCompilerIdeFeaturesEnabled(true);
+    settings.setCompilerInlaysEnabled(false);
+    settings.setCompilerFindUsagesEnabled(false);
+    settings.setCompilerNavigationEnabled(false);
+    settings.setGeneratedMemberPreviewEnabled(false);
+    settings.setCompilerCompletionEnabled(false);
+    settings.setDisplayConnectionMode(HaxeServerGeneration.HAXE_4, HaxeDisplayConnectionMode.SHARED_SERVER);
+    settings.setDisplayConnectionMode(HaxeServerGeneration.HAXE_3, HaxeDisplayConnectionMode.SHARED_SERVER);
 
     Element serialized = XmlSerializer.serialize(settings.getState());
     HaxeCompilerProjectSettings.State deserialized =
       XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-
     HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
     reloaded.loadState(deserialized);
 
-    assertEquals(HaxeLanguageLevel.HAXE_4_3, reloaded.getDefaultLanguageLevel());
+    assertEquals(HaxeLanguageLevel.HAXE_4_3, reloaded.getExplicitDefaultLanguageLevel());
     assertEquals(HaxeLanguageLevel.HAXE_5_0, reloaded.getContainerLanguageLevelOverride("app"));
     assertEquals(HaxeLanguageLevel.HAXE_3_4, reloaded.getContainerLanguageLevelOverride("legacy"));
+    assertTrue(reloaded.isCompilerDiagnosticsEnabled());
+    assertFalse(reloaded.isDiagnosticsErrorsEnabled());
+    assertTrue(reloaded.isDiagnosticsUnusedImportsEnabled());
+    assertTrue(reloaded.isDiagnosticsRemovableCodeEnabled());
+    assertTrue(reloaded.isCompilerDiagnosticsOnly());
+    assertFalse(reloaded.isUseLanguageLevelForConditionals());
+    assertEquals(HaxeCompletionMode.COMPILER_ONLY, reloaded.getCompletionMode());
+    assertTrue(reloaded.isCompilerIdeFeaturesEnabled());
+    assertFalse(reloaded.isCompilerInlaysEnabled());
+    assertFalse(reloaded.isCompilerFindUsagesEnabled());
+    assertFalse(reloaded.isCompilerNavigationEnabled());
+    assertFalse(reloaded.isGeneratedMemberPreviewEnabled());
+    assertFalse(reloaded.isCompilerCompletionEnabled());
+    assertEquals(HaxeDisplayConnectionMode.SHARED_SERVER, reloaded.getDisplayConnectionMode(HaxeServerGeneration.HAXE_4));
+    assertEquals(HaxeDisplayConnectionMode.SHARED_SERVER, reloaded.getDisplayConnectionMode(HaxeServerGeneration.HAXE_3));
   }
 
   @Test
@@ -246,37 +198,5 @@ public class HaxeCompilerProjectSettingsTest {
     assertEquals(HaxeLanguageLevel.latest(), settings.getDefaultLanguageLevel());
     assertNull(settings.getContainerLanguageLevelOverride("app"));
     assertTrue(settings.getContainerLanguageLevelOverrides().isEmpty());
-  }
-
-  @Test
-  @DisplayName("diagnostics feature toggles default to errors only")
-  public void diagnosticsFeatureTogglesDefaultToErrorsOnly() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-
-    assertFalse(settings.isCompilerDiagnosticsEnabled());
-    assertTrue(settings.isDiagnosticsErrorsEnabled());
-    assertFalse(settings.isDiagnosticsUnusedImportsEnabled());
-    assertFalse(settings.isDiagnosticsRemovableCodeEnabled());
-  }
-
-  @Test
-  @DisplayName("diagnostics feature toggles survive serialization")
-  public void diagnosticsFeatureTogglesSurviveSerialization() {
-    HaxeCompilerProjectSettings settings = new HaxeCompilerProjectSettings(null);
-    settings.setCompilerDiagnosticsEnabled(true);
-    settings.setDiagnosticsErrorsEnabled(false);
-    settings.setDiagnosticsUnusedImportsEnabled(true);
-    settings.setDiagnosticsRemovableCodeEnabled(true);
-
-    Element serialized = XmlSerializer.serialize(settings.getState());
-    HaxeCompilerProjectSettings.State deserialized =
-      XmlSerializer.deserialize(serialized, HaxeCompilerProjectSettings.State.class);
-    HaxeCompilerProjectSettings reloaded = new HaxeCompilerProjectSettings(null);
-    reloaded.loadState(deserialized);
-
-    assertTrue(reloaded.isCompilerDiagnosticsEnabled());
-    assertFalse(reloaded.isDiagnosticsErrorsEnabled());
-    assertTrue(reloaded.isDiagnosticsUnusedImportsEnabled());
-    assertTrue(reloaded.isDiagnosticsRemovableCodeEnabled());
   }
 }

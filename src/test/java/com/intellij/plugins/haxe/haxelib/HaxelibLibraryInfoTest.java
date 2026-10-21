@@ -12,17 +12,17 @@ public class HaxelibLibraryInfoTest {
 
   // real output shape: the update banner precedes the fields, releases carry
   // date + version + note, and a note may contain colons of its own
-  private static final List<String> LIME_INFO = """
+  private static final List<String> LIBRARY_INFO = """
 
     A new version (4.2.0) of haxelib is available.
     Do `haxelib --global update haxelib` to get the latest version.
 
-    Name: lime
+    Name: mylib
     Tags:\s
-    Desc: A foundational Haxe framework for cross-platform development
-    Website: https://github.com/openfl/lime
+    Desc: A sample library for cross-platform development
+    Website: https://example.com/libowner/mylib
     License: MIT
-    Owner: singmajesty
+    Owner: libowner
     Version: 8.3.2
     Releases:\s
        2013-12-10 05:45:36 0.9.0 : Preliminary release
@@ -33,20 +33,20 @@ public class HaxelibLibraryInfoTest {
   @Test
   @DisplayName("fields parse through the preamble noise")
   public void testFieldsParseThroughThePreambleNoise() {
-    HaxelibLibraryInfo info = HaxelibLibraryInfo.parse(LIME_INFO);
+    HaxelibLibraryInfo info = HaxelibLibraryInfo.parse(LIBRARY_INFO);
     assertNotNull(info);
-    assertEquals("lime", info.name());
-    assertEquals("A foundational Haxe framework for cross-platform development", info.description());
-    assertEquals("https://github.com/openfl/lime", info.website());
+    assertEquals("mylib", info.name());
+    assertEquals("A sample library for cross-platform development", info.description());
+    assertEquals("https://example.com/libowner/mylib", info.website());
     assertEquals("MIT", info.license());
-    assertEquals("singmajesty", info.owner());
+    assertEquals("libowner", info.owner());
     assertEquals("8.3.2", info.latestVersion());
   }
 
   @Test
   @DisplayName("releases carry date version and note")
   public void testReleasesCarryDateVersionAndNote() {
-    HaxelibLibraryInfo info = HaxelibLibraryInfo.parse(LIME_INFO);
+    HaxelibLibraryInfo info = HaxelibLibraryInfo.parse(LIBRARY_INFO);
     assertNotNull(info);
     assertEquals(3, info.releases().size());
     HaxelibLibraryInfo.Release alpha = info.releases().get(1);
@@ -58,7 +58,7 @@ public class HaxelibLibraryInfoTest {
   @Test
   @DisplayName("a colon inside a release note does not split it")
   public void testAColonInsideAReleaseNoteDoesNotSplitIt() {
-    HaxelibLibraryInfo info = HaxelibLibraryInfo.parse(LIME_INFO);
+    HaxelibLibraryInfo info = HaxelibLibraryInfo.parse(LIBRARY_INFO);
     assertNotNull(info);
     assertEquals("Bug fixes: see changelog", info.releases().get(2).note());
   }

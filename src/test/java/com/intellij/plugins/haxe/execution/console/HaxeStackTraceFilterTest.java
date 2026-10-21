@@ -41,6 +41,7 @@ public class HaxeStackTraceFilterTest extends HaxeConsoleFilterTestBase {
 
   @ParameterizedTest(name = "{0}")
   @FieldSource("FRAMES")
+  @DisplayName("links the frame to its file")
   public void testLinksTheFrameToItsFile(String line, String fileName, int zeroBasedLine, String highlighted) {
     String console = "Uncaught exception - Invalid array access\n" + line + "\n";
 

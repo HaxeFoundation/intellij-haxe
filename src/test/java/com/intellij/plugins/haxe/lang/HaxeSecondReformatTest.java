@@ -4,7 +4,6 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.formatter.hxformat.HxformatDefaultProfile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -26,50 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DisplayName("Formatting: second reformat")
 public class HaxeSecondReformatTest extends HaxeLightFixtureTestCase {
-  // a short array literal joins on either pass under the profile's item
-  // rules (the tool's noWrap for items totalling at most 80), as do call
-  // arguments under its fill; a kept break stays only where no rule decides
-  private static final String WRAPPED_ARRAY_SOURCE = """
-    class Main {
-    	function draw(s:Style) {
-    		var stops = [
-    			s.first,
-    			s.second,
-    			s.third
-    		];
-    	}
-    }
-    """;
 
   @Override
   protected String getBasePath() {
     return "/formatter/comparison/";
-  }
-
-  @Test
-  @DisplayName("haxe takes part in the second reformat flow")
-  public void testHaxeTakesPartInTheSecondReformatFlow() {
-    LanguageCodeStyleSettingsProvider provider = LanguageCodeStyleSettingsProvider.forLanguage(HaxeLanguage.INSTANCE);
-
-    assertTrue(provider.usesCommonKeepLineBreaks(), "the platform only records kept breaks for languages that opt in");
-  }
-
-  @Test
-  @DisplayName("short array joins on either pass")
-  public void testShortArrayJoinsOnEitherPass() {
-    String joined = """
-      class Main {
-      	function draw(s:Style) {
-      		var stops = [s.first, s.second, s.third];
-      	}
-      }
-      """;
-
-    String firstPass = reformat(HxformatDefaultProfile::apply, WRAPPED_ARRAY_SOURCE);
-    String secondPass = reformat(HaxeSecondReformatTest::secondPass, WRAPPED_ARRAY_SOURCE);
-
-    assertEquals(joined, firstPass);
-    assertEquals(joined, secondPass);
   }
 
   @Test
@@ -209,7 +168,7 @@ public class HaxeSecondReformatTest extends HaxeLightFixtureTestCase {
     settings.getCommonSettings(HaxeLanguage.INSTANCE).KEEP_LINE_BREAKS = false;
   }
 
-  /** The second pass under the openfl-braces fixture config (lineEnds.leftCurly=both). */
+  /** The second pass under the allman-value-blocks fixture config (lineEnds.leftCurly=both). */
   private static void allmanSecondPass(CodeStyleSettings settings) {
     secondPass(settings);
     HaxeCodeStyleTweaks.allmanBraces(settings);

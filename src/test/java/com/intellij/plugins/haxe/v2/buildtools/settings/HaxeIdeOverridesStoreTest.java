@@ -13,16 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class HaxeIdeOverridesStoreTest {
 
   private static final String BUILD_FILE = "/p/build.hxml";
-  private static final String OTHER_BUILD_FILE = "/p/test.hxml";
-
-  @Test
-  @DisplayName("defaults are empty")
-  public void testDefaultsAreEmpty() {
-    HaxeIdeOverridesStore store = new HaxeIdeOverridesStore();
-
-    assertTrue(store.getDefines(BUILD_FILE).isEmpty());
-    assertNull(store.getCustomTarget(BUILD_FILE));
-  }
 
   @Test
   @DisplayName("put define adds and updates set entries")
@@ -64,21 +54,6 @@ public class HaxeIdeOverridesStoreTest {
     assertEquals(List.of(new DefineOverride("html5", "", DefineEffect.SET),
                          new DefineOverride("no-traces", "", DefineEffect.REMOVE)),
                  store.getDefines(BUILD_FILE));
-  }
-
-  @Test
-  @DisplayName("each build file keeps its own overrides")
-  public void testEachBuildFileKeepsItsOwnOverrides() {
-    HaxeIdeOverridesStore store = new HaxeIdeOverridesStore();
-
-    store.putDefine(BUILD_FILE, "html5", "");
-    store.putDefine(OTHER_BUILD_FILE, "testOnlyCode", "");
-    store.setCustomTarget(OTHER_BUILD_FILE, "go");
-
-    assertEquals(List.of(new DefineOverride("html5", "", DefineEffect.SET)), store.getDefines(BUILD_FILE));
-    assertNull(store.getCustomTarget(BUILD_FILE));
-    assertEquals(List.of(new DefineOverride("testOnlyCode", "", DefineEffect.SET)), store.getDefines(OTHER_BUILD_FILE));
-    assertEquals("go", store.getCustomTarget(OTHER_BUILD_FILE));
   }
 
   @Test

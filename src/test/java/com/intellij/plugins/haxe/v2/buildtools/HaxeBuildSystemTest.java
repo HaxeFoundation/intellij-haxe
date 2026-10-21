@@ -64,10 +64,13 @@ public class HaxeBuildSystemTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("hxp script declares no static target")
-  public void testHxpScriptDeclaresNoStaticTarget() {
+  @DisplayName("hxp script declares no static target and no debug additions")
+  public void testHxpScriptDeclaresNoStaticTargetAndNoDebugAdditions() {
     HaxeBuildFile script = fixture("test.hxml", HaxeBuildFileType.HXP_SCRIPT);
-    assertNull(HaxeBuildSystem.of(HaxeBuildFileType.HXP_SCRIPT).launchTarget(getProject(), script));
+    HaxeBuildSystem system = HaxeBuildSystem.of(HaxeBuildFileType.HXP_SCRIPT);
+
+    assertNull(system.launchTarget(getProject(), script));
+    assertNull(system.debugCompileAdditions(getProject(), script, Debugger.DEFAULT));
   }
 
   /** (hxml fixture, debugger, debug compile additions - null when the target has no debugger lane). */
@@ -153,13 +156,6 @@ public class HaxeBuildSystemTest extends HaxeCodeInsightFixtureTestCase {
     HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(nme.file(), "Flash");
     assertEquals(List.of("-debug", "-Dfdb"), system.debugCompileAdditions(getProject(), nme, Debugger.FLASH_PLAYER));
     assertEquals(List.of("-debug"), system.debugCompileAdditions(getProject(), nme, Debugger.DEFAULT));
-  }
-
-  @Test
-  @DisplayName("hxp script has no debug additions")
-  public void testHxpScriptHasNoDebugAdditions() {
-    HaxeBuildFile script = fixture("test.hxml", HaxeBuildFileType.HXP_SCRIPT);
-    assertNull(HaxeBuildSystem.of(HaxeBuildFileType.HXP_SCRIPT).debugCompileAdditions(getProject(), script, Debugger.DEFAULT));
   }
 
   /** (build file type, its own action names - the names a custom action may not take). */

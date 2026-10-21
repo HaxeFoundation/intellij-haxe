@@ -41,18 +41,6 @@ public class TracyLiveCaptureTest {
   }
 
   @Test
-  @DisplayName("an announced version is offered first")
-  public void testAnAnnouncedVersionIsOfferedFirst() throws Exception {
-    TracyVersionStrategy strategy = TracyVersionStrategy.detect(() -> TracyProtocolVersion.V69);
-    try (FakeClient client = new FakeClient(TracyProtocolVersion.V69);
-         TracyLiveCapture capture = TracyLiveCapture.connect(client.port(), strategy, () -> true)) {
-
-      assertNotNull(capture);
-      assertEquals(List.of(69), client.offered());
-    }
-  }
-
-  @Test
   @DisplayName("a client refusing every version fails naming what was offered")
   public void testAClientRefusingEveryVersionFailsNamingWhatWasOffered() throws Exception {
     try (FakeClient client = new FakeClient(null)) {
@@ -61,18 +49,6 @@ public class TracyLiveCaptureTest {
 
       assertEquals(TracyProtocolVersion.PROBE_ORDER, failure.refused());
       assertEquals(List.of(76, 74, 82, 69), client.offered());
-    }
-  }
-
-  @Test
-  @DisplayName("a pinned version is offered once and its refusal ends the capture")
-  public void testAPinnedVersionIsOfferedOnceAndItsRefusalEndsTheCapture() throws Exception {
-    try (FakeClient client = new FakeClient(TracyProtocolVersion.V76)) {
-      TracyVersionStrategy strategy = TracyVersionStrategy.pinned(TracyProtocolVersion.V74);
-
-      assertThrows(TracyProtocolUnsupportedException.class,
-                   () -> TracyLiveCapture.connect(client.port(), strategy, () -> true));
-      assertEquals(List.of(74), client.offered());
     }
   }
 

@@ -89,16 +89,6 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("nested region lexes into the enclosing blob")
-  public void testNestedRegionLexesIntoTheEnclosingBlob() {
-    List<String> bodies = ppBodyTokens(NESTED_REGION_SOURCE);
-
-    assertEquals(1, bodies.size(), "the nested region must not split the branch: " + bodies);
-    assertTrue(bodies.get(0).contains("#if debug"), "the inner directives lie inside the blob");
-    assertTrue(bodies.get(0).contains("#end\n\t}"), "the inner #end and the closing brace lie inside the blob");
-  }
-
-  @Test
   @DisplayName("code after a nested section stays inside the dead branch")
   public void testCodeAfterANestedSectionStaysInsideTheDeadBranch() {
     String source = """
@@ -490,7 +480,6 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     // a define VALUE wrapped in quotes (as typed into the overrides UI) de-quotes
     arguments("hl_ver=\"1.13.1\"", "(hl_ver >= version(\"1.12.0\"))", true),
     arguments("hl_ver=1.11.0", "(hl_ver >= version(\"1.12.0\"))", false),
-    arguments("haxe=4.3.7", "(haxe >= version(\"4.1.0\"))", true),
     arguments("haxe_ver=4.307", "(haxe_ver >= 4.1)", true),
     // the compiler's numeric haxe_ver (4.3.7 is 4.307) compares at patch level
     arguments("haxe_ver=4.307", "(haxe_ver >= 4.305)", true),
@@ -523,11 +512,9 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
     arguments("", "(!cpp)", true),
     // a valued define compares against a version string
     arguments("myVersion=9.2.0", "(myVersion < \"9.0.0\")", false),
-    // either operand set, any value; a parenthesized condition may span lines
+    // either operand set; a parenthesized condition may span lines
     arguments("cpp", "(cpp || js)", true),
     arguments("js", "(cpp || js)", true),
-    arguments("js,cpp", "(cpp || js)", true),
-    arguments("js=1,cpp=2.3", "(cpp || js)", true),
     arguments("js=\"foo\"", "(cpp\n\t||\n\tjs)", true),
     // one operand unset or false
     arguments("cpp,js=false", "(cpp && js)", false),

@@ -32,6 +32,7 @@ public class HaxeUtestFailureFilterTest extends HaxeConsoleFilterTestBase {
 
   @ParameterizedTest(name = "{0}")
   @FieldSource("FAILURES")
+  @DisplayName("links the failure to its assertion")
   public void testLinksTheFailureToItsAssertion(String line, int zeroBasedLine, String highlighted) {
     String console = "expected 0 but it is \"bogus\"\n" + line + "\n";
 
@@ -51,6 +52,7 @@ public class HaxeUtestFailureFilterTest extends HaxeConsoleFilterTestBase {
 
   @ParameterizedTest(name = "{0}")
   @FieldSource("PLAIN_LINES")
+  @DisplayName("leaves other lines plain")
   public void testLeavesOtherLinesPlain(String line) {
     assertNull(applyToLine(line));
   }

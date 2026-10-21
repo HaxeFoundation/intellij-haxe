@@ -11,10 +11,11 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Doc comment interior indentation on reformat: under-indented lines rise to
- * the body indent, markdown depth beyond it stays, and the toggle turns the
- * whole treatment off. Byte parity with haxe-formatter is pinned separately
- * by the comparison suite's doc-comment-indent fixture.
+ * Doc comment interior indentation on reformat under the plugin defaults:
+ * the toggle turns the whole treatment off, and a zero-column doc still
+ * follows its scope while KEEP_FIRST_COLUMN_COMMENT pins plain comments.
+ * Byte parity with haxe-formatter is pinned separately by the comparison
+ * suite's doc-comment-indent fixture.
  */
 @DisplayName("Formatting: doc comment")
 public class HaxeDocCommentFormatTest extends HaxeLightFixtureTestCase {
@@ -38,58 +39,12 @@ public class HaxeDocCommentFormatTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("interior lines rise to the body indent")
-  public void testInteriorLinesRiseToTheBodyIndent() {
-    assertEquals("""
-      class Main {
-          /**
-              Body line, hard-wrapped as
-              wrapped at column zero
-
-              \tdeeper markdown
-          **/
-          static function main() {
-              trace(1);
-          }
-      }
-      """, reformat(COLUMN_ZERO_SOURCE));
-  }
-
-  @Test
   @DisplayName("toggle off keeps the interior untouched")
   public void testToggleOffKeepsTheInteriorUntouched() {
     Consumer<CodeStyleSettings> toggleOff =
       settings -> settings.getCustomSettings(HaxeCodeStyleSettings.class).FORMAT_DOC_COMMENTS = false;
 
     assertEquals(COLUMN_ZERO_SOURCE, reformat(toggleOff, COLUMN_ZERO_SOURCE));
-  }
-
-  @Test
-  @DisplayName("starred style aligns stars and closer one space in")
-  public void testStarredStyleAlignsStarsAndCloserOneSpaceIn() {
-    String source = """
-      class Main {
-          /**
-      * Starred body.
-              * @param x value
-          */
-          static function main(x:Int) {
-              trace(x);
-          }
-      }
-      """;
-
-    assertEquals("""
-      class Main {
-          /**
-           * Starred body.
-           * @param x value
-           */
-          static function main(x:Int) {
-              trace(x);
-          }
-      }
-      """, reformat(source));
   }
 
   @Test

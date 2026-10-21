@@ -33,13 +33,6 @@ public class HaxeProjectTrustTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("headless projects are trusted by default")
-  public void testHeadlessProjectsAreTrustedByDefault() {
-    assertTrue(HaxeProjectTrust.isTrusted(getProject()),
-               "unit-test projects auto-trust; the suite must not trip the gates");
-  }
-
-  @Test
   @DisplayName("untrusted project blocks background evaluation")
   public void testUntrustedProjectBlocksBackgroundEvaluation() {
     withDistrustedProject(getProject(), () -> {

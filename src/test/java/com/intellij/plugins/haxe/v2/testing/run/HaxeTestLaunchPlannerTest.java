@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -111,15 +110,6 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("filter pattern becomes the utest pattern define")
-  public void testFilterPatternBecomesTheUtestPatternDefine() throws ExecutionException {
-    String path = fixturePath("test.hxml");
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), path, "SampleTest.testPasses", false);
-    assertTrue(plan.command().contains("UTEST_PATTERN=SampleTest.testPasses"),
-               "filter define missing: " + plan.command());
-  }
-
-  @Test
   @DisplayName("single suite run swaps the entry point for the generated main")
   public void testSingleSuiteRunSwapsTheEntryPointForTheGeneratedMain() throws Exception {
     String path = fixturePath("test.hxml");
@@ -195,17 +185,12 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
                "the macro's narrowing define must ride the compile: " + compile.command());
   }
 
-  @ParameterizedTest(name = "{0}")
-  @ValueSource(strings = {
-    // lime single run launches the packaged binary like the whole build
-    "Neko",
-    // html5 single run plans a browser hosted run over the packaged web root
-    "HTML5"})
+  @Test
   @DisplayName("lime single run plans like the whole build")
-  public void testLimeSingleRunPlansLikeTheWholeBuild(String targetId) throws ExecutionException {
+  public void testLimeSingleRunPlansLikeTheWholeBuild() throws ExecutionException {
     String path = fixturePath("targets/lime-project.xml");
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, targetId);
+    HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(file, "Neko");
     HaxeTestSingleRuns.SingleRun singleRun = new HaxeTestSingleRuns.SingleRun(List.of("CalculatorTest"), null);
 
     Plan single = HaxeTestLaunchPlanner.planSingle(getProject(), path, null, singleRun, false);
@@ -284,21 +269,17 @@ public class HaxeTestLaunchPlannerTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("cpp executable is named after the main class")
-  public void testCppExecutableIsNamedAfterTheMainClass() throws ExecutionException {
-    String path = fixturePath("targets/cpp.hxml");
-    Plan plan = HaxeTestLaunchPlanner.plan(getProject(), path, null, false);
-    assertEquals(1, plan.command().size());
-    assertTrue(plan.command().get(0).endsWith(HaxeSdkUtilBase.getExecutableName("TestMain")),
-               "hxcpp names the binary after the main class simple name: " + plan.command());
-  }
-
-  @Test
   @DisplayName("cpp binary flavor follows the compile arguments")
   public void testCppBinaryFlavorFollowsTheCompileArguments() throws ExecutionException {
     // hxcpp appends -debug to the binary when the build compiles with --debug;
     // the flavor is decided by the arguments, never by what sits on disk
+    String plainBinary = HaxeSdkUtilBase.getExecutableName("TestMain");
     String debugBinary = HaxeSdkUtilBase.getExecutableName("TestMain-debug");
+
+    Plan plain = HaxeTestLaunchPlanner.plan(getProject(), fixturePath("targets/cpp.hxml"), null, false);
+    assertEquals(1, plain.command().size());
+    assertTrue(plain.command().get(0).endsWith(plainBinary),
+               "hxcpp names the binary after the main class simple name: " + plain.command());
 
     Plan debugHxml = HaxeTestLaunchPlanner.plan(getProject(), fixturePath("targets/cpp-debug.hxml"), null, false);
     assertTrue(debugHxml.command().get(0).endsWith(debugBinary),

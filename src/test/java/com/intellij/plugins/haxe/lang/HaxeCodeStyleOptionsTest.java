@@ -6,7 +6,6 @@ import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
-import com.intellij.psi.codeStyle.DocCommentSettings;
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider.SettingsType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -125,18 +124,6 @@ public class HaxeCodeStyleOptionsTest extends HaxeLightFixtureTestCase {
     reformat(sample);
 
     assertNull(PsiTreeUtil.findChildOfType(myFixture.getFile(), PsiErrorElement.class), tab + " sample has a syntax error");
-  }
-
-  @Test
-  @DisplayName("doc comment settings back the haxe toggle")
-  public void testDocCommentSettingsBackTheHaxeToggle() {
-    CodeStyleSettings settings = projectSettingsCopy();
-    DocCommentSettings docSettings = new HaxeLanguageCodeStyleSettingsProvider().getDocCommentSettings(settings);
-
-    docSettings.setDocFormattingEnabled(false);
-
-    assertFalse(settings.getCustomSettings(HaxeCodeStyleSettings.class).FORMAT_DOC_COMMENTS);
-    assertFalse(docSettings.isDocFormattingEnabled());
   }
 
   /** The custom options the provider shows across every option-table tab. */

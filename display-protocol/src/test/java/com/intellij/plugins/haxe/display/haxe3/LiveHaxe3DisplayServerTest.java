@@ -105,16 +105,6 @@ public class LiveHaxe3DisplayServerTest {
 
   @Test
   @Timeout(60)
-  @DisplayName("initialize reports haxe 3")
-  public void initializeReportsHaxe3() throws Exception {
-    InitializeResult result = client.initialize(baseArgs);
-
-    assertEquals(3, result.haxeVersion().major());
-    assertTrue(result.supports(DisplayMethods.COMPLETION));
-  }
-
-  @Test
-  @Timeout(60)
   @DisplayName("hover at a declaration name reports its range in characters")
   public void hoverAtADeclarationNameReportsItsRangeInCharacters() throws Exception {
     int limitOffset = MAIN_HX_SOURCE.indexOf("limit:");
@@ -125,20 +115,6 @@ public class LiveHaxe3DisplayServerTest {
     Position end = new Position(start.line(), start.character() + "limit".length());
     assertEquals(new Range(start, end), hover.range());
     assertEquals("Int", hover.type().dotPath());
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("completion after a dot lists the fields")
-  public void completionAfterADotListsTheFields() throws Exception {
-    String typing = MAIN_HX_SOURCE.replace("circle.area();", "circle.ra;");
-    int caret = typing.indexOf("circle.ra") + "circle.ra".length();
-
-    CompletionList list = client.completion(baseArgs, mainFile, caret, typing, false);
-
-    List<String> names = list.items().stream().map(CompletionItem::name).toList();
-    assertTrue(names.contains("radius"), "fields of Circle: " + names);
-    assertTrue(names.contains("area"), "fields of Circle: " + names);
   }
 
   @Test

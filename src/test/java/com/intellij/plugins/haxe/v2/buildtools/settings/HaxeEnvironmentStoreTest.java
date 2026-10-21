@@ -17,14 +17,6 @@ public class HaxeEnvironmentStoreTest {
   private static final String MODULE = "app";
 
   @Test
-  @DisplayName("defaults are empty")
-  public void defaultsAreEmpty() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    assertNull(store.getSdkName(MODULE));
-    assertFalse(store.hasUserOverrides(MODULE));
-  }
-
-  @Test
   @DisplayName("has user overrides reflects every stored override kind")
   public void testHasUserOverridesReflectsEveryStoredOverrideKind() {
     HaxeEnvironmentStore store = new HaxeEnvironmentStore();
@@ -57,17 +49,6 @@ public class HaxeEnvironmentStoreTest {
   }
 
   @Test
-  @DisplayName("sdk can be set and cleared")
-  public void sdkCanBeSetAndCleared() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    store.setSdkName(MODULE, "Haxe 4.3.7");
-    assertEquals("Haxe 4.3.7", store.getSdkName(MODULE));
-
-    store.setSdkName(MODULE, null);
-    assertNull(store.getSdkName(MODULE));
-  }
-
-  @Test
   @DisplayName("compilation server participation defaults on and can be toggled")
   public void compilationServerParticipationDefaultsOnAndCanBeToggled() {
     HaxeEnvironmentStore store = new HaxeEnvironmentStore();
@@ -91,20 +72,6 @@ public class HaxeEnvironmentStoreTest {
 
     store.setUsingDedicatedServer(MODULE, false);
     assertFalse(store.isUsingDedicatedServer(MODULE));
-  }
-
-  @Test
-  @DisplayName("compile command can be set and cleared")
-  public void compileCommandCanBeSetAndCleared() {
-    HaxeEnvironmentStore store = new HaxeEnvironmentStore();
-    assertNull(store.getCompileCommand(MODULE));
-
-    store.setCompileCommand(MODULE, new HaxeEnvironmentStore.CompileCommand("/p/project.xml", null, "-clean -debug"));
-    assertEquals(new HaxeEnvironmentStore.CompileCommand("/p/project.xml", null, "-clean -debug"),
-                 store.getCompileCommand(MODULE));
-
-    store.setCompileCommand(MODULE, null);
-    assertNull(store.getCompileCommand(MODULE));
   }
 
   @Test

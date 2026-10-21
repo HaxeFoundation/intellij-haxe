@@ -41,18 +41,6 @@ public class HaxeLaunchSearchScopeTest extends HaxeConsoleFilterTestBase {
   }
 
   @Test
-  @DisplayName("a position relative to the launchs working directory beats the project root")
-  public void testAPositionRelativeToTheLaunchsWorkingDirectoryBeatsTheProjectRoot() {
-    // lime runs haxe from lime/ with -cp src, so the position reads src/Main.hx; the
-    // project root holds a src/Main.hx of its own
-    filter = new HaxeUtestFailureFilter(getProject(), new HaxeLaunchSearchScope(getProject(), List.of(limeSource)));
-
-    VirtualFile opened = openedFile(applyToLine("src/Main.hx:21: lime_flag"));
-
-    assertEquals(limeSource.findChild("Main.hx"), opened);
-  }
-
-  @Test
   @DisplayName("the other launch opens the other main")
   public void testTheOtherLaunchOpensTheOtherMain() {
     filter = new HaxeUtestFailureFilter(getProject(), new HaxeLaunchSearchScope(getProject(), List.of(rootSource)));
@@ -75,7 +63,9 @@ public class HaxeLaunchSearchScopeTest extends HaxeConsoleFilterTestBase {
   @Test
   @DisplayName("the preferred directories survive the platforms delegating wrapper")
   public void testThePreferredDirectoriesSurviveThePlatformsDelegatingWrapper() {
-    // a console gets the run profile's scope behind a lazy DelegatingGlobalSearchScope
+    // a console gets the run profile's scope behind a lazy DelegatingGlobalSearchScope;
+    // lime runs haxe from lime/ with -cp src, so the position reads src/Main.hx and
+    // the launch's working directory must beat the project root's own src/Main.hx
     GlobalSearchScope wrapped = new DelegatingGlobalSearchScope(new HaxeLaunchSearchScope(getProject(), List.of(limeSource)));
     filter = new HaxeUtestFailureFilter(getProject(), wrapped);
 

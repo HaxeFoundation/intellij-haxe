@@ -11,44 +11,20 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Reformat reaches inside INACTIVE conditional branches through their lazily
- * parsed sub-trees - same rules as active code, like haxe-formatter. Token
- * soup and toggled-off branches are preserved verbatim. Byte parity with the
- * reference is pinned separately by the conditional-inactive fixture.
+ * The verbatim side of INACTIVE conditional branches on reformat: token soup
+ * and toggled-off branches keep their text, and the alignment pass moves
+ * such a branch as one group to its directive. Formatting inside a parsed
+ * branch (same rules as active code, like haxe-formatter) is pinned by the
+ * conditional-inactive and conditional-nested-inactive fixtures.
  */
 @DisplayName("Formatting: inactive")
 public class HaxeInactiveFormattingTest extends HaxeLightFixtureTestCase {
-  private static final String MESSY_BRANCH_SOURCE = """
-    class Main {
-        static function main() {
-            #if js
-    trace(   "js"  ,1+2 );
-            #end
-            trace("live");
-        }
-    }
-    """;
   private static final Consumer<CodeStyleSettings> ALIGN_INACTIVE =
     settings -> settings.getCustomSettings(HaxeCodeStyleSettings.class).ALIGN_INACTIVE_CONDITIONAL_BRANCHES = true;
 
   @Override
   protected String getBasePath() {
     return "/formatter/";
-  }
-
-  @Test
-  @DisplayName("dead statements format with the normal rules")
-  public void testDeadStatementsFormatWithTheNormalRules() {
-    assertEquals("""
-      class Main {
-          static function main() {
-              #if js
-              trace("js", 1 + 2);
-              #end
-              trace("live");
-          }
-      }
-      """, reformat(MESSY_BRANCH_SOURCE));
   }
 
   @Test
@@ -84,38 +60,6 @@ public class HaxeInactiveFormattingTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("if statements in dead branches get brace spacing")
-  public void testIfStatementsInDeadBranchesGetBraceSpacing() {
-    String source = """
-      class Main {
-          static function main() {
-              #if js
-              if(true)  {   trace("dead"); }
-              #end
-          }
-      }
-      """;
-
-    String result = reformat(source);
-
-    assertTrue(result.contains("if (true) {"), "dead if statements take the same brace spacing as live ones:\n" + result);
-  }
-
-  @Test
-  @DisplayName("token soup branches are preserved verbatim")
-  public void testTokenSoupBranchesArePreservedVerbatim() {
-    String source = """
-      class Main {
-          static function main() {
-              var x = 1 #if truthy < #else > #end 2;
-          }
-      }
-      """;
-
-    assertEquals(source, reformat(source), "unstructurable branches stay byte-identical");
-  }
-
-  @Test
   @DisplayName("token soup lines align as a group to the directive")
   public void testTokenSoupLinesAlignAsAGroupToTheDirective() {
     // "1 +" followed by ";" parses nowhere, so the branch is preserved
@@ -136,41 +80,6 @@ public class HaxeInactiveFormattingTest extends HaxeLightFixtureTestCase {
 
     assertTrue(result.contains("\n        #if js\n        var x = 1 +\n            ;\n        #end\n"),
                "the blob shifts as a whole to the directive's indent, its own nesting kept:\n" + result);
-  }
-
-  @Test
-  @DisplayName("nested region in a member branch follows its braces")
-  public void testNestedRegionInAMemberBranchFollowsItsBraces() {
-    // the function's '{' and '}' land in different fragments, so no fragment
-    // parses at its true depth; the group's brace count restores it, for the
-    // inner directives and the clean-parsing statements alike
-    String source = """
-      class Main {
-          #if native
-          function blend():Void {
-          #if debug
-          trace("debug");
-          #else
-          trace("release");
-          #end
-          }
-          #end
-      }
-      """;
-
-    assertEquals("""
-      class Main {
-          #if native
-          function blend():Void {
-              #if debug
-              trace("debug");
-              #else
-              trace("release");
-              #end
-          }
-          #end
-      }
-      """, reformat(ALIGN_INACTIVE, source));
   }
 
   @Test

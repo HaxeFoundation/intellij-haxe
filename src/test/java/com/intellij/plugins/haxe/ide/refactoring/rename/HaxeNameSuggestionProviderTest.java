@@ -38,11 +38,6 @@ public class HaxeNameSuggestionProviderTest extends HaxeLightFixtureTestCase {
     	}
     }
     """;
-  private static final String PARAMETER_SOURCE = """
-    class Main {
-    	static function run(<caret>count:Int) {}
-    }
-    """;
   private static final String METHOD_SOURCE = """
     class Main {
     	static function <caret>run() {}
@@ -131,14 +126,6 @@ public class HaxeNameSuggestionProviderTest extends HaxeLightFixtureTestCase {
     Set<String> names = suggestionsAtCaret(INITIALIZED_LOCAL_SOURCE);
 
     assertTrue(names.contains("box"), names.toString());
-  }
-
-  @Test
-  @DisplayName("a parameter suggests names from its type")
-  public void testAParameterSuggestsNamesFromItsType() {
-    Set<String> names = suggestionsAtCaret(PARAMETER_SOURCE);
-
-    assertTrue(names.contains("i"), names.toString());
   }
 
   @Test

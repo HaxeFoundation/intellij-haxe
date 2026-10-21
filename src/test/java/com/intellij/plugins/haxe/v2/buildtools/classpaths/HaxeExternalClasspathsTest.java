@@ -160,28 +160,18 @@ public class HaxeExternalClasspathsTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("an outside classpath is indexed as a library once published")
-  public void testAnOutsideClasspathIsIndexedAsALibraryOncePublished() throws IOException {
-    VirtualFile outside = outsideDirectory("haxe-external-library");
+  @DisplayName("an outside classpath is a library whose package resolves once published")
+  public void testAnOutsideClasspathIsALibraryWhosePackageResolvesOncePublished() throws IOException {
+    VirtualFile outside = outsideDirectory("haxe-external-package");
+    createSubdirectory(outside, "extutil");
     HaxeBuildFile buildFile = hxmlBuild("-cp " + outside.getPath() + "\n-main Main\n");
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
+    assertNull(ReadAction.computeBlocking(() -> facade.findPackage("extutil")), "no package before the folder is published");
 
     publish(myFixture.getModule(), buildFile);
 
     boolean inLibrary = ReadAction.computeBlocking(() -> ProjectFileIndex.getInstance(getProject()).isInLibrarySource(outside));
     assertTrue(inLibrary, "a folder outside every module becomes a synthetic library");
-  }
-
-  @Test
-  @DisplayName("a package under an outside classpath resolves once published")
-  public void testAPackageUnderAnOutsideClasspathResolvesOncePublished() throws IOException {
-    VirtualFile outside = outsideDirectory("haxe-external-package");
-    createSubdirectory(outside, "extutil");
-    HaxeBuildFile buildFile = hxmlBuild("-cp " + outside.getPath() + "\n-main Main\n");
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
-
-    assertNull(ReadAction.computeBlocking(() -> facade.findPackage("extutil")), "no package before the folder is published");
-
-    publish(myFixture.getModule(), buildFile);
     assertNotNull(ReadAction.computeBlocking(() -> facade.findPackage("extutil")), "the folder's subfolder is a package");
   }
 

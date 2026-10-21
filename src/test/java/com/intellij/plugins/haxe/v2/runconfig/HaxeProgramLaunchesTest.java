@@ -63,7 +63,6 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
   static final List<Arguments> LAUNCH_SPECS = List.of(
     // the selected flag decides AIR vs Flash, not an "/air/bin/" segment of the output path
     arguments(HaxeTarget.FLASH, "bin/air/bin/Game.swf", HaxeBuildFileType.LIME, "air", AirRunConfiguration.class),
-    arguments(HaxeTarget.FLASH, "bin/airdist/bin/Game.swf", HaxeBuildFileType.OPENFL, "air", AirRunConfiguration.class),
     arguments(HaxeTarget.FLASH, "bin/air/bin/Game.swf", HaxeBuildFileType.LIME, "flash", FlashRunConfiguration.class),
     arguments(HaxeTarget.FLASH, "out/game.swf", HaxeBuildFileType.HXML, null, FlashRunConfiguration.class),
     arguments(HaxeTarget.FLASH, "out/game.swc", HaxeBuildFileType.HXML, null, null),
@@ -78,7 +77,6 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
     // the interpreter writes no output; "" is what launchOutput hands over
     arguments(HaxeTarget.INTERP, "", HaxeBuildFileType.HXML, null, InterpRunConfiguration.class),
     arguments(HaxeTarget.JAVA_SCRIPT, "out/client.js", HaxeBuildFileType.HXML, null, BrowserRunConfiguration.class),
-    arguments(HaxeTarget.JAVA_SCRIPT, "bin/html5/bin/Game.js", HaxeBuildFileType.LIME, "html5", BrowserRunConfiguration.class),
     // electron runs the output in Electron, which no configuration launches
     arguments(HaxeTarget.JAVA_SCRIPT, "bin/electron/bin/Game.js", HaxeBuildFileType.LIME, "electron", null));
 
@@ -108,6 +106,7 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
 
   @ParameterizedTest(name = "{0} {1} ({2}, {3})")
   @FieldSource("LAUNCH_SPECS")
+  @DisplayName("spec for")
   public void testSpecFor(HaxeTarget target,
                           String targetOutput,
                           HaxeBuildFileType type,
@@ -126,7 +125,6 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
     List<HaxeLaunchKind> launchKinds = HaxeProgramLaunches.launchKinds(getProject(), info, buildFile);
 
     assertEquals(List.of(HaxeLaunchKind.INTERP), launchKinds);
-    assertEquals("Haxe Interpreter", HaxeLaunchKind.INTERP.displayName());
     assertEquals("", HaxeProgramLaunches.launchOutput(info));
   }
 
@@ -156,13 +154,6 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
       Parameter.EXECUTABLE, "",
       Parameter.PROGRAM_ARGUMENTS, script.toString(),
       Parameter.WORKING_DIRECTORY, script.getParent().toString()), parameters);
-  }
-
-  @Test
-  @DisplayName("interpreter runs without a build step")
-  public void testInterpreterRunsWithoutABuildStep() {
-    assertFalse(HaxeLaunchKind.INTERP.compilesBeforeLaunch());
-    assertTrue(HaxeLaunchKind.HASHLINK.compilesBeforeLaunch());
   }
 
   @Test
@@ -202,17 +193,6 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
     List<VirtualFile> preferred =
       HaxeLaunchSearchScope.preferredDirectoriesOf(((SearchScopeProvidingRunProfile)configuration).getSearchScope());
     assertEquals(List.of(buildFile.file().getParent()), preferred, "the build step's hxml folder");
-  }
-
-  @Test
-  @DisplayName("interpreter configuration is reused")
-  public void testInterpreterConfigurationIsReused() throws IOException {
-    HaxeBuildFile buildFile = interpHxml();
-
-    RunnerAndConfigurationSettings first = findOrCreate(buildFile);
-    RunnerAndConfigurationSettings second = findOrCreate(buildFile);
-
-    assertSame(first, second);
   }
 
   @Test

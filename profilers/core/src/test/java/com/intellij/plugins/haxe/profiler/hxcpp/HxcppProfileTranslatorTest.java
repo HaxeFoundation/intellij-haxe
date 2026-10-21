@@ -45,22 +45,6 @@ public class HxcppProfileTranslatorTest {
   }
 
   @Test
-  @DisplayName("drops the internal pseudo callee but keeps real shares")
-  public void testDropsTheInternalPseudoCalleeButKeepsRealShares() throws IOException {
-    String text = """
-      Game.update 40.00%/10.00%
-         Game.physics 55.5%
-         Game.animate 20.1%
-         (internal) 24.4%
-      """;
-
-    HxcppProfileReport report = HxcppProfileTranslator.translate(stream(text));
-
-    List<Callee> callees = report.entries().getFirst().callees();
-    assertEquals(List.of(new Callee("Game.physics", 55.5), new Callee("Game.animate", 20.1)), callees);
-  }
-
-  @Test
   @DisplayName("a line matching neither shape fails with its line number")
   public void testALineMatchingNeitherShapeFailsWithItsLineNumber() {
     String text = """

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.eval;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
@@ -197,11 +198,19 @@ public class EvalStepExceptionLiveTest extends EvalLiveTestBase {
   // ---- reason "exception", and the user then steps / resumes FROM that stop
   // ---- (the IDE's flow; a wedge there stalls every press for ~50s)
 
-  /** Arms the uncaught filter, runs into the throw, returns the exception stop. */
+  /**
+   * Arms the uncaught filter (the adapter maps the IDE's exception filters
+   * onto the VM's exception options), runs into the throw and returns the
+   * exception stop, pinned for correctness: reason, the thrown text in the
+   * description and the throwing line on top of the stack.
+   */
   private StoppedEvent runIntoExceptionStop() throws Exception {
     startSession(List.of("uncaught"));
     StoppedEvent stopped = awaitStopped();
-    assertTrue("exception".equals(stopped.getBody().getReason()), "stopped for the exception, was: " + stopped.getBody().getReason());
+    assertEquals("exception", stopped.getBody().getReason(), "stopped for the exception");
+    String description = stopped.getBody().getDescription();
+    assertTrue(description != null && description.contains("uncaught-boom"), "carries the thrown text");
+    assertEquals(THROW_LINE, topFrame(stopped.getBody().getThreadId()).getLine(), "top frame is the throwing line");
     return stopped;
   }
 

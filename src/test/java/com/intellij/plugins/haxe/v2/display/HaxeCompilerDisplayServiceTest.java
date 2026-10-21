@@ -57,18 +57,6 @@ public class HaxeCompilerDisplayServiceTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("warm-up compile errors are recorded for the container")
-  public void testWarmUpCompileErrorsAreRecordedForTheContainer() throws IOException {
-    try (OneReplyServer server = new OneReplyServer(COMPILE_ERROR + "\n\u0002\n")) {
-      boolean compiled = displayService().ensureContextCompiled(connected(server), "warm-up-errors", CONTAINER_ID);
-
-      assertFalse(compiled, "a context whose compile reports errors is not marked compiled");
-      String expected = HaxeBundle.message("haxe.display.context.compile.failed", COMPILE_ERROR);
-      assertEquals(expected, failures().lastFailure(CONTAINER_ID));
-    }
-  }
-
-  @Test
   @DisplayName("successful warm-up compile clears the container failure")
   public void testSuccessfulWarmUpCompileClearsTheContainerFailure() throws IOException {
     failures().record(CONTAINER_ID, "an earlier failure");
@@ -114,7 +102,8 @@ public class HaxeCompilerDisplayServiceTest extends HaxeLightFixtureTestCase {
     try (OneReplyServer broken = new OneReplyServer(COMPILE_ERROR + "\n\u0002\n")) {
       boolean compiled = displayService().ensureContextCompiled(connected(broken), "remembered", CONTAINER_ID);
       assertFalse(compiled, "after clearing, the next request compiles again and sees the failure");
-      assertNotNull(failures().lastFailure(CONTAINER_ID));
+      String expected = HaxeBundle.message("haxe.display.context.compile.failed", COMPILE_ERROR);
+      assertEquals(expected, failures().lastFailure(CONTAINER_ID), "the compile errors are recorded for the container");
     }
   }
 

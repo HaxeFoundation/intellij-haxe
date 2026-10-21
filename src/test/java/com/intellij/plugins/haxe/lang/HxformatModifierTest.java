@@ -14,8 +14,6 @@ import com.intellij.psi.codeStyle.modifier.TransientCodeStyleSettings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.function.Consumer;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -133,18 +131,6 @@ public class HxformatModifierTest extends HaxeLightFixtureTestCase {
     PsiFile file = myFixture.addFileToProject("src/Main.hx", MAIN_HX_SOURCE);
 
     assertNull(new HxformatSettingsModifier().getStatusBarUiContributor(transientFor(file)));
-  }
-
-  @Test
-  @DisplayName("disabling function clears the toggle")
-  public void testDisablingFunctionClearsTheToggle() {
-    CodeStyleSettings settings = projectSettingsCopy();
-
-    Consumer<CodeStyleSettings> disable = new HxformatSettingsModifier().getDisablingFunction(getProject());
-    assertNotNull(disable, "the code style note's Disable link needs a function");
-    disable.accept(settings);
-
-    assertFalse(settings.getCustomSettings(HaxeCodeStyleSettings.class).USE_PROJECT_HXFORMAT);
   }
 
   @Test

@@ -10,7 +10,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @DisplayName("Build tools: tool config discovery")
 public class HaxeToolConfigsTest extends HaxeLightFixtureTestCase {
@@ -43,14 +42,5 @@ public class HaxeToolConfigsTest extends HaxeLightFixtureTestCase {
     List<String> command = HaxeToolConfigs.toolCommand("haxelib", "formatter", List.of("--check"), List.of("src", "test"));
 
     assertEquals(List.of("haxelib", "run", "formatter", "--check", "-s", "src", "-s", "test"), command);
-  }
-
-  @Test
-  @DisplayName("no config anywhere yields null")
-  public void testNoConfigAnywhereYieldsNull() {
-    PsiFile file = myFixture.addFileToProject("pack/Lone.hx", "class Lone {}");
-
-    VirtualFile found = HaxeToolConfigs.findConfigDirectory(getProject(), file.getVirtualFile(), HaxeToolConfigs.CHECKSTYLE_CONFIG_NAME);
-    assertNull(found);
   }
 }

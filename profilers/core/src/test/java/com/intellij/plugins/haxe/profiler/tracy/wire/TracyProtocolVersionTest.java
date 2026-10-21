@@ -29,6 +29,7 @@ public class TracyProtocolVersionTest {
 
   @ParameterizedTest(name = "{0}")
   @FieldSource("LAYOUTS")
+  @DisplayName("tables and welcome match the client headers")
   public void testTablesAndWelcomeMatchTheClientHeaders(TracyProtocolVersion version, int itemCount, int welcomeSize) {
     assertEquals(itemCount, version.table().size());
     assertEquals(welcomeSize, version.format().welcomeSize());
@@ -60,6 +61,7 @@ public class TracyProtocolVersionTest {
 
   @ParameterizedTest(name = "{0} {1}")
   @FieldSource("KNOWN_ITEMS")
+  @DisplayName("known items sit at their wire ordinals")
   public void testKnownItemsSitAtTheirWireOrdinals(TracyProtocolVersion version, TracyQueueType type, int ordinal, int size) {
     TracyQueueTable table = version.table();
 
@@ -70,6 +72,7 @@ public class TracyProtocolVersionTest {
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(TracyProtocolVersion.class)
+  @DisplayName("older versions lack the items added later")
   public void testOlderVersionsLackTheItemsAddedLater(TracyProtocolVersion version) {
     boolean packed = version == TracyProtocolVersion.V82;
     assertEquals(packed, version.table().defines(TracyQueueType.ZoneEnd16));
@@ -82,13 +85,6 @@ public class TracyProtocolVersionTest {
   public void testTheWireNumberResolvesToItsVersionAndUnknownNumbersToNothing() {
     assertSame(TracyProtocolVersion.V76, TracyProtocolVersion.of(76));
     assertNull(TracyProtocolVersion.of(75));
-  }
-
-  @Test
-  @DisplayName("the probe order tries current hxcpp first and the oldest client last")
-  public void testTheProbeOrderTriesCurrentHxcppFirstAndTheOldestClientLast() {
-    assertEquals(List.of(TracyProtocolVersion.V76, TracyProtocolVersion.V74, TracyProtocolVersion.V82, TracyProtocolVersion.V69),
-                 TracyProtocolVersion.PROBE_ORDER);
   }
 
   @Test

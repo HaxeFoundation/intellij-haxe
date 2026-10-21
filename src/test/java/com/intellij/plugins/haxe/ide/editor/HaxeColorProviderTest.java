@@ -38,17 +38,6 @@ public class HaxeColorProviderTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("picked color replaces the literal and keeps the swatch")
-  public void testPickedColorReplacesTheLiteralAndKeepsTheSwatch() {
-    PsiElement literal = literalAtCaret("class Main { var c = 0xff<caret>0000; }");
-
-    WriteCommandAction.runWriteCommandAction(myFixture.getProject(), () -> provider.setColorTo(literal, new Color(0x0000ff)));
-
-    myFixture.checkResult("class Main { var c = 0x0000ff; }");
-    assertEquals(new Color(0x0000ff), provider.getColorFrom(literalAtCaret()));
-  }
-
-  @Test
   @DisplayName("the picker can change the color repeatedly through the element it opened on")
   public void testThePickerCanChangeTheColorRepeatedlyThroughTheElementItOpenedOn() {
     PsiElement literal = literalAtCaret("class Main { var c = 0xff<caret>0000; }");
@@ -58,6 +47,7 @@ public class HaxeColorProviderTest extends HaxeLightFixtureTestCase {
 
     assertFalse(literal.isValid(), "the picker keeps handing over the first literal, which the first pick replaced");
     myFixture.checkResult("class Main { var c = 0x0000ff; }");
+    assertEquals(new Color(0x0000ff), provider.getColorFrom(literalAtCaret()), "the replaced literal keeps its swatch");
   }
 
   private PsiElement literalAtCaret(String source) {

@@ -90,17 +90,23 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("unresolvable strings resolve to nothing and paint no link")
-  public void testUnresolvableStringsResolveToNothingAndPaintNoLink() {
+  @DisplayName("an unresolvable path and plain prose resolve to nothing and paint no link")
+  public void testAnUnresolvablePathAndPlainProseResolveToNothingAndPaintNoLink() {
     myFixture.configureByText("Main.hx", """
-      class Main { static final MISSING = "does/not/exist.txt"; }
+      class Main {
+        static final MISSING = "does/not/exist.txt";
+        static final MESSAGE = "hello there, general text";
+      }
       """);
+    List<HaxeStringLiteralExpression> literals = List.copyOf(PsiTreeUtil.findChildrenOfType(myFixture.getFile(), HaxeStringLiteralExpression.class));
+    assertEquals(2, literals.size(), "fixture must contain the path and the prose");
 
-    // segment references ARE attached (completion needs them mid-typing)
-    // but nothing resolves - and the painting rule follows resolution
-    PsiElement resolved = resolvedFileTarget(firstStringLiteral(myFixture.getFile()).getReferences());
-    assertNull(resolved, "an unresolvable path must resolve to nothing");
-    assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_FILE_LINK), "an unresolvable path must not paint as a link");
+    // segment references ARE attached to both (completion needs them
+    // mid-typing) but nothing resolves - and the painting rule follows resolution
+    assertNull(resolvedFileTarget(literals.get(0).getReferences()), "an unresolvable path must resolve to nothing");
+    assertNull(resolvedFileTarget(literals.get(1).getReferences()), "prose must resolve to nothing");
+    assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_FILE_LINK), "neither must paint as a file link");
+    assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_CODE_LINK), "neither must paint as a code link");
   }
 
   @Test
@@ -166,6 +172,7 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
     assertNotNull(lookups, "completion mid segment must produce a lookup");
     assertTrue(lookups.contains("data.txt"), "matching children must be suggested, got: " + lookups);
     assertTrue(lookups.contains("dawn.txt"), "matching children must be suggested, got: " + lookups);
+    assertFalse(lookups.contains("image.png"), "a child not matching the typed prefix must be left out, got: " + lookups);
   }
 
   @Test
@@ -253,20 +260,6 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
       """);
 
     assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_FILE_LINK), "a bare word must not light up as a link even when it resolves");
-  }
-
-  @Test
-  @DisplayName("plain prose resolves to nothing and paints no link")
-  public void testPlainProseResolvesToNothingAndPaintsNoLink() {
-    myFixture.configureByText("Main.hx", """
-      class Main { static final MESSAGE = "hello there, general text"; }
-      """);
-
-    // segment references attach even to prose (they carry explicit
-    // completion) - but nothing resolves and nothing paints
-    assertNull(resolvedFileTarget(firstStringLiteral(myFixture.getFile()).getReferences()), "prose must resolve to nothing");
-    assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_FILE_LINK), "prose must stay plain");
-    assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_CODE_LINK), "prose must stay plain");
   }
 
   private HaxeStringLiteralExpression firstStringLiteral(PsiFile file) {

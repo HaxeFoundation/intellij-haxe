@@ -2,8 +2,6 @@ package com.intellij.plugins.haxe.v2.display;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.display.haxe3.Haxe3DisplayClient;
 import com.intellij.plugins.haxe.display.protocol.*;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
@@ -119,8 +117,8 @@ public class HaxeLiveHaxe3IntegrationTest extends HaxeCodeInsightFixtureTestCase
 
   @Test
   @Timeout(180)
-  @DisplayName("a haxe 3 server gets the haxe 3 client and no server introspection")
-  public void testAHaxe3ServerGetsTheHaxe3ClientAndNoServerIntrospection() throws Exception {
+  @DisplayName("a haxe 3 server gets the haxe 3 client on a dedicated process and no server introspection")
+  public void testAHaxe3ServerGetsTheHaxe3ClientOnADedicatedProcessAndNoServerIntrospection() throws Exception {
     DisplayContext context = contextOf(mainFile);
 
     Connected completion = onPooledThread(() -> displayService().connectFor(context, DisplayMethods.COMPLETION));
@@ -128,20 +126,9 @@ public class HaxeLiveHaxe3IntegrationTest extends HaxeCodeInsightFixtureTestCase
 
     assertNotNull(completion, "a haxe 3 server answers completion");
     assertInstanceOf(Haxe3DisplayClient.class, completion.client());
-    assertNull(introspection, "a haxe 3 server has no server introspection");
-  }
-
-  @Test
-  @Timeout(180)
-  @DisplayName("a haxe 3 project gets a dedicated display process")
-  public void testAHaxe3ProjectGetsADedicatedDisplayProcess() throws Exception {
-    DisplayContext context = contextOf(mainFile);
-
-    Connected completion = onPooledThread(() -> displayService().connectFor(context, DisplayMethods.COMPLETION));
-
-    assertNotNull(completion, "a haxe 3 server answers completion");
     boolean dedicated = HaxeDisplayProcessManager.getInstance(getProject()).runningIdFor(sharedServer()) > 0;
     assertTrue(dedicated, "the requests run on a dedicated display process over stdio");
+    assertNull(introspection, "a haxe 3 server has no server introspection");
   }
 
   @Test
@@ -201,16 +188,6 @@ public class HaxeLiveHaxe3IntegrationTest extends HaxeCodeInsightFixtureTestCase
     assertNotNull(completion, "the build server, started with --wait, answers completion");
     boolean buildServerRuns = HaxeCompilationServerManager.getInstance(getProject()).runningPort(sharedServer().id()) > 0;
     assertTrue(buildServerRuns, "the requests went to the build server");
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("sdk detection reads the version haxe 3 prints to stderr")
-  public void testSdkDetectionReadsTheVersionHaxe3PrintsToStderr() throws Exception {
-    HaxeSdkData sdkData = HaxeSdkUtil.testHaxeSdk(haxeHomeOnPath());
-
-    assertNotNull(sdkData, "the folder of the haxe on the PATH is an SDK home");
-    assertEquals(haxeVersionOnPath(), sdkData.getVersion());
   }
 
   /** The project default SDK's shared server instance. */

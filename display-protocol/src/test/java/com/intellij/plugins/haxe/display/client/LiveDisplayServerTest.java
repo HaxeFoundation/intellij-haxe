@@ -71,7 +71,10 @@ public class LiveDisplayServerTest {
     baseArgs = List.of("--cwd", workDir.toString(), "-cp", ".", "-main", "Live", "-js", "out.js", "--no-output");
     client = new JsonRpcDisplayClient("127.0.0.1", port);
     waitUntilAccepting();
-    serverVersion = client.initialize(baseArgs).haxeVersion();
+    InitializeResult initialized = client.initialize(baseArgs);
+    serverVersion = initialized.haxeVersion();
+    assertTrue(serverVersion.major() >= 4, "the suite drives a haxe 4+ server, got " + serverVersion);
+    assertTrue(initialized.supports(DisplayMethods.HOVER), "initialize must advertise the display methods");
     System.out.println("[live] driving haxe " + serverVersion);
   }
 
@@ -80,15 +83,6 @@ public class LiveDisplayServerTest {
     if (server != null) {
       server.destroy();
     }
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("initialize reports version and methods")
-  public void initializeReportsVersionAndMethods() throws Exception {
-    InitializeResult result = client.initialize(baseArgs);
-    assertTrue(result.haxeVersion().major() >= 4);
-    assertTrue(result.supports(DisplayMethods.HOVER));
   }
 
   @Test
@@ -246,35 +240,6 @@ public class LiveDisplayServerTest {
     assertTrue(names.contains("trace"), "the toplevel list must include trace: " + names.size() + " items");
     // the range covers the typed prefix `tr` on the (0-based) fixture line 5
     assertEquals(new Range(new Position(5, 2), new Position(5, 4)), toplevel.replaceRange());
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("type blueprint hydrates after a compile through the server")
-  public void typeBlueprintHydratesAfterACompileThroughTheServer() throws Exception {
-    // populate the module cache: an actual compile with the same args
-    HaxeDisplayTransport.request("127.0.0.1", port, baseArgs, 30_000);
-
-    List<HaxeServerContext> contexts = client.contexts(baseArgs);
-    HaxeServerContext modulesContext = contexts.stream()
-      .filter(context -> contextHasModule(baseArgs, context, "Live"))
-      .findFirst()
-      .orElse(null);
-    assertNotNull(modulesContext, "a context holding the compiled module must exist");
-
-    TypeBlueprint blueprint = client.typeBlueprint(baseArgs, modulesContext.signature(), "Live", "Live");
-    assertEquals("class", blueprint.kind());
-    assertNotNull(blueprint.findMember("label"), "members must be listed by name");
-    assertNotNull(blueprint.findMember("shout"), "members must be listed by name");
-    if (blueprintTypesResolved()) {
-      assertEquals("String", blueprint.findMember("label").type().dotPath());
-      assertEquals("() -> String", blueprint.findMember("shout").type().presentable());
-    }
-    else {
-      System.out.println("[live] unresolved blueprint member type kinds: label="
-                         + blueprint.findMember("label").type().kind()
-                         + " shout=" + blueprint.findMember("shout").type().presentable());
-    }
   }
 
   // A type defined by a macro. It exists in NO source file, only in the

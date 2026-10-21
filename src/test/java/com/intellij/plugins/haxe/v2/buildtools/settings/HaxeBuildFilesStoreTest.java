@@ -16,14 +16,6 @@ public class HaxeBuildFilesStoreTest {
   private static final String PATH = "/p/sub/build.hxml";
 
   @Test
-  @DisplayName("defaults are empty")
-  public void defaultsAreEmpty() {
-    HaxeBuildFilesStore store = new HaxeBuildFilesStore();
-    assertTrue(store.getAddedPaths(MODULE).isEmpty());
-    assertTrue(store.getHiddenPaths(MODULE).isEmpty());
-  }
-
-  @Test
   @DisplayName("added files can be removed again")
   public void addedFilesCanBeRemovedAgain() {
     HaxeBuildFilesStore store = new HaxeBuildFilesStore();

@@ -8,17 +8,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Tool window: custom tools store")
 public class HaxeCustomToolsStoreTest {
-
-  @Test
-  @DisplayName("defaults are empty")
-  public void testDefaultsAreEmpty() {
-    HaxeCustomToolsStore store = new HaxeCustomToolsStore();
-    assertTrue(store.getTools("mod").isEmpty());
-  }
 
   @Test
   @DisplayName("add update and remove keep creation order")

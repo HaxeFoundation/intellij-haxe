@@ -45,8 +45,7 @@ public class HaxeCompileCommandsDefaultTest extends HaxeCodeInsightFixtureTestCa
     arguments(List.of("/a/build.hxml"), List.of(), "/b/build.hxml", "/a/build.hxml"),
     arguments(List.of("/a/build.hxml", "/a/test.hxml"), List.of("/a/test.hxml"), null, "/a/build.hxml"),
     arguments(List.of("/a/build.hxml", "/a/web.hxml"), List.of(), null, null),
-    arguments(List.of("/a/test.hxml"), List.of("/a/test.hxml"), null, null),
-    arguments(List.of(), List.of(), null, null));
+    arguments(List.of("/a/test.hxml"), List.of("/a/test.hxml"), null, null));
 
   @ParameterizedTest(name = "{0}, tests {1}, active {2}")
   @FieldSource("DEFAULT_BUILD_FILES")

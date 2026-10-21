@@ -225,17 +225,11 @@ public class EvalDebugAdapterLiveTest extends EvalLiveTestBase {
     EvaluateResponse eResponse = (EvaluateResponse)request(evaluate);
     assertTrue(eResponse.isSuccess(), "evaluate after the edit");
     assertEquals("99", eResponse.getBody().getResult(), "the element edit stuck");
-  }
 
-  @Test
-  @DisplayName("whole array replacement carries a fresh reference")
-  public void wholeArrayReplacementCarriesAFreshReference() throws Exception {
     // replacing the WHOLE array through its scope: the response must carry a
     // FRESH variablesReference whose children are the new elements — the
     // view adopts it, or an expanded row keeps showing the old array
-    int threadId = runToBreakpoint(FIXTURE, COLL_LINE).getBody().getThreadId();
-    int itemsScope = findLocal(topFrame(threadId).getId(), "items").scopeReference();
-
+    int itemsScope = findLocal(top.getId(), "items").scopeReference();
     SetVariableRequest replaceAll = setVariableRequest(itemsScope, "items", "[0, 10, 30]");
     SetVariableResponse raResponse = (SetVariableResponse)request(replaceAll);
     assertTrue(raResponse.isSuccess(), "whole-array replace succeeded: " + raResponse.getMessage());

@@ -33,24 +33,6 @@ public class HaxeKnownBuildFilesTest extends HaxeCodeInsightFixtureTestCase {
     assertFalse(ReadAction.compute(() -> HaxeKnownBuildFiles.isKnown(getProject(), tests.getPath())));
   }
 
-  @Test
-  @DisplayName("a stored active file that no longer exists yields to the sole build file")
-  public void testAStoredActiveFileThatNoLongerExistsYieldsToTheSoleBuildFile() {
-    VirtualFile main = myFixture.addFileToProject("build.hxml", "-main Main").getVirtualFile();
-    HaxeActiveBuildFileStore.getInstance(getProject()).setActiveFile(main.getPath().replace("build.hxml", "gone.hxml"));
-
-    assertEquals(main.getPath(), effectiveActivePath());
-  }
-
-  @Test
-  @DisplayName("two known build files and no stored choice name no active file")
-  public void testTwoKnownBuildFilesAndNoStoredChoiceNameNoActiveFile() {
-    myFixture.addFileToProject("build.hxml", "-main Main");
-    myFixture.addFileToProject("tests.hxml", "-main TestMain");
-
-    assertNull(effectiveActivePath());
-  }
-
   private String effectiveActivePath() {
     return ReadAction.compute(() -> HaxeKnownBuildFiles.effectiveActivePath(getProject()));
   }

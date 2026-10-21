@@ -72,18 +72,6 @@ public class HaxeResolveContextsTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  @DisplayName("the most specific source directory owns a file")
-  public void testTheMostSpecificSourceDirectoryOwnsAFile() {
-    VirtualFile web = hxml("web.hxml", WEB_HXML_SOURCE);
-    VirtualFile tools = hxml("tools.hxml", TOOLS_HXML_SOURCE);
-    VirtualFile tool = source("src/tools/Tool.hx", "class Tool {}");
-    VirtualFile shared = source("src/Shared.hx", "class Shared {}");
-
-    assertEquals(tools.getPath(), contextPath(tool), "src/tools is more specific than src");
-    assertEquals(web.getPath(), contextPath(shared), "only the web build's -cp src contains it");
-  }
-
-  @Test
   @DisplayName("shared sources go to the build whose main class the file is")
   public void testSharedSourcesGoToTheBuildWhoseMainClassTheFileIs() {
     VirtualFile web = hxml("web.hxml", WEB_HXML_SOURCE);

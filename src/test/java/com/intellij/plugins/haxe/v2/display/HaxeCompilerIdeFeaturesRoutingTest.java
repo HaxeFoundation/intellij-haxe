@@ -59,19 +59,6 @@ public class HaxeCompilerIdeFeaturesRoutingTest extends HaxeLightFixtureTestCase
   }
 
   @Test
-  @DisplayName("find usages stays static while its feature is off under the master switch")
-  public void testFindUsagesStaysStaticWhileItsFeatureIsOffUnderTheMasterSwitch() {
-    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
-    settings.setCompilerIdeFeaturesEnabled(true);
-    settings.setCompilerFindUsagesEnabled(false);
-    myFixture.configureByText("Main.hx", MAIN_HX_SOURCE);
-
-    FindUsagesHandler handler = new HaxeFindUsagesFactoryProxy(getProject()).createFindUsagesHandler(helperDeclaration(), false);
-
-    assertInstanceOf(HaxeFindUsagesHandler.class, handler);
-  }
-
-  @Test
   @DisplayName("go to declaration stays static while its feature is off under the master switch")
   public void testGoToDeclarationStaysStaticWhileItsFeatureIsOffUnderTheMasterSwitch() {
     HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());

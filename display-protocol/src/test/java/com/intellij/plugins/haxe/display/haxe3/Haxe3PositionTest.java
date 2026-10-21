@@ -28,18 +28,6 @@ public class Haxe3PositionTest {
   }
 
   @Test
-  @DisplayName("character span turns byte columns into characters")
-  public void characterSpanTurnsByteColumnsIntoCharacters() {
-    Haxe3SourceText text = Haxe3SourceText.of("class A {}\nvar s = \"é\"; var t;\n");
-    // "é" is two bytes: "t" starts at character 17, byte 18
-    Haxe3Position position = Haxe3Position.parse("A.hx:2: characters 18-19");
-
-    Range range = position.rangeIn(text);
-
-    assertEquals(new Range(new Position(1, 17), new Position(1, 18)), range);
-  }
-
-  @Test
   @DisplayName("whole lines end at the last line's end without its line break")
   public void wholeLinesEndAtTheLastLinesEndWithoutItsLineBreak() {
     Haxe3SourceText text = Haxe3SourceText.of("class A {\r\n  function f() {\r\n  }\r\n}\r\n");

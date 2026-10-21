@@ -32,7 +32,9 @@ public class EvalConditionalBreakpointLiveTest extends EvalLiveTestBase {
   @Timeout(60)
   @DisplayName("stops only on the iteration the condition selects")
   public void stopsOnlyOnTheIterationTheConditionSelects() throws Exception {
-    startWithBreakpoints(conditionalBreakpoint(LOOP_BODY_LINE, "i == 3"), lineBreakpoint(AFTER_LOOP_LINE));
+    // the trailing ';' (a condition pasted from source) is stripped before
+    // the condition reaches the VM
+    startWithBreakpoints(conditionalBreakpoint(LOOP_BODY_LINE, "i == 3;"), lineBreakpoint(AFTER_LOOP_LINE));
 
     StoppedEvent stopped = awaitStopped();
     StackFrame top = topFrame(stopped.getBody().getThreadId());
@@ -49,17 +51,6 @@ public class EvalConditionalBreakpointLiveTest extends EvalLiveTestBase {
     awaitTerminated();
     assertTrue(haxe.waitFor(TIMEOUT, TimeUnit.MILLISECONDS), "haxe exited");
     assertEquals(0, haxe.exitValue(), "clean exit");
-  }
-
-  @Test
-  @Timeout(60)
-  @DisplayName("a trailing semicolon in the condition is tolerated")
-  public void aTrailingSemicolonInTheConditionIsTolerated() throws Exception {
-    startWithBreakpoints(conditionalBreakpoint(LOOP_BODY_LINE, "i == 4;"));
-
-    StoppedEvent stopped = awaitStopped();
-    StackFrame top = topFrame(stopped.getBody().getThreadId());
-    assertEquals("4", findLocal(top.getId(), "i").variable().getValue(), "the condition minus its semicolon selected the stop");
   }
 
   @Test

@@ -53,29 +53,12 @@ public class AdapterTargetsSmartStepHandlerTest extends HaxeLightFixtureTestCase
   }
 
   @Test
-  @DisplayName("nested calls collect in execution order inner first")
-  public void testNestedCallsCollectInExecutionOrderInnerFirst() {
-    // b.reset() is the ARGUMENT: it executes first although it is textually last
-    List<PsiElement> names = namesOnCaretLine("a.reset(b.reset());");
-    assertEquals(2, names.size());
-    assertEquals("reset", names.get(0).getText());
-    assertEquals("reset", names.get(1).getText());
-    assertTrue(names.get(0).getTextOffset() > names.get(1).getTextOffset(), "the inner (textually later) call executes first");
-  }
-
-  @Test
-  @DisplayName("chained calls collect in execution order left to right")
-  public void testChainedCallsCollectInExecutionOrderLeftToRight() {
-    List<PsiElement> names = namesOnCaretLine("a.first().second();");
-    assertEquals(2, names.size());
-    assertEquals("first", names.get(0).getText());
-    assertEquals("second", names.get(1).getText());
-  }
-
-  @Test
   @DisplayName("same named targets pair with their own occurrence")
   public void testSameNamedTargetsPairWithTheirOwnOccurrence() {
+    // b.reset() is the ARGUMENT: it executes first although it is textually last
     List<PsiElement> names = namesOnCaretLine("a.reset(b.reset());");
+    List<String> texts = names.stream().map(PsiElement::getText).toList();
+    assertEquals(List.of("reset", "reset"), texts, "both calls collected");
     // the adapter reports execution order: B.reset (the argument) first
     List<StepInTarget> targets = List.of(target(1, "B.reset"), target(2, "A.reset"));
 

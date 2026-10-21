@@ -38,6 +38,14 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // bool arg + bool return
     assertEquals("false", evaluated(frameId, "negate(true)"), "negate(true) = false");
 
+    // calls are expression leaves: results feed operators, and arguments are
+    // themselves full expressions
+    assertEquals("10", evaluated(frameId, "add(2, 3) * 2"), "call result in arithmetic");
+    assertEquals("23", evaluated(frameId, "add(base + 1, base + 2)"), "expression arguments");
+    assertEquals("41", evaluated(frameId, "boost(1) + plus(base + 3)"), "bound closures in expressions"); // 16 + 25
+    assertEquals("\"L10!\"", evaluated(frameId, "label(base) + \"!\""), "string return concatenated");
+    assertEquals("true", evaluated(frameId, "scale(4.0) == 10"), "call result in comparison");
+
     // resume: the program's own output must be intact (the calls in a row
     // each restored state cleanly)
     String output = continueToExit(threadId);
@@ -61,23 +69,6 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     // the debuggee survived the bound calls: output intact through a clean exit
     String output = continueToExit(threadId);
     assertTrue(output.contains("call:11,25,true,orig10,L10,16,13,6"), "program output intact after bound calls (" + output + ")");
-  }
-
-  @Test
-  @DisplayName("calls inside expressions")
-  public void callsInsideExpressions() throws Exception {
-    // calls are expression leaves — results feed operators, and
-    // arguments are themselves full expressions (base = 10)
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
-    int frameId = topFrameId(stopped.getBody().getThreadId());
-
-    assertEquals("10", evaluated(frameId, "add(2, 3) * 2"), "call result in arithmetic");
-    assertEquals("23", evaluated(frameId, "add(base + 1, base + 2)"), "expression arguments");
-    assertEquals("41", evaluated(frameId, "boost(1) + plus(base + 3)"), "bound closures in expressions"); // 16 + 25
-    assertEquals("\"L10!\"", evaluated(frameId, "label(base) + \"!\""), "string return concatenated");
-    assertEquals("true", evaluated(frameId, "scale(4.0) == 10"), "call result in comparison");
-
-    request(new DisconnectRequest());
   }
 
   @Test

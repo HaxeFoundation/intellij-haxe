@@ -239,16 +239,4 @@ public class HaxelibMetadata {
     return root != null ? root.hashCode() : 0;
   }
 
-  /**
-   * Test helpers. Do not use for normal code.
-   */
-  public TestInterface getTestInterface() {
-    return new TestInterface();
-  }
-
-  public class TestInterface {
-    public JsonObject getRoot() {
-      return root;
-    }
-  }
 }

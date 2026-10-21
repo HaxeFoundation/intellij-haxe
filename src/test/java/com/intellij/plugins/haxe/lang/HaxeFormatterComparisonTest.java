@@ -226,18 +226,12 @@ public class HaxeFormatterComparisonTest extends HaxeLightFixtureTestCase {
     }
 
     @Test
-    @DisplayName("openfl braces")
-    public void testOpenflBraces() throws Exception {
-      // lineEnds.leftCurly=both, objectLiteralCurly.leftCurly=after (fixture
-      // hxformat.json): Allman blocks with cuddled object literals
-      doParityTest("openfl-braces", HaxeCodeStyleTweaks::allmanBraces);
-    }
-
-    @Test
     @DisplayName("allman value blocks")
     public void testAllmanValueBlocks() throws Exception {
-      // same config as openfl-braces: a block, function literal or arrow body
-      // used as a VALUE opens on its own line one step in from the declaration
+      // lineEnds.leftCurly=both, objectLiteralCurly.leftCurly=after (fixture
+      // hxformat.json): Allman blocks with cuddled object literals; a block,
+      // function literal or arrow body used as a VALUE opens on its own line
+      // one step in from the declaration
       doParityTest("allman-value-blocks", HaxeCodeStyleTweaks::allmanBraces);
     }
 
@@ -422,21 +416,11 @@ public class HaxeFormatterComparisonTest extends HaxeLightFixtureTestCase {
     }
 
     @Test
-    @DisplayName("todo checks")
-    public void testTodoChecks() throws Exception {
-      // one sample covering the four continuation rules:
-      // bodiless and empty-body signatures at one step, a full body at two,
-      // a same-line metadata declaration anchoring its chopped initializer,
-      // hand-broken signatures and calls re-packed, a nested inactive #if
-      doParityTest("todo-checks");
-    }
-
-    @Test
-    @DisplayName("todo checks allman")
-    public void testTodoChecksAllman() throws Exception {
-      // the same sample under lineEnds.leftCurly/rightCurly=both: a signature
-      // whose `{` moves to the next line no longer counts it, so it fits
-      doParityTest("todo-checks-allman", HaxeCodeStyleTweaks::allmanBraces);
+    @DisplayName("allman brace leaves the signature margin")
+    public void testAllmanBraceLeavesTheSignatureMargin() throws Exception {
+      // under lineEnds.leftCurly/rightCurly=both a signature whose `{` moves
+      // to the next line no longer counts it toward the margin, so it fits
+      doParityTest("allman-brace-signature-margin", HaxeCodeStyleTweaks::allmanBraces);
     }
 
     @Test
@@ -458,12 +442,6 @@ public class HaxeFormatterComparisonTest extends HaxeLightFixtureTestCase {
       // wrapping.objectLiteral keeps up to three fields written on one line
       // however long, chops from four, and any object written over lines
       doParityTest("map-object-item-rules");
-    }
-
-    @Test
-    @DisplayName("array wrap checks allman")
-    public void testArrayWrapChecksAllman() throws Exception {
-      doParityTest("array-wrap-checks-allman", HaxeCodeStyleTweaks::allmanBraces);
     }
   }
 

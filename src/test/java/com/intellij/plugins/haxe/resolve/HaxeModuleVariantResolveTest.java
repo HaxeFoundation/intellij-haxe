@@ -95,24 +95,15 @@ public class HaxeModuleVariantResolveTest extends HaxeLightFixtureTestCase {
   @DisplayName("variant class carries the base module qualified name")
   public void testVariantClassCarriesTheBaseModuleQualifiedName() {
     // naming is unconditional (no active variant here): stubs and indexes are
-    // application-wide, so activity may never influence an indexed name
+    // application-wide, so activity may never influence an indexed name.
+    // Resolving at all is deliberate leniency: with no competing candidate the
+    // variant file is the module, so an unconfigured project still resolves
+    // instead of erroring
     myFixture.addFileToProject("Rec.go.hx", "class Rec { }");
     myFixture.configureByText("UseRec.hx", "class UseRec { var record:R<caret>ec; }");
 
     HaxeClass resolved = resolveCaretToClass();
     assertEquals("Rec.go.hx", resolved.getContainingFile().getName());
     assertEquals("Rec.Rec", resolved.getFullyQualifiedName());
-  }
-
-  @Test
-  @DisplayName("variant without a plain module resolves even when inactive")
-  public void testVariantWithoutAPlainModuleResolvesEvenWhenInactive() {
-    // deliberate leniency: with no competing candidate the variant file is the
-    // module, so an unconfigured project still resolves instead of erroring
-    myFixture.addFileToProject("Only.go.hx", "class Only { }");
-    myFixture.configureByText("UseOnly.hx", "class UseOnly { var single:O<caret>nly; }");
-
-    HaxeClass resolved = resolveCaretToClass();
-    assertEquals("Only.go.hx", resolved.getContainingFile().getName());
   }
 }

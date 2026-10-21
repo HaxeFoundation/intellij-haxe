@@ -107,8 +107,8 @@ public class BrowserDebugBackend implements DapBackend {
         // is only born when scripts first execute): the first load binds the
         // map + breakpoints and this one-shot refresh re-runs it armed.
         // js-debug pre-registers breakpoints through CDP and needs none.
-        // Known cost (pinned by FirefoxAdapterLiveTest.workerThreadsAcrossRefresh): a WORKER breakpoint hitting
-        // before the refresh leaves that paused worker behind as an inert
+        // Known cost: a WORKER breakpoint hitting before the refresh leaves
+        // that paused worker behind as an inert
         // zombie thread - firefox worker debugging has deeper quirks anyway
         // and Chromium is the recommended family for worker-heavy sessions.
         contentServer.refreshFirstPage(FIRST_PAGE_REFRESH_SECONDS);

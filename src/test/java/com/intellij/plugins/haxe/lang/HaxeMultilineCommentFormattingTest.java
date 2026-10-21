@@ -37,17 +37,6 @@ public class HaxeMultilineCommentFormattingTest extends HaxeLightFixtureTestCase
   }
 
   @Test
-  @DisplayName("comment interiors reindent by default")
-  public void testCommentInteriorsReindentByDefault() {
-    String result = reformat(MISALIGNED_COMMENT_SOURCE);
-
-    // the comment moved to scope indent (8) and its interior sits one level
-    // deeper with the common margin stripped
-    assertTrue(result.contains("        /* step one"), "the opener takes the scope indent:\n" + result);
-    assertTrue(result.contains("            step two */"), "interior lines reindent one level deeper:\n" + result);
-  }
-
-  @Test
   @DisplayName("toggle off keeps comment interiors untouched")
   public void testToggleOffKeepsCommentInteriorsUntouched() {
     Consumer<CodeStyleSettings> toggleOff =
