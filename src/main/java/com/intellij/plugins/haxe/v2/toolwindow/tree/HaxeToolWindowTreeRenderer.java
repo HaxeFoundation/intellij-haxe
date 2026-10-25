@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.DefineEffect;
 import com.intellij.plugins.haxe.v2.toolwindow.tree.HaxeToolWindowNodes.*;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -152,7 +153,7 @@ public final class HaxeToolWindowTreeRenderer extends ColoredTreeCellRenderer {
   }
 
   private void renderSdk(@NotNull EnvSdkNode sdk) {
-    setIcon(AllIcons.Nodes.PpJdk);
+    setIcon(HaxeIcons.HAXE_LOGO);
     append(HaxeBundle.message("haxe.toolwindow.node.environment.sdk"));
     var attributes = sdk.missing() ? SimpleTextAttributes.ERROR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES;
     appendChooserValue(sdk.displayName(), attributes);
