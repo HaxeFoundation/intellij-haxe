@@ -1,3 +1,9 @@
+## 2.0.1
+* Fixed: `static function main()` of a build's main class was reported as an unused method.
+* Fixed: An `import.hx` outside every source folder caused an indexing error.
+* Fixed: Define overrides with reserved keywords/defines (`macro` or `sys`) wil no longer be sent to compilation server
+* Fixed: Clicking "Navigate" on a value in the debugger's Variables view raised an error.
+
 ## 2.0.0
 **IMPORTANT**
 
