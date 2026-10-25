@@ -16,6 +16,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import com.intellij.util.io.VoidDataExternalizer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.*;
@@ -61,15 +62,16 @@ public class HaxeImportHxFileIndex extends FileBasedIndexExtension<String, Void>
                         return Map.of();
                     }
                     if (HaxeFile.isImportHx(haxeFile.getName())) {
-                        HashMap<String, Void> map = new HashMap<>();
-                        map.put(determinePackage(haxeFile), null);
-                        return map;
+                        String packageName = determinePackage(haxeFile);
+                        // outside every source root a file has no package, and index storage refuses a null key
+                        return packageName == null ? Map.of() : Collections.singletonMap(packageName, null);
                     }
                 }
 
                 return Map.of();
             }
 
+            @Nullable
             private static String determinePackage(HaxeFile haxeFile) {
                 return haxeFile.getPackageStatement() != null ? haxeFile.getPackageName() : HaxeFile.importHxPackage(haxeFile);
             }
