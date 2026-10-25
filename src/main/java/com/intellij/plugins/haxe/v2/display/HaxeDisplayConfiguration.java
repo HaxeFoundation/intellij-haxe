@@ -68,20 +68,37 @@ public final class HaxeDisplayConfiguration {
     }
   }
 
+  /// Defines the compiler sets itself and refuses on the command line: `-D macro` fails every request. An
+  /// override of one still drives the editor's `#if` evaluation; the compiler answers inside `#if macro` code
+  /// from its macro context on its own.
+  private static final Set<String> COMPILER_RESERVED_DEFINES = Set.of("macro", "sys");
+
   private HaxeDisplayConfiguration() {
   }
 
-  /// The build file's IDE overrides as arguments: a SET becomes
-  /// `-D name[=value]`, a REMOVE lists the define to strip, and the custom
-  /// target is forwarded as described at [#customTargetToForward]. The
-  /// container decides the compiler. Call in a read action.
+  /// The build file's IDE overrides as arguments (see [#overrideArguments]),
+  /// with the custom target forwarded as described at
+  /// [#customTargetToForward]. The container decides the compiler. Call in a
+  /// read action.
   @NotNull
   public static OverrideArguments overridesFor(@NotNull Project project,
                                                @NotNull HaxeBuildFile buildFile,
                                                @NotNull String containerId) {
+    List<DefineOverride> defines = HaxeIdeOverridesStore.getInstance(project).getDefines(buildFile.file().getPath());
+    String customTarget = HaxeIdeOverrides.effectiveCustomTarget(project, buildFile);
+    HaxeLanguageLevel compiler = HaxeLanguageLevelUtil.fromCompiler(project, containerId);
+    return overrideArguments(defines, customTargetToForward(customTarget, compiler));
+  }
+
+  /// Define overrides in argument form: a SET becomes `-D name[=value]` and a
+  /// REMOVE lists the define to strip. Overrides of a compiler-reserved define
+  /// ([#COMPILER_RESERVED_DEFINES]) are left out.
+  @NotNull
+  static OverrideArguments overrideArguments(@NotNull List<DefineOverride> defines, @Nullable String forwardedTarget) {
     Set<String> removed = new LinkedHashSet<>();
     List<String> defineArgs = new ArrayList<>();
-    for (DefineOverride override : HaxeIdeOverridesStore.getInstance(project).getDefines(buildFile.file().getPath())) {
+    for (DefineOverride override : defines) {
+      if (COMPILER_RESERVED_DEFINES.contains(HaxeDefine.compilerName(override.name()))) continue;
       if (override.effect() == DefineEffect.REMOVE) {
         removed.add(override.name());
       }
@@ -90,9 +107,6 @@ public final class HaxeDisplayConfiguration {
         defineArgs.add(override.value().isEmpty() ? override.name() : override.name() + "=" + override.value());
       }
     }
-    String customTarget = HaxeIdeOverrides.effectiveCustomTarget(project, buildFile);
-    HaxeLanguageLevel compiler = HaxeLanguageLevelUtil.fromCompiler(project, containerId);
-    String forwardedTarget = customTargetToForward(customTarget, compiler);
     if (removed.isEmpty() && defineArgs.isEmpty() && forwardedTarget == null) return OverrideArguments.EMPTY;
     return new OverrideArguments(removed, defineArgs, forwardedTarget);
   }

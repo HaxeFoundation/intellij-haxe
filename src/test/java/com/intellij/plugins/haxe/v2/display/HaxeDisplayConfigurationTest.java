@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.v2.display;
 
+import com.intellij.plugins.haxe.v2.buildtools.settings.DefineEffect;
+import com.intellij.plugins.haxe.v2.buildtools.settings.DefineOverride;
 import com.intellij.plugins.haxe.v2.compiler.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.v2.display.HaxeDisplayConfiguration.OverrideArguments;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +32,27 @@ public class HaxeDisplayConfigurationTest {
     List<String> applied = HaxeDisplayConfiguration.applyOverrides(base, overrides);
 
     assertEquals(List.of("--cwd", "dir", "build.hxml", "-D", "console=ps4", "-D", "debug_hud"), applied);
+  }
+
+  @Test
+  @DisplayName("overrides of compiler reserved defines are left out")
+  public void testOverridesOfCompilerReservedDefinesAreLeftOut() {
+    List<DefineOverride> defines = List.of(
+      new DefineOverride("macro", "", DefineEffect.SET),
+      new DefineOverride("sys", "", DefineEffect.REMOVE),
+      new DefineOverride("debug_hud", "", DefineEffect.SET));
+
+    OverrideArguments overrides = HaxeDisplayConfiguration.overrideArguments(defines, null);
+
+    assertEquals(new OverrideArguments(Set.of(), List.of("-D", "debug_hud"), null), overrides);
+  }
+
+  @Test
+  @DisplayName("only reserved overrides change no arguments")
+  public void testOnlyReservedOverridesChangeNoArguments() {
+    List<DefineOverride> defines = List.of(new DefineOverride("macro", "", DefineEffect.SET));
+
+    assertSame(OverrideArguments.EMPTY, HaxeDisplayConfiguration.overrideArguments(defines, null));
   }
 
   @Test
