@@ -3,11 +3,9 @@ package com.intellij.plugins.haxe.v2.runconfig;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo;
-import com.intellij.plugins.haxe.v2.buildtools.HaxeBuildInputs;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeContainers;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeKnownBuildFiles;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeMainClasses;
@@ -69,10 +67,7 @@ public final class HaxeMainClassLaunches {
 
   @NotNull
   private static CachedValueProvider.Result<Map<MainClass, List<MainLaunch>>> launchesResult(@NotNull Project project) {
-    List<Object> dependencies = new ArrayList<>(List.of(HaxeBuildInputs.getInstance(project).dependencies()));
-    // a main class file created, deleted or moved changes what a build's main resolves to
-    dependencies.add(VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS);
-    return CachedValueProvider.Result.create(collectLaunches(project), dependencies.toArray());
+    return CachedValueProvider.Result.create(collectLaunches(project), HaxeMainClasses.mainClassDependencies(project));
   }
 
   @NotNull

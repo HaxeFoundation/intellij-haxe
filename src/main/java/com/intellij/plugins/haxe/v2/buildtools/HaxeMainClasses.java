@@ -1,9 +1,11 @@
 package com.intellij.plugins.haxe.v2.buildtools;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
@@ -14,9 +16,15 @@ import com.intellij.plugins.haxe.v2.buildsystem.ProjectXmlParser;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +38,82 @@ import java.util.Set;
  */
 public final class HaxeMainClasses {
 
+  /** A class a build starts from: the file declaring it and its name. */
+  private record EntryClass(@NotNull VirtualFile file, @NotNull String name) {
+  }
+
+  private static final Key<CachedValue<Set<EntryClass>>> ENTRY_CLASSES_KEY = Key.create("haxe.entry.classes");
+
   private HaxeMainClasses() {
+  }
+
+  /**
+   * Whether a known build starts from the class: the {@code -main} or
+   * {@code --run} class of any hxml section, or a Lime-family project's
+   * {@code <app main>}, tests builds included. The project's set is rebuilt
+   * when a build input or the file tree changes, never on a Haxe source edit.
+   * Read action.
+   */
+  public static boolean isEntryClass(@NotNull HaxeClass haxeClass) {
+    VirtualFile file = PsiUtilCore.getVirtualFile(haxeClass);
+    String name = haxeClass.getName();
+    if (file == null || name == null) return false;
+    return entryClasses(haxeClass.getProject()).contains(new EntryClass(file, name));
+  }
+
+  /** What a cache of the classes builds start from depends on: the build inputs and the file tree. */
+  @NotNull
+  public static Object[] mainClassDependencies(@NotNull Project project) {
+    List<Object> dependencies = new ArrayList<>(List.of(HaxeBuildInputs.getInstance(project).dependencies()));
+    // a main class file created, deleted or moved changes what a build's main resolves to
+    dependencies.add(VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS);
+    return dependencies.toArray();
+  }
+
+  @NotNull
+  private static Set<EntryClass> entryClasses(@NotNull Project project) {
+    CachedValuesManager cachedValues = CachedValuesManager.getManager(project);
+    return cachedValues.getCachedValue(project, ENTRY_CLASSES_KEY, () -> entryClassesResult(project), false);
+  }
+
+  @NotNull
+  private static CachedValueProvider.Result<Set<EntryClass>> entryClassesResult(@NotNull Project project) {
+    return CachedValueProvider.Result.create(collectEntryClasses(project), mainClassDependencies(project));
+  }
+
+  @NotNull
+  private static Set<EntryClass> collectEntryClasses(@NotNull Project project) {
+    Set<EntryClass> entries = new HashSet<>();
+    Set<VirtualFile> seen = new HashSet<>();
+    for (String containerId : HaxeContainers.containerIds(project)) {
+      for (HaxeBuildFile buildFile : HaxeKnownBuildFiles.forContainer(project, containerId)) {
+        if (!seen.add(buildFile.file())) continue;
+        for (HaxeClass entryClass : entryClassesOf(project, buildFile)) {
+          VirtualFile file = PsiUtilCore.getVirtualFile(entryClass);
+          String name = entryClass.getName();
+          if (file != null && name != null) entries.add(new EntryClass(file, name));
+        }
+      }
+    }
+    return entries;
+  }
+
+  /** Every class the build starts from: one per hxml section, a project file's {@code <app main>}. */
+  @NotNull
+  private static List<HaxeClass> entryClassesOf(@NotNull Project project, @NotNull HaxeBuildFile buildFile) {
+    if (buildFile.type() != HaxeBuildFileType.HXML) {
+      HaxeClass mainClass = mainClassOf(project, buildFile);
+      return mainClass == null ? List.of() : List.of(mainClass);
+    }
+    List<HaxeClass> classes = new ArrayList<>();
+    List<String> sections = HaxeBuildFileInspector.sectionContents(project, buildFile.file());
+    for (int index = 0; index < sections.size(); index++) {
+      String typePath = HxmlFileParser.entryClass(sections.get(index));
+      if (typePath != null && find(project, buildFile, index, typePath) instanceof HaxeClass entryClass) {
+        classes.add(entryClass);
+      }
+    }
+    return classes;
   }
 
   /** The class the build's selected section or target starts from; null when it names none or no class path holds it. Read action. */

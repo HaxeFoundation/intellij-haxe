@@ -366,6 +366,24 @@ public final class HxmlFileParser {
       .orElse(null);
   }
 
+  /** The class a section starts from: its {@code -main} class, else the class {@code --run} compiles and runs; null when neither. */
+  @Nullable
+  public static String entryClass(@NotNull String content) {
+    String main = mainClass(content);
+    return main != null ? main : runClass(content);
+  }
+
+  /** The class of the first {@code --run}/{@code -x} line; the words after it are the program's own arguments. */
+  @Nullable
+  private static String runClass(@NotNull String content) {
+    return significantLines(content)
+      .filter(line -> RUN_FLAGS.contains(line.flag()) && line.value() != null)
+      // the class, then whitespace, then the program's arguments
+      .map(line -> line.value().split("\\s+", 2)[0])
+      .findFirst()
+      .orElse(null);
+  }
+
   private static Map<String, HaxeTarget> buildTargetFlagMap() {
     Map<String, HaxeTarget> map = new HashMap<>();
     for (HaxeTarget target : HaxeTarget.values()) {

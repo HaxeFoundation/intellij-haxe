@@ -6,11 +6,13 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.v2.buildtools.HaxeMainClasses;
 import com.intellij.plugins.haxe.v2.display.HaxeUsageSearch;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +43,7 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
                 // not exempt - see HaxeUsageSearch.metadataKeepsAlive
                 if (HaxeUsageSearch.metadataKeepsAlive(methodDeclaration)) return;
                 if (isGetterOrSetter(methodDeclaration)) return;
+                if (isProgramEntryPoint(methodDeclaration)) return;
                 Collection<PsiReference> references;
                 //  if constructor also check new expressions
                 //  NOTE: new expressions are HaxeReference so maybe we could add them
@@ -95,6 +98,13 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
     private static boolean implementsAbstractParentMethod(@NotNull HaxeMethodDeclaration methodDeclaration) {
         HaxeMethodModel parent = methodDeclaration.getModel().getParentMethod(null);
         return parent != null && parent.isAbstract();
+    }
+
+    /** The static main of a class a build starts from: the compiler calls it, no source does. */
+    private static boolean isProgramEntryPoint(@NotNull HaxeMethodDeclaration methodDeclaration) {
+        if (!methodDeclaration.getModel().isStaticMain()) return false;
+        HaxeClass declaringClass = PsiTreeUtil.getParentOfType(methodDeclaration, HaxeClass.class);
+        return declaringClass != null && HaxeMainClasses.isEntryClass(declaringClass);
     }
 
     private static boolean isGetterOrSetter(@NotNull HaxeMethodDeclaration methodDeclaration) {

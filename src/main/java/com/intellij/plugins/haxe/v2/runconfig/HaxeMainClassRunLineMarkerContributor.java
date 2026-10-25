@@ -34,8 +34,6 @@ import java.util.List;
  */
 public final class HaxeMainClassRunLineMarkerContributor extends RunLineMarkerContributor {
 
-  private static final String MAIN_METHOD_NAME = "main";
-
   @Override
   public @Nullable Info getInfo(@NotNull PsiElement element) {
     if (element.getFirstChild() != null) return null; // leaves only, per the contributor contract
@@ -53,7 +51,7 @@ public final class HaxeMainClassRunLineMarkerContributor extends RunLineMarkerCo
   private static HaxeClass markedClass(@Nullable PsiElement declaration) {
     return switch (declaration) {
       case HaxeClass haxeClass when staticMainOf(haxeClass) == null -> haxeClass;
-      case HaxeMethod method when isStaticMain(method) -> PsiTreeUtil.getParentOfType(method, HaxeClass.class);
+      case HaxeMethod method when method.getModel().isStaticMain() -> PsiTreeUtil.getParentOfType(method, HaxeClass.class);
       case null, default -> null;
     };
   }
@@ -61,13 +59,9 @@ public final class HaxeMainClassRunLineMarkerContributor extends RunLineMarkerCo
   @Nullable
   private static HaxeMethod staticMainOf(@NotNull HaxeClass haxeClass) {
     for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(null)) {
-      if (isStaticMain(method)) return method;
+      if (method.getModel().isStaticMain()) return method;
     }
     return null;
-  }
-
-  private static boolean isStaticMain(@NotNull HaxeMethod method) {
-    return MAIN_METHOD_NAME.equals(method.getName()) && method.isStatic();
   }
 
   @NotNull

@@ -49,6 +49,7 @@ import com.intellij.openapi.util.Key;
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
 
   private static final Key<Boolean> isVoidReturn = Key.create("isReturnTypeVoid");
+  private static final String MAIN_METHOD_NAME = "main";
 
   private HaxeMethod haxeMethod;
   private String name;
@@ -157,6 +158,11 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   public boolean isStaticInit() {
     return this.getName().equals("__init__");
+  }
+
+  /** Whether this is a {@code static function main()}: the method the compiler calls when a build starts from its class. */
+  public boolean isStaticMain() {
+    return isStatic() && getName().equals(MAIN_METHOD_NAME);
   }
 
   public boolean isArrayAccessor() {
