@@ -73,7 +73,8 @@ final class FqnNavigateLink {
     @Override
     public void startEvaluation(@NotNull XFullValueEvaluationCallback callback) {
       ReadAction.nonBlocking(this::getNavigatable)
-        .finishOnUiThread(ModalityState.any(), this::performNavigation)
+        // opening an editor changes the model, which the platform refuses under any() modality
+        .finishOnUiThread(ModalityState.nonModal(), this::performNavigation)
         .submit(AppExecutorUtil.getAppExecutorService());
 
       callback.evaluated("");
