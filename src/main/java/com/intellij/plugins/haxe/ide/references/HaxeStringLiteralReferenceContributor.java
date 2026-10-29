@@ -24,11 +24,11 @@ import java.util.List;
  * Makes string literals navigable and completable when their VALUE denotes
  * something real: a file path (absolute, project-relative or relative to
  * the containing file's directory) or a fully-qualified name. File-path
- * SEGMENT references attach to every clean constant string so explicit
- * completion works from the first character; qualified-name and
- * absolute-path references attach only when the target resolves. What
- * PAINTS as a link is gated separately on shape + resolution — prose never
- * lights up.
+ * SEGMENT references attach to every clean constant string, so explicit
+ * completion works from the first character. Qualified-name references (one
+ * per segment, packages included) and absolute-path references attach only
+ * when the target resolves. What PAINTS as a link is gated separately on
+ * shape and resolution, so prose never lights up.
  */
 public class HaxeStringLiteralReferenceContributor extends PsiReferenceContributor {
 
@@ -76,7 +76,7 @@ public class HaxeStringLiteralReferenceContributor extends PsiReferenceContribut
       // prose; only a DOTTED name reads as an intentional qualified name
       boolean qnameShaped = value.length() >= 3 && value.indexOf('.') > 0 && HaxeReferenceUtil.textCanBeQname(value);
       if (qnameShaped && HaxeQnameResolveUtil.findClassOrMember(value, literal.getProject()) != null) {
-        references.add(new HaxeStringQnameReference(literal, range, value));
+        references.addAll(HaxeStringQnameReference.segmentsOf(literal, value));
       }
       return references.isEmpty() ? PsiReference.EMPTY_ARRAY : references.toArray(PsiReference.EMPTY_ARRAY);
     }

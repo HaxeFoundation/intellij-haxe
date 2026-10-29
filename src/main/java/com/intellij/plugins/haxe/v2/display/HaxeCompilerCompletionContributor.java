@@ -16,9 +16,11 @@ import com.intellij.plugins.haxe.display.protocol.Position;
 import com.intellij.plugins.haxe.display.protocol.Range;
 import com.intellij.plugins.haxe.ide.completion.HaxeLambdaLookups;
 import com.intellij.plugins.haxe.ide.completion.HaxeLambdaShape;
+import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompletionMode;
+import com.intellij.psi.util.PsiTreeUtil;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,10 +30,13 @@ import javax.swing.Icon;
 /**
  * Completion in the compiler-only mode. It offers the compilation server's
  * items for the caret and stops the contributor chain, so the IDE's own
- * contributors add nothing, whether the server answered or not. The request
- * carries the editor's real document and caret offset, never the completion
- * copy with its dummy identifier. The prefix is the text the compiler's
- * replace range covers, or the platform's prefix when there is no range.
+ * contributors add nothing, whether the server answered or not. Inside a
+ * string literal it steps aside: the compiler has nothing to offer there,
+ * and the string-link completion (file paths, qualified names) stays the
+ * IDE's. The request carries the editor's real document and caret offset,
+ * never the completion copy with its dummy identifier. The prefix is the
+ * text the compiler's replace range covers, or the platform's prefix when
+ * there is no range.
  * After a dotted path ({@code go.math.Ma}, also in a type hint, {@code new}
  * or an import) the range covers the whole path and the compiler completes
  * whole paths, so types, packages and modules are offered by their dot path.
@@ -48,6 +53,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
   public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result) {
     Project project = parameters.getPosition().getProject();
     if (HaxeCompilerSettings.getInstance(project).getEffectiveCompletionMode() != HaxeCompletionMode.COMPILER_ONLY) return;
+    if (PsiTreeUtil.getParentOfType(parameters.getPosition(), HaxeStringLiteralExpression.class, false) != null) return;
     result.stopHere();
     VirtualFile file = parameters.getOriginalFile().getVirtualFile();
     if (file == null) return;
