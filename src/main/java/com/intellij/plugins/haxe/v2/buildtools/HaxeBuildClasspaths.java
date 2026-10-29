@@ -14,24 +14,28 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFile;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileScanner;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileType;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The directories a build's sources come from: its declared classpaths,
- * resolved against the file's work directory ({@link HaxeBuildWorkDirectories})
- * — hxml {@code -cp} entries of the selected section; for the lime family the
- * raw {@code <source>}/{@code <classpath>} entries of the project xml (no tool
- * run, so haxelib-provided paths are not seen). An hxml build also gets its
- * work directory itself: haxe treats the directory it runs in as an implicit
- * classpath (the file's own folder plays no part unless it IS that directory).
- * The lime tools compile from their export folder, which holds no sources, so
- * xml builds get only their declared entries. Name-based lookups scope
- * themselves to these — test-result
- * navigation and debugger source mapping would otherwise pick a same-named
- * file from a SIBLING project in the same IDE project.
+ * The directories a build's sources come from. First its declared
+ * classpaths, resolved against the file's work directory
+ * ({@link HaxeBuildWorkDirectories}): the {@code -cp} entries of an hxml's
+ * selected section, or for the lime family the raw
+ * {@code <source>}/{@code <classpath>} entries of the project xml (no tool
+ * runs, so haxelib-provided paths are not seen). An hxml build also gets its
+ * work directory itself, because haxe treats the directory it runs in as an
+ * implicit classpath; the file's own folder plays no part unless it IS that
+ * directory. A lime-family build also gets its generated source folders
+ * ({@link HaxeGeneratedSourceFolders}) once a build has created them.
+ * <p>
+ * Name-based lookups such as test-result navigation and debugger source
+ * mapping scope themselves to these directories; otherwise they would pick
+ * a same-named file from a SIBLING project in the same IDE project.
  */
 public final class HaxeBuildClasspaths {
 
@@ -59,7 +63,10 @@ public final class HaxeBuildClasspaths {
     return resolved != null && resolved.isDirectory() ? resolved : null;
   }
 
-  /** Absolute directory paths (VFS separators), or empty when the build file cannot be inspected. Call in a read action. */
+  /**
+   * The build's source directories as absolute paths with VFS separators;
+   * empty when the build file cannot be inspected. Call in a read action.
+   */
   @NotNull
   public static List<String> sourceDirectories(@NotNull Project project, @NotNull String buildFilePath) {
     HaxeBuildFile buildFile = HaxeBuildFileScanner.findBuildFile(project, buildFilePath);
@@ -68,7 +75,11 @@ public final class HaxeBuildClasspaths {
     return sourceDirectories(project, buildFile, classpaths);
   }
 
-  /** Same, for a caller that already inspected the build file (no second parse of its selected section). Call in a read action. */
+  /**
+   * {@link #sourceDirectories(Project, String)} for a caller that already
+   * inspected the build file, sparing a second parse of its selected
+   * section. Call in a read action.
+   */
   @NotNull
   public static List<String> sourceDirectories(@NotNull Project project,
                                                @NotNull HaxeBuildFile buildFile,
@@ -82,6 +93,10 @@ public final class HaxeBuildClasspaths {
     }
     for (VirtualFile directory : resolvedDirectories(anchor, classpaths)) {
       directories.add(directory.getPath());
+    }
+    // the tool compiles its generated folders as class paths of their own, so their files are the build's like any other
+    for (Path generated : HaxeGeneratedSourceFolders.of(project, buildFile)) {
+      if (Files.isDirectory(generated)) directories.add(FileUtil.toSystemIndependentName(generated.toString()));
     }
 
     // -lib sources live outside the -cp entries; the sync'd managed module

@@ -19,6 +19,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @DisplayName("Build tools: NME projects")
 public class NmeProjectsTest {
+  private static final String HOST_NEKO_DIRECTORY = SystemInfo.isWindows ? "windows-neko" : SystemInfo.isMac ? "mac64-neko" : "linux64-neko";
 
   /** (nme target flag, app name, output root, haxe target, the packaged artifact nme lays out). */
   static final List<Arguments> PACKAGED_ARTIFACTS = List.of(
@@ -36,6 +37,22 @@ public class NmeProjectsTest {
     NmeProjects.TargetArtifact artifact = NmeProjects.targetArtifact(flag, app, root);
     assertEquals(target, artifact.target());
     assertEquals(output, artifact.relativeOutput());
+  }
+
+  /** (nme target flag, the project nmml, the generated source folder under the project dir; null for an unmapped platform). */
+  static final List<Arguments> GENERATED_SOURCE_FOLDERS = List.of(
+    arguments("windows", "<project><app path=\"Export\"/></project>", "Export/windows/haxe"),
+    // the app path defaults to lime's; the 64-bit desktop builds carry the suffix
+    arguments("mac", "<project/>", "bin/mac64/haxe"),
+    arguments("cppia", "<project/>", "bin/cppia/haxe"),
+    arguments("neko", "<project/>", "bin/" + HOST_NEKO_DIRECTORY + "/haxe"),
+    arguments("winrt", "<project/>", null));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("GENERATED_SOURCE_FOLDERS")
+  @DisplayName("generated source directory follows the platform directory")
+  public void testGeneratedSourceDirectoryFollowsThePlatformDirectory(String targetFlag, String projectNmml, String folder) {
+    assertEquals(folder, NmeProjects.generatedSourceDirectory(projectNmml, targetFlag));
   }
 
   /** Every target the settings offer compiles through the haxe target its enum names; cppia and the unlisted jsprime are also checked by name. */

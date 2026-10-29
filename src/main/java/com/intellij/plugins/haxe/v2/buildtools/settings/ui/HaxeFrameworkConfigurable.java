@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeFrameworkTargetSetti
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeFrameworkTargetSettings.TargetRow;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
@@ -34,24 +35,27 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * One framework's target table (Settings | Haxe | Frameworks | Lime/OpenFL/NME):
- * Name / Haxe target / Flags rows with add, remove and reordering — the row
- * order is the selector order; the framework's built-in default target stays
- * the default while its row exists, else the first row takes over. The first
- * flag is the tool's target word; removing every row restores the built-in
- * defaults on next use.
+ * One framework's page (Settings | Haxe | Frameworks | Lime/OpenFL/NME), in
+ * two tabs. Targets is the target table: Name / Haxe target / Flags rows
+ * that can be added, removed and reordered, the row order being the
+ * selector order. The framework's built-in default target stays the default
+ * while its row exists, otherwise the first row takes over. The first flag
+ * is the tool's target word; removing every row restores the built-in
+ * defaults on next use. Generated Sources is
+ * {@link HaxeFrameworkGeneratedSourcesForm}.
  */
-public abstract class HaxeFrameworkTargetsConfigurable implements SearchableConfigurable {
+public abstract class HaxeFrameworkConfigurable implements SearchableConfigurable {
 
   private final Framework framework;
   private final String id;
   private final String displayName;
   private final ListTableModel<TargetRow> model =
     new ListTableModel<>(new NameColumn(), new TargetColumn(), new FlagsColumn());
+  private HaxeFrameworkGeneratedSourcesForm generatedSourcesForm;
 
-  protected HaxeFrameworkTargetsConfigurable(@NotNull Framework framework,
-                                             @NotNull String id,
-                                             @NotNull String displayName) {
+  protected HaxeFrameworkConfigurable(@NotNull Framework framework,
+                                      @NotNull String id,
+                                      @NotNull String displayName) {
     this.framework = framework;
     this.id = id;
     this.displayName = displayName;
@@ -80,15 +84,21 @@ public abstract class HaxeFrameworkTargetsConfigurable implements SearchableConf
     hint.setForeground(UIUtil.getContextHelpForeground());
     hint.setBorder(JBUI.Borders.emptyTop(6));
 
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(tablePanel, BorderLayout.CENTER);
-    panel.add(hint, BorderLayout.SOUTH);
-    return panel;
+    JPanel targetsPanel = new JPanel(new BorderLayout());
+    targetsPanel.add(tablePanel, BorderLayout.CENTER);
+    targetsPanel.add(hint, BorderLayout.SOUTH);
+
+    generatedSourcesForm = new HaxeFrameworkGeneratedSourcesForm(framework);
+    JBTabbedPane tabs = new JBTabbedPane();
+    tabs.addTab(HaxeBundle.message("haxe.frameworks.tab.targets"), targetsPanel);
+    tabs.addTab(HaxeBundle.message("haxe.frameworks.tab.generated"), generatedSourcesForm.getPanel());
+    return tabs;
   }
 
   @Override
   public boolean isModified() {
-    return !rowsEqual(model.getItems(), HaxeFrameworkTargetSettings.getInstance().getTargetRows(framework));
+    return !rowsEqual(model.getItems(), HaxeFrameworkTargetSettings.getInstance().getTargetRows(framework))
+           || generatedSourcesForm.isModified();
   }
 
   @Override
@@ -96,11 +106,13 @@ public abstract class HaxeFrameworkTargetsConfigurable implements SearchableConf
     HaxeFrameworkTargetSettings.getInstance().setTargetRows(framework, new ArrayList<>(model.getItems()));
     // re-read so isModified compares against what the store kept (trimming, dropped blanks)
     model.setItems(HaxeFrameworkTargetSettings.getInstance().getTargetRows(framework));
+    generatedSourcesForm.apply();
   }
 
   @Override
   public void reset() {
     model.setItems(HaxeFrameworkTargetSettings.getInstance().getTargetRows(framework));
+    generatedSourcesForm.reset();
   }
 
   /** Loads the built-in defaults into the TABLE — applied (or cancelled) like any other edit. */

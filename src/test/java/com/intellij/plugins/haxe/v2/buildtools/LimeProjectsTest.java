@@ -26,6 +26,7 @@ public class LimeProjectsTest {
     case "mac" -> "bin/macos/bin/MyApplication.app/Contents/MacOS/MyApplication";
     default -> "bin/linux/bin/MyApplication";
   };
+  private static final String HOST_TARGET_DIRECTORY = HOST_PLATFORM.equals("mac") ? "macos" : HOST_PLATFORM;
 
   /** Every target the settings offer compiles through the haxe target its enum names; Electron, a JavaScript target, is also checked by name. */
   @Test
@@ -55,6 +56,25 @@ public class LimeProjectsTest {
     Path expected = launcher == null ? null : projectDir.resolve(launcher);
 
     assertEquals(expected, LimeProjects.packagedBinary(projectDir.resolve(evaluatedOutput), targetFlag, "App"));
+  }
+
+  /** (target flag, the project xml, the generated source folders under the project dir). */
+  static final List<Arguments> GENERATED_SOURCE_FOLDERS = List.of(
+    arguments("html5", "<project><app path=\"Export\"/></project>", List.of("Export/html5/haxe", "Export/html5/haxe/_generated")),
+    arguments("hl", "<project><app path=\"Export\"/></project>", List.of("Export/hl/haxe", "Export/hl/haxe/_generated")),
+    // the app path defaults to lime's; the mac target directory is macos
+    arguments("mac", "<project/>", List.of("bin/macos/haxe", "bin/macos/haxe/_generated")),
+    // cpp builds through the host desktop platform
+    arguments("cpp", "<project/>", List.of("bin/" + HOST_TARGET_DIRECTORY + "/haxe", "bin/" + HOST_TARGET_DIRECTORY + "/haxe/_generated")));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("GENERATED_SOURCE_FOLDERS")
+  @DisplayName("generated source directories follow the export layout")
+  public void testGeneratedSourceDirectoriesFollowTheExportLayout(String targetFlag, String projectXml, List<String> folders) {
+    Path projectDir = Path.of("/work/game");
+    List<Path> expected = folders.stream().map(projectDir::resolve).toList();
+
+    assertEquals(expected, LimeProjects.generatedSourceDirectories(projectDir, projectXml, targetFlag));
   }
 
   @Test

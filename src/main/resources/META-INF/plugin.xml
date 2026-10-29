@@ -548,15 +548,15 @@
                              parentId="settings.haxe"
                              id="settings.haxe.frameworks"
                              key="haxe.settings.frameworks.name" bundle="messages.HaxeBundle"/>
-    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$LimeTargets"
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$LimePage"
                              parentId="settings.haxe.frameworks"
                              id="settings.haxe.frameworks.lime"
                              key="haxe.frameworks.targets.lime" bundle="messages.HaxeBundle"/>
-    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$OpenflTargets"
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$OpenflPage"
                              parentId="settings.haxe.frameworks"
                              id="settings.haxe.frameworks.openfl"
                              key="haxe.frameworks.targets.openfl" bundle="messages.HaxeBundle"/>
-    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$NmeTargets"
+    <applicationConfigurable instance="com.intellij.plugins.haxe.v2.buildtools.settings.ui.HaxeFrameworkConfigurables$NmePage"
                              parentId="settings.haxe.frameworks"
                              id="settings.haxe.frameworks.nme"
                              key="haxe.frameworks.targets.nme" bundle="messages.HaxeBundle"/>
@@ -1016,6 +1016,12 @@
     <listener class="com.intellij.plugins.haxe.v2.runconfig.HaxeRunConfigurationBuildFileTracker"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     <listener class="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildFileChangeListener"
+              topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeGeneratedSourceRootsTracker"
+              topic="com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildSettingsListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeGeneratedSourceRootsTracker"
+              topic="com.intellij.plugins.haxe.v2.buildtools.HaxeBuildEventListener"/>
+    <listener class="com.intellij.plugins.haxe.v2.buildtools.projectmodel.HaxeGeneratedSourceRootsTracker"
               topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     <listener class="com.intellij.plugins.haxe.v2.editor.HaxeResolveContextFollower"
               topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
