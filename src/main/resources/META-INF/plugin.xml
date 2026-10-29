@@ -168,6 +168,7 @@
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.interp.InterpDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.neko.NekoRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.nodejs.NodeRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.customtarget.CustomTargetRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.nodejs.NodeDebugRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.browser.BrowserDebugRunner"/>

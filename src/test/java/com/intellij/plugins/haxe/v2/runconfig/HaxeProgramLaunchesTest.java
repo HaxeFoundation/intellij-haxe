@@ -17,6 +17,7 @@ import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunConfigurati
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpRunConfiguration;
+import com.intellij.plugins.haxe.runner.customtarget.CustomTargetRunConfiguration;
 import com.intellij.plugins.haxe.runner.neko.NekoRunConfiguration;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeLaunchKind.Parameter;
@@ -238,6 +239,26 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("a custom target configuration runs the typed program after the action")
+  public void testACustomTargetConfigurationRunsTheTypedProgramAfterTheAction() throws IOException {
+    HaxeBuildFile buildFile = interpHxml();
+    Map<Parameter, String> typed = Map.of(
+      Parameter.EXECUTABLE, "tools/emulator.exe",
+      Parameter.PROGRAM_ARGUMENTS, "--rom out/game.rom",
+      Parameter.WORKING_DIRECTORY, "out");
+
+    RunnerAndConfigurationSettings settings = HaxeProgramLaunches.findOrCreate(
+      getProject(), myFixture.getModule(), buildFile, HaxeLaunchKind.CUSTOM_TARGET, "", "emulate", typed, false);
+
+    CustomTargetRunConfiguration configuration = assertInstanceOf(CustomTargetRunConfiguration.class, settings.getConfiguration());
+    assertEquals("tools/emulator.exe", configuration.getExecutablePath());
+    assertEquals("--rom out/game.rom", configuration.getProgramArguments());
+    assertEquals("out", configuration.getWorkingDirectory());
+    assertEquals(INTERP_HXML_NAME + " emulate (Custom Target)", settings.getName());
+    assertEquals("emulate", buildStepOf(settings).getActionName());
+  }
+
+  @Test
   @DisplayName("an existing configuration gets the action as its build step once")
   public void testAnExistingConfigurationGetsTheActionAsItsBuildStepOnce() throws IOException {
     HaxeBuildFile buildFile = interpHxml();
@@ -296,7 +317,8 @@ public class HaxeProgramLaunchesTest extends HaxeCodeInsightFixtureTestCase {
     arguments(HaxeLaunchKind.NEKO, "out/game.n",
               Map.of(Parameter.EXECUTABLE, "", Parameter.PROGRAM_ARGUMENTS, "out/game.n", Parameter.WORKING_DIRECTORY, "out")),
     arguments(HaxeLaunchKind.INTERP, "",
-              Map.of(Parameter.WORKING_DIRECTORY, "", Parameter.COMPILER_ARGUMENTS, INTERP_HXML_NAME)));
+              Map.of(Parameter.WORKING_DIRECTORY, "", Parameter.COMPILER_ARGUMENTS, INTERP_HXML_NAME)),
+    arguments(HaxeLaunchKind.CUSTOM_TARGET, "", Map.of()));
 
   @ParameterizedTest(name = "{0}")
   @FieldSource("HXML_DEFAULTS")

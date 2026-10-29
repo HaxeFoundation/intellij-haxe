@@ -4,6 +4,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
+import com.intellij.execution.util.ProgramParametersConfigurator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -67,8 +68,8 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
   }
 
   /**
-   * The given path: absolute as it is, relative against {@link #baseDirectory()};
-   * null when unparseable.
+   * The given path by the configuration's module, under the rule of
+   * {@link #resolveAgainstModule(Module, Project, String)}; null when unparseable.
    */
   protected @Nullable Path resolveAgainstModule(String value) {
     return resolveAgainstModule(getConfigurationModule().getModule(), getProject(), value);
@@ -76,12 +77,14 @@ public abstract class DapRunConfigurationBase extends ModuleBasedConfiguration<R
 
   /**
    * The module-relative path rule for callers that hold a module without a
-   * configuration (build sniffing): absolute as it is, relative against
-   * {@link #baseDirectory(Module, Project)}; null when unparseable.
+   * configuration (build sniffing): path macros ({@code $PROJECT_DIR$},
+   * {@code $MODULE_DIR$}, …) expanded, then absolute as it is, relative
+   * against {@link #baseDirectory(Module, Project)}; null when unparseable.
    */
   public static @Nullable Path resolveAgainstModule(@Nullable Module module, Project project, String value) {
+    String expanded = new ProgramParametersConfigurator().expandPathAndMacros(value, module, project);
     try {
-      Path path = Path.of(value);
+      Path path = Path.of(expanded);
       if (path.isAbsolute()) {
         return path;
       }
