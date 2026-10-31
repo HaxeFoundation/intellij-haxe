@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
@@ -163,6 +164,35 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     }
 
     return false;
+  }
+
+  /**
+   * Whether the member is accessible at the element, by the compiler's rule:
+   * public anywhere, private inside its declaring class or a subclass of it.
+   * Classes compare by qualified name, since completion asks from a copy of
+   * the file.
+   */
+  // TODO: @:allow on the member or its class and @:access at the element also grant private access; not honoured yet
+  public boolean isAccessibleAt(@NotNull PsiElement element) {
+    if (isPublic()) return true;
+    HaxeClassModel declaringClass = getDeclaringClass();
+    HaxeClass accessingClass = enclosingNamedClass(element);
+    if (declaringClass == null || accessingClass == null) return false;
+
+    String declaringName = declaringClass.haxeClass.getQualifiedName();
+    if (declaringName.equals(accessingClass.getQualifiedName())) return true;
+    return HaxeResolveUtil.getBaseClassesSet(accessingClass).stream()
+      .anyMatch(base -> declaringName.equals(base.getQualifiedName()));
+  }
+
+  /** The class or abstract the element sits in; an anonymous structure type is no access scope of its own. */
+  @Nullable
+  private static HaxeClass enclosingNamedClass(@NotNull PsiElement element) {
+    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    while (haxeClass != null && haxeClass.isAnonymousType()) {
+      haxeClass = PsiTreeUtil.getParentOfType(haxeClass, HaxeClass.class);
+    }
+    return haxeClass;
   }
 
   @Override

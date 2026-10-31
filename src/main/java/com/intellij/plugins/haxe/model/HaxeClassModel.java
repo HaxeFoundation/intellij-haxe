@@ -1052,7 +1052,8 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return modifiers.hasModifier(HaxePsiModifier.FINAL);
   }
 
-  public List<HaxeMethodModel>  getExtensionMethodsFromMeta() {
+  /** The static extensions the class's {@code @:using} metadata offers for it at {@code callSite}. */
+  public List<HaxeMethodModel> getExtensionMethodsFromMeta(@NotNull PsiElement callSite) {
     List<HaxeReferenceExpression> referenceExpressions = getUsingMetaReferences();
     if(referenceExpressions.isEmpty()) return List.of();
 
@@ -1072,7 +1073,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return  classModels.stream()
       .map(classModel -> classModel.getMethods(genericResolver))
       .flatMap(Collection::stream)
-      .filter(method -> !method.isConstructor() && method.isStatic() && method.isPublic())
+      .filter(method -> !method.isConstructor() && method.isStatic() && method.isAccessibleAt(callSite))
       .filter(method ->  canAssignToFirstParam(method, classRef, genericResolver))
       .toList();
 

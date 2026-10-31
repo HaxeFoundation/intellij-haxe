@@ -2425,7 +2425,7 @@ public class HaxeExpressionEvaluatorHandlers {
         // look for extension method iterator
         List<HaxeUsingModel> usingModels = HaxeFileModel.fromElement(parent).getUsingModels();
         for (HaxeUsingModel usingModel : usingModels) {
-          HaxeMethodModel extensionMethod = usingModel.findExtensionMethod(iteratorName, resolvedClassReference);
+          HaxeMethodModel extensionMethod = usingModel.findExtensionMethod(iteratorName, resolvedClassReference, parent);
           if (extensionMethod != null){
             iterator = extensionMethod;
             break;

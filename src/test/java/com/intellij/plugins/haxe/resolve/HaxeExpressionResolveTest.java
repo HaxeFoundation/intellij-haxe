@@ -51,6 +51,12 @@ public class HaxeExpressionResolveTest extends HaxeResolveHighlightingTestBase {
   }
 
   @Test
+  @DisplayName("private extensions")
+  public void testPrivateExtensions() {
+    doTest();
+  }
+
+  @Test
   @DisplayName("enum extensions")
   public void testEnumExtensions() {
     doTest();
