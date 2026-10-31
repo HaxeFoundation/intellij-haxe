@@ -7,6 +7,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.display.protocol.Location;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
+import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
 import com.intellij.plugins.haxe.v2.display.HaxeCompilerDisplayService.DisplayContext;
 import com.intellij.psi.PsiElement;
@@ -24,14 +25,18 @@ import java.util.List;
  * {@code display/definition} returns, so the platform navigates, previews
  * and offers a chooser for several targets just as for static results. The
  * platform calls handlers under a cancelable progress, and the request waits
- * a bounded time. Ctrl-hover asks too, so every hovered reference costs one
- * request.
+ * a bounded time. Ctrl-hover asks too; the navigation service keeps the
+ * answer, so the click that follows a hover costs no second request. A
+ * string literal is never asked about: the compiler sees no reference
+ * inside one, and the string-link references resolve its names themselves.
  * <p>
  * While the generated-member preview is on, a declaration a macro generated
  * opens the generated-code preview, where it exists: a member the resolver
  * finds only in the compiler's post-macro blueprint, and a name that neither
  * the server nor the static resolver can place, such as the parameter a
- * build macro wraps around an expression. For a generated member the server
+ * build macro wraps around an expression. A name the compiler rejects (an
+ * unknown type) gets no preview: the code there does not compile, so no
+ * macro produced it. For a generated member the server
  * answers the position the macro gave it, typically the source field it was
  * generated from or the class's {@code @:build}; with the preview off,
  * navigation goes there. No targets are returned for a declaration under
@@ -43,8 +48,7 @@ public final class HaxeCompilerGotoDeclarationHandler implements GotoDeclaration
 
   @Override
   public PsiElement @Nullable [] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
-    if (sourceElement == null) return null;
-    HaxeReference reference = PsiTreeUtil.getParentOfType(sourceElement, HaxeReference.class, false);
+    HaxeReference reference = referenceToAsk(sourceElement);
     if (reference == null) return null;
     VirtualFile file = HaxeCompilerDisplayService.physicalFileOf(sourceElement);
     if (file == null) return null;
@@ -58,10 +62,36 @@ public final class HaxeCompilerGotoDeclarationHandler implements GotoDeclaration
 
     HaxeCompilerNavigationService service = HaxeCompilerNavigationService.getInstance(project);
     if (!service.ensureAvailable(file)) return null;
-    List<PsiElement> declarations = declarationsOf(project, service.definitionUnderReadLock(file, offset));
+    return targetsOf(project, service.definitionUnderReadLock(file, offset), reference, previewContext);
+  }
+
+  /**
+   * The targets for the server's answer: the declarations it placed, else,
+   * while the preview is on, the generated-code preview around a name it
+   * answered for without placing it. Null without an answer: a request the
+   * compiler rejected means the code at the caret does not compile, and the
+   * preview's dump build would fail on the same error.
+   */
+  static PsiElement @Nullable [] targetsOf(@NotNull Project project,
+                                           @Nullable List<Location> answer,
+                                           @NotNull HaxeReference reference,
+                                           @Nullable DisplayContext previewContext) {
+    if (answer == null) return null;
+    List<PsiElement> declarations = declarationsOf(project, answer);
     if (!declarations.isEmpty()) return declarations.toArray(PsiElement.EMPTY_ARRAY);
     PsiElement generated = previewContext == null ? null : generatedDeclarationOf(reference, previewContext);
     return generated == null ? null : new PsiElement[]{generated};
+  }
+
+  /**
+   * The reference the compiler is asked about for the element under the
+   * caret; none inside a string literal, whose links resolve statically.
+   */
+  @Nullable
+  static HaxeReference referenceToAsk(@Nullable PsiElement sourceElement) {
+    if (sourceElement == null) return null;
+    HaxeReference reference = PsiTreeUtil.getParentOfType(sourceElement, HaxeReference.class, false);
+    return reference instanceof HaxeStringLiteralExpression ? null : reference;
   }
 
   /** The context previews are built in; null while the generated-member preview is off or the file has none. */

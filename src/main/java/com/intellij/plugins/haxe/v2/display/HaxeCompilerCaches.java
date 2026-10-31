@@ -23,12 +23,12 @@ public final class HaxeCompilerCaches {
   /**
    * Clears every compiler-derived cache (compiled contexts, server
    * capabilities, lime display arguments, type catalog, metadata registry,
-   * blueprints, usage verdicts, hover types, converted evaluator types,
-   * compiler inlay members, dumps,
-   * preview files and diagnostics), then
-   * drops the PSI caches and restarts the daemon. The order matters: the
-   * services empty first, the PSI drop removes results derived from them, and
-   * the restart recomputes from scratch. Call on the EDT.
+   * blueprints, usage verdicts, definitions, hover types, converted
+   * evaluator types, compiler inlay members, dumps, preview files and
+   * diagnostics), then drops the PSI caches and restarts the daemon. The
+   * order matters: the services empty first, the PSI drop removes results
+   * derived from them, and the restart recomputes from scratch. Call on the
+   * EDT.
    */
   public static void clearAndRehighlight(@NotNull Project project, @NotNull @NonNls String reason) {
     HaxeCompilerDisplayService.getInstance(project).clearCaches();
@@ -37,6 +37,7 @@ public final class HaxeCompilerCaches {
     HaxeCompilerMetadataService.getInstance(project).clearCache();
     HaxeCompilerResolveService.getInstance(project).clearCaches();
     HaxeCompilerUsageService.getInstance(project).clearCaches();
+    HaxeCompilerNavigationService.getInstance(project).clearCaches();
     HaxeCompilerHoverTypes.getInstance(project).clearCaches();
     HaxeCompilerTypeLookupService.getInstance(project).clearCaches();
     HaxeCompilerInlayService.getInstance(project).clearCaches();
