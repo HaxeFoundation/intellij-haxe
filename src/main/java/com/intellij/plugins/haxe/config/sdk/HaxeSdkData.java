@@ -19,12 +19,16 @@ package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.plugins.haxe.config.sdk.impl.HaxeSdkAdditionalDataBaseImpl;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.intellij.util.xmlb.annotations.Transient;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeSdkData extends HaxeSdkAdditionalDataBaseImpl implements SdkAdditionalData, PersistentStateComponent<HaxeSdkData> {
-  private boolean storedInOldFormat;
+  private Element storedForm;
+  private Element formAtLoad;
 
   public HaxeSdkData() {
     super();
@@ -48,13 +52,20 @@ public class HaxeSdkData extends HaxeSdkAdditionalDataBaseImpl implements SdkAdd
     XmlSerializerUtil.copyBean(state, this);
   }
 
-  /** Whether the stored entry this was read from differs from what {@link HaxeSdkType} writes now. */
-  @Transient
-  public boolean isStoredInOldFormat() {
-    return storedInOldFormat;
+  /**
+   * The stored entry this was read from, while the values still equal
+   * {@code currentForm}, i.e. nothing changed since the load; null once
+   * something did, or for data never read from a stored entry.
+   */
+  @Nullable
+  Element storedFormWhileUnchanged(@NotNull Element currentForm) {
+    if (storedForm == null || formAtLoad == null) return null;
+    return JDOMUtil.areElementsEqual(currentForm, formAtLoad) ? storedForm : null;
   }
 
-  void markStoredInOldFormat() {
-    storedInOldFormat = true;
+  /** The entry as stored, and the values it held in the form {@link HaxeSdkType} writes now. */
+  void rememberStoredForm(@NotNull Element storedForm, @NotNull Element formAtLoad) {
+    this.storedForm = storedForm;
+    this.formAtLoad = formAtLoad;
   }
 }
