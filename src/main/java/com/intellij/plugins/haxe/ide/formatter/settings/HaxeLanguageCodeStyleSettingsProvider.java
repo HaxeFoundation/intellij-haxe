@@ -92,7 +92,6 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
     new CustomOption("FUNCTION_EXPRESSION_BODY_ON_NEXT_LINE", "haxe.codestyle.wrapping.expression.body.on.next.line", EXPRESSION_BODY_GROUP),
     new CustomOption("STRUCTURE_EXTENSION_ON_OWN_LINE", "haxe.codestyle.wrapping.structure.extension.own.line", STRUCTURE_EXTENSION_GROUP),
     new CustomOption("RETURN_VALUE_ON_SAME_LINE", "haxe.codestyle.wrapping.return.value.same.line", RETURN_GROUP),
-    new CustomOption("FORMAT_DOC_COMMENTS", "haxe.codestyle.wrapping.format.doc.comments", COMMENTS_GROUP),
     new CustomOption("REINDENT_MULTILINE_COMMENTS", "haxe.codestyle.wrapping.reindent.multiline.comments", COMMENTS_GROUP));
 
   // the chain and call-argument switches; the numeric rule thresholds live in
@@ -140,8 +139,9 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
 
   /**
    * Backs the platform's doc-formatting switch, which a reformat may turn
-   * off, with the Haxe FORMAT_DOC_COMMENTS setting. Haxe docs are markdown,
-   * so there are no leading asterisks and no tags to remove.
+   * off, with the Haxe FORMAT_DOC_COMMENTS setting, and its leading-asterisk
+   * switch with the style new doc comments get. Haxe docs are markdown, so
+   * there are no tags to remove.
    */
   @Override
   public DocCommentSettings getDocCommentSettings(@NotNull CodeStyleSettings rootSettings) {
@@ -160,7 +160,7 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
 
       @Override
       public boolean isLeadingAsteriskEnabled() {
-        return false;
+        return haxe.DOC_COMMENT_STYLE == HaxeCodeStyleSettings.DOC_COMMENT_STYLE_JAVADOC;
       }
 
       @Override

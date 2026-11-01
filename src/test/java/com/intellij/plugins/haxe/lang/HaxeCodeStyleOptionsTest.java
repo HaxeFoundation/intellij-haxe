@@ -32,9 +32,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
  */
 @DisplayName("Code style: options")
 public class HaxeCodeStyleOptionsTest extends HaxeLightFixtureTestCase {
-  // settings the Wrap Rules, Imports, Conditional Compilation and hxformat tabs own
+  // settings the Wrap Rules, Imports, Documentation, Conditional Compilation and hxformat tabs own
   private static final Set<String> DEDICATED_TAB_SETTINGS = Set.of(
-    "USE_PROJECT_HXFORMAT", "FORMAT_INACTIVE_BRANCHES", "ALIGN_INACTIVE_CONDITIONAL_BRANCHES",
+    "USE_PROJECT_HXFORMAT", "FORMAT_DOC_COMMENTS", "DOC_COMMENT_STYLE", "FORMAT_INACTIVE_BRANCHES", "ALIGN_INACTIVE_CONDITIONAL_BRANCHES",
     "BLANK_LINES_BETWEEN_IMPORT_GROUPS", "IMPORT_GROUP_PACKAGE_DEPTH", "KEEP_BLANK_LINES_BETWEEN_IMPORTS",
     "BOOL_CHAIN_SPLIT_LINE_LENGTH", "BOOL_CHAIN_SPLIT_ITEM_LENGTH", "BOOL_CHAIN_SPLIT_ITEM_COUNT", "BOOL_CHAIN_SPLIT_TOTAL_LENGTH",
     "ADD_CHAIN_SPLIT_LINE_LENGTH", "ADD_CHAIN_SPLIT_ITEM_LENGTH", "ADD_CHAIN_SPLIT_ITEM_COUNT", "ADD_CHAIN_SPLIT_TOTAL_LENGTH",
@@ -115,6 +115,7 @@ public class HaxeCodeStyleOptionsTest extends HaxeLightFixtureTestCase {
   static final List<Arguments> PANEL_SAMPLES = List.of(
     arguments("Wrap Rules", HaxeWrapRulesCodeStylePanel.WRAP_RULES_CODE_SAMPLE),
     arguments("Imports", HaxeImportsCodeStylePanel.IMPORTS_CODE_SAMPLE),
+    arguments("Documentation", HaxeDocCommentCodeStylePanel.DOC_COMMENT_CODE_SAMPLE),
     arguments("Conditional Compilation", HaxeConditionalCompilationPanel.CONDITIONAL_CODE_SAMPLE));
 
   @ParameterizedTest(name = "{0}")

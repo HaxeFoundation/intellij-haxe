@@ -78,4 +78,62 @@ public class HaxeDocCommentFormatTest extends HaxeLightFixtureTestCase {
       }
       """, reformat(source));
   }
+
+  @Test
+  @DisplayName("javadoc stars align under the opener while the text keeps its indent")
+  public void testJavadocStarsAlignUnderTheOpenerWhileTheTextKeepsItsIndent() {
+    String source = """
+      class Main {
+      /**
+      * zero-column stars
+              *   deeper text after the star
+      * @param x the value
+      */
+          static function main(x:Int) {
+              trace(x);
+          }
+      }
+      """;
+
+    assertEquals("""
+      class Main {
+          /**
+           * zero-column stars
+           *   deeper text after the star
+           * @param x the value
+           */
+          static function main(x:Int) {
+              trace(x);
+          }
+      }
+      """, reformat(source));
+  }
+
+  @Test
+  @DisplayName("a line without a star makes the comment haxedoc style")
+  public void testALineWithoutAStarMakesTheCommentHaxedocStyle() {
+    String source = """
+      class Main {
+      /**
+      \tIntro
+      \t* a markdown bullet
+      **/
+          static function main() {
+              trace(1);
+          }
+      }
+      """;
+
+    assertEquals("""
+      class Main {
+          /**
+              Intro
+              * a markdown bullet
+          **/
+          static function main() {
+              trace(1);
+          }
+      }
+      """, reformat(source));
+  }
 }

@@ -18,7 +18,11 @@
  */
 package com.intellij.plugins.haxe.editor;
 
+import com.intellij.application.options.CodeStyle;
 import com.intellij.codeInsight.AbstractEnterActionTestCase;
+import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,9 +82,56 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                 """
                         class Test {
                             /**
-                              \s
+                                <caret>
                             **/
                             function foo():Void {}
+                        }
+                        """);
+    }
+
+    @Test
+    @DisplayName("enter after documentation start in javadoc style")
+    public void testEnterAfterDocumentationStartInJavadocStyle() throws Throwable {
+        useDocCommentStyle(HaxeCodeStyleSettings.DOC_COMMENT_STYLE_JAVADOC);
+
+        doTextTest("hx",
+                """
+                        class Test {
+                            /**<caret>
+                            function foo(a:Int):Int { return a; }
+                        }
+                        """,
+                """
+                        class Test {
+                            /**
+                             * <caret>
+                             * @param a
+                             * @return
+                             */
+                            function foo(a:Int):Int { return a; }
+                        }
+                        """);
+    }
+
+    @Test
+    @DisplayName("enter after documentation start stubs the method tags")
+    public void testEnterAfterDocumentationStartStubsTheMethodTags() throws Throwable {
+        doTextTest("hx",
+                """
+                        class Test {
+                            /**<caret>
+                            function foo(a:Int, ?b:String):Int { return a; }
+                        }
+                        """,
+                """
+                        class Test {
+                            /**
+                                <caret>
+                                @param a
+                                @param b
+                                @return
+                            **/
+                            function foo(a:Int, ?b:String):Int { return a; }
                         }
                         """);
     }
@@ -96,11 +147,10 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                             function foo():Void {}
                         }
                         """,
-                // TODO formatting should probably indent this the same way as testEnterAfterDocumentationStart
                 """
                         class Test {
                             /**
-                           \s
+                                <caret>
                             **/
                             function foo():Void {}
                         }
@@ -119,10 +169,127 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                 // TODO formatting
                 """
                        class Test {/**
-                         \s
+                           <caret>
                        **/
                            function foo():Void {}
                        }
                        """);
+    }
+
+    /** (case, style for new comments, before, after): a closed comment's new line follows the comment's own style. */
+    static final List<Arguments> LINES_INSIDE_COMMENTS = List.of(
+            arguments("a javadoc body line continues its star", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_HAXE,
+                      """
+                              /**
+                               * first<caret>
+                               */
+                              """,
+                      """
+                              /**
+                               * first
+                               * <caret>
+                               */
+                              """),
+            arguments("a javadoc opener line starts a starred line", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_HAXE,
+                      """
+                              /**<caret>
+                               * text
+                               */
+                              """,
+                      """
+                              /**
+                               * <caret>
+                               * text
+                               */
+                              """),
+            arguments("the text indent after a star stays", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_HAXE,
+                      """
+                              /**
+                               * @param a   the first
+                               *   continued<caret>
+                               */
+                              """,
+                      """
+                              /**
+                               * @param a   the first
+                               *   continued
+                               *   <caret>
+                               */
+                              """),
+            arguments("text after the caret moves to the new starred line", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_HAXE,
+                      """
+                              /**
+                               * first<caret> second
+                               */
+                              """,
+                      """
+                              /**
+                               * first
+                               * <caret>second
+                               */
+                              """),
+            arguments("enter before the javadoc closer adds an empty starred line", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_HAXE,
+                      """
+                              /**
+                               * text
+                               <caret>*/
+                              """,
+                      """
+                              /**
+                               * text
+                               *
+                               <caret>*/
+                              """),
+            arguments("a haxedoc body line gets no star", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_JAVADOC,
+                      """
+                              /**
+                                  text<caret>
+                              **/
+                              """,
+                      """
+                              /**
+                                  text
+                                  <caret>
+                              **/
+                              """),
+            arguments("a markdown bullet in a haxedoc comment gets no star", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_HAXE,
+                      """
+                              /**
+                                  Intro
+                                  * item<caret>
+                              **/
+                              """,
+                      """
+                              /**
+                                  Intro
+                                  * item
+                                  <caret>
+                              **/
+                              """),
+            arguments("a comment without lines of its own takes the javadoc style", HaxeCodeStyleSettings.DOC_COMMENT_STYLE_JAVADOC,
+                      """
+                              /**<caret>
+                              **/
+                              """,
+                      """
+                              /**
+                               * <caret>
+                              **/
+                              """));
+
+    @ParameterizedTest(name = "{0}")
+    @FieldSource("LINES_INSIDE_COMMENTS")
+    @DisplayName("enter inside a comment continues its style")
+    public void testEnterInsideACommentContinuesItsStyle(String name, int newCommentStyle, String before, String after) throws Throwable {
+        useDocCommentStyle(newCommentStyle);
+
+        doTextTest("hx", before + "class Test {}\n", after + "class Test {}\n");
+    }
+
+    private void useDocCommentStyle(int style) {
+        CodeStyleSettingsManager manager = CodeStyleSettingsManager.getInstance(getProject());
+        CodeStyleSettings settings = manager.cloneSettings(CodeStyle.getSettings(getProject()));
+        settings.getCustomSettings(HaxeCodeStyleSettings.class).DOC_COMMENT_STYLE = style;
+        manager.setTemporarySettings(settings);
     }
 }
