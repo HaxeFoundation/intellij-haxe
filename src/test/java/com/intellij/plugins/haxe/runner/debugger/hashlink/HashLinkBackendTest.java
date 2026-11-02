@@ -13,14 +13,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class HashLinkBackendTest {
 
   @Test
-  @DisplayName("the debuggee command line holds the program on the backends debug port")
-  public void testTheDebuggeeCommandLineHoldsTheProgramOnTheBackendsDebugPort() {
-    HashLinkBackend backend = new HashLinkBackend(Path.of("hl"), Path.of("out", "app.hl"), 6111, List.of());
+  @DisplayName("the debuggee command line holds the program on the backends debug port followed by its arguments")
+  public void verifyCommandFromHashLinkBackend() {
+    Path path = Path.of("out", "app.hl");
+    Path hlExecutable = Path.of("hl");
+    HashLinkBackend backend = new HashLinkBackend(hlExecutable, path, 6111, List.of());
 
-    GeneralCommandLine commandLine = backend.debuggeeCommandLine("work");
+    GeneralCommandLine commandLine = backend.debuggeeCommandLine("work", List.of("--level", "two words"));
 
-    assertEquals(Path.of("hl").toString(), commandLine.getExePath());
-    assertEquals(List.of("--debug", "6111", "--debug-wait", Path.of("out", "app.hl").toString()), commandLine.getParametersList().getList());
+    List<String> expectedParameters = List.of("--debug", "6111", "--debug-wait", path.toString(), "--level", "two words");
+    List<String> actualParameters = commandLine.getParametersList().getList();
+
+    assertEquals(hlExecutable.toString(), commandLine.getExePath());
+    assertEquals(expectedParameters, actualParameters);
+
     assertEquals("work", commandLine.getWorkDirectory().getPath());
   }
 }

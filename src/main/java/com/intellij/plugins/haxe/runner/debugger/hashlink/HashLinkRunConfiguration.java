@@ -25,19 +25,23 @@ import com.intellij.plugins.haxe.profiler.HaxeProfilerProcessUi;
 import com.intellij.plugins.haxe.profiler.HaxeProfilingNotifier;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapCommandLineRunningState;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
+import com.intellij.util.execution.ParametersListUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /// A HashLink run/debug configuration (experimental): a module (for the Haxe
-/// SDK and source lookup) plus the compiled `.hl` to execute. When the
-/// .hl path is left empty it is auto-detected from the module's build
-/// (`-hl <out>.hl` in the hxml or compiler arguments).
+/// SDK and source lookup) plus the compiled `.hl` to execute and the
+/// arguments `hl` hands to the program after it. When the .hl path is left
+/// empty it is auto-detected from the module's build (`-hl <out>.hl` in the
+/// hxml or compiler arguments).
 public class HashLinkRunConfiguration extends DapRunConfigurationBase implements HaxeProfilableRunConfiguration {
   private static final String HL_FILE = "hlFile";
   private static final String WORKING_DIRECTORY = "workingDirectory";
+  private static final String PROGRAM_ARGUMENTS = "programArguments";
   private static final String USE_CUSTOM_HL_BINARY = "useCustomHlBinary";
   private static final String CUSTOM_HL_BINARY = "customHlBinary";
 
@@ -46,6 +50,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
 
   private String hlFilePath = "";
   private String workingDirectory = "";
+  private String programArguments = "";
   // when enabled, this HashLink executable runs the program instead of the
   // SDK/environment-resolved one (e.g. a Lime/OpenFL game's renamed hl.exe)
   private boolean useCustomHlBinary = false;
@@ -71,6 +76,19 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
 
   public void setWorkingDirectory(@Nullable String directory) {
     workingDirectory = directory == null ? "" : directory;
+  }
+
+  public String getProgramArguments() {
+    return programArguments;
+  }
+
+  public void setProgramArguments(@Nullable String arguments) {
+    programArguments = arguments == null ? "" : arguments;
+  }
+
+  /** The program arguments split as a shell would; `hl` hands everything after the program file to `Sys.args()`. */
+  @NotNull List<String> programArgumentList() {
+    return ParametersListUtil.parse(programArguments);
   }
 
   public boolean isUseCustomHlBinary() {
@@ -174,7 +192,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     };
   }
 
-  private GeneralCommandLine createRunCommandLine(@Nullable Integer profilerSamples) throws ExecutionException {
+  GeneralCommandLine createRunCommandLine(@Nullable Integer profilerSamples) throws ExecutionException {
     Module module = requireModule();
     Path hlExecutable = resolveHlExecutable(module);
     Path hlProgram = resolveProgram(module);
@@ -188,6 +206,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     }
     return commandLine
       .withParameters(hlProgram.toString())
+      .withParameters(programArgumentList())
       .withWorkDirectory(workDir.toString());
   }
 
@@ -251,6 +270,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     readModule(element);
     hlFilePath = orEmpty(JDOMExternalizerUtil.readField(element, HL_FILE));
     workingDirectory = orEmpty(JDOMExternalizerUtil.readField(element, WORKING_DIRECTORY));
+    programArguments = orEmpty(JDOMExternalizerUtil.readField(element, PROGRAM_ARGUMENTS));
     useCustomHlBinary = Boolean.parseBoolean(JDOMExternalizerUtil.readField(element, USE_CUSTOM_HL_BINARY));
     customHlBinaryPath = orEmpty(JDOMExternalizerUtil.readField(element, CUSTOM_HL_BINARY));
   }
@@ -260,6 +280,7 @@ public class HashLinkRunConfiguration extends DapRunConfigurationBase implements
     super.writeExternal(element); // also serializes the module
     JDOMExternalizerUtil.writeField(element, HL_FILE, hlFilePath);
     JDOMExternalizerUtil.writeField(element, WORKING_DIRECTORY, workingDirectory);
+    JDOMExternalizerUtil.writeField(element, PROGRAM_ARGUMENTS, programArguments);
     JDOMExternalizerUtil.writeField(element, USE_CUSTOM_HL_BINARY, String.valueOf(useCustomHlBinary));
     JDOMExternalizerUtil.writeField(element, CUSTOM_HL_BINARY, customHlBinaryPath);
   }

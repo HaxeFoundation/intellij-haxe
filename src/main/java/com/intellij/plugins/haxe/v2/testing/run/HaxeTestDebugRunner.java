@@ -102,7 +102,7 @@ public class HaxeTestDebugRunner extends DapDebugRunnerBase<HaxeTestRunConfigura
     return switch (backend) {
       // the adapter launches the browser itself; nothing is spawned here
       case BrowserDebugBackend ignored -> null;
-      case HashLinkBackend hashLink -> hashLink.debuggeeCommandLine(plan.workDirectory());
+      case HashLinkBackend hashLink -> hashLink.debuggeeCommandLine(plan.workDirectory(), List.of());
       case HxcppIntellijBackend hxcpp -> hxcppCommandLine(plan, hxcpp);
       case NodeDebugBackend node -> nodeCommandLine(plan, node);
       case InterpDapBackend interp -> interpCommandLine(plan, interp);
