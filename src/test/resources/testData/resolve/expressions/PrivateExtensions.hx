@@ -2,6 +2,7 @@ package;
 using <info descr="null">PrivateExtensions</info>;
 using <info descr="null"><info descr="null">PrivateExtensions</info>.Base</info>;
 using <info descr="null"><info descr="null">PrivateExtensions</info>.Tools</info>;
+using <info descr="null"><info descr="null">PrivateExtensions</info>.Gated</info>;
 
 class <info descr="null">PrivateExtensions</info> {
     static function <info descr="null">main</info>() {
@@ -30,6 +31,36 @@ class <info descr="null">Tools</info> {
 class <info descr="null">Point</info> {
     public var <info descr="null">x</info>:<info descr="null">Int</info> = 1;
     public function <info descr="null">new</info>() {}
+}
+
+class <info descr="null">Gated</info> {
+    @:allow(<info descr="null"><info descr="null">PrivateExtensions</info>.AllowedCaller</info>)
+    static function <info descr="null">quarter</info>(<info descr="null">i</info>:<info descr="null">Int</info>) return <info descr="null">i</info> >> 2;
+    static function <info descr="null">fifth</info>(<info descr="null">i</info>:<info descr="null">Int</info>) return <info descr="null">i</info> * 5;
+    static function <info descr="null">sixth</info>(<info descr="null">i</info>:<info descr="null">Int</info>) return <info descr="null">i</info> * 6;
+}
+
+class <info descr="null">AllowedCaller</info> {
+    static function <info descr="null">run</info>() {
+        var <info descr="null">four</info> = 4;
+        var <info descr="null">quartered</info> = <info descr="null">four</info>.<info descr="null">quarter</info>();  // @:allow on the extension names this class
+    }
+}
+
+class <info descr="null">AccessingCaller</info> {
+    @:access(<info descr="null"><info descr="null">PrivateExtensions</info>.Gated</info>)
+    static function <info descr="null">run</info>() {
+        var <info descr="null">five</info> = 5;
+        var <info descr="null">fifthed</info> = <info descr="null">five</info>.<info descr="null">fifth</info>();  // @:access on this method names the extension's class
+    }
+}
+
+class <info descr="null">PrivateAccessCaller</info> {
+    static function <info descr="null">run</info>() {
+        var <info descr="null">six</info> = 6;
+        var <info descr="null">sixthed</info> = @:privateAccess <info descr="null">six</info>.<info descr="null">sixth</info>();  // @:privateAccess on the call
+        var <info descr="null">quartered</info> = <info descr="null">six</info>.<warning descr="Unresolved symbol">quarter</warning><info descr="">()</info>;  // no metadata grants access here
+    }
 }
 
 class <info descr="null">PointTools</info> {
