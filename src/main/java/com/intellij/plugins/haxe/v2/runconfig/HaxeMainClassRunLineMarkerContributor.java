@@ -69,7 +69,7 @@ public final class HaxeMainClassRunLineMarkerContributor extends RunLineMarkerCo
     List<AnAction> actions = new ArrayList<>();
     for (MainLaunch launch : launches) {
       actions.add(new LaunchAction(launch, false));
-      if (HaxeDebugSupport.supportsProgramDebug(launch.kind().target())) {
+      if (launch.kind().supportsDebug()) {
         actions.add(new LaunchAction(launch, true));
       }
     }

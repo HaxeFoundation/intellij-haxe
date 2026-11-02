@@ -59,6 +59,18 @@ public class DapRunConfigurationPathsTest extends HaxeCodeInsightFixtureTestCase
     assertEquals(projectBase.resolve("bin"), configuration.resolveWorkingDirectory());
   }
 
+  @Test
+  @DisplayName("path macros expand before the rule applies")
+  public void testPathMacrosExpandBeforeTheRuleApplies() {
+    NekoRunConfiguration configuration = newConfiguration();
+    configuration.setModule(myFixture.getModule());
+    Path projectBase = Path.of(Objects.requireNonNull(getProject().getBasePath()));
+
+    configuration.setWorkingDirectory("$PROJECT_DIR$/bin");
+
+    assertEquals(projectBase.resolve("bin"), configuration.resolveWorkingDirectory());
+  }
+
   private NekoRunConfiguration newConfiguration() {
     HaxeRunConfigurationType type = HaxeRunConfigurationType.getInstance();
     return new NekoRunConfiguration("neko", getProject(), new NekoConfigurationFactory(type));
