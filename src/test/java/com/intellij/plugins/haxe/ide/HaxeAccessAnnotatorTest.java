@@ -38,6 +38,18 @@ public class HaxeAccessAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWeakWarnings();
   }
 
+  @Test
+  @DisplayName("private override chain called from outside the hierarchy")
+  public void testPrivateOverrideChain() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
+  @DisplayName("private override in a cyclic hierarchy called from outside it")
+  public void testPrivateOverrideCycle() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
   // METADATA access control
   @Test
   @DisplayName("meta private access")

@@ -30,7 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.intellij.plugins.haxe.lang.psi.HaxeCodeFragmentUtil.isInCodeFragment;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.*;
@@ -302,18 +304,17 @@ public class HaxeAccessAnnotator implements Annotator {
   }
 
   private boolean overridesMemberInCommonClass(HaxeMemberModel memberModel, HaxeClass currentClass) {
-    if(memberModel instanceof  HaxeMethodModel memberMethod) {
-      HaxeMethodModel method = memberMethod;
-      while(method.isOverride()) {
-        method = memberMethod.getAncestorMethod(null);
-        if(method == null) {
-          break;
-        }else {
-          HaxeClassModel declaringClass = method.getDeclaringClass();
-          if(declaringClass != null){
-            if (inheritsFrom(currentClass, declaringClass.haxeClass)) return true;
-          }
-        }
+    if (!(memberModel instanceof HaxeMethodModel memberMethod)) return false;
+    // a cyclic class hierarchy can lead back to a method already visited
+    Set<HaxeMethod> visited = new HashSet<>();
+    visited.add(memberMethod.getMethod());
+    HaxeMethodModel method = memberMethod;
+    while (method.isOverride()) {
+      method = method.getAncestorMethod(null);
+      if (method == null || !visited.add(method.getMethod())) break;
+      HaxeClassModel declaringClass = method.getDeclaringClass();
+      if (declaringClass != null && inheritsFrom(currentClass, declaringClass.haxeClass)){
+        return true;
       }
     }
     return false;

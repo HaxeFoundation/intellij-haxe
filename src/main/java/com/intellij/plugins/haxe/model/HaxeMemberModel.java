@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeModuleImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
@@ -156,14 +157,11 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
 
   private boolean isOverriddenPublicMethod() {
-    if (hasModifier(OVERRIDE)) {
-      final HaxeBaseMemberModel parentMember = getParentMember();
-      if (parentMember instanceof HaxeMemberModel model) {
-        return model.isPublic();
-      }
-    }
-
-    return false;
+    if (!hasModifier(OVERRIDE)) return false;
+    // a cyclic class hierarchy leads an override back to itself
+    Boolean parentIsPublic = RecursionManager.doPreventingRecursion(basePsi, false, () ->
+      getParentMember() instanceof HaxeMemberModel model && model.isPublic());
+    return Boolean.TRUE.equals(parentIsPublic);
   }
 
   /**
