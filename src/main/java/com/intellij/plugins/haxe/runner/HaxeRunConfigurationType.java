@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.runner.debugger.hxcpp.vshaxe.HxcppVshaxeConfigu
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpConfigurationFactory;
 import com.intellij.plugins.haxe.runner.neko.NekoConfigurationFactory;
+import com.intellij.plugins.haxe.runner.customtarget.CustomTargetConfigurationFactory;
 import com.intellij.plugins.haxe.runner.nodejs.NodeConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserConfigurationFactory;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeActionConfigurationFactory;
@@ -52,6 +53,8 @@ import javax.swing.*;
  *   <li>Browser Application</li>
  *   <li>Haxe Flash Application and AIR Application</li>
  *   <li>Neko Application</li>
+ *   <li>Node.js Application</li>
+ *   <li>Custom Target Application — any program, plain Run only</li>
  * </ul>
  *
  * Compatibility: the type keeps the historical id
@@ -78,6 +81,7 @@ public class HaxeRunConfigurationType implements ConfigurationType {
       new AirConfigurationFactory(this),
       new NekoConfigurationFactory(this),
       new NodeConfigurationFactory(this),
+      new CustomTargetConfigurationFactory(this),
     };
   }
 

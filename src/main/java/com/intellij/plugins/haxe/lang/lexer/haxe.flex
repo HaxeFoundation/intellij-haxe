@@ -408,6 +408,10 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 // lookahead precludes proper detection at the end of the file/stream.
 {mNUM_INT} ".."                           {  yypushback(2); return emitToken( LITINT); }
 
+// extension methods can be used on integers so we must check whats after a dot before deciding its a float, ex '1.double()'
+// exponents like '1.e5', should match mNUM_FLOAT (attempts at using extension methods would give "Float cannot be called")
+{mNUM_INT} "." {IDENTIFIER_START}         {  yypushback(2); return emitToken( LITINT); }
+
 {mNUM_FLOAT}                              {  return emitToken( LITFLOAT); }
 {mNUM_OCT}                                {  return emitToken( LITOCT); }
 {mNUM_BIN}                                {  return emitToken( LITBIN); }

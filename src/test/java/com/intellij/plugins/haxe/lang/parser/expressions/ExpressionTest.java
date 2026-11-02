@@ -222,4 +222,10 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testXmlLiterals() throws Throwable {
     doTest(true);
   }
+
+  @Test
+  @DisplayName("number member access")
+  public void testNumberMemberAccess() throws Throwable {
+    doTest(true, true);
+  }
 }

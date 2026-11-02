@@ -217,7 +217,9 @@ public final class HaxeToolWindowLaunches {
       notifyUser(project, HaxeBundle.message("haxe.toolwindow.action.launch.unknown.kind", actionNode.name(), launch.kindId()));
       return null;
     }
-    if (actionNode.launchOutput() == null) {
+    // a custom target runs a program the user names and needs no build output
+    String launchOutput = kind.launchesBuildOutput() ? actionNode.launchOutput() : "";
+    if (launchOutput == null) {
       notifyUser(project, HaxeBundle.message("haxe.toolwindow.program.unsupported", buildFile.file().getName()));
       return null;
     }
@@ -225,7 +227,7 @@ public final class HaxeToolWindowLaunches {
     if (module == null) return null;
 
     Map<Parameter, String> overrides = Parameter.fromKeys(launch.parameters());
-    return HaxeProgramLaunches.findOrCreate(project, module, buildFile, kind, actionNode.launchOutput(), actionNode.name(),
+    return HaxeProgramLaunches.findOrCreate(project, module, buildFile, kind, launchOutput, actionNode.name(),
                                             overrides, launch.injectDebugArguments());
   }
 

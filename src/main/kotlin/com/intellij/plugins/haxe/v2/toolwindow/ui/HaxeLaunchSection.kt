@@ -39,8 +39,10 @@ import javax.swing.JComponent
  * The launch part of the custom action dialog: two collapsed groups, at most
  * one of them in use; choosing in one resets the other.
  * "Create run configuration" picks the Haxe kind that launches the build's
- * output and shows the kind's parameters, each with the build file's default
- * as empty text; a blank field keeps following that default.
+ * output, or a custom target's program, and shows the kind's parameters, each
+ * with the build file's default as empty text; a blank field keeps following
+ * that default. The debug-arguments option shows only for a kind with a
+ * debugger.
  * "Run existing configuration" picks a configuration of any type; the
  * action's command becomes its build step.
  * A file parameter browses with a file-or-folder chooser: the artifact usually
@@ -94,7 +96,7 @@ class HaxeLaunchSection(
         }
         row {
           cell(createDebugArguments)
-        }.visibleIf(kindCombo.selectedValueMatches { it != null })
+        }.visibleIf(kindCombo.selectedValueMatches { it != null && it.supportsDebug() })
         row {
           comment(HaxeBundle.message("haxe.custom.action.dialog.launch.hint"))
         }.bottomGap(BottomGap.SMALL)

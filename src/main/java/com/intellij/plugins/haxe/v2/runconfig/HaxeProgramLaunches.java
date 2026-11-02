@@ -13,6 +13,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapExecutableRunConfigurationBase;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapRunConfigurationBase;
 import com.intellij.plugins.haxe.runner.debugger.flash.AirRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.flash.FlashRunConfiguration;
@@ -20,6 +21,7 @@ import com.intellij.plugins.haxe.runner.debugger.hashlink.HashLinkRunConfigurati
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpRunConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRuntimeRunConfiguration;
+import com.intellij.plugins.haxe.runner.customtarget.CustomTargetRunConfiguration;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.plugins.haxe.v2.buildsystem.*;
@@ -243,6 +245,7 @@ public final class HaxeProgramLaunches {
       case HXCPP -> hxcppDefaults(project, buildFile, targetOutput, parameters);
       case NEKO -> nekoDefaults(project, buildFile, targetOutput, parameters);
       case INTERP -> interpDefaults(project, buildFile, parameters);
+      case CUSTOM_TARGET -> { } // nothing derives from the build
     }
     return parameters;
   }
@@ -255,7 +258,8 @@ public final class HaxeProgramLaunches {
       case FlashRunConfiguration flash -> ifPresent(parameters, Parameter.SWF, flash::setSwfFilePath);
       case AirRunConfiguration air -> applyAir(air, parameters);
       case HxcppIntellijRunConfiguration hxcpp -> ifPresent(parameters, Parameter.EXECUTABLE, hxcpp::setExecutablePath);
-      case HaxeRuntimeRunConfiguration runtime -> applyRuntime(runtime, parameters);
+      case HaxeRuntimeRunConfiguration runtime -> applyProgramFields(runtime, parameters);
+      case CustomTargetRunConfiguration custom -> applyProgramFields(custom, parameters);
       case InterpRunConfiguration interp -> applyInterp(interp, parameters);
       default -> { }
     }
@@ -397,7 +401,8 @@ public final class HaxeProgramLaunches {
     parameters.put(Parameter.WORKING_DIRECTORY, String.valueOf(output.getParent()));
   }
 
-  private static void applyRuntime(@NotNull HaxeRuntimeRunConfiguration configuration, @NotNull Map<Parameter, String> parameters) {
+  private static void applyProgramFields(@NotNull DapExecutableRunConfigurationBase configuration,
+                                         @NotNull Map<Parameter, String> parameters) {
     ifPresent(parameters, Parameter.EXECUTABLE, configuration::setExecutablePath);
     ifPresent(parameters, Parameter.PROGRAM_ARGUMENTS, configuration::setProgramArguments);
     ifPresent(parameters, Parameter.WORKING_DIRECTORY, configuration::setWorkingDirectory);

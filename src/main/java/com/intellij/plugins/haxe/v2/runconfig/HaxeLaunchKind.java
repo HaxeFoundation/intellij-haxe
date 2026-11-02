@@ -15,6 +15,8 @@ import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijCon
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpConfigurationFactory;
 import com.intellij.plugins.haxe.runner.debugger.interp.InterpRunConfiguration;
+import com.intellij.plugins.haxe.runner.customtarget.CustomTargetConfigurationFactory;
+import com.intellij.plugins.haxe.runner.customtarget.CustomTargetRunConfiguration;
 import com.intellij.plugins.haxe.runner.neko.NekoConfigurationFactory;
 import com.intellij.plugins.haxe.runner.neko.NekoRunConfiguration;
 import com.intellij.plugins.haxe.runner.nodejs.NodeConfigurationFactory;
@@ -31,7 +33,8 @@ import java.util.Map;
 /// The run configuration kinds a build's output launches through: HL bytecode
 /// → HashLink Application, JS → Web Browser or Node.js, a swf → Flash (AIR for
 /// lime's air target), C++ → HXCPP, neko → Neko, an interpreter build → Haxe
-/// Interpreter.
+/// Interpreter. Custom Target Application runs any program, for a target the
+/// plugin cannot launch itself; only a custom action picks it.
 /// A kind's parameters are the configuration fields a launch fills (paths,
 /// arguments, working directory); [HaxeProgramLaunches] derives their defaults
 /// from the build file and applies them. The persisted id of a kind is its `name()`.
@@ -59,7 +62,10 @@ public enum HaxeLaunchKind {
        Parameter.EXECUTABLE, Parameter.PROGRAM_ARGUMENTS, Parameter.WORKING_DIRECTORY),
   INTERP(InterpRunConfiguration.class, InterpConfigurationFactory.class,
          "haxe.toolwindow.program.configuration.name.interp", HaxeTarget.INTERP, null,
-         Parameter.COMPILER_ARGUMENTS, Parameter.WORKING_DIRECTORY);
+         Parameter.COMPILER_ARGUMENTS, Parameter.WORKING_DIRECTORY),
+  CUSTOM_TARGET(CustomTargetRunConfiguration.class, CustomTargetConfigurationFactory.class,
+                "haxe.toolwindow.program.configuration.name.custom.target", null, null,
+                Parameter.EXECUTABLE, Parameter.PROGRAM_ARGUMENTS, Parameter.WORKING_DIRECTORY);
 
   /**
    * A configuration field a launch fills; {@code key} is the stored spelling,
@@ -139,7 +145,7 @@ public enum HaxeLaunchKind {
   HaxeLaunchKind(@NotNull Class<? extends RunConfiguration> configurationClass,
                  @NotNull Class<? extends ConfigurationFactory> factoryClass,
                  @NotNull String nameKey,
-                 @NotNull HaxeTarget target,
+                 @Nullable HaxeTarget target,
                  @Nullable Lane profilingLane,
                  @NotNull Parameter... parameters) {
     this.configurationClass = configurationClass;
@@ -172,10 +178,27 @@ public enum HaxeLaunchKind {
     return HaxeBundle.message(nameKey, buildFileName);
   }
 
-  /** The compilation target whose output the kind launches; decides the debugger and the compile additions. */
-  @NotNull
+  /**
+   * The compilation target whose output the kind launches; decides the
+   * debugger and the compile additions. Null for a custom target, a program
+   * the plugin knows nothing about.
+   */
+  @Nullable
   public HaxeTarget target() {
     return target;
+  }
+
+  /** Whether a debugger exists for the kind's launches. */
+  public boolean supportsDebug() {
+    return HaxeDebugSupport.supportsProgramDebug(target);
+  }
+
+  /**
+   * Whether the kind launches the build's output, so its parameters default
+   * from it; a custom target runs a program the user names.
+   */
+  public boolean launchesBuildOutput() {
+    return this != CUSTOM_TARGET;
   }
 
   /**
