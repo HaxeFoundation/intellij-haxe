@@ -9,6 +9,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.util.ui.HaxePathFieldChoosers;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBTextField;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +18,8 @@ import org.jetbrains.annotations.NotNull;
  * Settings UI for a HashLink run configuration: module, compiled HashLink
  * binary (auto-detected from the build when empty; .dat accepted so a
  * Lime/OpenFL distribution's {@code hlboot.dat} can be debugged in place),
- * working directory, and an optional custom HashLink executable that
- * overrides the SDK/environment-resolved one.
+ * working directory, program arguments, and an optional custom HashLink
+ * executable that overrides the SDK/environment-resolved one.
  *
  * The layout lives in the matching .form (labels bind their bundle keys
  * there); this class owns the chooser wiring and the reset/apply mapping.
@@ -28,6 +29,7 @@ public class HashLinkRunConfigurationEditor extends SettingsEditor<HashLinkRunCo
   private ModulesComboBox moduleCombo;
   private TextFieldWithBrowseButton hlFileField;
   private TextFieldWithBrowseButton workingDirectoryField;
+  private JBTextField programArgumentsField;
   private JBCheckBox useCustomHlBinaryCheckbox;
   private TextFieldWithBrowseButton customHlBinaryField;
 
@@ -55,6 +57,7 @@ public class HashLinkRunConfigurationEditor extends SettingsEditor<HashLinkRunCo
     moduleCombo.setSelectedModule(configuration.getConfigurationModule().getModule());
     hlFileField.setText(FileUtil.toSystemDependentName(configuration.getHlFilePath()));
     workingDirectoryField.setText(FileUtil.toSystemDependentName(configuration.getWorkingDirectory()));
+    programArgumentsField.setText(configuration.getProgramArguments());
     useCustomHlBinaryCheckbox.setSelected(configuration.isUseCustomHlBinary());
     customHlBinaryField.setText(FileUtil.toSystemDependentName(configuration.getCustomHlBinaryPath()));
     customHlBinaryField.setEnabled(configuration.isUseCustomHlBinary());
@@ -65,6 +68,7 @@ public class HashLinkRunConfigurationEditor extends SettingsEditor<HashLinkRunCo
     configuration.setModule(moduleCombo.getSelectedModule());
     configuration.setHlFilePath(FileUtil.toSystemIndependentName(hlFileField.getText().trim()));
     configuration.setWorkingDirectory(FileUtil.toSystemIndependentName(workingDirectoryField.getText().trim()));
+    configuration.setProgramArguments(programArgumentsField.getText().trim());
     configuration.setUseCustomHlBinary(useCustomHlBinaryCheckbox.isSelected());
     configuration.setCustomHlBinaryPath(FileUtil.toSystemIndependentName(customHlBinaryField.getText().trim()));
   }

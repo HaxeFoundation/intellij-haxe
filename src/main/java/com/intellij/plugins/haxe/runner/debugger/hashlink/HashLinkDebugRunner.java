@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * involved.
  *
  * The runner spawns the debuggee itself
- * ({@code hl --debug <port> --debug-wait <program>}), suspended under the
+ * ({@code hl --debug <port> --debug-wait <program> <arguments>}), suspended under the
  * VM's debug server until the adapter connects — so no user code runs before
  * breakpoints are installed. The debuggee must be spawned from Java, not from
  * the adapter: the adapter is itself a HashLink process, and HL's process.c
@@ -59,6 +59,7 @@ public class HashLinkDebugRunner extends DapDebugRunnerBase<HashLinkRunConfigura
   protected GeneralCommandLine createCommandLine(HashLinkRunConfiguration configuration, HashLinkBackend backend)
     throws ExecutionException {
     Module module = configuration.requireModule();
-    return backend.debuggeeCommandLine(configuration.effectiveWorkingDirectory(module).toString());
+    return backend.debuggeeCommandLine(configuration.effectiveWorkingDirectory(module).toString(),
+                                       configuration.programArgumentList());
   }
 }
