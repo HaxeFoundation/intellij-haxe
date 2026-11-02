@@ -59,6 +59,8 @@
                  description="Haxe: the expression evaluator asks the compilation server (display/hover) for the type of a parameter, variable, field or extracted value before evaluating it itself"/>
 
     <iconMapper mappingFile="HaxeIconMappings.json"/>
+    <!-- user-approved error and freeze reports go to the plugin's Marketplace page -->
+    <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
       <!-- NOTE: Looks like intellij-platform-gradle-plugin 2.7.0 prefixes all extra jars with rootProject.name-->
       <compileServer.plugin  id="haxe" classpath="modules/Haxe-plugin.jps-plugin.jar;modules/Haxe-plugin.common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>

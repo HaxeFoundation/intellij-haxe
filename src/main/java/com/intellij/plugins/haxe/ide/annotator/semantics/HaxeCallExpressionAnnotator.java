@@ -91,8 +91,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
                 return;
               }
             }
-            // if not enum value constructor, expr, dynamic or unknown, show error
-            if (!type.isEnumValueType() && !type.isDynamic() && !type.isUnknown() && !type.getType().isExpr()) {
+            // if not enum value constructor, expr, dynamic or unknown (after typedefs), show error
+            if (!type.isEnumValueType() && !typeReference.isDynamic() && !typeReference.isUnknown() && !typeReference.isExpr()) {
               String typePresentationString = typeReference.toPresentationString(true);
               String errorMessage = HaxeBundle.message("haxe.semantic.not.callable.type", typePresentationString);
               holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)

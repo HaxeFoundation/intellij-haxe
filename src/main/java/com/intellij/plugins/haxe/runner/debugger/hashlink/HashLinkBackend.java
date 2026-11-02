@@ -65,10 +65,11 @@ public class HashLinkBackend implements DapBackend {
 
   /** The debuggee's command line: the HashLink VM runs the program with {@code --debug-wait}, holding it at its first instruction until the adapter attaches on the debug port. */
   @NotNull
-  public GeneralCommandLine debuggeeCommandLine(@Nullable String workDirectory) {
+  public GeneralCommandLine debuggeeCommandLine(@Nullable String workDirectory, @NotNull List<String> programArguments) {
     return new GeneralCommandLine()
       .withExePath(hlExecutable.toString())
       .withParameters("--debug", Integer.toString(debugPort), "--debug-wait", hlProgram.toString())
+      .withParameters(programArguments)
       .withWorkDirectory(workDirectory);
   }
 
