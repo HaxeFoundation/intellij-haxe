@@ -1,6 +1,7 @@
 package ;
 
 typedef TypedefVoidFn = Void -> Void;
+typedef TypedefDynamic = Dynamic;
 
 class Test {
     function new(){
@@ -11,6 +12,15 @@ class Test {
 
         var typeDefVoid:TypedefVoidFn = voidFn;
         typeDefVoid();
+
+        var dyn:Dynamic = null;
+        dyn(); // correct
+
+        var typeDefDynamic:TypedefDynamic = null;
+        typeDefDynamic(1, ""); // correct: a typedef to Dynamic is callable like Dynamic
+
+        var inferredTypeDefDynamic = testB(typeDefDynamic);
+        inferredTypeDefDynamic(1, ""); // correct
 
         var withTypeTag:Int -> String = testA;
         var withoutTypeTag = testA;
@@ -52,4 +62,5 @@ class Test {
     public function  testB<T>(i:T):T {
         return i;
     }
+
 }
