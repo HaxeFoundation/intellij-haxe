@@ -387,6 +387,27 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
       myFixture.configureByFiles("Extensions5.hx", "extensions/Stuff.hx");
       doTestVariantsInner("Extensions5.txt");
     }
+
+    @Test
+    @DisplayName("extensions 6 - private extension whose @:allow names the class")
+    public void testExtensions6() throws Throwable {
+      myFixture.configureByFiles("Extensions6.hx", "extensions/Gated.hx");
+      doTestVariantsInner("Extensions6.txt");
+    }
+
+    @Test
+    @DisplayName("extensions 7 - private extensions in a method whose @:access names their class")
+    public void testExtensions7() throws Throwable {
+      myFixture.configureByFiles("Extensions7.hx", "extensions/Gated.hx");
+      doTestVariantsInner("Extensions7.txt");
+    }
+
+    @Test
+    @DisplayName("extensions 8 - private extensions without granting metadata stay hidden")
+    public void testExtensions8() throws Throwable {
+      myFixture.configureByFiles("Extensions8.hx", "extensions/Gated.hx");
+      doTestVariantsInner("Extensions8.txt");
+    }
   }
 
   @Nested

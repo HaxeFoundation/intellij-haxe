@@ -19,12 +19,14 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeModuleImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
@@ -155,14 +157,33 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
 
   private boolean isOverriddenPublicMethod() {
-    if (hasModifier(OVERRIDE)) {
-      final HaxeBaseMemberModel parentMember = getParentMember();
-      if (parentMember instanceof HaxeMemberModel model) {
-        return model.isPublic();
-      }
-    }
+    if (!hasModifier(OVERRIDE)) return false;
+    // a cyclic class hierarchy leads an override back to itself
+    Boolean parentIsPublic = RecursionManager.doPreventingRecursion(basePsi, false, () ->
+      getParentMember() instanceof HaxeMemberModel model && model.isPublic());
+    return Boolean.TRUE.equals(parentIsPublic);
+  }
 
-    return false;
+  /**
+   * Whether the member is accessible at the element, by the compiler's rule:
+   * public anywhere, private inside its declaring class or a subclass of it,
+   * or wherever metadata grants it ({@link HaxeAccessRules}).
+   */
+  public boolean isAccessibleAt(@NotNull PsiElement element) {
+    if (isPublic()) return true;
+    return isDeclaredInOrAbove(HaxeAccessRules.enclosingNamedClass(element))
+           || HaxeAccessRules.isGrantedByMetadata(this, element);
+  }
+
+  /** Classes compare by qualified name, since completion asks from a copy of the file. */
+  private boolean isDeclaredInOrAbove(@Nullable HaxeClass accessingClass) {
+    HaxeClassModel declaringClass = getDeclaringClass();
+    if (declaringClass == null || accessingClass == null) return false;
+
+    String declaringName = declaringClass.haxeClass.getQualifiedName();
+    if (declaringName.equals(accessingClass.getQualifiedName())) return true;
+    return HaxeResolveUtil.getBaseClassesSet(accessingClass).stream()
+      .anyMatch(base -> declaringName.equals(base.getQualifiedName()));
   }
 
   @Override

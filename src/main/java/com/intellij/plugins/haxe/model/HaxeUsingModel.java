@@ -86,20 +86,19 @@ public class HaxeUsingModel extends HaxeImportableModel {
   }
 
   @Nullable
-  public HaxeMethodModel findExtensionMethod(String name, SpecificTypeReference applyTo) {
-    List<HaxeMethodModel> result = getExtensionMethods(applyTo, name);
+  public HaxeMethodModel findExtensionMethod(String name, SpecificTypeReference applyTo, @NotNull PsiElement callSite) {
+    List<HaxeMethodModel> result = getExtensionMethods(applyTo, name, callSite);
     return result.isEmpty() ? null : result.getFirst();
   }
 
+  /**
+   * The static extensions this using statement offers for {@code applyTo} at
+   * {@code callSite}, all of them or those named {@code name}.
+   */
   @NotNull
-  public List<HaxeMethodModel> getExtensionMethods(@NotNull HaxeClass classApplyTo, PsiElement ref) {
-    HaxeClassModel model = HaxeClassModel.fromElement(classApplyTo);
-    SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withoutGenerics(model.createReference(ref));
-    return getExtensionMethods(classReference, null);
-  }
-
-  @NotNull
-  public List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificTypeReference applyTo, @Nullable String name) {
+  public List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificTypeReference applyTo,
+                                                   @Nullable String name,
+                                                   @NotNull PsiElement callSite) {
     List<HaxeClassModel> classes = getClassModels();
     if (classes.isEmpty()) return Collections.emptyList();
 
@@ -130,7 +129,8 @@ public class HaxeUsingModel extends HaxeImportableModel {
       if (methods == null || methods.isEmpty()) continue;
 
       for (HaxeMethodModel method : methods) {
-        if (method != null && !method.isConstructor() && method.isStatic() && method.isPublic() && !method.HasNoUsingMeta()) {
+        boolean extension = method != null && !method.isConstructor() && method.isStatic() && !method.HasNoUsingMeta();
+        if (extension && method.isAccessibleAt(callSite)) {
           List<HaxeParameterModel> parameters = method.getParameters();
           if (!parameters.isEmpty()) {
             HaxeParameterModel paramModel = parameters.getFirst();

@@ -65,7 +65,7 @@ public class HaxeReferenceUtil {
                             if(haxeClassModel  != null) {
 
                                 // check if callie has @:using
-                                List<HaxeMethodModel> extensionMethodsFromMeta = haxeClassModel.getExtensionMethodsFromMeta();
+                                List<HaxeMethodModel> extensionMethodsFromMeta = haxeClassModel.getExtensionMethodsFromMeta(parentReferenceExpression);
                                 Optional<HaxeMethodModel> extensionMethodFromMeta = extensionMethodsFromMeta.stream()
                                         .filter(model -> model.getBasePsi() == haxeMethod).findFirst();
 

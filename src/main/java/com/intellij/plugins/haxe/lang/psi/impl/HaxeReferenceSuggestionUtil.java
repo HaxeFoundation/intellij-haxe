@@ -405,14 +405,14 @@ public class HaxeReferenceSuggestionUtil {
 
             List<HaxeUsingModel> importHxUsingModels = findImportHxFileUsingModels(haxeFileModel);
             for (HaxeUsingModel importHxUsingModel : importHxUsingModels) {
-                for (HaxeMethodModel methodModel : importHxUsingModel.getExtensionMethods(typeReference, null)) {
+                for (HaxeMethodModel methodModel : importHxUsingModel.getExtensionMethods(typeReference, null, reference)) {
                     HaxeComponentName psi = methodModel.getNamePsi();
                     variants.add(psi);
                 }
             }
 
           for (HaxeUsingModel model : haxeFileModel.getUsingModels()) {
-            for (HaxeMethodModel methodModel : model.getExtensionMethods(typeReference, null)) {
+            for (HaxeMethodModel methodModel : model.getExtensionMethods(typeReference, null, reference)) {
               HaxeComponentName psi = methodModel.getNamePsi();
               variants.add(psi);
             }
@@ -421,7 +421,7 @@ public class HaxeReferenceSuggestionUtil {
         if (typeReference instanceof SpecificHaxeClassReference classReference) {
             HaxeClass haxeClass = classReference.getHaxeClass();
             if (haxeClass != null) {
-                List<HaxeMethodModel> extensionMethodsFromMeta = haxeClass.getModel().getExtensionMethodsFromMeta();
+                List<HaxeMethodModel> extensionMethodsFromMeta = haxeClass.getModel().getExtensionMethodsFromMeta(reference);
                 for (HaxeMethodModel model : extensionMethodsFromMeta) {
                     HaxeComponentName psi = model.getNamePsi();
                     variants.add(psi);

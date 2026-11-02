@@ -2411,7 +2411,7 @@ public final class HaxeResolveChecks {
         // check extension methods from meta
         HaxeComponentName match = HaxeEvaluationTaint.computeOrTaint(extensionsFromMetaGuard, lefthandExpression, true, () -> {
           int size = classModel.getUsingMetaReferences().size();
-          List<HaxeMethodModel> meta = classModel.getExtensionMethodsFromMeta();
+          List<HaxeMethodModel> meta = classModel.getExtensionMethodsFromMeta(reference);
           if (size != meta.size()) {
             // some meta references did not resolve - mark the attempt
             // unreliable so no cache freezes it
@@ -2467,7 +2467,7 @@ public final class HaxeResolveChecks {
       HaxeMethodModel foundMethod = null;
         for (int i = usingModels.size() - 1; i >= 0; --i) {
           foundMethod = usingModels.get(i)
-            .findExtensionMethod(identifierText, extensionType);
+            .findExtensionMethod(identifierText, extensionType, reference);
           if (null != foundMethod && !foundMethod.HasNoUsingMeta()) {
 
             if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + foundMethod.getName());
@@ -2925,7 +2925,7 @@ public final class HaxeResolveChecks {
 
       for (int i = usingModels.size() - 1; i >= 0; --i) {
         HaxeUsingModel model = usingModels.get(i);
-        HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), typeReference);
+        HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), typeReference, reference);
         if (method != null) {
           return asList(method.getNamePsi());
         }

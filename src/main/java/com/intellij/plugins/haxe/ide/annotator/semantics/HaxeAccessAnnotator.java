@@ -9,12 +9,7 @@ import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceConstru
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
-import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
-import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
-import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeConstraintsTypeUtil;
@@ -22,15 +17,13 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.intellij.plugins.haxe.lang.psi.HaxeCodeFragmentUtil.isInCodeFragment;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.*;
@@ -87,7 +80,6 @@ public class HaxeAccessAnnotator implements Annotator {
 
         if(!memberModel.isPublic()){
           HaxeClass currentClass = PsiTreeUtil.getStubOrPsiParentOfType(newExpression, HaxeClass.class);
-          HaxeMemberModel referenceParentModel = getExpressionsParentsModel(newExpression);
           HaxeClassModel memberClassModel = memberModel.getDeclaringClass();
           HaxeClass memberClass = memberClassModel == null ? null : memberClassModel.haxeClass;
 
@@ -95,15 +87,7 @@ public class HaxeAccessAnnotator implements Annotator {
           if (memberClass == currentClass) return;
           // if inherited member then private access allowed
           if (inheritsFrom(currentClass, memberClass)) return;
-          // @:privateAccess should allow access to normal private members
-          if (expressionHasPrivateAccessMeta(newExpression)) return;
-
-          if (hasAllowMetaFor(currentClass, memberClass, memberModel, referenceParentModel)) {
-            return;
-          }
-          if (hasAccessMetaFor(currentClass, memberClass, memberModel, referenceParentModel)) {
-            return;
-          }
+          if (HaxeAccessRules.isGrantedByMetadata(memberModel, newExpression)) return;
 
           String message =  "Cannot access private constructor of " + getQualifiedName(newExpression);
           holder.newAnnotation(HighlightSeverity.ERROR, message)
@@ -280,18 +264,7 @@ public class HaxeAccessAnnotator implements Annotator {
       }
     }
 
-    HaxeMemberModel referenceParentModel = getExpressionsParentsModel(referenceExpression);
-
-    if (expressionHasPrivateAccessMeta(referenceExpression)) {
-      // @:privateAccess should allow access to normal private members
-      return;
-    }
-    if (hasAllowMetaFor(currentClass, memberClass, memberModel, referenceParentModel)) {
-      return;
-    }
-    if (hasAccessMetaFor(currentClass, memberClass, memberModel, referenceParentModel)) {
-      return;
-    }
+    if (HaxeAccessRules.isGrantedByMetadata(memberModel, referenceExpression)) return;
 
     // TODO better message for properties that are public but deny read or write
     String message = isPublicProperty ? HaxeBundle.message("haxe.semantic.cannot.access.field", memberName)
@@ -302,25 +275,24 @@ public class HaxeAccessAnnotator implements Annotator {
   }
 
   private boolean overridesMemberInCommonClass(HaxeMemberModel memberModel, HaxeClass currentClass) {
-    if(memberModel instanceof  HaxeMethodModel memberMethod) {
-      HaxeMethodModel method = memberMethod;
-      while(method.isOverride()) {
-        method = memberMethod.getAncestorMethod(null);
-        if(method == null) {
-          break;
-        }else {
-          HaxeClassModel declaringClass = method.getDeclaringClass();
-          if(declaringClass != null){
-            if (inheritsFrom(currentClass, declaringClass.haxeClass)) return true;
-          }
-        }
+    if (!(memberModel instanceof HaxeMethodModel memberMethod)) return false;
+    // a cyclic class hierarchy can lead back to a method already visited
+    Set<HaxeMethod> visited = new HashSet<>();
+    visited.add(memberMethod.getMethod());
+    HaxeMethodModel method = memberMethod;
+    while (method.isOverride()) {
+      method = method.getAncestorMethod(null);
+      if (method == null || !visited.add(method.getMethod())) break;
+      HaxeClassModel declaringClass = method.getDeclaringClass();
+      if (declaringClass != null && inheritsFrom(currentClass, declaringClass.haxeClass)){
+        return true;
       }
     }
     return false;
   }
 
   private void checkIfFullyQualified(HaxeMeta meta, @NotNull AnnotationHolder holder) {
-    HaxeReferenceExpression metaReference = getAccessMetaReference(meta);
+    HaxeReferenceExpression metaReference = HaxeAccessRules.accessMetaReference(meta);
     if (metaReference != null) {
       PsiElement target = metaReference.resolve();
       String metaReferenceText = metaReference.getQualifiedName();
@@ -350,196 +322,6 @@ public class HaxeAccessAnnotator implements Annotator {
         }
       }
     }
-  }
-
-  private boolean expressionHasPrivateAccessMeta(PsiElement referenceExpression) {
-    PsiElement refExpression = referenceExpression;
-    while (refExpression.getParent() instanceof HaxeReferenceExpression parent) refExpression = parent;
-
-    PsiElement expression = referenceExpression;
-    while (true) {
-      if(expression == null) break;
-      if (HaxeMetadataUtils.hasMeta(expression, HaxeMetadataCompileTimeMeta.class, PRIVATE_ACCESS)) {
-        return true;
-      } else {
-        expression = expression.getParent();
-        if (expression instanceof HaxeMethodDeclaration || expression instanceof HaxeClass || expression instanceof  HaxeModule) {
-          break;// stop search if we have left any "reasonable" scope
-        }
-      }
-    }
-    return false;
-  }
-
-  private boolean hasAccessMetaFor(@Nullable HaxeClass currentClass, @Nullable HaxeClass memberClass, HaxeMemberModel memberModel, HaxeMemberModel referenceParentModel) {
-    HaxeMetadataList metadataList = collectMetadata(currentClass, referenceParentModel, ACCESS);
-    for (HaxeMeta metadata : metadataList) {
-      List<PsiElement> accessMetaTarget = getAccessMetaTarget(metadata);
-      for (PsiElement target : accessMetaTarget) {
-
-        if (target instanceof PsiPackage aPackage) {
-          if (memberModel.getPackage() == aPackage) {
-            return true;
-          }
-        } else if (target instanceof HaxeModule module) {
-          if (memberModel.getModule() == module) {
-            return true;
-          }
-        } else if (target instanceof HaxeClass aClass) {
-          if (memberClass == aClass) {
-            return true;
-          }
-          if (inheritsFrom(memberClass, aClass)) {
-            return true;
-          }
-          //we allow  both directions (tests  )
-          if (inheritsFrom(aClass, memberClass)) {
-            return true;
-          }
-        } else if (target instanceof HaxeMethod method) {
-          if (memberModel.getMemberPsi() == method) {
-            return true;
-          }
-        } else if (target instanceof HaxePsiField field) {
-          if (memberModel.getMemberPsi() == field) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  private boolean hasAllowMetaFor(@Nullable HaxeClass currentClass, @Nullable HaxeClass memberClass, HaxeMemberModel memberModel, HaxeMemberModel referenceParentModel) {
-    HaxeMetadataList metadataList = collectMetadata(memberClass, memberModel, ALLOW);
-
-    for (HaxeMeta metadata : metadataList) {
-      List<PsiElement> accessMetaTarget = getAccessMetaTarget(metadata);
-      for (PsiElement target : accessMetaTarget) {
-
-        if (target instanceof PsiPackage aPackage) {
-          if (referenceParentModel.getPackage() == aPackage) {
-            return true;
-          } else {
-            // allow  all sub packages of package
-            if (referenceParentModel.getPackage().getQualifiedName().startsWith(aPackage.getQualifiedName())) {
-              return true;
-            }
-          }
-        } else if (target instanceof HaxeModule module) {
-          if (referenceParentModel.getModule() == module) {
-            return true;
-          }
-        } else if (target instanceof HaxeClass aClass) {
-          if (currentClass == aClass) {
-            return true;
-          }
-          if (currentClass != null) {
-            HaxeClassModel model = currentClass.getModel();
-            if (model.inheritsFrom(aClass)) {
-              return true;
-            } else {
-              // search module
-              // by default we resolve Qname to class with same name as module, but in this case it seems
-              // like the meta applies for the entire module, so we need to check all members in module
-              HaxeModule module = aClass.getModule();
-              if(module.getModel().getName().equals(aClass.getName())) {
-                for (HaxeClass moduleClass : module.getClassDeclarationList()) {
-                  if (currentClass == moduleClass) {
-                    return true;
-                  }
-                  if (model.inheritsFrom(moduleClass)) {
-                    return true;
-                  }
-                }
-              }
-            }
-          }
-        } else if (target instanceof HaxeMethod method) {
-          if (referenceParentModel.getMemberPsi() == method) {
-            return true;
-          }
-        }
-      }
-    }
-
-
-    return false;
-  }
-
-  private static @Nullable HaxeReferenceExpression getAccessMetaReference(HaxeMeta metadata) {
-    HaxeMetadataContent content = metadata.getContent();
-    List<HaxeExpression> expressions = HaxeMetadataUtils.getCompileTimeExpressions(content);
-    if(!expressions.isEmpty()) {
-      if(expressions.getFirst() instanceof HaxeReferenceExpression expression ) {
-        return expression;
-      }
-    }
-    return null;
-  }
-
-  private static @NotNull List<PsiElement> getAccessMetaTarget(HaxeMeta metadata) {
-    HaxeReferenceExpression reference = getAccessMetaReference(metadata);
-    if(reference != null){
-      PsiElement resolve = reference.resolve();
-      if(resolve != null) {
-        return List.of(resolve);
-      }else {
-        // NOTE: for some reason access metas does not allow / contain module names in Qnames
-        // in normal resolve module name is a required part of Qnames unless the class and module is the same name
-        // this is therefore a workaround for this behaviour since it does not align with other haxe logic (for instance imports)
-        return resolveQnameWithMissingModule(metadata, reference);
-      }
-    }
-    return List.of();
-  }
-
-  private static @NotNull List<PsiElement> resolveQnameWithMissingModule(HaxeMeta metadata, HaxeReferenceExpression reference) {
-    return resolveQnameWithMissingModule(metadata, reference, false);
-  }
-  private static @NotNull List<PsiElement> resolveQnameWithMissingModule(HaxeMeta metadata, HaxeReferenceExpression reference, boolean secondPass) {
-    PsiElement firstChild = reference.getFirstChild();
-    PsiElement lastChild = reference.getLastChild();
-    List<PsiElement> classesWithName = new ArrayList<>();
-    if(firstChild instanceof HaxeReferenceExpression packageRef) {
-      PsiElement packageResolve = packageRef.resolve();
-      if(packageResolve instanceof  PsiPackage aPackage) {
-        PsiFile[] packageFiles = aPackage.getFiles(GlobalSearchScope.allScope(metadata.getProject()));
-        for (PsiFile packageFile : packageFiles) {
-            if(packageFile instanceof  HaxeFile haxeFile) {
-              HaxeFileModel model = haxeFile.getModel();
-              HaxeClassModel classModel = model.getClassModel(lastChild.getText());
-              if(classModel != null) {
-                classesWithName.add(classModel.haxeClass);
-              }
-            }
-        }
-      }
-      // might be method in class not matching module name (with reference without module)
-      if(!secondPass && packageResolve == null) {
-        classesWithName.addAll(resolveQnameWithMissingModule(metadata, packageRef, true));
-      }
-    }
-    return classesWithName;
-  }
-
-  private static @NotNull HaxeMetadataList collectMetadata(HaxeClass memberClass, HaxeMemberModel memberModel, HaxeMetadataTypeName metadataTypeName) {
-    HaxeMetadataList metadataFromClass = HaxeMetadataUtils.getMetadataList(memberClass, HaxeMetadataCompileTimeMeta.class, metadataTypeName);
-    if(memberModel != null) {
-      HaxeMetadataList metadataFromMember = HaxeMetadataUtils.getMetadataList(memberModel.getMemberPsi(), HaxeMetadataCompileTimeMeta.class, metadataTypeName);
-      metadataFromClass.addAll(metadataFromMember);
-    }
-    return metadataFromClass;
-  }
-
-  private static @Nullable HaxeMemberModel getExpressionsParentsModel(@NotNull PsiElement referenceExpression) {
-    HaxeMethodDeclaration methodDeclaration = PsiTreeUtil.getParentOfType(referenceExpression, HaxeMethodDeclaration.class);
-    HaxeMemberModel referenceParentModel =  methodDeclaration == null ? null : methodDeclaration.getModel();
-    if(referenceParentModel == null) {
-      HaxeFieldDeclaration fieldDeclaration = PsiTreeUtil.getParentOfType(referenceExpression, HaxeFieldDeclaration.class);
-      referenceParentModel = fieldDeclaration == null ? null : (HaxeMemberModel) fieldDeclaration.getModel();
-    }
-    return referenceParentModel;
   }
 
   private static boolean inheritsFrom(@Nullable HaxeClass currentClass, @Nullable HaxeClass memberClass) {
