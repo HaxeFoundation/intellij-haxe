@@ -209,6 +209,7 @@
 
 <!--    TODO migrate to psiTargetProvider /  linkHandler etc-->
     <lang.documentationProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.documentation.providers.HaxeDocumentationProvider"/>
+    <lang.documentationStubProvider implementation="com.intellij.plugins.haxe.ide.documentation.providers.HaxeDocumentationStubProvider" order="first"/>
 
     <platform.backend.documentation.targetProvider  implementation="com.intellij.plugins.haxe.ide.documentation.providers.HaxeMetadataDocumentationProvider"/>
     <platform.backend.documentation.lookupElementTargetProvider implementation="com.intellij.plugins.haxe.ide.documentation.providers.HaxeLookupElementDocumentationProvider"/>

@@ -324,7 +324,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     }
     if (elementType == DOC_COMMENT) {
       text = HaxeStringUtil.terminateAt(text, '\n');
-      return strip(text, HaxeCommenter.DOC_COMMENT_PREFIX, HaxeCommenter.DOC_COMMENT_SUFFIX);
+      return strip(text, HaxeCommenter.DOC_COMMENT_PREFIX, HaxeCommenter.HAXE_DOC_COMMENT_SUFFIX);
     }
     return text.trim();
   }
