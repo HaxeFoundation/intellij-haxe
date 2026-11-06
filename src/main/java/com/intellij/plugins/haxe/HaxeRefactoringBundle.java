@@ -17,40 +17,20 @@
  */
 package com.intellij.plugins.haxe;
 
-import com.intellij.AbstractBundle;
 import com.intellij.CommonBundle;
 import com.intellij.DynamicBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.PropertyKey;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.util.ResourceBundle;
-
-public class HaxeRefactoringBundle extends DynamicBundle {
-  private static Reference<ResourceBundle> ourBundle;
-
+public final class HaxeRefactoringBundle {
   @NonNls
   private static final String BUNDLE = "messages.HaxeRefactoringBundle";
+  private static final DynamicBundle INSTANCE = new DynamicBundle(HaxeRefactoringBundle.class, BUNDLE);
 
-  public HaxeRefactoringBundle() {
-    super(BUNDLE);
+  private HaxeRefactoringBundle() {
   }
 
   public static String message(@PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {
-    return AbstractBundle.message(getBundle(), key, params);
-  }
-
-
-  private static ResourceBundle getBundle() {
-    ResourceBundle bundle = null;
-
-    if (ourBundle != null) bundle = ourBundle.get();
-
-    if (bundle == null) {
-      bundle = ResourceBundle.getBundle(BUNDLE);
-      ourBundle = new SoftReference<>(bundle);
-    }
-    return bundle;
+    return INSTANCE.getMessage(key, params);
   }
 }

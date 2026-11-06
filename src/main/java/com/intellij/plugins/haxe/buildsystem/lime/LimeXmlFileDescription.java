@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.buildsystem.lime;
 
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
 import com.intellij.psi.xml.XmlFile;
@@ -23,7 +22,7 @@ public class LimeXmlFileDescription extends DomFileDescription<LimeProjectXml> {
     }
 
     @Override
-    public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
+    public boolean isMyFile(@NotNull XmlFile file) {
         return LimeOpenFlUtil.isLimeFile(file);
     }
 }

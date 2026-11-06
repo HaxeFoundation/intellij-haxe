@@ -17,38 +17,19 @@
  */
 package com.intellij.plugins.haxe;
 
-import com.intellij.AbstractBundle;
 import com.intellij.DynamicBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.PropertyKey;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.util.ResourceBundle;
-
-public class HaxeHintBundle extends DynamicBundle {
-  private static Reference<ResourceBundle> ourBundle;
-
+public final class HaxeHintBundle {
   @NonNls
   private static final String BUNDLE = "messages.HaxeHintBundle";
+  private static final DynamicBundle INSTANCE = new DynamicBundle(HaxeHintBundle.class, BUNDLE);
 
-  public HaxeHintBundle() {
-    super(BUNDLE);
+  private HaxeHintBundle() {
   }
 
   public static String message(@PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {
-    return  AbstractBundle.message(getBundle(), key, params);
-  }
-
-  private static ResourceBundle getBundle() {
-    ResourceBundle bundle = null;
-
-    if (ourBundle != null) bundle = ourBundle.get();
-
-    if (bundle == null) {
-      bundle = ResourceBundle.getBundle(BUNDLE);
-      ourBundle = new SoftReference<>(bundle);
-    }
-    return bundle;
+    return INSTANCE.getMessage(key, params);
   }
 }

@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.buildsystem.nmml;
 
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.buildsystem.ProjectXmlVocabulary;
@@ -26,7 +25,7 @@ public class NMMLFileDescription extends DomFileDescription<NmmlProjectXml> {
     }
 
     @Override
-    public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
+    public boolean isMyFile(@NotNull XmlFile file) {
         return isNmmlFile(file);
     }
 

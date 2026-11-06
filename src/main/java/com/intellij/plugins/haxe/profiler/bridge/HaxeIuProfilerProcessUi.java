@@ -29,7 +29,7 @@ public class HaxeIuProfilerProcessUi implements HaxeProfilerProcessUi {
   /** Direct entry for the bridge captures, which know their configuration type exactly. */
   public static Session open(@NotNull Project project, @NotNull String displayName,
                              @NotNull Path dumpFile, @NotNull String configurationTypeId) {
-    HaxeIuProfilerProcess process = new HaxeIuProfilerProcess(project, displayName, dumpFile.toFile(), configurationTypeId);
+    HaxeIuProfilerProcess process = new HaxeIuProfilerProcess(project, displayName, dumpFile, configurationTypeId);
     process.markAttached();
     ToolWindowActivationProperties properties = new ToolWindowActivationProperties(false, true, () -> true);
     ProfilerToolWindowManager.getInstance(project)

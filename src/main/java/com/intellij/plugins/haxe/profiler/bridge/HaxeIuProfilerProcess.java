@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.HaxeProfilerBundle;
 import com.intellij.plugins.haxe.profiler.bridge.hashlink.HaxeHlDumpParserProvider;
 import com.intellij.plugins.haxe.profiler.bridge.hxcpp.HaxeHxcppDumpParserProvider;
 import com.intellij.profiler.FileBasedProfilerProcess;
+import com.intellij.profiler.SnapshotFile;
 import com.intellij.profiler.api.Attached;
 import com.intellij.profiler.api.CopyFileDumpWriter;
 import com.intellij.profiler.api.ProfilerDumpFileParsingResult;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -55,8 +57,9 @@ final class HaxeIuProfilerProcess extends FileBasedProfilerProcess<HaxeIuProfile
   }
 
   HaxeIuProfilerProcess(@NotNull Project project, @NotNull String displayName,
-                        @NotNull File dumpFile, @NotNull String configurationTypeId) {
-    super(project, new Target(displayName), dumpFile);
+                        @NotNull Path dumpFile, @NotNull String configurationTypeId) {
+    // not temporary: the dump stays where the run wrote it
+    super(project, new Target(displayName), new SnapshotFile(dumpFile, false));
     this.configurationTypeId = configurationTypeId;
     this.attachedTimestamp = System.currentTimeMillis();
   }
@@ -97,10 +100,10 @@ final class HaxeIuProfilerProcess extends FileBasedProfilerProcess<HaxeIuProfile
   }
 
   @Override
-  protected @NotNull ProfilerState readPreparedDump(@NotNull File dump, @NotNull ProgressIndicator indicator) {
+  protected @NotNull ProfilerState readPreparedDump(@NotNull Path dump, @NotNull ProgressIndicator indicator) {
     ProfilerDumpParserProvider provider = providerFor(dump);
     if (provider == null) {
-      return new ProfilerError(HaxeProfilerBundle.message("haxe.profiler.parse.failed", dump.getName()));
+      return new ProfilerError(HaxeProfilerBundle.message("haxe.profiler.parse.failed", dump.getFileName().toString()));
     }
     ProfilerDumpFileParsingResult result = provider.createParser(getProject()).parse(dump, indicator);
     String targetName = getTargetProcess().getFullName();
@@ -109,9 +112,15 @@ final class HaxeIuProfilerProcess extends FileBasedProfilerProcess<HaxeIuProfile
     return asProfilerState(result, writer);
   }
 
+  // still abstract in the platform; it calls the Path overload
+  @Override
+  protected @NotNull ProfilerState readPreparedDump(@NotNull File dump, @NotNull ProgressIndicator indicator) {
+    return readPreparedDump(dump.toPath(), indicator);
+  }
+
   @Nullable
-  private static ProfilerDumpParserProvider providerFor(File dump) {
-    String name = dump.getName();
+  private static ProfilerDumpParserProvider providerFor(Path dump) {
+    String name = dump.getFileName().toString();
     for (ProfilerDumpParserProvider provider : PARSER_PROVIDERS) {
       if (name.endsWith("." + provider.getRequiredFileExtension())) return provider;
     }

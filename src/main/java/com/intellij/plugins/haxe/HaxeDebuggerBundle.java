@@ -1,10 +1,6 @@
 package com.intellij.plugins.haxe;
 
-import com.intellij.AbstractBundle;
 import com.intellij.DynamicBundle;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.util.ResourceBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.PropertyKey;
 
@@ -14,29 +10,15 @@ import org.jetbrains.annotations.PropertyKey;
  * settings page. The LEGACY Flash/hxcpp debugger's messages stay in
  * {@link HaxeBundle}.
  */
-public class HaxeDebuggerBundle extends DynamicBundle {
-  private static Reference<ResourceBundle> ourBundle;
-
+public final class HaxeDebuggerBundle {
   @NonNls
   private static final String BUNDLE = "messages.HaxeDebuggerBundle";
+  private static final DynamicBundle INSTANCE = new DynamicBundle(HaxeDebuggerBundle.class, BUNDLE);
 
-  public HaxeDebuggerBundle() {
-    super(BUNDLE);
+  private HaxeDebuggerBundle() {
   }
 
   public static String message(@PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {
-    return AbstractBundle.message(getBundle(), key, params);
-  }
-
-  private static ResourceBundle getBundle() {
-    ResourceBundle bundle = null;
-    if (ourBundle != null) {
-      bundle = ourBundle.get();
-    }
-    if (bundle == null) {
-      bundle = ResourceBundle.getBundle(BUNDLE);
-      ourBundle = new SoftReference<>(bundle);
-    }
-    return bundle;
+    return INSTANCE.getMessage(key, params);
   }
 }
