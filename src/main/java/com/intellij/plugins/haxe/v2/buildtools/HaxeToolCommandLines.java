@@ -4,6 +4,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.execution.configurations.PtyCommandLine;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +78,15 @@ public final class HaxeToolCommandLines {
   private static List<String> withResolvedExecutable(@NotNull List<String> command) {
     if (command.isEmpty()) return command;
     List<String> resolved = new ArrayList<>(command);
-    resolved.set(0, PathEnvironmentVariableUtil.findExecutableInWindowsPath(command.getFirst()));
+    resolved.set(0, onWindowsPath(command.getFirst()));
     return resolved;
+  }
+
+  /** The PATH copy of a bare program name on Windows; anything else stays as it is. */
+  @NotNull
+  private static String onWindowsPath(@NotNull String program) {
+    if (!SystemInfo.isWindows || program.isBlank() || program.contains("/") || program.contains("\\")) return program;
+    Path found = PathEnvironmentVariableUtil.findFirst(program);
+    return found != null ? found.toAbsolutePath().toString() : program;
   }
 }
