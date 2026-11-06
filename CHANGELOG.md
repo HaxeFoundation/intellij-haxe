@@ -1,3 +1,6 @@
+## 2.1.0
+* Changed: 2026.2 support dropped due to API changes.
+
 ## 2.0.1
 * Fixed: `static function main()` of a build's main class was reported as an unused method.
 * Fixed: An `import.hx` outside every source folder caused an indexing error.
