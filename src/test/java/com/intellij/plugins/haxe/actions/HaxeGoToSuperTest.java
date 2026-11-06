@@ -17,10 +17,8 @@
  */
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.codeInsight.CodeInsightActionHandler;
-import com.intellij.lang.CodeInsightActions;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +32,10 @@ public class HaxeGoToSuperTest extends HaxeLightFixtureTestCase {
     return "/gotoSuper/";
   }
 
-  // TODO: on the 2026.3 EAP the caret stays put after the handler runs (green on 2026.2); recheck once 2026.3 reaches beta
+  // through the action, not the handler: navigation is asynchronous and the fixture awaits it only after an action
   private void doTest() throws Throwable {
     myFixture.configureByFile(getTestName(false) + ".hx");
-    final CodeInsightActionHandler handler = CodeInsightActions.GOTO_SUPER.forLanguage(HaxeLanguage.INSTANCE);
-    handler.invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
+    myFixture.performEditorAction(IdeActions.ACTION_GOTO_SUPER);
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }
 
