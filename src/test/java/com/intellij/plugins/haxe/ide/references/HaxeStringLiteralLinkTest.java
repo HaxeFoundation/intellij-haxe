@@ -1,18 +1,23 @@
 package com.intellij.plugins.haxe.ide.references;
 
 import com.intellij.openapi.editor.colors.TextAttributesKey;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompilerSettings;
+import com.intellij.plugins.haxe.v2.compiler.settings.HaxeCompletionMode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,10 +72,29 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
       class Main { static final TYPE = "foo.Bar"; }
       """);
 
-    PsiReference[] references = firstStringLiteral(source).getReferences();
-    HaxeStringQnameReference reference = singleReferenceOfType(references, HaxeStringQnameReference.class);
-    PsiElement resolved = reference.resolve();
-    assertInstanceOf(HaxeClass.class, resolved, "qname must resolve to the class");
+    List<HaxeStringQnameReference> segments = qnameReferences(firstStringLiteral(source));
+    PsiElement resolved = segments.getLast().resolve();
+    assertInstanceOf(HaxeClass.class, resolved, "the last segment must resolve to the class");
+  }
+
+  @Test
+  @DisplayName("package segments of a qualified name navigate to their package")
+  public void testPackageSegmentsOfAQualifiedNameNavigateToTheirPackage() {
+    myFixture.addFileToProject("foo/deep/Baz.hx", """
+      package foo.deep;
+      class Baz {}
+      """);
+    PsiFile source = myFixture.addFileToProject("Main.hx", """
+      class Main { static final TYPE = "foo.deep.Baz"; }
+      """);
+
+    List<HaxeStringQnameReference> segments = qnameReferences(firstStringLiteral(source));
+
+    List<TextRange> ranges = segments.stream().map(PsiReference::getRangeInElement).toList();
+    assertEquals(List.of(new TextRange(1, 4), new TextRange(5, 9), new TextRange(10, 13)), ranges, "one reference per segment, after the opening quote");
+    assertEquals("foo", qualifiedNameOf(segments.get(0).resolve()), "a package segment resolves to its package");
+    assertEquals("foo.deep", qualifiedNameOf(segments.get(1).resolve()), "a nested package segment resolves to the nested package");
+    assertInstanceOf(HaxeClass.class, segments.get(2).resolve(), "the class segment resolves to the class");
   }
 
   @Test
@@ -84,9 +108,8 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
       class Main { static final MEMBER = "foo.Bar.baz"; }
       """);
 
-    PsiReference[] references = firstStringLiteral(source).getReferences();
-    HaxeStringQnameReference reference = singleReferenceOfType(references, HaxeStringQnameReference.class);
-    assertNotNull(reference.resolve(), "member qname must resolve");
+    List<HaxeStringQnameReference> segments = qnameReferences(firstStringLiteral(source));
+    assertNotNull(segments.getLast().resolve(), "the member segment must resolve");
   }
 
   @Test
@@ -176,6 +199,35 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("compiler only completion leaves string literals to the ide")
+  public void testCompilerOnlyCompletionLeavesStringLiteralsToTheIde() {
+    myFixture.addFileToProject("foo/Bar.hx", """
+      package foo;
+      class Bar {}
+      """);
+    myFixture.configureByText("Main.hx", """
+      @:native("foo.<caret>")
+      class Main {}
+      """);
+    HaxeCompilerSettings settings = HaxeCompilerSettings.getInstance(getProject());
+    HaxeCompletionMode previousMode = settings.getCompletionMode();
+    boolean previousFeatures = settings.isCompilerIdeFeaturesEnabled();
+    settings.setCompilerIdeFeaturesEnabled(true);
+    settings.setCompletionMode(HaxeCompletionMode.COMPILER_ONLY);
+
+    try {
+      myFixture.completeBasic();
+      List<String> lookups = myFixture.getLookupElementStrings();
+      assertNotNull(lookups, "the compiler cannot complete inside a string, so the ide must");
+      assertTrue(lookups.contains("Bar"), "types in the package must be suggested, got: " + lookups);
+    }
+    finally {
+      settings.setCompletionMode(previousMode);
+      settings.setCompilerIdeFeaturesEnabled(previousFeatures);
+    }
+  }
+
+  @Test
   @DisplayName("qname completion after a package dot offers types and subpackages")
   public void testQnameCompletionAfterAPackageDotOffersTypesAndSubpackages() {
     myFixture.addFileToProject("foo/Bar.hx", """
@@ -262,23 +314,25 @@ public class HaxeStringLiteralLinkTest extends HaxeLightFixtureTestCase {
     assertFalse(painted(HaxeSyntaxHighlighterColors.STRING_FILE_LINK), "a bare word must not light up as a link even when it resolves");
   }
 
+  /** The literal's qualified-name references in segment order. */
+  private static List<HaxeStringQnameReference> qnameReferences(HaxeStringLiteralExpression literal) {
+    List<HaxeStringQnameReference> references = new ArrayList<>();
+    for (PsiReference reference : literal.getReferences()) {
+      if (reference instanceof HaxeStringQnameReference name) references.add(name);
+    }
+    assertFalse(references.isEmpty(), "the literal must carry qualified-name references");
+    return references;
+  }
+
+  private static String qualifiedNameOf(PsiElement element) {
+    assertInstanceOf(PsiPackage.class, element);
+    return ((PsiPackage)element).getQualifiedName();
+  }
+
   private HaxeStringLiteralExpression firstStringLiteral(PsiFile file) {
     HaxeStringLiteralExpression literal = PsiTreeUtil.findChildOfType(file, HaxeStringLiteralExpression.class);
     assertNotNull(literal, "test source must contain a string literal");
     return literal;
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends PsiReference> T singleReferenceOfType(PsiReference[] references, Class<T> type) {
-    T found = null;
-    for (PsiReference reference : references) {
-      if (type.isInstance(reference)) {
-        assertNull(found, "expected exactly one " + type.getSimpleName());
-        found = (T)reference;
-      }
-    }
-    assertNotNull(found, "expected a " + type.getSimpleName() + " on the literal");
-    return found;
   }
 
   private static boolean hasLinkReference(PsiReference[] references) {
