@@ -15,7 +15,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The module's content root is no source root; only its {@code src} folder is one. */
+/**
+ * Which import.hx files apply to a package. Only the module's {@code src}
+ * folder is a source root here, not its content root.
+ */
 @DisplayName("Indexing: import hx file index")
 public class HaxeImportHxFileIndexTest extends HaxeCodeInsightFixtureTestCase {
 

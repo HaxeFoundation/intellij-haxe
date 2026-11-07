@@ -67,7 +67,7 @@ public final class HaxeMainClassLaunches {
 
   @NotNull
   private static CachedValueProvider.Result<Map<MainClass, List<MainLaunch>>> launchesResult(@NotNull Project project) {
-    return CachedValueProvider.Result.create(collectLaunches(project), HaxeMainClasses.mainClassDependencies(project));
+    return CachedValueProvider.Result.create(collectLaunches(project), HaxeMainClasses.cacheDependencies(project));
   }
 
   @NotNull
