@@ -1,34 +1,54 @@
 package com.intellij.plugins.haxe.ide.editor;
 
-import com.intellij.application.options.CodeStyle;
+import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter;
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
-import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.ide.HaxeCommenter;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.ide.documentation.providers.HaxeDocumentationStubProvider;
 import com.intellij.plugins.haxe.ide.documentation.settings.HaxeDocSettings;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.BLOCK_COMMENT_PREFIX;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_LINE_PREFIX;
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_PREFIX;
-import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_SUFFIX;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.JAVADOC_LINE_START;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.haxeStyleBodyIndent;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.newDocCommentCloserLine;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.usesLeadingAsterisks;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeDocTokenTypes.DOC_END;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeDocTokenTypes.DOC_START;
+import static com.intellij.plugins.haxe.util.HaxeDocumentationUtil.leadingWhitespace;
 
-/// Custom logic to correctly handle completion of haxe documentation block (the default javadoc stuff does not work correctly for haxedocs)
-/// if block is incomplete then this handler will add the end "tag" and make sure we get correct indentation
+/// Enter inside a Haxe doc comment, in either of its two styles: Haxe style, with bare lines and usually closed by
+/// `**/`, and Javadoc style, with a `*` opening each line and closed by `*/`. A comment is Javadoc style when every
+/// line between its opener's line and its closer's line starts with a star.
+///
+/// Enter right after the opener of a comment that is not closed yet adds the closer and, for a method, the tag stub,
+/// in the style the code style picks for new comments. Inside a closed comment the new line follows the comment's
+/// own style, so it gets a star exactly when the comment uses them; a comment without lines of its own yet takes the
+/// code style's pick.
 public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
+
+    // a Javadoc-style line: its indent, the star, and the spacing before the text
+    private static final Pattern STAR_LINE =
+        Pattern.compile("^(?<indent>[ \\t]*)" + Pattern.quote(DOC_COMMENT_LINE_PREFIX) + "(?<spacing>[ \\t]*)");
 
     @Override
     public Result preprocessEnter(
@@ -39,52 +59,34 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
             @NotNull DataContext dataContext,
             EditorActionHandler originalHandler
     ) {
-        if (file instanceof HaxeFile) {
-            int caretOffset = caretOffsetRef.get();
+        if (!(file instanceof HaxeFile)) return Result.Continue;
+        int caretOffset = caretOffsetRef.get();
+        Document document = editor.getDocument();
 
-            if (isInsideDocsWithoutCloseTag(file, caretOffset)) {
+        PsiDocumentManager.getInstance(file.getProject()).commitDocument(document);
+        PsiElement elementAtCaret = PsiUtilCore.getElementAtOffset(file, caretOffset);
+        HaxePsiDocCommentImpl docComment = PsiTreeUtil.getParentOfType(elementAtCaret, HaxePsiDocCommentImpl.class, false);
 
-                Document document = editor.getDocument();
-
-                int lineNumber = document.getLineNumber(caretOffset);
-                int lineStart = document.getLineStartOffset(lineNumber);
-
-                // TODO mlo: make use of codeStyle line indent instead of manual workaround.
-                // probably need to either create a LineIndentProvider or change the formatter logic
-                // so  FormatterBasedLineIndentProvider can handle the indentation.
-                //String indent = CodeStyleManager.getInstance(file.getProject()).getLineIndent(file, caretOffset);
-
-                String text = document.getText();
-                String lineText = text.substring(lineStart, caretOffset);
-
-                if(!lineText.trim().endsWith(DOC_COMMENT_PREFIX)){
-                    return Result.Continue;
-                }
-                String indent = getLineIndent(lineText);
-
-                CodeStyleSettings settings = CodeStyle.getSettings(file.getProject());
-                CodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(HaxeFileType.INSTANCE);
-
-                String docIndent = indentOptions.USE_TAB_CHARACTER ? "\t" : "   ";
-                String docNewLine = indent + docIndent;
-
-                String toInsert = "\n" + docNewLine + "\n" + indent + DOC_COMMENT_SUFFIX;
-                document.insertString(caretOffset, toInsert);
-
-                editor.getCaretModel().moveToOffset(caretOffset + 1 + docNewLine.length());
-
-                return Result.Stop;
-            }
+        if (docComment == null || caretOffset < bodyStart(docComment)) {
+            return Result.Continue;
         }
-        return Result.Continue;
 
+        if (isUnclosed(docComment)) {
+            if (!isRightAfterOpener(document, caretOffset)) return Result.Continue;
+            completeNewComment(file, editor, document, caretOffset);
+            return Result.Stop;
+        }
+        if (caretOffset > closerStart(docComment)) return Result.Continue;
+        insertBodyLine(file, editor, document, docComment, caretOffset);
+        return Result.Stop;
     }
-
 
     /**
      * A new line inside a doc comment continues at the PREVIOUS line's
-     * indentation, preserving the hand-aligned haxedoc layout (tag
-     * description columns) instead of falling back to the body indent.
+     * indentation, preserving a hand-aligned layout (tag description
+     * columns) instead of falling back to the body indent. Only reached when
+     * {@link #preprocessEnter} leaves the Enter to the platform, as in a
+     * comment without its closer.
      */
     @Override
     public Result postProcessEnter(@NotNull PsiFile file, @NotNull Editor editor, @NotNull DataContext dataContext) {
@@ -116,45 +118,115 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
         return Result.Continue;
     }
 
-    private static boolean isInsideDocsWithoutCloseTag(@NotNull PsiFile file, int caretOffset) {
-        PsiElement elementAtOffset = PsiUtilCore.getElementAtOffset(file, caretOffset);
-        // the offset lands on a token INSIDE the lazily parsed comment - the comment is its parent
-        HaxePsiDocCommentImpl docComment = PsiTreeUtil.getParentOfType(elementAtOffset, HaxePsiDocCommentImpl.class, false);
-        if (docComment != null) {
-            String text = getDocumentWithoutDocumentationBlocks(docComment);
-            if (caretOffset < docComment.getTextOffset() + DOC_COMMENT_PREFIX.length()) {
-                return false;
-            }
-            if(text.endsWith(HaxeCommenter.BLOCK_COMMENT_SUFFIX) || text.endsWith(DOC_COMMENT_SUFFIX)) {
-                return false;
-            }
-            return true;
+    /** Adds the closer below the opener, with an empty body line for the caret and the tag stub under it. */
+    private static void completeNewComment(@NotNull PsiFile file, @NotNull Editor editor, @NotNull Document document, int caretOffset) {
+        String indent = leadingWhitespace(lineBeforeCaret(document, caretOffset));
+        String bodyLineStart = indent + (usesLeadingAsterisks(file) ? JAVADOC_LINE_START : haxeStyleBodyIndent(file));
+        String closer = indent + newDocCommentCloserLine(file);
+
+        document.insertString(caretOffset, "\n" + bodyLineStart + "\n" + closer);
+
+        int caretLineEnd = caretOffset + 1 + bodyLineStart.length();
+        insertTagStub(file, document, caretLineEnd, bodyLineStart);
+        editor.getCaretModel().moveToOffset(caretLineEnd);
+    }
+
+    /**
+     * Breaks the line at the caret, starting the new line the way the comment's lines start. With the caret in a
+     * line's leading whitespace the line moves down as it is and an empty line takes its place.
+     */
+    private static void insertBodyLine(@NotNull PsiFile file,
+                                       @NotNull Editor editor,
+                                       @NotNull Document document,
+                                       @NotNull HaxePsiDocCommentImpl docComment,
+                                       int caretOffset) {
+        int lineStart = document.getLineStartOffset(document.getLineNumber(caretOffset));
+        boolean stars = usesLeadingAsterisks(docComment);
+        boolean openerLine = lineStart <= docComment.getTextRange().getStartOffset();
+        String line = lineAt(document, caretOffset);
+
+        if (!openerLine && lineBeforeCaret(document, caretOffset).isBlank()) {
+            String emptyLine = stars ? starLineIndent(line) + DOC_COMMENT_LINE_PREFIX : "";
+            document.insertString(lineStart, emptyLine + "\n");
+            editor.getCaretModel().moveToOffset(caretOffset + emptyLine.length() + 1);
+            return;
         }
-        return false;
+
+        String openerIndent = leadingWhitespace(lineAt(document, docComment.getTextRange().getStartOffset()));
+        String lineStartText = stars ? starLineStart(line, openerLine, openerIndent) : bareLineStart(file, line, openerLine, openerIndent);
+        int spacingEnd = CharArrayUtil.shiftForward(document.getCharsSequence(), caretOffset, " \t");
+        document.replaceString(caretOffset, spacingEnd, "\n" + lineStartText);
+        editor.getCaretModel().moveToOffset(caretOffset + 1 + lineStartText.length());
+    }
+
+    /** A Javadoc-style line starts under the opener's first star, or the way the caret's line starts. */
+    private static @NotNull String starLineStart(@NotNull String line, boolean openerLine, @NotNull String openerIndent) {
+        if (openerLine) return openerIndent + JAVADOC_LINE_START;
+        Matcher matcher = STAR_LINE.matcher(line);
+        if (!matcher.lookingAt()) return leadingWhitespace(line) + DOC_COMMENT_LINE_PREFIX + " ";
+        String spacing = matcher.group("spacing");
+        return matcher.group("indent") + DOC_COMMENT_LINE_PREFIX + (spacing.isEmpty() ? " " : spacing);
+    }
+
+    private static @NotNull String starLineIndent(@NotNull String line) {
+        Matcher matcher = STAR_LINE.matcher(line);
+        return matcher.lookingAt() ? matcher.group("indent") : leadingWhitespace(line);
+    }
+
+    /** A Haxe-style line sits one indent inside the comment, or keeps the caret line's indent when the doc settings say so. */
+    private static @NotNull String bareLineStart(@NotNull PsiFile file, @NotNull String line, boolean openerLine, @NotNull String openerIndent) {
+        if (!openerLine && HaxeDocSettings.getInstance().getState().enterKeepsIndentation) return leadingWhitespace(line);
+        return openerIndent + haxeStyleBodyIndent(file);
+    }
+
+    /** Adds the owner's tag lines below the caret line, the "Insert documentation comment stub" smart key permitting. */
+    private static void insertTagStub(@NotNull PsiFile file, @NotNull Document document, int caretLineEnd, @NotNull String lineStart) {
+        if (!CodeInsightSettings.getInstance().JAVADOC_STUB_ON_ENTER || DumbService.isDumb(file.getProject())) return;
+        PsiDocumentManager.getInstance(file.getProject()).commitDocument(document);
+        HaxePsiDocCommentImpl docComment =
+            PsiTreeUtil.getParentOfType(file.findElementAt(caretLineEnd), HaxePsiDocCommentImpl.class, false);
+        if (docComment == null) return;
+
+        StringBuilder stub = new StringBuilder();
+        for (String tag : HaxeDocumentationStubProvider.stubTags(docComment)) {
+            stub.append('\n').append(lineStart).append(tag);
+        }
+        document.insertString(caretLineEnd, stub);
     }
 
     /**
-     * Removes all other documentation blocks from text to avoid accidentally finding endTag belonging to a different block.
+     * Not closed yet: no closer at all, or the closer it ends with belongs to a later comment. Comments do not nest,
+     * so an unclosed opener runs up to the next closer, taking in that comment's opener on the way.
      */
-    private static @NotNull String getDocumentWithoutDocumentationBlocks(HaxePsiDocCommentImpl docComment) {
+    private static boolean isUnclosed(@NotNull HaxePsiDocCommentImpl docComment) {
+        if (docComment.getNode().findChildByType(DOC_END) == null) return true;
         String text = docComment.getText();
-        int startTag = text.indexOf(DOC_COMMENT_PREFIX);
-        String startOfDocument = text.substring(0, startTag + DOC_COMMENT_PREFIX.length());
-        String restOfDocument = text.substring(startTag + DOC_COMMENT_PREFIX.length());
-
-        String escapedPrefix = Pattern.quote(DOC_COMMENT_PREFIX);
-        String escapedSuffix = Pattern.quote(DOC_COMMENT_SUFFIX);
-        // return text without any other documentation blocks
-        return startOfDocument + restOfDocument.replaceAll("(?s)" + escapedPrefix + ".*" + escapedSuffix, "");
+        int bodyStart = bodyStart(docComment) - docComment.getTextRange().getStartOffset();
+        int bodyEnd = closerStart(docComment) - docComment.getTextRange().getStartOffset();
+        return text.substring(bodyStart, bodyEnd).contains(BLOCK_COMMENT_PREFIX);
     }
 
-    /**
-     * Temp solution to find line indentation (should probably be handled by formatter)
-     */
-    @NotNull
-    private static String getLineIndent(@NotNull String lineText) {
-        int indentLength = lineText.stripLeading().length();
-        return lineText.substring(0, lineText.length() - indentLength);
+    private static boolean isRightAfterOpener(@NotNull Document document, int caretOffset) {
+        return lineBeforeCaret(document, caretOffset).trim().endsWith(DOC_COMMENT_PREFIX);
+    }
+
+    private static int bodyStart(@NotNull HaxePsiDocCommentImpl docComment) {
+        ASTNode opener = docComment.getNode().findChildByType(DOC_START);
+        return opener != null ? opener.getTextRange().getEndOffset() : docComment.getTextRange().getStartOffset();
+    }
+
+    private static int closerStart(@NotNull HaxePsiDocCommentImpl docComment) {
+        ASTNode closer = docComment.getNode().findChildByType(DOC_END);
+        return closer != null ? closer.getTextRange().getStartOffset() : docComment.getTextRange().getEndOffset();
+    }
+
+    private static @NotNull String lineBeforeCaret(@NotNull Document document, int caretOffset) {
+        int lineStart = document.getLineStartOffset(document.getLineNumber(caretOffset));
+        return document.getText(new TextRange(lineStart, caretOffset));
+    }
+
+    private static @NotNull String lineAt(@NotNull Document document, int offset) {
+        int line = document.getLineNumber(offset);
+        return document.getText(new TextRange(document.getLineStartOffset(line), document.getLineEndOffset(line)));
     }
 }
-

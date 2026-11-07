@@ -18,22 +18,68 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import com.intellij.application.options.CodeStyle;
 import com.intellij.lang.CodeDocumentationAwareCommenter;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
+import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * @author: Fedor.Korotkov
- */
+/// Comment syntax for Haxe. Doc comments come in two styles:
+///
+/// ```haxe
+/// /**
+///     Haxe style: bare lines, closed by two stars.
+/// **/
+///
+/// /**
+///  * Javadoc style: a star on each line.
+///  */
+/// ```
+///
+/// The code style picks the style of new comments ([#usesLeadingAsterisks]).
+///
+/// @author: Fedor.Korotkov
 public class HaxeCommenter implements CodeDocumentationAwareCommenter {
 
   public static final String SINGLE_LINE_PREFIX = "//";
+
   public static final String BLOCK_COMMENT_PREFIX = "/*";
   public static final String BLOCK_COMMENT_SUFFIX = "*/";
+
   public static final String DOC_COMMENT_PREFIX = "/**";
   public static final String DOC_COMMENT_LINE_PREFIX = "*";
-  public static final String DOC_COMMENT_SUFFIX = "**/";
+  public static final String HAXE_DOC_COMMENT_SUFFIX = "**/";
+  public static final String JAVADOC_COMMENT_SUFFIX = "*/";
+
+  // a Javadoc-style line puts its star under the opener's first star, one column in
+  public static final String JAVADOC_LINE_START = " " + DOC_COMMENT_LINE_PREFIX + " ";
+  public static final String JAVADOC_CLOSER_LINE = " " + JAVADOC_COMMENT_SUFFIX;
+
+  /** Whether new doc comments in the file are Javadoc style, with a star on each line, rather than Haxe style. */
+  public static boolean usesLeadingAsterisks(@NotNull PsiFile file) {
+    return CodeStyleManager.getInstance(file.getProject()).getDocCommentSettings(file).isLeadingAsteriskEnabled();
+  }
+
+  /** Whether the comment is Javadoc style; one without lines of its own yet takes the style of new comments. */
+  public static boolean usesLeadingAsterisks(@NotNull HaxePsiDocCommentImpl docComment) {
+    return docComment.hasInteriorLines() ? docComment.isStarStyle() : usesLeadingAsterisks(docComment.getContainingFile());
+  }
+
+  /** The closing line a new doc comment in the file gets, after its indent. */
+  public static @NotNull String newDocCommentCloserLine(@NotNull PsiFile file) {
+    return usesLeadingAsterisks(file) ? JAVADOC_CLOSER_LINE : HAXE_DOC_COMMENT_SUFFIX;
+  }
+
+  /** How far a Haxe-style body line sits inside its comment: one indent level, as the formatter indents it. */
+  public static @NotNull String haxeStyleBodyIndent(@NotNull PsiFile file) {
+    CommonCodeStyleSettings.IndentOptions indentOptions = CodeStyle.getIndentOptions(file);
+    return indentOptions.USE_TAB_CHARACTER ? "\t" : " ".repeat(indentOptions.INDENT_SIZE);
+  }
 
   @Override
   public String getLineCommentPrefix() {
@@ -85,9 +131,10 @@ public class HaxeCommenter implements CodeDocumentationAwareCommenter {
     return DOC_COMMENT_LINE_PREFIX;
   }
 
+  // the platform closes the doc comments it creates with this; the Enter handler closes Javadoc-style ones itself
   @Override
   public String getDocumentationCommentSuffix() {
-    return DOC_COMMENT_SUFFIX;
+    return HAXE_DOC_COMMENT_SUFFIX;
   }
 
   @Override

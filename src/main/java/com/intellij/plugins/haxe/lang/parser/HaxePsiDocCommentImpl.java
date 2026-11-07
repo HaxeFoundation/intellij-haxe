@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.lang.parser;
 
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.lang.lexer.HaxeDocTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeDocumentationUtil;
 import com.intellij.psi.ElementManipulators;
@@ -72,6 +74,16 @@ public class HaxePsiDocCommentImpl extends LazyParseablePsiElement
             return PsiTreeUtil.getNextSiblingOfType(firstChild, HaxeNamedComponent.class);
         }
         return null;
+    }
+
+    /** Whether a line sits between the opener's line and the closer's line; only then does the comment have a style. */
+    public boolean hasInteriorLines() {
+        return StringUtil.countNewLines(getText()) >= 2;
+    }
+
+    /** Javadoc style: every interior line starts with a star, the lexer's classification. */
+    public boolean isStarStyle() {
+        return getNode().findChildByType(HaxeDocTokenTypes.DOC_LEADING_ASTERISK) != null;
     }
 
     public @NotNull String getDocsWithoutIndents() {

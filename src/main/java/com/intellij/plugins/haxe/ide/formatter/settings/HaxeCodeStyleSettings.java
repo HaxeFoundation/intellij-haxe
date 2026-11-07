@@ -50,6 +50,13 @@ public class HaxeCodeStyleSettings extends CustomCodeStyleSettings {
   public boolean STRUCTURE_EXTENSION_ON_OWN_LINE = false;
   public boolean FORMAT_DOC_COMMENTS = true;
 
+  // the layout a new doc comment gets: HAXE has bare lines closed by **/,
+  // JAVADOC a * per line closed by */. A comment with lines of its own keeps
+  // its style on Enter whatever this says
+  public static final int DOC_COMMENT_STYLE_HAXE = 0;
+  public static final int DOC_COMMENT_STYLE_JAVADOC = 1;
+  public int DOC_COMMENT_STYLE = DOC_COMMENT_STYLE_HAXE;
+
   // reindents the inner lines of a plain /*..*/ comment the way hxformat
   // does: the common leading whitespace goes, the lines sit one level deeper
   // than the comment, and leading asterisks align. Off leaves comment

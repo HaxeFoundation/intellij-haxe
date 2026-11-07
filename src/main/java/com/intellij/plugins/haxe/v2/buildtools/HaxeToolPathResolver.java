@@ -13,7 +13,6 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeEnvironmentStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -192,8 +191,8 @@ public final class HaxeToolPathResolver {
   /** The executable a PATH lookup picks (absolute), or null. */
   @Nullable
   public static String pathDetectedExecutable(@NotNull String executableName) {
-    File onPath = PathEnvironmentVariableUtil.findInPath(HaxeSdkUtilBase.getExecutableName(executableName));
-    return onPath != null ? onPath.getAbsolutePath() : null;
+    Path onPath = PathEnvironmentVariableUtil.findFirst(HaxeSdkUtilBase.getExecutableName(executableName));
+    return onPath != null ? onPath.toAbsolutePath().toString() : null;
   }
 
   /**

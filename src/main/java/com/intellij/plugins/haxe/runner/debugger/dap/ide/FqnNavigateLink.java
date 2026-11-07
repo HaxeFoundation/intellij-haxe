@@ -45,7 +45,7 @@ final class FqnNavigateLink {
 
   private static @Nullable PsiElement resolve(@NotNull Project project, @NotNull String value) {
     try {
-      return ReadAction.computeCancellable(() -> HaxeQnameResolveUtil.findClassOrMember(value, project));
+      return ReadAction.nonBlocking(() -> HaxeQnameResolveUtil.findClassOrMember(value, project)).executeSynchronously();
     }
     catch (ProcessCanceledException e) {
       throw e;

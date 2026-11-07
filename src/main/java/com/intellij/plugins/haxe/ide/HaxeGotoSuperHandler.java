@@ -105,8 +105,9 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
     }
   }
 
+  // navigation only reads, and the platform schedules it asynchronously from outside a write action
   @Override
   public boolean startInWriteAction() {
-    return true;
+    return false;
   }
 }

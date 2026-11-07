@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * Registers captured HXTS sessions ({@code .hxtsession}) with the IU
@@ -49,20 +50,26 @@ public class HaxeHxtSessionParserProvider implements ProfilerDumpParserProvider 
 
   private static final class HxtSessionFileParser implements ProfilerDumpFileParser {
     @Override
-    public @NotNull ProfilerDumpFileParsingResult parse(@NotNull File file, @NotNull ProgressIndicator indicator) {
+    public @NotNull ProfilerDumpFileParsingResult parse(@NotNull Path file, @NotNull ProgressIndicator indicator) {
       // zone captures are served FROM the file (they are too big to load
       // whole), so the translator takes the path rather than a stream
       try {
-        HxtCapture capture = HxtSessionTranslator.translateCapture(file.toPath());
+        HxtCapture capture = HxtSessionTranslator.translateCapture(file);
         return new Success(switch (capture) {
           // the file rides along: a still-live capture of it renders the self-refreshing view
-          case HxtCapture.Samples samples -> HaxeSamplingProfilerData.from(samples.snapshot(), file.toPath());
+          case HxtCapture.Samples samples -> HaxeSamplingProfilerData.from(samples.snapshot(), file);
           case HxtCapture.Zones zones -> HaxeTracyProfilerData.from(zones.store());
         });
       }
       catch (IOException e) {
         return new Failure(HaxeProfilerBundle.message("haxe.profiler.parse.failed", e.getMessage()));
       }
+    }
+
+    // still abstract in the platform; it calls the Path overload
+    @Override
+    public @NotNull ProfilerDumpFileParsingResult parse(@NotNull File file, @NotNull ProgressIndicator indicator) {
+      return parse(file.toPath(), indicator);
     }
 
     @Override

@@ -40,13 +40,19 @@ public final class HaxeStreamDumpParser implements ProfilerDumpFileParser {
   }
 
   @Override
-  public @NotNull ProfilerDumpFileParsingResult parse(@NotNull File file, @NotNull ProgressIndicator indicator) {
-    try (InputStream in = new CancellableStream(new BufferedInputStream(Files.newInputStream(file.toPath())), indicator)) {
-      return new Success(reader.read(in, file.toPath()));
+  public @NotNull ProfilerDumpFileParsingResult parse(@NotNull Path file, @NotNull ProgressIndicator indicator) {
+    try (InputStream in = new CancellableStream(new BufferedInputStream(Files.newInputStream(file)), indicator)) {
+      return new Success(reader.read(in, file));
     }
     catch (IOException e) {
       return new Failure(HaxeProfilerBundle.message("haxe.profiler.parse.failed", e.getMessage()));
     }
+  }
+
+  // still abstract in the platform; it calls the Path overload
+  @Override
+  public @NotNull ProfilerDumpFileParsingResult parse(@NotNull File file, @NotNull ProgressIndicator indicator) {
+    return parse(file.toPath(), indicator);
   }
 
   @Override

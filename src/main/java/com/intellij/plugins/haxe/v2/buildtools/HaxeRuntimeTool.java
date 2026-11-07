@@ -11,7 +11,6 @@ import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildToolSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -113,8 +112,8 @@ public enum HaxeRuntimeTool {
   public String fromPath(@NotNull Environment environment) {
     String path = environment.get(PATH_VARIABLE);
     if (path == null) return null;
-    File onPath = PathEnvironmentVariableUtil.findInPath(executableName(), path, null);
-    return onPath != null ? onPath.getAbsolutePath() : null;
+    Path onPath = PathEnvironmentVariableUtil.findFirst(executableName(), path);
+    return onPath != null ? onPath.toAbsolutePath().toString() : null;
   }
 
   /** The environment's copy, else the PATH's: what an empty SDK field inherits, and what a new SDK starts with. */

@@ -1,0 +1,7 @@
+class Greeter {
+    <spot>/**
+     * Greets someone.
+     * @param name who to greet
+     */</spot>
+    public function greet(name:String):Void {}
+}
