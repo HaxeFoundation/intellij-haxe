@@ -1,5 +1,26 @@
 ## 2.1.0
+### Added
+* Added: Doc comments in Haxe style (`**/`) or Javadoc style (`*` on each line); new comments follow Code Style > Haxe > Documentation.
+* Added: Enter after `/**` completes the comment and adds `@param`/`@return` tags for methods.
+* Added: Intention to convert a doc comment between Haxe and Javadoc style.
+* Added: Custom Target run configuration: run any executable with arguments and a working directory.
+* Added: Program arguments for HashLink run and debug configurations.
+* Added: Lime/OpenFL/NME option to mark the selected target's generated classes as sources (Settings > Haxe > Frameworks).
+* Added: Private static extension methods resolve and complete where accessible, including `@:allow`, `@:access` and `@:privateAccess`.
+* Added: Error reports can be sent to the plugin's Marketplace page.
+* Added: Package segments of qualified names in strings navigate to the package.
+### Changed
 * Changed: 2026.2 support dropped due to API changes.
+* Changed: Compiler go to declaration answers a hover and the following click with one compiler request.
+### Fixed
+* Fixed: Calling through a typedef to `Dynamic` reported "Dynamic is not a callable type" (#1284).
+* Fixed: Extension methods on `Int` values were resolved/parsed as `Float`.
+* Fixed: Highlighting froze on a private method overridden two levels deep, or overflowed on cyclic class hierarchies.
+* Fixed: "HaxeSdkData mismatch" errors on every save for SDKs set up by an older plugin version.
+* Fixed: Go to Super did not move the caret on 2026.3.
+* Fixed: Fix Doc Comment left an empty comment without tags on 2026.3.
+* Fixed: Compiler-only completion no longer hides path and qualified-name completion inside strings.
+* Fixed: Go to declaration on a name the compiler rejects no longer opens a failing generated-code preview.
 
 ## 2.0.1
 * Fixed: `static function main()` of a build's main class was reported as an unused method.
