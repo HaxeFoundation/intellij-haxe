@@ -24,7 +24,6 @@ import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
@@ -34,8 +33,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Objects;
 
 public class HaxeSdkType extends SdkType {
+
+  private static final String ADDITIONAL_ELEMENT = "additional";
 
   public HaxeSdkType() {
     super(HaxeCommonBundle.message("haxe.sdk.name"));
@@ -115,23 +117,32 @@ public class HaxeSdkType extends SdkType {
   @Override
   public SdkAdditionalData loadAdditionalData(Element additional) {
     HaxeSdkData data = XmlSerializer.deserialize(additional, HaxeSdkData.class);
-    if (!isWrittenInCurrentFormat(data, additional)) data.markStoredInOldFormat();
+    data.rememberStoredForm(additional.clone(), currentForm(data));
     return data;
   }
 
+  /**
+   * Writes a stored entry back exactly as it was read while its values are
+   * unchanged. The platform compares the stored text with a fresh save on
+   * every save and logs an error while they differ, which an entry written
+   * by an older plugin, with other options, always would. Changed data is
+   * written in the current form.
+   */
   @Override
   public void saveAdditionalData(SdkAdditionalData additionalData, Element additional) {
-    if (additionalData instanceof HaxeSdkData) {
-      XmlSerializer.serializeInto(additionalData, additional);
+    if (!(additionalData instanceof HaxeSdkData data)) return;
+    Element current = currentForm(data);
+    Element written = Objects.requireNonNullElse(data.storedFormWhileUnchanged(current), current);
+    for (Element option : written.getChildren()) {
+      additional.addContent(option.clone());
     }
   }
 
-  // The platform compares the stored text with a fresh save on every save and
-  // logs an error while they differ (a field added or removed since).
-  private boolean isWrittenInCurrentFormat(HaxeSdkData data, Element stored) {
-    Element current = new Element(stored.getName());
-    saveAdditionalData(data, current);
-    return JDOMUtil.write(current).equals(JDOMUtil.write(stored));
+  @NotNull
+  private static Element currentForm(@NotNull HaxeSdkData data) {
+    Element form = new Element(ADDITIONAL_ELEMENT);
+    XmlSerializer.serializeInto(data, form);
+    return form;
   }
 
   @NotNull

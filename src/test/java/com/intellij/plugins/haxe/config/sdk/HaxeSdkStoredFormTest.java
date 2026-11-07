@@ -17,15 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-/** SDK entries stored by older plugin versions are detected at load and rewritten once. */
-@DisplayName("SDK: format upgrade")
-public class HaxeSdkFormatUpgradeTest extends HaxeLightFixtureTestCase {
+/** A stored SDK entry saves back as it was read until its values change, whichever plugin version wrote it. */
+@DisplayName("SDK: stored form")
+public class HaxeSdkStoredFormTest extends HaxeLightFixtureTestCase {
 
   private static final String STORED_SDK_NAME = "stored-haxe";
   private static final String PLUGIN_1_8_ADDITIONAL = """
@@ -76,44 +74,73 @@ public class HaxeSdkFormatUpgradeTest extends HaxeLightFixtureTestCase {
 
   @ParameterizedTest(name = "{0}")
   @FieldSource("OLDER_ENTRIES")
-  public void testOlderEntriesLoadAsOldFormat(String pluginVersion, String storedAdditional) throws Exception {
-    HaxeSdkData data = load(JDOMUtil.load(storedAdditional));
-
-    assertTrue(data.isStoredInOldFormat(), pluginVersion);
-    assertEquals("/opt/haxe/haxelib", data.getHaxelibPath());
-  }
-
-  @Test
-  @DisplayName("an entry written now loads as current format")
-  public void testAnEntryWrittenNowLoadsAsCurrentFormat() {
-    HaxeSdkData written = new HaxeSdkData("/opt/haxe", "4.3.7");
-    written.setHaxelibPath("/opt/haxe/haxelib");
-    Element stored = new Element("additional");
-    HaxeSdkType.getInstance().saveAdditionalData(written, stored);
+  @DisplayName("older entries save back unchanged")
+  public void testOlderEntriesSaveBackUnchanged(String pluginVersion, String storedAdditional) throws Exception {
+    Element stored = JDOMUtil.load(storedAdditional);
 
     HaxeSdkData data = load(stored);
 
-    assertFalse(data.isStoredInOldFormat());
+    assertEquals("/opt/haxe/haxelib", data.getHaxelibPath(), pluginVersion);
+    assertEquals(JDOMUtil.write(stored), JDOMUtil.write(save(data)), pluginVersion);
   }
 
   @Test
-  @DisplayName("upgrade rewrites a registered sdk in the current format")
-  public void testUpgradeRewritesARegisteredSdkInTheCurrentFormat() throws Exception {
+  @DisplayName("an entry written now saves back unchanged")
+  public void testAnEntryWrittenNowSavesBackUnchanged() {
+    HaxeSdkData written = new HaxeSdkData("/opt/haxe", "4.3.7");
+    written.setHaxelibPath("/opt/haxe/haxelib");
+    Element stored = save(written);
+
+    HaxeSdkData data = load(stored);
+
+    assertEquals("", optionValue(stored, "nodeBinPath"), "the current form writes every option");
+    assertEquals(JDOMUtil.write(stored), JDOMUtil.write(save(data)));
+  }
+
+  @Test
+  @DisplayName("a changed entry saves in the current form")
+  public void testAChangedEntrySavesInTheCurrentForm() throws Exception {
+    HaxeSdkData data = load(JDOMUtil.load(PLUGIN_1_8_ADDITIONAL));
+
+    data.setNodeBinPath("/opt/node/node");
+    Element saved = save(data);
+
+    assertEquals("/opt/node/node", optionValue(saved, "nodeBinPath"));
+    assertEquals("/opt/neko/neko", optionValue(saved, "nekoBinPath"));
+    assertEquals("", optionValue(saved, "flexSdkName"), "the current form writes every option");
+  }
+
+  @Test
+  @DisplayName("a registered older sdk saves back unchanged")
+  public void testARegisteredOlderSdkSavesBackUnchanged() throws Exception {
     registerStoredSdk(PLUGIN_1_8_ADDITIONAL);
     Sdk sdk = ProjectJdkTable.getInstance().findJdk(STORED_SDK_NAME);
     assertNotNull(sdk);
-    assertTrue(assertInstanceOf(HaxeSdkData.class, sdk.getSdkAdditionalData()).isStoredInOldFormat());
 
-    HaxeSdkFormatUpgrade.rewriteSdksInOldFormat();
+    HaxeSdkData data = assertInstanceOf(HaxeSdkData.class, sdk.getSdkAdditionalData());
 
-    HaxeSdkData rewritten = assertInstanceOf(HaxeSdkData.class, sdk.getSdkAdditionalData());
-    assertFalse(rewritten.isStoredInOldFormat(), "the bridge reloads the committed entry; it must match a fresh save");
-    assertEquals("/opt/haxe/haxelib", rewritten.getHaxelibPath());
-    assertEquals("/opt/neko/neko", rewritten.getNekoBinPath());
+    // the platform compares exactly these on every save
+    assertEquals(JDOMUtil.write(JDOMUtil.load(PLUGIN_1_8_ADDITIONAL)), JDOMUtil.write(save(data)));
+    assertEquals("/opt/neko/neko", data.getNekoBinPath());
   }
 
   private static HaxeSdkData load(Element storedAdditional) {
     return assertInstanceOf(HaxeSdkData.class, HaxeSdkType.getInstance().loadAdditionalData(storedAdditional));
+  }
+
+  private static Element save(HaxeSdkData data) {
+    Element saved = new Element("additional");
+    HaxeSdkType.getInstance().saveAdditionalData(data, saved);
+    return saved;
+  }
+
+  private static String optionValue(Element additional, String name) {
+    Element option = additional.getChildren("option").stream()
+      .filter(candidate -> name.equals(candidate.getAttributeValue("name")))
+      .findFirst()
+      .orElse(null);
+    assertNotNull(option, "no option " + name);
+    return option.getAttributeValue("value");
   }
 
   /** Registers an SDK read from a jdk table entry, the way the IDE loads one at startup. */

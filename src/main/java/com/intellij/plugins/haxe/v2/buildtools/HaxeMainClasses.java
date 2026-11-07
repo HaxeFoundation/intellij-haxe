@@ -61,9 +61,9 @@ public final class HaxeMainClasses {
     return entryClasses(haxeClass.getProject()).contains(new EntryClass(file, name));
   }
 
-  /** What a cache of the classes builds start from depends on: the build inputs and the file tree. */
+  /** The dependencies of a cache over the classes builds start from: the build inputs and the file tree. */
   @NotNull
-  public static Object[] mainClassDependencies(@NotNull Project project) {
+  public static Object[] cacheDependencies(@NotNull Project project) {
     List<Object> dependencies = new ArrayList<>(List.of(HaxeBuildInputs.getInstance(project).dependencies()));
     // a main class file created, deleted or moved changes what a build's main resolves to
     dependencies.add(VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS);
@@ -78,7 +78,7 @@ public final class HaxeMainClasses {
 
   @NotNull
   private static CachedValueProvider.Result<Set<EntryClass>> entryClassesResult(@NotNull Project project) {
-    return CachedValueProvider.Result.create(collectEntryClasses(project), mainClassDependencies(project));
+    return CachedValueProvider.Result.create(collectEntryClasses(project), cacheDependencies(project));
   }
 
   @NotNull
