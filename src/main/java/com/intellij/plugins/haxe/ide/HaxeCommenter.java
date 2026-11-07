@@ -18,12 +18,14 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import com.intellij.application.options.CodeStyle;
 import com.intellij.lang.CodeDocumentationAwareCommenter;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +73,12 @@ public class HaxeCommenter implements CodeDocumentationAwareCommenter {
   /** The closing line a new doc comment in the file gets, after its indent. */
   public static @NotNull String newDocCommentCloserLine(@NotNull PsiFile file) {
     return usesLeadingAsterisks(file) ? JAVADOC_CLOSER_LINE : HAXE_DOC_COMMENT_SUFFIX;
+  }
+
+  /** How far a Haxe-style body line sits inside its comment: one indent level, as the formatter indents it. */
+  public static @NotNull String haxeStyleBodyIndent(@NotNull PsiFile file) {
+    CommonCodeStyleSettings.IndentOptions indentOptions = CodeStyle.getIndentOptions(file);
+    return indentOptions.USE_TAB_CHARACTER ? "\t" : " ".repeat(indentOptions.INDENT_SIZE);
   }
 
   @Override

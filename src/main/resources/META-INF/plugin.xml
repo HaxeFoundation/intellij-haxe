@@ -886,6 +886,12 @@
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Documentation</category>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertDocCommentStyleIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
       <category>Haxe/Types</category>
       <className>com.intellij.plugins.haxe.ide.intention.AddTypeTagToFieldIntention</className>
     </intentionAction>

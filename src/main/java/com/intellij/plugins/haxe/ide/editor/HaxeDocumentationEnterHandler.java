@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.editor;
 
-import com.intellij.application.options.CodeStyle;
 import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter;
 import com.intellij.lang.ASTNode;
@@ -18,7 +17,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.text.CharArrayUtil;
@@ -31,6 +29,7 @@ import static com.intellij.plugins.haxe.ide.HaxeCommenter.BLOCK_COMMENT_PREFIX;
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_LINE_PREFIX;
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_PREFIX;
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.JAVADOC_LINE_START;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.haxeStyleBodyIndent;
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.newDocCommentCloserLine;
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.usesLeadingAsterisks;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeDocTokenTypes.DOC_END;
@@ -122,7 +121,7 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
     /** Adds the closer below the opener, with an empty body line for the caret and the tag stub under it. */
     private static void completeNewComment(@NotNull PsiFile file, @NotNull Editor editor, @NotNull Document document, int caretOffset) {
         String indent = leadingWhitespace(lineBeforeCaret(document, caretOffset));
-        String bodyLineStart = indent + (usesLeadingAsterisks(file) ? JAVADOC_LINE_START : indentUnit(file));
+        String bodyLineStart = indent + (usesLeadingAsterisks(file) ? JAVADOC_LINE_START : haxeStyleBodyIndent(file));
         String closer = indent + newDocCommentCloserLine(file);
 
         document.insertString(caretOffset, "\n" + bodyLineStart + "\n" + closer);
@@ -177,13 +176,7 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
     /** A Haxe-style line sits one indent inside the comment, or keeps the caret line's indent when the doc settings say so. */
     private static @NotNull String bareLineStart(@NotNull PsiFile file, @NotNull String line, boolean openerLine, @NotNull String openerIndent) {
         if (!openerLine && HaxeDocSettings.getInstance().getState().enterKeepsIndentation) return leadingWhitespace(line);
-        return openerIndent + indentUnit(file);
-    }
-
-    /** One indent level, as the formatter indents a Haxe-style body line. */
-    private static @NotNull String indentUnit(@NotNull PsiFile file) {
-        CommonCodeStyleSettings.IndentOptions indentOptions = CodeStyle.getIndentOptions(file);
-        return indentOptions.USE_TAB_CHARACTER ? "\t" : " ".repeat(indentOptions.INDENT_SIZE);
+        return openerIndent + haxeStyleBodyIndent(file);
     }
 
     /** Adds the owner's tag lines below the caret line, the "Insert documentation comment stub" smart key permitting. */
