@@ -25,8 +25,10 @@ import java.util.stream.Collectors;
  * {@link OpenFLTarget}, {@link NMETarget}) seed the lists; users add, edit or
  * remove entries — e.g. NDA console targets or arch-flag variants — and the
  * tool window's target selector, the project wizard and every command using a
- * target flag consume THIS list. Application-level: targets describe the
- * machine's toolchains, not one project.
+ * target flag consume THIS list. Each framework's "Mark generated classes as
+ * sources" setting lives here too ({@link #marksGeneratedSources}).
+ * Application-level: targets describe the machine's toolchains, not one
+ * project.
  */
 @Service(Service.Level.APP)
 @State(name = "HaxeFrameworkTargets", storages = @Storage("haxe-framework-targets.xml"))
@@ -57,6 +59,9 @@ public final class HaxeFrameworkTargetSettings implements PersistentStateCompone
     public List<TargetRow> lime = new ArrayList<>();
     public List<TargetRow> openfl = new ArrayList<>();
     public List<TargetRow> nme = new ArrayList<>();
+    public boolean limeGeneratedSources = true;
+    public boolean openflGeneratedSources = true;
+    public boolean nmeGeneratedSources = true;
   }
 
   private PersistedState state = new PersistedState();
@@ -112,6 +117,27 @@ public final class HaxeFrameworkTargetSettings implements PersistentStateCompone
       .map(HaxeFrameworkTargetSettings::copyRow)
       .collect(Collectors.toCollection(ArrayList::new));
     storeRows(framework, kept);
+  }
+
+  /**
+   * Whether the generated source folders of the framework's builds, for their
+   * selected target, become generated source roots (see
+   * HaxeGeneratedSourceRoots). On by default.
+   */
+  public boolean marksGeneratedSources(@NotNull Framework framework) {
+    return switch (framework) {
+      case LIME -> state.limeGeneratedSources;
+      case OPENFL -> state.openflGeneratedSources;
+      case NME -> state.nmeGeneratedSources;
+    };
+  }
+
+  public void setMarksGeneratedSources(@NotNull Framework framework, boolean marked) {
+    switch (framework) {
+      case LIME -> state.limeGeneratedSources = marked;
+      case OPENFL -> state.openflGeneratedSources = marked;
+      case NME -> state.nmeGeneratedSources = marked;
+    }
   }
 
   /** The name of the framework's built-in default target (each target enum declares its own {@code DEFAULT}). */

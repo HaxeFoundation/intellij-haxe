@@ -59,6 +59,11 @@ public final class LimeProjects {
   /** The target flags whose packaged app runs in a BROWSER page, served and console-captured for test runs. */
   public static final Set<String> BROWSER_TARGETS = Set.of("html5");
 
+  /** The folder, inside the export target directory, that lime writes a target's generated sources to (ApplicationMain, ManifestResources). */
+  public static final String GENERATED_SOURCES_DIRECTORY = "haxe";
+  /** The folder the swf library writes its generated asset classes to; a class path of its own, since the classes declare no package. */
+  public static final String GENERATED_CLASSES_DIRECTORY = "_generated";
+
   /** The target flags lime builds through the HOST desktop platform (see {@link #outputDirectoryConfigKey}). */
   private static final Set<String> HOST_BUILT_TARGETS = Set.of("cpp", "hl", "neko", "java", "cs");
 
@@ -342,9 +347,23 @@ public final class LimeProjects {
   public static Path packagedBinary(@NotNull VirtualFile projectFile, @NotNull String content, @NotNull String targetFlag) {
     if (!HOST_LAUNCHABLE_TARGETS.contains(targetFlag)) return null;
     String platformTarget = platformTarget(targetFlag);
-    return exportBinDirectory(projectFile, content, targetDirectory(platformTarget))
+    return exportBinDirectory(projectFile, content, targetFlag)
       .resolve(packagedLauncher(platformTarget, appFile(content)))
       .normalize();
+  }
+
+  /**
+   * The folders a lime build compiles its generated sources from, as
+   * absolute paths: {@code <app path>/<target dir>/haxe} and its
+   * {@code _generated} subfolder, which is a class path of its own because
+   * its classes declare no package. They exist only once a build has run.
+   * Reads the xml alone, like {@link #packagedBinary(VirtualFile, String, String)}.
+   */
+  // TODO: a <platform>.output-directory config value moves the export target directory; honour it from the evaluation
+  @NotNull
+  public static List<Path> generatedSourceDirectories(@NotNull Path projectDirectory, @NotNull String content, @NotNull String targetFlag) {
+    Path generated = exportTargetDirectory(projectDirectory, content, targetFlag).resolve(GENERATED_SOURCES_DIRECTORY);
+    return List.of(generated, generated.resolve(GENERATED_CLASSES_DIRECTORY));
   }
 
   /**
@@ -375,17 +394,21 @@ public final class LimeProjects {
     return "obj".equals(String.valueOf(path.getFileName()));
   }
 
+  /** Lime's export layout, shared by every packaged-artifact lookup: the target's export directory plus {@code bin}. */
+  @NotNull
+  private static Path exportBinDirectory(@NotNull VirtualFile projectFile, @NotNull String content, @NotNull String targetFlag) {
+    return exportTargetDirectory(Path.of(projectFile.getParent().getPath()), content, targetFlag).resolve("bin");
+  }
+
   /**
-   * Lime's export layout, shared by every packaged-artifact lookup:
-   * {@code <app path>/<target dir>/bin} relative to the project file, the app
-   * path defaulting to {@code bin}.
+   * The directory a target exports into: {@code <app path>/<target dir>}
+   * under the project directory, the app path defaulting to {@code bin}.
    */
   @NotNull
-  private static Path exportBinDirectory(@NotNull VirtualFile projectFile, @NotNull String content, @NotNull String targetDirectory) {
-    return Path.of(projectFile.getParent().getPath())
+  private static Path exportTargetDirectory(@NotNull Path projectDirectory, @NotNull String content, @NotNull String targetFlag) {
+    return projectDirectory
       .resolve(appPath(content))
-      .resolve(targetDirectory)
-      .resolve("bin")
+      .resolve(targetDirectory(platformTarget(targetFlag)))
       .normalize();
   }
 

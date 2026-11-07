@@ -9,9 +9,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.JComponent;
 
 /**
- * The Settings | Haxe tree: an empty "Haxe" root and "Frameworks" group whose
- * children are the per-framework target tables. Grouping pages carry no UI of
- * their own — the platform renders their children.
+ * The Settings | Haxe tree: an empty "Haxe" root and a "Frameworks" group
+ * whose children are the per-framework pages (target table and generated
+ * sources). Grouping pages carry no UI of their own; the platform renders
+ * their children.
  */
 public final class HaxeFrameworkConfigurables {
 
@@ -64,20 +65,20 @@ public final class HaxeFrameworkConfigurables {
     }
   }
 
-  public static final class LimeTargets extends HaxeFrameworkTargetsConfigurable {
-    public LimeTargets() {
+  public static final class LimePage extends HaxeFrameworkConfigurable {
+    public LimePage() {
       super(Framework.LIME, "settings.haxe.frameworks.lime", HaxeBundle.message("haxe.frameworks.targets.lime"));
     }
   }
 
-  public static final class OpenflTargets extends HaxeFrameworkTargetsConfigurable {
-    public OpenflTargets() {
+  public static final class OpenflPage extends HaxeFrameworkConfigurable {
+    public OpenflPage() {
       super(Framework.OPENFL, "settings.haxe.frameworks.openfl", HaxeBundle.message("haxe.frameworks.targets.openfl"));
     }
   }
 
-  public static final class NmeTargets extends HaxeFrameworkTargetsConfigurable {
-    public NmeTargets() {
+  public static final class NmePage extends HaxeFrameworkConfigurable {
+    public NmePage() {
       super(Framework.NME, "settings.haxe.frameworks.nme", HaxeBundle.message("haxe.frameworks.targets.nme"));
     }
   }

@@ -40,6 +40,14 @@ public final class NmeProjects {
   /** The default action an nmml file compiles with. */
   public static final String BUILD_ACTION = "build";
 
+  /** The folder the nme tool writes a target's generated sources to (ApplicationMain, the asset classes), inside the platform directory. */
+  public static final String GENERATED_SOURCES_DIRECTORY = "haxe";
+
+  // the nme tool's (7.0.64) desktop platform directories: mac and linux carry the "64" of the 64-bit builds every modern host makes
+  private static final String WINDOWS_DIRECTORY = "windows";
+  private static final String LINUX_DIRECTORY = "linux64";
+  private static final String MAC_DIRECTORY = "mac64";
+
   private NmeProjects() {
   }
 
@@ -80,6 +88,48 @@ public final class NmeProjects {
     List<String> command = new ArrayList<>(List.of(haxelib, "run", "nme", actionName, file.getName()));
     command.addAll(selectedTargetFlags(project, file));
     return command;
+  }
+
+  /**
+   * The folder an nme build compiles its generated sources from, relative to
+   * the project file: {@code <app path>/<platform dir>/haxe}, the app path
+   * defaulting to lime's ({@code bin}). It exists only once a build has run.
+   * Null for a target whose platform directory is not mapped.
+   */
+  @Nullable
+  public static String generatedSourceDirectory(@NotNull String content, @NotNull String targetFlag) {
+    String platformDirectory = platformDirectory(targetFlag);
+    if (platformDirectory == null) return null;
+    String appPath = ProjectXmlParser.parseAppPath(content);
+    String outputRoot = appPath != null ? appPath : LimeProjects.DEFAULT_APP_PATH;
+    return outputRoot + "/" + platformDirectory + "/" + GENERATED_SOURCES_DIRECTORY;
+  }
+
+  /**
+   * The directory, under the output root, that the nme tool builds a target
+   * in. Each platform has its own; "cpp" builds for the host desktop, and a
+   * neko build uses the host desktop's directory with a "-neko" suffix. Null
+   * for an unmapped target.
+   */
+  // TODO: the winrt, arm64, android/ios view, watchos and jsprime platform directories are not mapped
+  @Nullable
+  public static String platformDirectory(@NotNull String targetFlag) {
+    return switch (targetFlag) {
+      case "cpp" -> hostDesktopPlatformDirectory();
+      case "windows" -> WINDOWS_DIRECTORY;
+      case "linux" -> LINUX_DIRECTORY;
+      case "mac" -> MAC_DIRECTORY;
+      case "neko" -> nekoPlatformDirectory();
+      case "flash", "android", "ios", "cppia", "rpi", "rg350" -> targetFlag;
+      default -> null;
+    };
+  }
+
+  @NotNull
+  private static String hostDesktopPlatformDirectory() {
+    if (SystemInfo.isWindows) return WINDOWS_DIRECTORY;
+    if (SystemInfo.isMac) return MAC_DIRECTORY;
+    return LINUX_DIRECTORY;
   }
 
   /** The haxe target compiled and the artifact packaged for a selected nme target. */
@@ -160,10 +210,9 @@ public final class NmeProjects {
     return new TargetArtifact(HaxeTarget.NEKO, outputRoot + "/" + platformDir + "/" + appFile + "/" + launcher);
   }
 
+  @NotNull
   private static String nekoPlatformDirectory() {
-    if (SystemInfo.isWindows) return "windows-neko";
-    if (SystemInfo.isMac) return "mac64-neko";
-    return "linux64-neko";
+    return hostDesktopPlatformDirectory() + "-neko";
   }
 
   @NotNull
@@ -175,16 +224,16 @@ public final class NmeProjects {
 
   @NotNull
   private static TargetArtifact windowsArtifact(@NotNull String appFile, @NotNull String outputRoot) {
-    return new TargetArtifact(HaxeTarget.CPP, outputRoot + "/windows/" + appFile + "/" + appFile + ".exe");
+    return new TargetArtifact(HaxeTarget.CPP, outputRoot + "/" + WINDOWS_DIRECTORY + "/" + appFile + "/" + appFile + ".exe");
   }
 
   @NotNull
   private static TargetArtifact linuxArtifact(@NotNull String appFile, @NotNull String outputRoot) {
-    return new TargetArtifact(HaxeTarget.CPP, outputRoot + "/linux64/" + appFile + "/" + appFile);
+    return new TargetArtifact(HaxeTarget.CPP, outputRoot + "/" + LINUX_DIRECTORY + "/" + appFile + "/" + appFile);
   }
 
   @NotNull
   private static TargetArtifact macArtifact(@NotNull String appFile, @NotNull String outputRoot) {
-    return new TargetArtifact(HaxeTarget.CPP, outputRoot + "/mac64/" + appFile + ".app/Contents/MacOS/" + appFile);
+    return new TargetArtifact(HaxeTarget.CPP, outputRoot + "/" + MAC_DIRECTORY + "/" + appFile + ".app/Contents/MacOS/" + appFile);
   }
 }
