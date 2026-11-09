@@ -3,17 +3,39 @@
            elementFormDefault="qualified">
 
     <xs:complexType name="app">
-        <xs:attribute name="main" type="xs:string"/>
+        <xs:annotation>
+            <xs:documentation>Sets the application's entry point and where the build output goes.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="main" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The class with the static <code>main</code> function. For example, <code>Main</code> or <code>com.example.Main</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="file" type="xs:string"/>
-        <xs:attribute name="path" type="xs:string"/>
+        <xs:attribute name="path" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The output folder, relative to the file this element is in. For example, <code>Export</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="preloader" type="xs:string"/>
-        <xs:attribute name="swf-version" type="natural-number"/>
-        <xs:attribute name="min-swf-version" type="natural-number"/>
+        <xs:attribute name="swf-version" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>The SWF version to build. For example, <code>11.8</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="min-swf-version" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>The lowest SWF version to build. If the SWF version is already higher, nothing changes.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="assets">
+        <xs:annotation>
+            <xs:documentation>Adds files to the application's assets.</xs:documentation>
+        </xs:annotation>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="font" type="asset"/>
             <xs:element name="image" type="asset"/>
@@ -25,14 +47,41 @@
             <xs:element name="binary" type="asset"/>
             <xs:element name="text" type="asset"/>
         </xs:choice>
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
-        <xs:attribute name="embed" type="xs:boolean"/>
-        <xs:attribute name="rename" type="xs:string"/>
-        <xs:attribute name="library" type="string-min-len-1"/>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>A file or folder, relative to the file this element is in. A folder adds all files in it and in its subfolders.<p>Lime always leaves out hidden files (<code>.*</code>), <code>cvs</code>, <code>thumbs.db</code>, <code>desktop.ini</code>, <code>*.fla</code> and <code>*.hash</code>.</p></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="embed" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="rename" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The path the assets get in the application, instead of their path on disk. For example, <code>assets</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="library" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The asset library that the assets belong to.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="glyphs" type="xs:string"/>
-        <xs:attribute name="include" type="xs:string" default="*"/>
-        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:attribute name="include" type="xs:string" default="*">
+            <xs:annotation>
+                <xs:documentation>For a folder, the files to add. Separate patterns with <code>|</code>; for example, <code>*.png|*.jpg</code>. When left out, every file is added. It requires <code>path</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="exclude" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>For a folder, the files to leave out. Separate patterns with <code>|</code>; for example, <code>*.psd</code>. It requires <code>path</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="type">
+            <xs:annotation>
+                <xs:documentation>The asset type. Upper and lower case are the same, and <code>bytes</code> means <code>binary</code>. It requires <code>path</code>.</xs:documentation>
+            </xs:annotation>
             <xs:simpleType>
                 <xs:restriction base="xs:string">
                     <xs:enumeration value="binary"/>
@@ -45,33 +94,57 @@
                     <xs:enumeration value="text"/>
                     <xs:enumeration value="manifest"/>
                     <xs:enumeration value="bytes"/>
+                    <xs:enumeration value="movie_clip"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
 
+        <xs:attribute name="id" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The asset ID, when <code>path</code> is a single file.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="meta">
+        <xs:annotation>
+            <xs:documentation>Sets the application's metadata.<p>Lime also defines each of these attributes as a name for conditions and <code>${...}</code>: <code>title</code>, <code>description</code>, <code>package</code>, <code>version</code>, <code>company</code>, <code>company-id</code>, <code>build-number</code>, <code>company-url</code> and <code>copyright-years</code>. The name is <code>APP_</code> followed by the attribute name in upper case, with each <code>-</code> turned into <code>_</code>. For example, <code>title</code> becomes <code>APP_TITLE</code> and <code>company-id</code> becomes <code>APP_COMPANY_ID</code>.</p></xs:documentation>
+        </xs:annotation>
         <xs:attribute name="title" type="xs:string"/>
         <xs:attribute name="description" type="xs:string"/>
-        <xs:attribute name="package" type="xs:string"/>
+        <xs:attribute name="package" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The package or bundle identifier. For example, <code>com.example.mygame</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="version" type="xs:string"/>
         <xs:attribute name="company" type="xs:string"/>
         <xs:attribute name="company-id" type="xs:string"/>
         <xs:attribute name="build-number" type="xs:string"/>
         <xs:attribute name="company-url" type="xs:string"/>
+        <xs:attribute name="copyright-years" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Since Lime 8.3.0.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="window">
-        <xs:attribute name="id" type="natural-number"/>
+        <xs:annotation>
+            <xs:documentation>Sets up an application window. To set up several windows, give each <code>window</code> element its own <code>id</code>.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="id" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>The window this element sets up. Windows are counted from <code>0</code>, which is also the default.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="background" type="xs:string">
             <xs:annotation>
-                <xs:documentation>Set to empty, null or transparent for transparent background. Use 0x000000 format.
-                </xs:documentation>
+                <xs:documentation>The background color in hexadecimal. The <code>0x</code> or <code>#</code> prefix is optional; for example, <code>#FFFFFF</code> is white. The values <code>transparent</code>, <code>null</code> or an empty value give no background.</xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="orientation" default="auto">
@@ -85,49 +158,148 @@
                     </xs:enumeration>
                     <xs:enumeration value="portrait"/>
                     <xs:enumeration value="landscape"/>
+                    <xs:enumeration value="all"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="width" type="natural-number"/>
-        <xs:attribute name="height" type="natural-number"/>
-        <xs:attribute name="fps" type="natural-number">
+        <xs:attribute name="width" type="natural-number">
             <xs:annotation>
-                <xs:documentation>There is a special fps="0" value for HTML5, which is default, which uses
-                    "requestAnimationFrame" instead of forcing a
-                    frame rate
-                </xs:documentation>
+                <xs:documentation>In pixels.</xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="antialiasing" type="natural-number"/>
+        <xs:attribute name="height" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>In pixels.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="fps" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>The frame rate the application aims for, in frames per second. For example, <code>60</code>.<p>On HTML5, <code>60</code> or more updates with every animation frame of the browser, and a lower value limits updates to that rate.</p></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="antialiasing" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>The antialiasing level for hardware rendering. On native targets, <code>2</code> or <code>3</code> turns it on, and <code>4</code> or more asks for higher quality. On HTML5, any value above <code>0</code> turns it on.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="parameters" type="xs:string"/>
-        <xs:attribute name="title" type="xs:string"/>
-        <xs:attribute name="allow-high-dpi" type="xs:boolean"/>
-        <xs:attribute name="color-depth" type="natural-number"/>
+        <xs:attribute name="title" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The window title. For example, <code>My Game</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="allow-high-dpi" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window is created with high-DPI support. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="color-depth" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>The color depth in bits. On native targets, <code>32</code> asks for a 32-bit color buffer; other values keep the default.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
 
-        <xs:attribute name="hardware" type="xs:boolean"/>
-        <xs:attribute name="allow-shaders" type="xs:boolean"/>
-        <xs:attribute name="require-shaders" type="xs:boolean"/>
-        <xs:attribute name="depth-buffer" type="xs:boolean"/>
-        <xs:attribute name="stencil-buffer" type="xs:boolean"/>
-        <xs:attribute name="fullscreen" type="xs:boolean"/>
-        <xs:attribute name="resizable" type="xs:boolean"/>
-        <xs:attribute name="borderless" type="xs:boolean"/>
-        <xs:attribute name="vsync" type="xs:boolean"/>
+        <xs:attribute name="hardware" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window uses hardware-accelerated rendering. On HTML5, <code>false</code> draws to a 2D canvas instead of WebGL. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="allow-shaders" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Lime reads this attribute, but as of Lime 8.3.2 no window or template uses it.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="require-shaders" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Lime reads this attribute, but as of Lime 8.3.2 no window or template uses it.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="depth-buffer" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the rendering context gets a depth buffer. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="stencil-buffer" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the rendering context gets a stencil buffer. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="fullscreen" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window opens in fullscreen mode. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="resizable" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the user can resize the window on native targets. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="borderless" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window has no window frame. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="vsync" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, drawing waits for the display's vertical sync. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
 
-        <xs:attribute name="minimized" type="xs:boolean"/>
-        <xs:attribute name="maximized" type="xs:boolean"/>
-        <xs:attribute name="alwaysOnTop" type="xs:boolean"/>
+        <xs:attribute name="minimized" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window opens minimized. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="maximized" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window opens maximized. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="hidden" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window opens hidden. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="alwaysOnTop" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the window stays above other windows. It is only used on native targets, not on HTML5 or Flash. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
 
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="source">
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:annotation>
+            <xs:documentation>Adds a folder of Haxe classes to the class path.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder, relative to the file this element is in. For example, <code>Source</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="classpath">
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:annotation>
+            <xs:documentation>Adds a folder of Haxe classes to the class path. It works the same way as <code>source</code>.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
@@ -137,10 +309,34 @@
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="haxelib">
-        <xs:attribute name="name" type="string-min-len-1" use="required"/>
-        <xs:attribute name="version" type="xs:string"/>
-        <xs:attribute name="optional" type="xs:boolean"/>
-        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:annotation>
+            <xs:documentation>Adds a haxelib library to the build. If the library has a project include file of its own, Lime reads it as part of the project.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The library. For example, <code>openfl</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="version" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The library version to use, written as haxelib expects it. For example, <code>9.4.0</code> selects that release, and <code>git</code> selects a git install.<p>If an earlier element already added a different version, Lime ignores this element and prints a warning.</p></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="optional" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>When <code>true</code>, the build goes on without the library if it is not installed. Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>A folder to use as the library, instead of the library haxelib finds. The path is relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="repository" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>A haxelib repository folder to use instead of the current one. The path is relative to the project folder; for example, <code>.haxelib</code>.<p>Lime then runs again with that repository, so the repository must contain Lime too. With <code>repository</code>, the element adds no library.</p></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
@@ -157,12 +353,28 @@
 
     <xs:complexType name="include">
         <xs:annotation>
-            <xs:documentation>Include another project file</xs:documentation>
+            <xs:documentation>Reads another project file as part of this one. When the path is a folder, Lime reads the first of <code>include.lime</code>, <code>include.nmml</code> and <code>include.xml</code> that exists in it.</xs:documentation>
         </xs:annotation>
-        <xs:attribute name="path" type="string-min-len-1"/>
-        <xs:attribute name="haxelib" type="string-min-len-1"/>
-        <xs:attribute name="name" type="string-min-len-1"/>
-        <xs:attribute name="noerror" type="xs:string"/>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The file or folder, relative to the file this element is in. Lime also adds the folder of the included file to the class path.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="haxelib" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Reads the include file of this haxelib library. Unlike <code>path</code>, it adds nothing to the class path.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The file or folder. It is used when <code>path</code> and <code>haxelib</code> are missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="noerror" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>When present, a missing file is not an error. Any value works, even <code>false</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
@@ -172,33 +384,108 @@
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="icon">
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:annotation>
+            <xs:documentation>Adds an application icon. Several <code>icon</code> elements can give the icon in different sizes.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The image file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="width" type="natural-number"/>
         <xs:attribute name="height" type="natural-number"/>
-        <xs:attribute name="size" type="natural-number"/>
+        <xs:attribute name="size" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>Sets both <code>width</code> and <code>height</code>, in pixels.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The image file. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="priority" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Since Lime 8.0.0.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="template">
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:annotation>
+            <xs:documentation>Adds templates. The templates in a template folder are used instead of Lime's own templates with the same name.</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="font" type="asset"/>
+            <xs:element name="image" type="asset"/>
+            <xs:element name="music" type="asset"/>
+            <xs:element name="sound" type="asset"/>
+            <xs:element name="template" type="asset"/>
+            <xs:element name="library" type="asset"/>
+            <xs:element name="manifest" type="asset"/>
+            <xs:element name="binary" type="asset"/>
+            <xs:element name="text" type="asset"/>
+        </xs:choice>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>A template folder or a single template file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="rename" type="xs:string"/>
+        <xs:attribute name="haxelib" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Makes <code>path</code> relative to this haxelib library.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="embed" type="xs:boolean"/>
+        <xs:attribute name="library" type="string-min-len-1"/>
+        <xs:attribute name="glyphs" type="xs:string"/>
+        <xs:attribute name="include" type="xs:string"/>
+        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:attribute name="id" type="xs:string"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="library">
         <xs:annotation>
-            <xs:documentation>
-                Organise your assets by libraries so you can load/unload them when needed.
-            </xs:documentation>
+            <xs:documentation>Declares an asset library, such as a SWF file.<p>When the element has <code>handler</code> and <code>type</code> attributes, it declares no library. It names the handler for libraries of that type instead.</p></xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="string-min-len-1" use="required"/>
-        <xs:attribute name="embed" type="xs:boolean"/>
-        <xs:attribute name="preload" type="xs:boolean"/>
-        <xs:attribute name="generate" type="xs:boolean"/>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The name of the library.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="embed" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="preload" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="generate" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="prefix" type="xs:string"/>
         <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The library file, relative to the file this element is in. For example, <code>assets/library.swf</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="id" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The name of the library. When both <code>id</code> and <code>name</code> are given, <code>id</code> is used.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="handler" type="string-min-len-1"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
@@ -210,56 +497,97 @@
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="haxeflag">
+        <xs:annotation>
+            <xs:documentation>Adds an argument to the Haxe command line. Lime passes <code>name</code>, then <code>value</code> after a space; for example, <code>name="-dce" value="full"</code> passes <code>-dce full</code>.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attribute name="value" type="xs:string"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="compilerflag">
+        <xs:annotation>
+            <xs:documentation>Adds an argument to the Haxe command line. It works the same way as <code>haxeflag</code>.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attribute name="value" type="xs:string"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="haxedef">
-        <xs:attribute name="name" type="string-min-len-1"/>
-        <xs:attribute name="value" type="xs:string"/>
-        <xs:attribute name="remove" type="string-min-len-1"/>
+        <xs:annotation>
+            <xs:documentation>Passes a define to the Haxe compiler as <code>-D</code>. Unlike <code>define</code>, it does not set a name for <code>if</code>, <code>unless</code> or <code>${...}</code>.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The define. For example, <code>my_flag</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="value" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The value of the define. Lime passes it as <code>-D name=value</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="remove" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Removes a define added earlier, for example by an included file.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="setenv">
+        <xs:annotation>
+            <xs:documentation>Sets an environment variable for the build and for the tools the build runs. The variable also counts as a define for <code>if</code>, <code>unless</code> and <code>${...}</code>.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="value" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The value of the variable. When left out, it is <code>1</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="set">
         <xs:annotation>
-            <xs:documentation>Set value for conditional logic in this project file or in a template (::SET_NAME::)
-            </xs:documentation>
+            <xs:documentation>Sets a name for <code>if</code>, <code>unless</code> and <code>${...}</code>. Unlike <code>define</code>, it is not passed to the Haxe compiler.<p>A few names also change the build: <code>BUILD_DIR</code> sets the output folder, and <code>SWF_VERSION</code> sets the SWF version.</p></xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
-        <xs:attribute name="value" type="xs:string"/>
+        <xs:attribute name="value" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The value. When left out, it is empty.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="unset">
+        <xs:annotation>
+            <xs:documentation>Removes a name set with <code>set</code>.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="define">
         <xs:annotation>
-            <xs:documentation>Set value for conditional logic in this project file or in a template (::DEFINE_NAME::).
-                This value is also passed to Haxe.
-            </xs:documentation>
+            <xs:documentation>Sets a name for <code>if</code>, <code>unless</code> and <code>${...}</code>. Lime also passes it to the Haxe compiler as <code>-D</code>.</xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="value" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The value. Lime passes it to the Haxe compiler as <code>-D name=value</code>. When left out, it is empty.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="undefine">
+        <xs:annotation>
+            <xs:documentation>Removes a name set with <code>define</code>. Its <code>-D</code> is no longer passed to the Haxe compiler.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
@@ -278,19 +606,39 @@
     </xs:complexType>
     <xs:complexType name="certificate">
         <xs:annotation>
-            <xs:documentation>Used to add a keystore for release signing.</xs:documentation>
+            <xs:documentation>Sets up signing for release builds. For a keystore, give the file, its password and the key alias. For iOS and tvOS, give the signing identity and the team ID.</xs:documentation>
         </xs:annotation>
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The keystore file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="type" type="xs:string"/>
         <xs:attribute name="password" type="xs:string"/>
         <xs:attribute name="alias" type="xs:string"/>
         <xs:attribute name="alias-password" type="xs:string"/>
-        <xs:attribute name="identity" type="xs:string"/>
-        <xs:attribute name="team-id" type="xs:string"/>
+        <xs:attribute name="identity" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The iOS and tvOS signing identity.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="team-id" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The iOS and tvOS development team ID.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="keystore" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The keystore file. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="ios">
+        <xs:annotation>
+            <xs:documentation>Deprecated in Lime.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="deployment" type="xs:string">
             <xs:annotation>
                 <xs:documentation>minimum iOS target version</xs:documentation>
@@ -316,48 +664,140 @@
         </xs:attribute>
         <xs:attribute name="linker-flags" type="xs:string"/>
         <xs:attribute name="prerendered-icon" type="xs:boolean"/>
+        <xs:attribute name="compiler" type="xs:string"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="android">
+        <xs:annotation>
+            <xs:documentation>Deprecated in Lime.</xs:documentation>
+        </xs:annotation>
         <xs:attribute name="install-location" type="xs:string"/>
         <xs:attribute name="permission" type="xs:string"/>
         <xs:attribute name="target-sdk-version" type="xs:string"/>
+        <xs:attribute name="minimum-sdk-version" type="xs:string"/>
+        <xs:attribute name="extension" type="xs:string"/>
+        <xs:attribute name="gradle-version" type="xs:string"/>
+        <xs:attribute name="gradle-plugin" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Since Lime 8.2.2.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="tvos">
+        <xs:annotation>
+            <xs:documentation>Deprecated in Lime.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="deployment" type="xs:string"/>
+        <xs:attribute name="binaries" type="xs:string"/>
+        <xs:attribute name="devices" type="xs:string"/>
+        <xs:attribute name="compiler" type="xs:string"/>
+        <xs:attribute name="linker-flags" type="xs:string"/>
+        <xs:attribute name="prerendered-icon" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="cpp">
+        <xs:annotation>
+            <xs:documentation>Deprecated in Lime.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="build-library" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="output">
+        <xs:annotation>
+            <xs:documentation>Deprecated in Lime. Use the <code>file</code>, <code>path</code> and <code>swf-version</code> attributes of <code>app</code> instead.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attribute name="swf-version" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="preloader">
+        <xs:annotation>
+            <xs:documentation>Deprecated in Lime. Use the <code>preloader</code> attribute of <code>app</code> instead.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="architecture">
-        <xs:attribute name="name" type="string-min-len-1" use="required"/>
-        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:annotation>
+            <xs:documentation>Adds or removes a CPU architecture to build for. Use <code>name</code> to add one and <code>exclude</code> to remove one.<p>Lime knows <code>armv5</code>, <code>armv6</code>, <code>armv7</code>, <code>armv7s</code>, <code>arm64</code>, <code>x86</code>, <code>x64</code>, <code>mips</code> and <code>mipsel</code>. It ignores other names and prints a warning.</p></xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The architecture to add. For example, <code>arm64</code>. Upper and lower case are the same.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="exclude" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The architecture to leave out. For example, <code>armv7</code>. Upper and lower case are the same.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="launchImage">
-        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:annotation>
+            <xs:documentation>Adds a launch image, shown while the application starts.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The image file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="width" type="natural-number"/>
         <xs:attribute name="height" type="natural-number"/>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The image file. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="splashscreen">
-        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:annotation>
+            <xs:documentation>Adds a launch image, shown while the application starts. It works the same way as <code>launchImage</code>.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The image file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="width" type="natural-number"/>
         <xs:attribute name="height" type="natural-number"/>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The image file. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:complexType name="launchStoryboard">
         <xs:annotation>
-            <xs:documentation>
-                Sets the launch screen storyboard (useful only for iOS development).
-            </xs:documentation>
+            <xs:documentation>Sets the iOS launch screen. Give a storyboard file with <code>path</code> or <code>name</code>, or pick one of Lime's storyboard templates with <code>template</code>.<p>With a template, the other attributes, except <code>assetsPath</code>, become values for the template. A suffix on the attribute name sets the value's type: <code>-Int</code>, <code>-RGB</code> or <code>-String</code>. Without a suffix, the value is a string. For example, <code>bg-RGB="0xFFFFFF"</code> passes white as the color <code>bg</code>.</p></xs:documentation>
         </xs:annotation>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="imageset" type="image"/>
         </xs:choice>
-        <xs:attribute name="path" type="string-min-len-1"/>
-        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>A storyboard file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>A storyboard file. It is used when <code>path</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="template" type="string-min-len-1">
             <xs:annotation>
                 <xs:documentation>Specific storyboard template you’re using, chosen from the templates available at
@@ -365,7 +805,11 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="assetsPath" type="string-min-len-1"/>
+        <xs:attribute name="assetsPath" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder with the storyboard's images, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="bg-RGB" type="hexadecimal">
             <xs:annotation>
                 <xs:documentation>0x000000 format for background used when content mode is not fullscreen by
@@ -414,14 +858,33 @@
     </xs:complexType>
     <xs:complexType name="dependency">
         <xs:annotation>
-            <xs:documentation>
-                Native framework or reference that is required to compile your project, or additional library you need
-                copied.
-            </xs:documentation>
+            <xs:documentation>Adds a native library or framework that the build links or copies.</xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="string-min-len-1" use="required"/>
-        <xs:attribute name="embed" type="xs:boolean"/>
-        <xs:attribute name="force-load" type="xs:boolean"/>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The library or framework. For example, <code>GameKit.framework</code>. A name ending in <code>.a</code> or <code>.dll</code> is a file instead, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="embed" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="force-load" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The library file, relative to the file this element is in.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="allow-web-workers" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.<p>Since Lime 8.2.0.</p></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
@@ -549,15 +1012,24 @@
     </xs:complexType>
     <xs:complexType name="path">
         <xs:annotation>
-            <xs:documentation>Adds a directory to your system's PATH environment variable</xs:documentation>
+            <xs:documentation>Puts a folder in front of the <code>PATH</code> environment variable for the build.</xs:documentation>
         </xs:annotation>
-        <xs:attribute name="value" type="string-min-len-1" use="required"/>
+        <xs:attribute name="value" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder. For example, <code>C:/tools/bin</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The folder. It is used when <code>value</code> is missing.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="echo">
         <xs:annotation>
-            <xs:documentation>Prints a specified message to the console.</xs:documentation>
+            <xs:documentation>Prints <code>value</code> to the console. Nothing is printed for the <code>display</code> command.</xs:documentation>
         </xs:annotation>
         <xs:attribute name="value" type="string-min-len-1" use="required"/>
         <xs:attributeGroup ref="conditional"/>
@@ -565,18 +1037,22 @@
     </xs:complexType>
     <xs:complexType name="log">
         <xs:annotation>
-            <xs:documentation>Throw an error or log a warning or info message to the console.</xs:documentation>
+            <xs:documentation>Prints a message.<p>With <code>error</code>, Lime prints an error and stops the build. With <code>warn</code>, <code>info</code> or <code>value</code>, it prints a warning or an info message, except for the <code>display</code> command. When Lime runs with <code>-verbose</code>, the text of <code>verbose</code> is printed instead of the message.</p></xs:documentation>
         </xs:annotation>
         <xs:attribute name="error" type="string-min-len-1"/>
         <xs:attribute name="warn" type="string-min-len-1"/>
         <xs:attribute name="info" type="string-min-len-1"/>
         <xs:attribute name="value" type="string-min-len-1"/>
-        <xs:attribute name="verbose" type="string-min-len-1"/>
+        <xs:attribute name="verbose" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The message printed instead when Lime runs with <code>-verbose</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attributeGroup ref="conditional"/>
     </xs:complexType>
     <xs:complexType name="error">
         <xs:annotation>
-            <xs:documentation>Throws an error.</xs:documentation>
+            <xs:documentation>Prints <code>value</code> as an error and stops the build.</xs:documentation>
         </xs:annotation>
         <xs:attribute name="value" type="string-min-len-1" use="required"/>
         <xs:attributeGroup ref="conditional"/>
@@ -638,7 +1114,7 @@
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="module-source">
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="path" type="string-min-len-1"/>
         <xs:attribute name="package" type="xs:string"/>
         <xs:attribute name="include" type="xs:string"/>
         <xs:attribute name="exclude" type="xs:string"/>
@@ -659,7 +1135,7 @@
 
     <xs:complexType name="templatePath">
         <xs:annotation>
-            <xs:documentation>A folder searched for templates.</xs:documentation>
+            <xs:documentation>Adds a folder of templates. Its templates are used instead of Lime's own templates with the same name.</xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attributeGroup ref="conditional"/>
@@ -685,6 +1161,7 @@
                 <xs:element name="assets" type="assets" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="template" type="template" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="library" type="library" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="swf" type="library" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="target" type="target" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="haxeflag" type="haxeflag" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="compilerflag" type="compilerflag" maxOccurs="unbounded" minOccurs="0"/>
@@ -701,6 +1178,10 @@
                 <!--                deprecated/ -->
                 <xs:element name="ios" type="ios" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="android" type="android" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="tvos" type="tvos" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="cpp" type="cpp" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="output" type="output" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="preloader" type="preloader" maxOccurs="unbounded" minOccurs="0"/>
                 <!--                /deprecated-->
                 <xs:element name="architecture" type="architecture" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="launchImage" type="launchImage" maxOccurs="unbounded" minOccurs="0"/>
@@ -738,6 +1219,7 @@
             <xs:element name="assets" type="assets" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="template" type="template" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="library" type="library" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="swf" type="library" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="target" type="target" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="haxeflag" type="haxeflag" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="compilerflag" type="compilerflag" maxOccurs="unbounded" minOccurs="0"/>
@@ -753,6 +1235,10 @@
             <xs:element name="ndll" type="ndll" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="ios" type="ios" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="android" type="android" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="tvos" type="tvos" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="cpp" type="cpp" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="output" type="output" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="preloader" type="preloader" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="architecture" type="architecture" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="launchImage" type="launchImage" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="splashscreen" type="splashscreen" maxOccurs="unbounded" minOccurs="0"/>
@@ -774,9 +1260,7 @@
 
     <xs:complexType name="section">
         <xs:annotation>
-            <xs:documentation>Group other tags together. This is usually most valuable when combined with “if” and/or
-                “unless” logic.
-            </xs:documentation>
+            <xs:documentation>Groups elements, usually so that one <code>if</code> or <code>unless</code> applies to all of them.</xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded" minOccurs="0">
             <xs:element name="app" type="app" maxOccurs="unbounded" minOccurs="0"/>
@@ -792,6 +1276,7 @@
             <xs:element name="assets" type="assets" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="template" type="template" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="library" type="library" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="swf" type="library" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="target" type="target" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="haxeflag" type="haxeflag" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="compilerflag" type="compilerflag" maxOccurs="unbounded" minOccurs="0"/>
@@ -807,6 +1292,10 @@
             <xs:element name="ndll" type="ndll" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="ios" type="ios" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="android" type="android" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="tvos" type="tvos" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="cpp" type="cpp" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="output" type="output" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="preloader" type="preloader" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="architecture" type="architecture" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="launchImage" type="launchImage" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="splashscreen" type="splashscreen" maxOccurs="unbounded" minOccurs="0"/>
@@ -822,24 +1311,64 @@
             <xs:element name="module" type="module" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="templatePath" type="templatePath" maxOccurs="unbounded" minOccurs="0"/>
         </xs:choice>
+        <xs:attribute name="id" type="xs:string"/>
         <xs:attributeGroup ref="conditional"/>
         <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
 
     <xs:attributeGroup name="conditional">
-        <xs:attribute type="xs:string" name="if"/>
-        <xs:attribute type="xs:string" name="unless"/>
+        <xs:attribute type="xs:string" name="if">
+            <xs:annotation>
+                <xs:documentation>Applies the element only when its condition holds.<p>A condition is a list of names. Names separated by a space must all hold, so <code>if="cpp debug"</code> means <code>cpp</code> and <code>debug</code>. Names separated by <code>||</code> are alternatives, so <code>if="android || ios"</code> means <code>android</code> or <code>ios</code>.</p><p>A name holds when it is a define set earlier in the file, an environment variable, the running command (such as <code>build</code>, <code>test</code> or <code>display</code>), or the word <code>true</code>. The word <code>false</code> never holds.</p><p>Lime defines these names for every build: the target (such as <code>html5</code>, <code>windows</code> or <code>android</code>), the target kind (<code>cpp</code>, <code>neko</code>, <code>hl</code>, <code>html5</code>, <code>flash</code> or <code>native</code>), the platform type (<code>desktop</code>, <code>mobile</code>, <code>web</code> or <code>console</code>), the build type (<code>debug</code>, <code>release</code> or <code>final</code>), and the name of each library added with <code>haxelib</code>.</p><p><code>${...}</code> values in the condition are replaced before it is checked.</p></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="unless">
+            <xs:annotation>
+                <xs:documentation>Skips the element when its condition holds. The condition is written as for <code>if</code>; for example, <code>unless="html5"</code> leaves the element out of HTML5 builds.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:attributeGroup>
 
     <xs:complexType name="asset">
-        <xs:attribute name="path" type="string-min-len-1" use="required"/>
-        <xs:attribute name="id" type="xs:string"/>
+        <xs:annotation>
+            <xs:documentation>Adds a file from the folder of the enclosing <code>assets</code> element. The element name sets the asset type: <code>image</code>, <code>sound</code>, <code>music</code>, <code>font</code> or <code>template</code>. The names <code>library</code> and <code>manifest</code> add a manifest.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The file, relative to the path of the enclosing <code>assets</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="id" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The asset ID.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>The file, relative to the path of the enclosing <code>assets</code>. If <code>id</code> is missing, the name is also the asset ID. When both <code>name</code> and <code>path</code> are given, <code>name</code> is used.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="rename" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>The path the asset gets in the application, instead of its path on disk.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="embed" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>Only the value <code>true</code> turns this on. Any other value counts as false, including <code>1</code> and <code>yes</code>.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="library" type="string-min-len-1"/>
+        <xs:attribute name="glyphs" type="xs:string"/>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
     </xs:complexType>
 
     <xs:complexType name="image">
         <xs:attribute name="name" type="string-min-len-1" use="required"/>
         <xs:attribute name="width" type="natural-number"/>
         <xs:attribute name="height" type="natural-number"/>
+        <xs:attributeGroup ref="conditional"/>
     </xs:complexType>
 
     <xs:simpleType name="natural-number">

@@ -140,6 +140,8 @@
 
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.buildsystem.nmml.NMMLSchemaProvider"/>
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlSchemaProvider"/>
+    <lang.documentationProvider language="XML" order="first"
+                                implementationClass="com.intellij.plugins.haxe.buildsystem.ProjectXmlAttributeLookupDocumentationProvider"/>
 
     <!-- HXML BEGIN -->
     <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.buildsystem.hxml.HXMLParserDefinition"/>
