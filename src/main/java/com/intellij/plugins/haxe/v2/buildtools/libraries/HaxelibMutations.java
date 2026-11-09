@@ -4,10 +4,16 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.haxelib.HaxelibRepositoryLayout;
 import com.intellij.plugins.haxe.v2.buildtools.HaxeCommandNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.file.Path;
 
 /**
  * The background haxelib mutations (install, set, remove) with the follow-up
@@ -38,6 +44,7 @@ public final class HaxelibMutations {
       public void run(@NotNull ProgressIndicator indicator) {
         String failure = mutation.run(indicator);
         if (failure == null) {
+          refreshLocalRepository(project);
           HaxeLibrarySync.sync(project, onSynced);
         }
         else {
@@ -45,6 +52,19 @@ public final class HaxelibMutations {
         }
       }
     }.queue();
+  }
+
+  /**
+   * Reloads the local haxelib repository ({@code .haxelib} from disk  as the IDE does not pick up on changes automatically.
+   */
+  static void refreshLocalRepository(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) return;
+    Path repositoryPath = Path.of(basePath, HaxelibRepositoryLayout.LOCAL_REPOSITORY_DIR_NAME);
+    VirtualFile repository = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(repositoryPath);
+    if (repository != null) {
+      VfsUtil.markDirtyAndRefresh(false, true, true, repository);
+    }
   }
 
   /**
