@@ -13,6 +13,7 @@ import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeInstalledLibraries.
 import com.intellij.plugins.haxe.v2.buildtools.libraries.HaxeInstalledLibraries.LibraryStatus;
 import com.intellij.plugins.haxe.v2.buildtools.settings.DefineOverride;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetOptions;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeProjectDefaultsStore;
 import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeTargetSelectionStore;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeLaunchKind;
 import com.intellij.plugins.haxe.v2.runconfig.HaxeProgramLaunches;
@@ -152,7 +153,7 @@ final class HaxeToolWindowTreeBuilder {
     // multi-section hxml (--next chain): the row picking which compilation the tree follows
     if (!entry.sectionLabels().isEmpty()) {
       SectionNode sectionNode = new SectionNode(buildFile, entry.sectionIds(), entry.sectionLabels(),
-                                                entry.sectionDescriptors(), entry.selectedSection());
+                                                entry.sectionDescriptors(), entry.selectedSection(), isProjectDefaultSection(entry));
       fileNode.add(new DefaultMutableTreeNode(sectionNode));
     }
     addUnlessEmpty(fileNode, definesGroupNode(entry));
@@ -169,10 +170,17 @@ final class HaxeToolWindowTreeBuilder {
   private TargetNode targetNode(@NotNull FileEntry entry) {
     HaxeBuildFile buildFile = entry.buildFile();
     if (!HaxeTargetOptions.isTargetSelectable(buildFile.type())) {
-      return new TargetNode(buildFile, declaredTargetDisplay(entry.info()), false);
+      return new TargetNode(buildFile, declaredTargetDisplay(entry.info()), false, false);
     }
     String selectedId = HaxeTargetSelectionStore.getInstance(project).getSelectedTargetId(buildFile.file());
-    return new TargetNode(buildFile, HaxeTargetOptions.displayNameFor(buildFile.type(), selectedId), true);
+    String displayName = HaxeTargetOptions.displayNameFor(buildFile.type(), selectedId);
+    boolean projectDefault = displayName.equals(HaxeProjectDefaultsStore.getInstance(project).getTargetId(buildFile.file()));
+    return new TargetNode(buildFile, displayName, true, projectDefault);
+  }
+
+  private boolean isProjectDefaultSection(@NotNull FileEntry entry) {
+    String selectedId = entry.sectionIds().get(entry.selectedSection());
+    return selectedId.equals(HaxeProjectDefaultsStore.getInstance(project).getSectionId(entry.buildFile().file()));
   }
 
   /** The target the build file selects: a stock target's name, "Custom (go)" for a custom target, else "(not specified)". */

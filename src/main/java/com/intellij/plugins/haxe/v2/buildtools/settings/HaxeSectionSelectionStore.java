@@ -19,10 +19,11 @@ import java.util.TreeMap;
  * Remembers which {@code --next} compilation section of an hxml the user works
  * against — the section the tool window shows and tests/libraries follow.
  * Stored by section IDENTITY (see {@code HxmlFileParser.sectionIds}), so the
- * choice sticks to the same section while the chain is edited; a selection
- * whose section disappears falls back to the FIRST section, matching the
- * compiler's own display mode. Workspace file: a per-developer setting, like
- * the target choice it mirrors.
+ * choice sticks to the same section while the chain is edited. Without a
+ * pick the project's default applies ({@link HaxeProjectDefaultsStore}), and
+ * without either the FIRST section, matching the compiler's own display mode.
+ * Workspace file: the pick stays with this developer, like the target choice
+ * it mirrors; picking the project's default drops it.
  */
 @Service(Service.Level.PROJECT)
 @State(name = "HaxeToolWindowSections", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
@@ -69,16 +70,40 @@ public final class HaxeSectionSelectionStore implements PersistentStateComponent
     return HaxeStoredPaths.moveKeys(state.sectionsByFile, oldPath, newPath);
   }
 
-  /** The selected section's index among the given identities; the first section when nothing (or a removed section) is stored. */
+  /**
+   * The selected section's index among the given identities: the user's pick,
+   * else the project's default, else the first section. A stored section the
+   * hxml no longer has counts as unset.
+   */
   public int getSelectedSection(@NotNull VirtualFile buildFile, @NotNull List<String> sectionIds) {
-    String stored = state.sectionsByFile.get(buildFile.getPath());
-    if (stored == null) return 0;
-    int index = sectionIds.indexOf(stored);
-    return index < 0 ? 0 : index;
+    int picked = indexOf(sectionIds, state.sectionsByFile.get(buildFile.getPath()));
+    if (picked >= 0) return picked;
+    return Math.max(0, indexOf(sectionIds, projectDefault(buildFile)));
+  }
+
+  /** The section's index, -1 when unset or gone; immutable lists reject a null lookup. */
+  private static int indexOf(@NotNull List<String> sectionIds, @Nullable String sectionId) {
+    return sectionId == null ? -1 : sectionIds.indexOf(sectionId);
   }
 
   public void setSelectedSection(@NotNull VirtualFile buildFile, @NotNull String sectionId) {
-    state.sectionsByFile.put(buildFile.getPath(), sectionId);
+    if (sectionId.equals(projectDefault(buildFile))) {
+      state.sectionsByFile.remove(buildFile.getPath());
+    }
+    else {
+      state.sectionsByFile.put(buildFile.getPath(), sectionId);
+    }
     HaxeBuildSettingsListener.publisher(project).sectionSelected(buildFile.getPath());
+  }
+
+  /** Makes the section the project's default for the hxml, which the user then no longer overrides. */
+  public void setProjectDefault(@NotNull VirtualFile buildFile, @NotNull String sectionId) {
+    state.sectionsByFile.remove(buildFile.getPath());
+    if (project != null) HaxeProjectDefaultsStore.getInstance(project).setSectionId(buildFile, sectionId);
+  }
+
+  @Nullable
+  private String projectDefault(@NotNull VirtualFile buildFile) {
+    return project == null ? null : HaxeProjectDefaultsStore.getInstance(project).getSectionId(buildFile);
   }
 }

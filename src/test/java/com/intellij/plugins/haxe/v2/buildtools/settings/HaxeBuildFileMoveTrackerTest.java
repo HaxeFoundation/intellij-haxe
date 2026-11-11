@@ -29,6 +29,8 @@ public class HaxeBuildFileMoveTrackerTest extends HaxeLightFixtureTestCase {
       // the stores are services of the shared light project
       HaxeCustomActionsStore.getInstance(getProject()).loadState(new HaxeCustomActionsStore.State());
       HaxeTargetSelectionStore.getInstance(getProject()).loadState(new HaxeTargetSelectionStore.State());
+      HaxeSectionSelectionStore.getInstance(getProject()).loadState(new HaxeSectionSelectionStore.State());
+      HaxeProjectDefaultsStore.getInstance(getProject()).loadState(new HaxeProjectDefaultsStore.State());
       HaxeWorkDirectoryStore.getInstance(getProject()).loadState(new HaxeWorkDirectoryStore.State());
       HaxeActiveBuildFileStore.getInstance(getProject()).loadState(new HaxeActiveBuildFileStore.State());
       HaxeEnvironmentStore.getInstance(getProject()).loadState(new HaxeEnvironmentStore.State());
@@ -70,7 +72,10 @@ public class HaxeBuildFileMoveTrackerTest extends HaxeLightFixtureTestCase {
     VirtualFile opened = myFixture.addFileToProject("lib/src/Opened.hx", "class Opened {}").getVirtualFile();
     String containerId = HaxeContainers.containerIdFor(getProject(), library);
     String oldPath = library.getPath();
+    HaxeProjectDefaultsStore.getInstance(getProject()).setTargetId(library, "Windows");
+    HaxeProjectDefaultsStore.getInstance(getProject()).setSectionId(library, "build.hxml#2");
     HaxeTargetSelectionStore.getInstance(getProject()).setSelectedTargetId(library, "html5");
+    HaxeSectionSelectionStore.getInstance(getProject()).setSelectedSection(library, "build.hxml#3");
     HaxeWorkDirectoryStore.getInstance(getProject()).setWorkDirectory(oldPath, library.getParent().getPath());
     HaxeActiveBuildFileStore.getInstance(getProject()).setActiveFile(oldPath);
     HaxeEnvironmentStore.getInstance(getProject()).setCompileCommand(containerId, new HaxeEnvironmentStore.CompileCommand(oldPath, null, ""));
@@ -82,7 +87,10 @@ public class HaxeBuildFileMoveTrackerTest extends HaxeLightFixtureTestCase {
     WriteAction.runAndWait(() -> library.rename(this, "main.hxml"));
 
     String newPath = library.getPath();
+    assertEquals("Windows", HaxeProjectDefaultsStore.getInstance(getProject()).getTargetId(library));
+    assertEquals("build.hxml#2", HaxeProjectDefaultsStore.getInstance(getProject()).getSectionId(library));
     assertEquals("html5", HaxeTargetSelectionStore.getInstance(getProject()).getSelectedTargetId(library));
+    assertEquals(2, HaxeSectionSelectionStore.getInstance(getProject()).getSelectedSection(library, List.of("build.hxml#1", "build.hxml#2", "build.hxml#3")));
     assertEquals(library.getParent().getPath(), HaxeWorkDirectoryStore.getInstance(getProject()).getWorkDirectory(newPath));
     assertEquals(newPath, HaxeActiveBuildFileStore.getInstance(getProject()).getActiveFilePath());
     assertEquals(newPath, HaxeEnvironmentStore.getInstance(getProject()).getCompileCommand(containerId).buildFilePath());

@@ -24,6 +24,7 @@ public class HaxeV2StoreServicesTest extends HaxeLightFixtureTestCase {
   static final List<Class<?>> STORE_CLASSES = List.of(
     HaxeTargetSelectionStore.class,
     HaxeSectionSelectionStore.class,
+    HaxeProjectDefaultsStore.class,
     HaxeActiveBuildFileStore.class,
     HaxeTestsBuildFileStore.class,
     HaxeEnvironmentStore.class,

@@ -195,6 +195,8 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
     group.add(new HaxeRemoveBuildFileAction(this));
     group.add(new HaxeSelectTargetAction(this));
     group.add(new HaxeSelectSectionAction(this));
+    group.add(new HaxeUseTargetAsProjectDefaultAction(this));
+    group.add(new HaxeUseSectionAsProjectDefaultAction(this));
     group.add(new HaxeInstallLibraryAction(this));
     group.add(new HaxeInstallAllMissingLibrariesAction(this));
     group.add(new HaxeShowInHaxelibExplorerAction(this));

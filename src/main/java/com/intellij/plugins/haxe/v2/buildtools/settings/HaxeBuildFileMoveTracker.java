@@ -57,6 +57,7 @@ public final class HaxeBuildFileMoveTracker implements BulkFileListener {
     boolean changed = HaxeCustomActionsStore.getInstance(project).moveFile(oldPath, newPath);
     changed |= HaxeTargetSelectionStore.getInstance(project).moveFile(oldPath, newPath);
     changed |= HaxeSectionSelectionStore.getInstance(project).moveFile(oldPath, newPath);
+    changed |= HaxeProjectDefaultsStore.getInstance(project).moveFile(oldPath, newPath);
     changed |= HaxeWorkDirectoryStore.getInstance(project).moveFile(oldPath, newPath);
     changed |= HaxeBuildFilesStore.getInstance(project).moveFile(oldPath, newPath);
     changed |= HaxeActiveBuildFileStore.getInstance(project).moveFile(oldPath, newPath);

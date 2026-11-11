@@ -15,9 +15,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Remembers the target platform the user picked per build file in the Haxe tool
- * window. Stored in the workspace file: target choice is a per-developer setting,
- * not project configuration.
+ * The target platform of each Lime, OpenFL and NME build file: the one the
+ * user picked in the Haxe tool window, else the project's default
+ * ({@link HaxeProjectDefaultsStore}). The pick is stored in the workspace file,
+ * so it stays with this developer; picking the project's default drops it.
  */
 @Service(Service.Level.PROJECT)
 @State(name = "HaxeToolWindowTargets", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
@@ -64,13 +65,31 @@ public final class HaxeTargetSelectionStore implements PersistentStateComponent<
     return HaxeStoredPaths.moveKeys(state.targetsByFile, oldPath, newPath);
   }
 
+  /** The user's pick, else the project's default; null when neither is set, which means the framework's default target. */
   @Nullable
   public String getSelectedTargetId(@NotNull VirtualFile buildFile) {
-    return state.targetsByFile.get(buildFile.getPath());
+    String picked = state.targetsByFile.get(buildFile.getPath());
+    return picked != null ? picked : projectDefault(buildFile);
   }
 
   public void setSelectedTargetId(@NotNull VirtualFile buildFile, @NotNull String targetId) {
-    state.targetsByFile.put(buildFile.getPath(), targetId);
+    if (targetId.equals(projectDefault(buildFile))) {
+      state.targetsByFile.remove(buildFile.getPath());
+    }
+    else {
+      state.targetsByFile.put(buildFile.getPath(), targetId);
+    }
     HaxeBuildSettingsListener.publisher(project).targetSelected(buildFile.getPath());
+  }
+
+  /** Makes the target the project's default for the build file, which the user then no longer overrides. */
+  public void setProjectDefault(@NotNull VirtualFile buildFile, @NotNull String targetId) {
+    state.targetsByFile.remove(buildFile.getPath());
+    if (project != null) HaxeProjectDefaultsStore.getInstance(project).setTargetId(buildFile, targetId);
+  }
+
+  @Nullable
+  private String projectDefault(@NotNull VirtualFile buildFile) {
+    return project == null ? null : HaxeProjectDefaultsStore.getInstance(project).getTargetId(buildFile);
   }
 }

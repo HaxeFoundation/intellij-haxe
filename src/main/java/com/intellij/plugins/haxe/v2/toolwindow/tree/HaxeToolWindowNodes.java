@@ -267,8 +267,12 @@ public final class HaxeToolWindowNodes {
     }
   }
 
-  /** Target row under a build file; selectable for XML/HXP projects, static for HXML. */
-  public record TargetNode(@NotNull HaxeBuildFile buildFile, @NotNull String displayName, boolean selectable)
+  /**
+   * Target row under a build file; selectable for XML/HXP projects, static for
+   * HXML. {@code projectDefault}: the shown target is the one the project
+   * sets as its default.
+   */
+  public record TargetNode(@NotNull HaxeBuildFile buildFile, @NotNull String displayName, boolean selectable, boolean projectDefault)
     implements HaxeToolWindowNode {
     @Override
     public String expansionKey() {
@@ -287,12 +291,15 @@ public final class HaxeToolWindowNodes {
    * Carries every section's identity, label and descriptor (its target/output
    * summary, possibly empty) so the chooser popup needs no re-parse;
    * selections are stored by identity, index-aligned with the other lists.
+   * {@code projectDefault}: the selected section is the one the project sets
+   * as its default.
    */
   public record SectionNode(@NotNull HaxeBuildFile buildFile,
                             @NotNull List<String> ids,
                             @NotNull List<String> labels,
                             @NotNull List<String> descriptors,
-                            int selected) implements HaxeToolWindowNode {
+                            int selected,
+                            boolean projectDefault) implements HaxeToolWindowNode {
     public String displayName() {
       String descriptor = displayDescriptor(selected);
       return descriptor.isEmpty() ? labels.get(selected) : labels.get(selected) + "  " + descriptor;
