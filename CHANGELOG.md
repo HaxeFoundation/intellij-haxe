@@ -9,6 +9,9 @@
 * Added: Private static extension methods resolve and complete where accessible, including `@:allow`, `@:access` and `@:privateAccess`.
 * Added: Error reports can be sent to the plugin's Marketplace page.
 * Added: Package segments of qualified names in strings navigate to the package.
+* Added: More navigation/resolve for elements in project files.
+* Added: Double-clicking a library in the Haxe tool window shows it in project view.
+* Added: Lime/OpenFL/NME targets and hxml `--next` sections can be set as project defaults (Right click and select Use as Project Default).
 ### Changed
 * Changed: 2026.2 support dropped due to API changes.
 * Changed: Compiler go to declaration answers a hover and the following click with one compiler request.
