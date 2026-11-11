@@ -3,7 +3,9 @@ package com.intellij.plugins.haxe.v2.buildtools.libraries;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.haxelib.*;
 import com.intellij.plugins.haxe.haxelib.HaxelibRepositoryLayout;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
@@ -84,6 +86,28 @@ public final class HaxeLibrarySync {
     if (entryName == null) return false;
     String base = managedLibraryName(libraryName);
     return entryName.equals(base) || entryName.startsWith(base + " ");
+  }
+
+  /** The first root of the module's synced entry for the lib, as External Libraries shows it; null when the module has none. Call under a read lock. */
+  @Nullable
+  public static VirtualFile managedLibraryRoot(@NotNull Module module, @NotNull String libraryName) {
+    for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+      if (orderEntry instanceof LibraryOrderEntry libraryEntry && isManagedEntryFor(libraryEntry.getLibraryName(), libraryName)) {
+        VirtualFile[] roots = libraryEntry.getRootFiles(OrderRootType.CLASSES);
+        if (roots.length > 0) return roots[0];
+      }
+    }
+    return null;
+  }
+
+  /** {@link #managedLibraryRoot(Module, String)} of the first module that has one. Call under a read lock. */
+  @Nullable
+  public static VirtualFile managedLibraryRoot(@NotNull Project project, @NotNull String libraryName) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      VirtualFile root = managedLibraryRoot(module, libraryName);
+      if (root != null) return root;
+    }
+    return null;
   }
 
   /** The lib a synced entry name stands for ({@code haxelib: name} or {@code haxelib: name 1.2.3}); null for an unmanaged entry. */

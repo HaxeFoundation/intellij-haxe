@@ -70,6 +70,8 @@
     <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationProxy"/>
     <psi.referenceContributor language="Haxe" implementation="com.intellij.plugins.haxe.ide.references.HaxeStringLiteralReferenceContributor"/>
     <psi.referenceContributor language="XML" implementation="com.intellij.plugins.haxe.ide.references.HaxeProjectXmlPathReferenceContributor"/>
+    <psi.referenceContributor language="XML" implementation="com.intellij.plugins.haxe.ide.references.HaxeProjectXmlClassReferenceContributor"/>
+    <psi.referenceContributor language="XML" implementation="com.intellij.plugins.haxe.ide.references.HaxeProjectXmlLibraryReferenceContributor"/>
     <defaultHighlightingSettingProvider implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewHighlightingSetting"/>
     <highlightErrorFilter implementation="com.intellij.plugins.haxe.v2.display.HaxeGeneratedPreviewErrorFilter"/>
 

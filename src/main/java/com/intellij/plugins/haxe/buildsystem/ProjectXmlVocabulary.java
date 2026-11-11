@@ -48,6 +48,8 @@ public final class ProjectXmlVocabulary {
   public static final String VALUE_ATTRIBUTE = "value";
   public static final String VERSION_ATTRIBUTE = "version";
   public static final String HAXELIB_ATTRIBUTE = "haxelib";
+  /** {@code <app main>}: the class the application starts from, by its dotted name. */
+  public static final String MAIN_ATTRIBUTE = "main";
 
   private ProjectXmlVocabulary() {
   }

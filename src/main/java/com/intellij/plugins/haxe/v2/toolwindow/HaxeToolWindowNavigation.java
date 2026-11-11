@@ -4,13 +4,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LibraryOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -114,23 +108,7 @@ public final class HaxeToolWindowNavigation {
     /** Order-entry walks need a read action - navigate/canNavigate arrive on raw EDT clicks. */
     @Nullable
     private VirtualFile findLibraryRoot() {
-      return HaxeReadActions.compute(this::findLibraryRootUnderLock);
-    }
-
-    @Nullable
-    private VirtualFile findLibraryRootUnderLock() {
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-          if (orderEntry instanceof LibraryOrderEntry libraryEntry
-              && HaxeLibrarySync.isManagedEntryFor(libraryEntry.getLibraryName(), libraryName)) {
-            VirtualFile[] roots = libraryEntry.getRootFiles(OrderRootType.CLASSES);
-            if (roots.length > 0) {
-              return roots[0];
-            }
-          }
-        }
-      }
-      return null;
+      return HaxeReadActions.compute(() -> HaxeLibrarySync.managedLibraryRoot(project, libraryName));
     }
 
     @Override

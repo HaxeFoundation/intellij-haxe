@@ -577,10 +577,19 @@ public final class HaxeToolWindowPanel extends SimpleToolWindowPanel implements 
       case ToolNode toolNode -> HaxeToolWindowLaunches.runTool(project, toolNode);
       case ProgramNode programNode -> HaxeToolWindowLaunches.runProgram(project, programNode, DefaultRunExecutor.getRunExecutorInstance());
       case TestRunNode testRunNode -> HaxeTestRunConfigurations.run(project, testRunNode.buildFilePath());
+      case LibraryNode libraryNode -> { return jumpToSource(libraryNode); }
       case null, default -> {
         return false;
       }
     }
+    return true;
+  }
+
+  /** Opens the row's jump-to-source target, as F4 does; false when it leads nowhere, like a library that is not synced. */
+  private boolean jumpToSource(@NotNull Object userObject) {
+    Navigatable target = HaxeToolWindowNavigation.forSelection(project, userObject);
+    if (target == null || !target.canNavigate()) return false;
+    target.navigate(true);
     return true;
   }
 

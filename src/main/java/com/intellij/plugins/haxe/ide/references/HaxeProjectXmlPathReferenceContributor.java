@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 /// include.lime / include.nmml / include.xml Lime picks inside it. The
 /// references are soft: a path Lime expands (`${haxelib:x}`, environment
 /// variables) gets none, and one naming nothing is never an error.
-// TODO: link <haxelib name> to the library's include file; needs the haxelib repository root without running haxelib config
 public class HaxeProjectXmlPathReferenceContributor extends PsiReferenceContributor {
 
   @Override
