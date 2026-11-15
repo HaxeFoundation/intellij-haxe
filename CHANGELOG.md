@@ -1,6 +1,9 @@
 ## 2.1.1
 ### Fixed
-* bug preventing XML build files from loading if the contained namespaces
+* Fixed: bug preventing XML build files from loading if the contained namespaces
+* Fixed: NPE for classes in inactive conditional branches (module would be null) 
+* Fixed: Duplicate qualified names could cause Idempotence errors ( now using classpath order)
+* Fixed: moving the set-up for the default Haxe SDK off the UI thread
 ### Added
 * completion for tags starting with config in lime project xml files
 
