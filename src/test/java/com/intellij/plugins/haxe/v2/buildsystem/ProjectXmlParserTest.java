@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.v2.buildsystem;
 
+import com.intellij.plugins.haxe.buildsystem.lime.LimeProjectShape;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeDefine;
 import com.intellij.plugins.haxe.v2.buildsystem.HaxeBuildFileInfo.HaxeLibDependency;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +65,33 @@ public class ProjectXmlParserTest {
       """);
 
     assertEquals(List.of(new HaxeLibDependency("lime", null)), info.libraries());
+  }
+
+  @Test
+  @DisplayName("an undeclared element prefix keeps the parse going")
+  public void testAnUndeclaredElementPrefixKeepsTheParseGoing() {
+    HaxeBuildFileInfo info = ProjectXmlParser.parse("""
+      <project>
+        <config:android target-sdk-version="29"/>
+        <haxelib name="openfl" />
+      </project>
+      """);
+
+    assertEquals(List.of(new HaxeLibDependency("openfl", null)), info.libraries());
+  }
+
+  @Test
+  @DisplayName("a project with a prefixed config element is an openfl project")
+  public void testAProjectWithAPrefixedConfigElementIsAnOpenflProject() {
+    LimeProjectShape shape = ProjectXmlParser.parseShape("""
+      <project>
+        <config:air sdk-version="32.0" />
+        <source path="Source" />
+        <haxelib name="openfl" />
+      </project>
+      """);
+
+    assertTrue(shape.isOpenfl());
   }
 
   @Test
