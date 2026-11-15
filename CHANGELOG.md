@@ -1,3 +1,9 @@
+## 2.1.1
+### Fixed
+* bug preventing XML build files from loading if the contained namespaces
+### Added
+* completion for tags starting with config in lime project xml files
+
 ## 2.1.0
 ### Added
 * Added: Doc comments in Haxe style (`**/`) or Javadoc style (`*` on each line); new comments follow Code Style > Haxe > Documentation.
