@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.buildsystem.lime;
 
+import com.intellij.codeInsight.daemon.impl.analysis.XmlUnboundNsPrefixInspection;
 import com.intellij.plugins.haxe.HaxeLightFixtureTestCase;
 import com.intellij.psi.xml.XmlFile;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.CLASSPATH
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.LIBRARY_INCLUDE_SOURCE;
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.MAVEN_POM_SOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -83,5 +85,86 @@ public class LimeXmlSchemaProviderTest extends HaxeLightFixtureTestCase {
     myFixture.configureByText("include.xml", MODULE_INCLUDE_XML_SOURCE);
 
     myFixture.checkHighlighting();
+  }
+
+  /**
+   * (file name, source text) - config elements wherever lime reads them, with values and keys the
+   * schema does not list; any other prefix stays unbound, an unknown element stays invalid.
+   */
+  static final List<Arguments> CONFIG_ELEMENT_FILES = List.of(
+    arguments("project.xml", """
+      <project>
+        <haxelib name="openfl"/>
+        <config:air sdk-version="32.0" profile="mobileDevice"/>
+        <config:android permission="android.permission.INTERNET" if="android"/>
+        <config:android install-location="${location}" custom-key="value">
+          <application android:label="Example" android:allowBackup="false"/>
+          <activity android:screenOrientation="sensorLandscape"/>
+        </config:android>
+        <config:ios device="ipad">
+          <deployment>12.0</deployment>
+        </config:ios>
+        <config:hxtelemetry host="127.0.0.1"/>
+        <section if="html5">
+          <config:html5 dependency-path="lib"/>
+        </section>
+        <<error descr="Element other:element is not allowed here"><error descr="Namespace 'other' is not bound">other</error>:element</error>/>
+        <<error descr="Element bogus is not allowed here">bogus</error>/>
+      </project>
+      """),
+    arguments("include.xml", """
+      <extension>
+        <config:android target-sdk-version="29"/>
+      </extension>
+      """));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("CONFIG_ELEMENT_FILES")
+  @DisplayName("config elements validate")
+  public void testConfigElementsValidate(String fileName, String source) {
+    myFixture.enableInspections(new XmlUnboundNsPrefixInspection());
+    myFixture.configureByText(fileName, source);
+
+    myFixture.checkHighlighting();
+  }
+
+  @Test
+  @DisplayName("a config prefix completes the config sections")
+  public void testAConfigPrefixCompletesTheConfigSections() {
+    myFixture.configureByText("project.xml", """
+      <project>
+        <haxelib name="openfl"/>
+        <config:<caret>
+      </project>
+      """);
+
+    myFixture.completeBasic();
+
+    List<String> sections = myFixture.getLookupElementStrings();
+    assertNotNull(sections);
+    boolean offered = sections.containsAll(List.of("air", "android", "ios"));
+    assertTrue(offered, sections.toString());
+    assertFalse(sections.contains("app"), sections.toString());
+  }
+
+  /** (source text with the caret, entries the completion must offer). */
+  static final List<Arguments> CONFIG_COMPLETIONS = List.of(
+    arguments("<config:air <caret>/>", List.of("sdk-version", "profile", "output-directory")),
+    arguments("<config:air profile=\"<caret>\"/>", List.of("desktop", "extendedDesktop", "mobileDevice", "extendedMobileDevice")),
+    arguments("<config:ios device=\"<caret>\"/>", List.of("universal", "iphone", "ipad")),
+    arguments("<config:android><<caret></config:android>", List.of("application", "activity", "gradle-properties")));
+
+  @ParameterizedTest(name = "{0}")
+  @FieldSource("CONFIG_COMPLETIONS")
+  @DisplayName("a config section completes its keys and values")
+  public void testAConfigSectionCompletesItsKeysAndValues(String section, List<String> expected) {
+    myFixture.configureByText("project.xml", "<project>\n  <haxelib name=\"openfl\"/>\n  " + section + "\n</project>\n");
+
+    myFixture.completeBasic();
+
+    List<String> offered = myFixture.getLookupElementStrings();
+    assertNotNull(offered);
+    boolean complete = offered.containsAll(expected);
+    assertTrue(complete, offered.toString());
   }
 }

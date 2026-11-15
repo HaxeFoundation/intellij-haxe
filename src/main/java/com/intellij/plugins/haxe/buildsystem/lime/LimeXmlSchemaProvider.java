@@ -12,11 +12,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 
-// TODO: lime's config:<section> elements (config:android) carry an unbound prefix no schema can declare; they show as not allowed
 public class LimeXmlSchemaProvider extends XmlSchemaProvider {
+
+    private static final String PROJECT_SCHEMA = "/schema/lime/lime-project.xsd";
+    // the config sections, under the namespace LimeXmlExtension binds the config prefix to
+    private static final String CONFIG_SCHEMA = "/schema/lime/lime-config.xsd";
+
     @Override
     public XmlFile getSchema(@NotNull @NonNls String url, @Nullable Module module, @NotNull PsiFile baseFile) {
-        final URL resource = LimeXmlSchemaProvider.class.getResource("/schema/lime/lime-project.xsd");
+        String schema = LimeXmlExtension.CONFIG_NAMESPACE.equals(url) ? CONFIG_SCHEMA : PROJECT_SCHEMA;
+        final URL resource = LimeXmlSchemaProvider.class.getResource(schema);
         final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
         PsiFile result = baseFile.getManager().findFile(fileByURL);
         if (result instanceof XmlFile) {
@@ -27,6 +32,6 @@ public class LimeXmlSchemaProvider extends XmlSchemaProvider {
 
     @Override
     public boolean isAvailable(final @NotNull XmlFile file) {
-        return LimeOpenFlUtil.isLimeFamilyFile(file) || LimeOpenFlUtil.isLibraryIncludeFile(file);
+        return LimeOpenFlUtil.isLimeDialectFile(file);
     }
 }
