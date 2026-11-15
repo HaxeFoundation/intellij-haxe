@@ -30,6 +30,11 @@ public class LimeOpenFlUtil {
            : shape.isExtensionInclude();
   }
 
+  /** Whether the file is written in lime's project dialect: a project file or a library's include file. */
+  public boolean isLimeDialectFile(@NotNull XmlFile file) {
+    return isLimeFamilyFile(file) || isLibraryIncludeFile(file);
+  }
+
   public boolean isOpenFlFile(@NotNull XmlFile file) {
     LimeProjectShape shape = shapeOf(file);
     return shape != null && shape.isOpenfl();

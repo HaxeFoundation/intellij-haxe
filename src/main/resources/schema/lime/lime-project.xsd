@@ -1189,6 +1189,8 @@
                 <xs:element name="launchStoryboard" type="launchStoryboard" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="dependency" type="dependency" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="config" type="config" maxOccurs="unbounded" minOccurs="0"/>
+                <!-- lime config sections, <config:android> and the like: the only namespace these files bind; any section name is allowed -->
+                <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="path" type="path" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="echo" type="echo" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="log" type="log" maxOccurs="unbounded" minOccurs="0"/>
@@ -1245,6 +1247,8 @@
             <xs:element name="launchStoryboard" type="launchStoryboard" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="dependency" type="dependency" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="config" type="config" maxOccurs="unbounded" minOccurs="0"/>
+            <!-- lime config sections, <config:android> and the like: the only namespace these files bind; any section name is allowed -->
+            <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="path" type="path" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="echo" type="echo" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="log" type="log" maxOccurs="unbounded" minOccurs="0"/>
@@ -1302,6 +1306,8 @@
             <xs:element name="launchStoryboard" type="launchStoryboard" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="dependency" type="dependency" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="config" type="config" maxOccurs="unbounded" minOccurs="0"/>
+            <!-- lime config sections, <config:android> and the like: the only namespace these files bind; any section name is allowed -->
+            <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="path" type="path" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="echo" type="echo" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="log" type="log" maxOccurs="unbounded" minOccurs="0"/>
