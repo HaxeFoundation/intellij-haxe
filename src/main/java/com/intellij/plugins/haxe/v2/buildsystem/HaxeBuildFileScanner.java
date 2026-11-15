@@ -18,6 +18,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.util.HaxeReadActions;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFilesStore;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -126,9 +127,21 @@ public final class HaxeBuildFileScanner {
     return type == null ? null : new HaxeBuildFile(file, type);
   }
 
-  /** Detects the build file type of an arbitrary file (any xml name is accepted). */
+  /**
+   * Detects the build file type of an arbitrary file (any xml name is accepted).
+   * <p>
+   * A file the user added by hand stays a build file even when its content is not
+   * recognized: Add Build File lets them add it anyway, and its extension then
+   * decides the type ({@link #typeByExtension}).
+   */
   @Nullable
   public static HaxeBuildFileType detectType(@NotNull Project project, @NotNull VirtualFile file) {
+    HaxeBuildFileType detected = detectTypeFromContent(project, file);
+    return detected != null || !isAddedByHand(project, file) ? detected : typeByExtension(file);
+  }
+
+  @Nullable
+  private static HaxeBuildFileType detectTypeFromContent(@NotNull Project project, @NotNull VirtualFile file) {
     String path = file.getPath();
     long stamp = file.getModificationStamp();
     DetectedType cached = detectionCache.get(path);
@@ -138,6 +151,22 @@ public final class HaxeBuildFileScanner {
     HaxeBuildFileType type = doDetectType(project, file);
     detectionCache.put(path, new DetectedType(stamp, type));
     return type;
+  }
+
+  private static boolean isAddedByHand(@NotNull Project project, @NotNull VirtualFile file) {
+    return HaxeBuildFilesStore.getInstance(project).getAllAddedPaths().contains(file.getPath());
+  }
+
+  /**
+   * The type a file's extension suggests when its content is not recognized. A
+   * project xml goes to Lime, whose tool also builds OpenFL projects; the other
+   * extensions are recognized by name alone, or not build files at all.
+   */
+  @Nullable
+  private static HaxeBuildFileType typeByExtension(@NotNull VirtualFile file) {
+    String extension = extensionOf(file.getName());
+    if (NMMLFileType.DEFAULT_EXTENSION.equals(extension)) return HaxeBuildFileType.NMML;
+    return LimeProjectShape.FILE_EXTENSIONS.contains(extension) ? HaxeBuildFileType.LIME : null;
   }
 
   private static HaxeBuildFileType doDetectType(@NotNull Project project, @NotNull VirtualFile file) {
