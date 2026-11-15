@@ -1124,9 +1124,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     }));
   }
 
-    public HaxeModuleModel getModule() {
+    public @Nullable HaxeModuleModel getModule() {
       HaxeModule module = haxeClass.getModule();
-       if(module.getModel() instanceof HaxeModuleModel model) {
+       if(module != null && module.getModel() instanceof HaxeModuleModel model) {
          return model;
        }
        return null;

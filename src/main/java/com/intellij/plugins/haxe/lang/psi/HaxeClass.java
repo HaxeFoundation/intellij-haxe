@@ -173,5 +173,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget, Hax
 
   PsiPackage getPackage();
 
+  /** a class in an inactive conditional branch does not have a module, all other instances should */
+  @Nullable
   HaxeModule getModule();
 }

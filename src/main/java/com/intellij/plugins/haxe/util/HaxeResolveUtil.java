@@ -30,6 +30,7 @@ import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
@@ -201,6 +202,8 @@ public class HaxeResolveUtil {
    * plain {@code String.hx} — the compiler's platform-specific file selection.
    * Order: exact module-qualified match, then StdTypes, then active-variant
    * main types, then plain main types, then the first remaining candidate.
+   * Within each kind the first classpath wins, as in the compiler and in the
+   * root walk that answers while indexing.
    */
   @Nullable
   private static HaxeClass selectVisibleCandidate(@NotNull String qName, @NotNull List<HaxeClass> candidates) {
@@ -210,7 +213,9 @@ public class HaxeResolveUtil {
     HaxeClass activeVariantMain = null;
     HaxeClass plainMain = null;
 
-    for (HaxeClass candidate : candidates) {
+    List<HaxeClass> ordered = inClasspathOrder(candidates);
+
+    for (HaxeClass candidate : ordered) {
       String moduleFileName = moduleFileNameOf(candidate);
       String moduleName = moduleFileName == null ? null : HaxeModuleVariants.moduleNameOf(moduleFileName);
 
@@ -229,7 +234,61 @@ public class HaxeResolveUtil {
     if (stdType != null) return stdType;
     if (activeVariantMain != null) return activeVariantMain;
     if (plainMain != null) return plainMain;
-    return candidates.getFirst();
+    return ordered.getFirst();
+  }
+
+  /**
+   * Sorts candidates so that the copy on the earliest classpath comes first.
+   * <p>
+   * When several files declare the same type, for example a project that
+   * overrides a library class by keeping its own copy in its sources, the
+   * Haxe compiler searches its classpaths in order and uses the first copy it
+   * finds. Sorting by classpath position gives the IDE the same preference.
+   * <p>
+   * It also keeps resolution consistent. The index returns candidates in an
+   * order that only reflects when each file was first seen, while the lookup
+   * used during indexing walks the classpaths in order. If the two disagreed,
+   * the same reference could resolve to different copies depending on whether
+   * indexing happened to be running, and the platform reports that as a
+   * non-idempotent resolve. Using classpath order for both makes them agree.
+   * <p>
+   * A candidate under no classpath, such as a standard library or generated
+   * type, sorts after the others and keeps its original relative order.
+   */
+  @NotNull
+  private static List<HaxeClass> inClasspathOrder(@NotNull List<HaxeClass> candidates) {
+    List<VirtualFile> classpaths = HaxeProjectModel.fromProject(candidates.getFirst().getProject()).getRoots().stream()
+      .map(root -> root.root)
+      .toList();
+    return candidates.stream()
+      .sorted(Comparator.comparingInt(candidate -> classpathPosition(classpaths, candidate)))
+      .toList();
+  }
+
+  /**
+   * Where the class's file sits in the classpath list, or
+   * {@link Integer#MAX_VALUE} when no classpath holds it.
+   * <p>
+   * Classpaths can be nested: a {@code lib} folder inside {@code src} can be a
+   * classpath of its own. A file under {@code src/lib/pack/} then has two
+   * classpaths above it, but its package ({@code pack}) only makes sense
+   * relative to {@code lib}. The innermost classpath is therefore the one the
+   * file belongs to, and its position is the one that counts.
+   */
+  private static int classpathPosition(@NotNull List<VirtualFile> classpaths, @NotNull HaxeClass candidate) {
+    PsiFile file = candidate.getContainingFile();
+    if (file == null) return Integer.MAX_VALUE;
+    VirtualFile virtualFile = file.getViewProvider().getVirtualFile();
+    int position = Integer.MAX_VALUE;
+    int depth = -1;
+    for (int i = 0; i < classpaths.size(); i++) {
+      VirtualFile classpath = classpaths.get(i);
+      if (classpath != null && VfsUtilCore.isAncestor(classpath, virtualFile, true) && classpath.getPath().length() > depth) {
+        position = i;
+        depth = classpath.getPath().length();
+      }
+    }
+    return position;
   }
 
   private static boolean isModuleQualifiedMatch(@NotNull String qName, @NotNull HaxeClass candidate, @Nullable String moduleName) {

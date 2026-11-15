@@ -2173,8 +2173,8 @@ public final class HaxeResolveChecks {
           HaxeClass classByQName = HaxeResolveUtil.findClassByQName(maybeQname, reference);
           if(classByQName != null) {
             // if part of a longer chain, need to check if it is a module or mainclass reference
-            if(referenceExpression.getParent() instanceof HaxeReferenceExpression expression) {
-              HaxeModuleModel module = classByQName.getModel().getModule();
+            if(referenceExpression.getParent() instanceof HaxeReferenceExpression expression
+               && classByQName.getModel().getModule() instanceof HaxeModuleModel module) {
               HaxeClassModel classModel = module.getMainClass();
               if(classModel != null && classModel.haxeClass == classByQName) {
                 HaxeBaseMemberModel member = module.getMember(expression.getIdentifier().getText(), null);
@@ -2321,7 +2321,7 @@ public final class HaxeResolveChecks {
       // check if resolved class is main class in module, and if so, check if our references could be a module member and not a class member
       if(first instanceof HaxeClass haxeClass){
         HaxeModule module = haxeClass.getModule();
-        if(module.getModel() instanceof HaxeModuleModel model) {
+        if(module != null && module.getModel() instanceof HaxeModuleModel model) {
           HaxeClassModel aClass = model.getMainClass();
           if(aClass != null && aClass.haxeClass == haxeClass) {
             List<PsiElement> member = resolveModuleMemberOrClass(reference, model, rightHandText);

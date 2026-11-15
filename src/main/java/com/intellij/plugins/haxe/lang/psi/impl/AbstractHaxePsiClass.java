@@ -853,7 +853,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   }
 
   @Override
-  public HaxeModule getModule() {
+  public @Nullable HaxeModule getModule() {
     return PsiTreeUtil.getStubOrPsiParentOfType(this,HaxeModule.class);
   }
 

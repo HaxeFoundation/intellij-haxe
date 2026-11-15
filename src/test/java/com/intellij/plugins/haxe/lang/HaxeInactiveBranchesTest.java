@@ -209,6 +209,30 @@ public class HaxeInactiveBranchesTest extends HaxeLightFixtureTestCase {
   }
 
   @Test
+  @DisplayName("a call on a class in a top-level dead branch resolves")
+  public void testACallOnAClassInATopLevelDeadBranchResolves() {
+    PsiFile file = myFixture.configureByText("Foo.hx", """
+      class Foo {}
+      #if never
+      class Hidden {
+      \tpublic static function make(value:Int):Int return value;
+      \tfunction use(value:Int):Int return Hidden.make(value);
+      }
+      #end
+      """);
+    HaxeInactiveBody body = PsiTreeUtil.findChildOfType(file, HaxeInactiveBody.class);
+    assertNotNull(body);
+    HaxeReferenceExpression make = PsiTreeUtil.findChildrenOfType(body, HaxeReferenceExpression.class).stream()
+      .filter(reference -> reference.textMatches("Hidden.make"))
+      .findFirst()
+      .orElseThrow();
+
+    PsiElement resolved = make.resolve();
+
+    assertInstanceOf(HaxeMethodDeclaration.class, resolved);
+  }
+
+  @Test
   @DisplayName("dead code produces no error or warning markers")
   public void testDeadCodeProducesNoErrorOrWarningMarkers() {
     String source = """

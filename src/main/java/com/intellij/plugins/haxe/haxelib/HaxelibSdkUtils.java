@@ -31,6 +31,7 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,19 +47,34 @@ public class HaxelibSdkUtils {
   /**
    * An SDK that can be used/returned when project lookup fails.
    */
-  private static  Sdk defaultSDK;
-  private static void tryToSetDefaultSdk() {
+  private static volatile Sdk defaultSDK;
+
+  private static synchronized void tryToSetDefaultSdk() {
     if (defaultSDK == null) {
-      HaxeSdkType sdkType = HaxeSdkType.getInstance();
-      String path = sdkType.suggestHomePath();
-      if (path != null) {
-        defaultSDK = new ProjectJdkImpl(sdkType.suggestSdkName(null, path), sdkType, path, sdkType.getVersionString(path));
-      } else {
-        defaultSDK = new ProjectJdkImpl("Haxe SDK not found", sdkType);
-      }
-      ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
-        sdkType.setupSdkPaths(defaultSDK);
-      });
+      defaultSDK = createDefaultSdk(HaxeSdkType.getInstance().suggestHomePath());
+    }
+  }
+
+  /** An SDK for the given home; its data and std roots arrive in the background, the roots lookup reads the disk. */
+  @NotNull
+  static Sdk createDefaultSdk(@Nullable String path) {
+    HaxeSdkType sdkType = HaxeSdkType.getInstance();
+    Sdk sdk;
+    if (path != null) {
+      sdk = new ProjectJdkImpl(sdkType.suggestSdkName(null, path), sdkType, path, sdkType.getVersionString(path));
+    } else {
+      sdk = new ProjectJdkImpl("Haxe SDK not found", sdkType);
+    }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> setUpInBackground(sdkType, sdk));
+    return sdk;
+  }
+
+  private static void setUpInBackground(@NotNull HaxeSdkType sdkType, @NotNull Sdk sdk) {
+    try {
+      sdkType.setupSdkPaths(sdk);
+    }
+    catch (RuntimeException e) {
+      log.error("Setting up the default Haxe SDK failed", e);
     }
   }
   static boolean myDefaultSdkErrorHasBeenLogged = false;
@@ -122,6 +138,8 @@ public class HaxelibSdkUtils {
         myDefaultSdkErrorHasBeenLogged = true;
       }
     }
+    Sdk sdk = defaultSDK; // not really needed, just here to avoid double read on volatile variable
+    if (sdk != null) return sdk;
     tryToSetDefaultSdk();
     return defaultSDK;
   }
