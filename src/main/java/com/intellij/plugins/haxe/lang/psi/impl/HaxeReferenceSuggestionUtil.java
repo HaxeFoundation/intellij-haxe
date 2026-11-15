@@ -73,7 +73,7 @@ public class HaxeReferenceSuggestionUtil {
                     addExtensionMethodSuggestions(variants, wrappedType, targetReference);
                 }
                 // to avoid ambiguity when it comes to class vs module resolve we add both  when module name and class name are identical.
-                if(hasModuleName)addModuleMemberSuggestions(variants, haxeClass.getModule(), true);
+                if(hasModuleName && haxeClass.getModule() instanceof HaxeModule module)addModuleMemberSuggestions(variants, module, true);
 
             }
             case HaxeMethod haxeMethod -> addMethodBindSuggestion(variants, haxeMethod);

@@ -111,7 +111,7 @@ public final class HaxeAccessRules {
     if (model.inheritsFrom(target)) return true;
     // a target named like its module stands for the whole module
     HaxeModule module = target.getModule();
-    if (!module.getModel().getName().equals(target.getName())) return false;
+    if (module == null || !module.getModel().getName().equals(target.getName())) return false;
     for (HaxeClass moduleClass : module.getClassDeclarationList()) {
       if (accessingClass == moduleClass || model.inheritsFrom(moduleClass)) return true;
     }
