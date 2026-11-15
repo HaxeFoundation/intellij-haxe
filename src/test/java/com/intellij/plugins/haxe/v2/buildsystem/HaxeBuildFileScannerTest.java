@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.v2.buildsystem;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.v2.buildtools.settings.HaxeBuildFilesStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,6 +16,7 @@ import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.MAVEN_POM
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.NME_SAMPLE_PROJECT_SOURCE;
 import static com.intellij.plugins.haxe.buildsystem.ProjectXmlFixtures.SECTIONED_LIME_PROJECT_SOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @DisplayName("Build system: build file scanner")
@@ -82,5 +84,30 @@ public class HaxeBuildFileScannerTest extends HaxeCodeInsightFixtureTestCase {
     VirtualFile file = myFixture.addFileToProject(fileName, source).getVirtualFile();
 
     assertEquals(expected, HaxeBuildFileScanner.detectType(getProject(), file));
+  }
+
+  /** (file name, source text detection rejects, type the file's extension gives it once added by hand). */
+  static final List<Arguments> ADDED_BY_HAND = List.of(
+    arguments("unrecognized.xml", "<project/>", HaxeBuildFileType.LIME),
+    arguments("unrecognized.lime", "<project/>", HaxeBuildFileType.LIME),
+    arguments("unrecognized.nmml", "<config/>", HaxeBuildFileType.NMML));
+
+  @ParameterizedTest(name = "{0} -> {2}")
+  @FieldSource("ADDED_BY_HAND")
+  @DisplayName("a file added by hand that detection rejects takes its extension's type")
+  public void testAFileAddedByHandThatDetectionRejectsTakesItsExtensionsType(String fileName, String source, HaxeBuildFileType expected) {
+    VirtualFile file = myFixture.addFileToProject(fileName, source).getVirtualFile();
+    assertNull(HaxeBuildFileScanner.detectType(getProject(), file));
+
+    String containerId = myFixture.getModule().getName();
+    HaxeBuildFilesStore store = HaxeBuildFilesStore.getInstance(getProject());
+    store.addFile(containerId, file.getPath());
+    try {
+      assertEquals(expected, HaxeBuildFileScanner.detectType(getProject(), file));
+    }
+    finally {
+      // the shared project keeps its stores between tests
+      store.removeFile(containerId, file.getPath());
+    }
   }
 }

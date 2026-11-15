@@ -194,9 +194,18 @@ public final class ProjectXmlParser {
     return createSecureFactory().createXMLStreamReader(new StringReader(escaped));
   }
 
+  /**
+   * A factory for the JDK's own StAX parser, whatever implementation the classpath registers.
+   * <p>
+   * Lime project files use element prefixes they never declare, such as
+   * {@code <config:android>}, so the parse must not be namespace aware. The JDK
+   * parser honours that setting, but the parser the IDE registers ignores it and
+   * rejects the first undeclared prefix, which would end the parse early and make
+   * a valid project file look like no build file at all.
+   */
   @NotNull
   private static XMLInputFactory createSecureFactory() {
-    XMLInputFactory factory = XMLInputFactory.newFactory();
+    XMLInputFactory factory = XMLInputFactory.newDefaultFactory();
     factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
     factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
     factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);

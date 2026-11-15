@@ -7,11 +7,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Build system: project xml parser")
 public class ProjectXmlParserTest {
+
+  private static final String STAX_FACTORY_PROPERTY = "javax.xml.stream.XMLInputFactory";
 
   @Test
   @DisplayName("collects haxelibs and defines")
@@ -70,12 +73,12 @@ public class ProjectXmlParserTest {
   @Test
   @DisplayName("an undeclared element prefix keeps the parse going")
   public void testAnUndeclaredElementPrefixKeepsTheParseGoing() {
-    HaxeBuildFileInfo info = ProjectXmlParser.parse("""
+    HaxeBuildFileInfo info = withIdeStaxParser(() -> ProjectXmlParser.parse("""
       <project>
         <config:android target-sdk-version="29"/>
         <haxelib name="openfl" />
       </project>
-      """);
+      """));
 
     assertEquals(List.of(new HaxeLibDependency("openfl", null)), info.libraries());
   }
@@ -83,15 +86,30 @@ public class ProjectXmlParserTest {
   @Test
   @DisplayName("a project with a prefixed config element is an openfl project")
   public void testAProjectWithAPrefixedConfigElementIsAnOpenflProject() {
-    LimeProjectShape shape = ProjectXmlParser.parseShape("""
+    LimeProjectShape shape = withIdeStaxParser(() -> ProjectXmlParser.parseShape("""
       <project>
         <config:air sdk-version="32.0" />
         <source path="Source" />
         <haxelib name="openfl" />
       </project>
-      """);
+      """));
 
     assertTrue(shape.isOpenfl());
+  }
+
+  /**
+   * Runs the parse with the StAX implementation the IDE registers. Unit tests
+   * otherwise pick up a different one, which accepts prefixes the IDE's rejects.
+   */
+  private static <T> T withIdeStaxParser(Supplier<T> parse) {
+    String previous = System.setProperty(STAX_FACTORY_PROPERTY, "com.fasterxml.aalto.stax.InputFactoryImpl");
+    try {
+      return parse.get();
+    }
+    finally {
+      if (previous == null) System.clearProperty(STAX_FACTORY_PROPERTY);
+      else System.setProperty(STAX_FACTORY_PROPERTY, previous);
+    }
   }
 
   @Test
