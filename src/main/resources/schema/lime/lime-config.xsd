@@ -1,7 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lime's config sections (<config:android> and the like). Lime stores every attribute of a section
+  as a config value and every nested element as a nested value, so each section accepts any
+  attribute and any child; the declared ones are the keys lime's tools read. Value lists are
+  suggestions: lime substitutes ${...} first and passes unknown values through.
+-->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="urn:intellij-haxe:lime-config"
            targetNamespace="urn:intellij-haxe:lime-config"
-           elementFormDefault="qualified" attributeFormDefault="unqualified">
+           elementFormDefault="unqualified" attributeFormDefault="unqualified">
+
+    <!-- any value; the listed ones are offered -->
+    <xs:simpleType name="flag">
+        <xs:union memberTypes="xs:string">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="true"/>
+                    <xs:enumeration value="false"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="airProfile">
+        <xs:union memberTypes="xs:string">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="desktop"/>
+                    <xs:enumeration value="extendedDesktop"/>
+                    <xs:enumeration value="mobileDevice"/>
+                    <xs:enumeration value="extendedMobileDevice"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="installLocation">
+        <xs:union memberTypes="xs:string">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="auto"/>
+                    <xs:enumeration value="internalOnly"/>
+                    <xs:enumeration value="preferExternal"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="displayCutoutMode">
+        <xs:union memberTypes="xs:string">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="default"/>
+                    <xs:enumeration value="shortEdges"/>
+                    <xs:enumeration value="never"/>
+                    <xs:enumeration value="always"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="iosDevice">
+        <xs:union memberTypes="xs:string">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="universal"/>
+                    <xs:enumeration value="iphone"/>
+                    <xs:enumeration value="ipad"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
 
     <xs:complexType name="section" mixed="true">
         <xs:annotation>
@@ -13,84 +82,376 @@
         <xs:anyAttribute processContents="skip"/>
     </xs:complexType>
 
-    <xs:element name="air" type="section">
+    <xs:complexType name="outputSection" mixed="true">
+        <xs:complexContent>
+            <xs:extension base="section">
+                <xs:attribute name="output-directory" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>The folder under the app's output path that this target builds into.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="webSection" mixed="true">
+        <xs:complexContent>
+            <xs:extension base="outputSection">
+                <xs:attribute name="dependency-path" type="xs:string" default="lib">
+                    <xs:annotation>
+                        <xs:documentation>The folder, inside the output, that the JavaScript dependencies are copied to.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- the attributes Apple targets share; iOS and tvOS each add their own -->
+    <xs:complexType name="appleSection" mixed="true">
+        <xs:complexContent>
+            <xs:extension base="outputSection">
+                <xs:attribute name="deployment" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>The lowest OS version the app runs on.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="compiler" type="xs:string" default="clang"/>
+                <xs:attribute name="identity" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>The code signing identity.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="team-id" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>The Apple developer team ID used for signing.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="provisioning-profile" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>The provisioning profile used for signing.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="linker-flags" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Extra linker flags. Each element with this attribute adds to the list.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="prerenderedIcon" type="flag" default="false"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:element name="air">
         <xs:annotation>
-            <xs:documentation>Settings for Adobe AIR builds, such as <code>sdk-version</code>, <code>output-directory</code> and <code>profile</code>.</xs:documentation>
+            <xs:documentation>Settings for Adobe AIR builds.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="outputSection">
+                    <xs:attribute name="sdk-version" type="xs:string" default="32.0">
+                        <xs:annotation>
+                            <xs:documentation>The AIR SDK version the application descriptor targets.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="profile" type="airProfile">
+                        <xs:annotation>
+                            <xs:documentation>The AIR profile to run with. Without it, mobile targets use <code>mobileDevice</code> and desktop targets <code>desktop</code>, or <code>extendedDesktop</code> when the project uses native extensions.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="screensize" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>The simulated screen size when a mobile build runs on the desktop.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="screenDPI" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>The simulated screen density when a mobile build runs on the desktop.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="connect" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>For debug builds, the host the app connects to for debugging.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="listen" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>For debug builds without <code>connect</code>, the port the app listens on for a debugger.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="tsa" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>The timestamp server used when signing.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="android">
+        <xs:annotation>
+            <xs:documentation>Settings for Android builds.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="outputSection">
+                    <xs:sequence>
+                        <xs:element name="application" type="section" minOccurs="0">
+                            <xs:annotation>
+                                <xs:documentation>Attributes for the manifest's <code>application</code> element, such as <code>android:label</code>.</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="activity" type="section" minOccurs="0">
+                            <xs:annotation>
+                                <xs:documentation>Attributes for the manifest's main <code>activity</code> element, such as <code>android:screenOrientation</code>.</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="gradle-properties" type="section" minOccurs="0">
+                            <xs:annotation>
+                                <xs:documentation>Each attribute becomes a line in the generated <code>gradle.properties</code>.</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="target-sdk-version" type="xs:string" default="35"/>
+                    <xs:attribute name="minimum-sdk-version" type="xs:string" default="21"/>
+                    <xs:attribute name="build-tools-version" type="xs:string"/>
+                    <xs:attribute name="permission" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>A permission the app requests, such as <code>android.permission.INTERNET</code>. Each element with this attribute adds one. Without any, the app requests <code>WAKE_LOCK</code>, <code>INTERNET</code>, <code>VIBRATE</code> and <code>ACCESS_NETWORK_STATE</code>.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="extension" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>A Java extension folder to build with the app. Each element with this attribute adds one.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="install-location" type="installLocation" default="auto"/>
+                    <xs:attribute name="layoutInDisplayCutoutMode" type="displayCutoutMode" default="default">
+                        <xs:annotation>
+                            <xs:documentation>How the app's window is laid out around a display cutout.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="accept-file-intent" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>A file type the app offers to open. Each element with this attribute adds one.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="gradle-version" type="xs:string" default="8.9"/>
+                    <xs:attribute name="gradle-plugin" type="xs:string" default="8.7.3">
+                        <xs:annotation>
+                            <xs:documentation>The Android Gradle plugin version.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="gradle-build-directory" type="xs:string"/>
+                    <xs:attribute name="useAndroidX" type="flag" default="true"/>
+                    <xs:attribute name="enableJetifier" type="flag" default="false"/>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cpp">
+        <xs:annotation>
+            <xs:documentation>Settings for C++ builds.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="section">
+                    <xs:attribute name="buildLibrary" type="xs:string" default="hxcpp">
+                        <xs:annotation>
+                            <xs:documentation>The haxelib that compiles the generated C++.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="requireBuild" type="flag" default="true">
+                        <xs:annotation>
+                            <xs:documentation>Whether the generated C++ is compiled; <code>false</code> stops after generating it.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cs">
+        <xs:annotation>
+            <xs:documentation>Settings for C# builds.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="section">
+                    <xs:attribute name="buildLibrary" type="xs:string" default="hxcs">
+                        <xs:annotation>
+                            <xs:documentation>The haxelib that compiles the generated C#.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="electron" type="outputSection">
+        <xs:annotation>
+            <xs:documentation>Settings for Electron builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="android" type="section">
+    <xs:element name="flash" type="outputSection">
         <xs:annotation>
-            <xs:documentation>Settings for Android builds, such as <code>target-sdk-version</code>, <code>minimum-sdk-version</code> and <code>permission</code>.</xs:documentation>
+            <xs:documentation>Settings for Flash builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="cpp" type="section">
+    <xs:element name="html5" type="webSection">
         <xs:annotation>
-            <xs:documentation>Settings for C++ builds, such as <code>buildLibrary</code>.</xs:documentation>
+            <xs:documentation>Settings for HTML5 builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="cs" type="section">
+
+    <xs:element name="ios">
         <xs:annotation>
-            <xs:documentation>Settings for C# builds, such as <code>buildLibrary</code>.</xs:documentation>
+            <xs:documentation>Settings for iOS builds.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="appleSection">
+                    <xs:sequence>
+                        <xs:element name="adhoc" minOccurs="0">
+                            <xs:annotation>
+                                <xs:documentation>Over-the-air installation for ad hoc builds.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType mixed="true">
+                                <xs:complexContent>
+                                    <xs:extension base="section">
+                                        <xs:sequence>
+                                            <xs:element name="manifest" minOccurs="0">
+                                                <xs:complexType mixed="true">
+                                                    <xs:complexContent>
+                                                        <xs:extension base="section">
+                                                            <xs:attribute name="appURL" type="xs:string"/>
+                                                            <xs:attribute name="displayImageURL" type="xs:string"/>
+                                                            <xs:attribute name="fullSizeImageURL" type="xs:string"/>
+                                                        </xs:extension>
+                                                    </xs:complexContent>
+                                                </xs:complexType>
+                                            </xs:element>
+                                        </xs:sequence>
+                                    </xs:extension>
+                                </xs:complexContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="device" type="iosDevice" default="universal">
+                        <xs:annotation>
+                            <xs:documentation>The devices the app supports.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="enable-bitcode" type="flag" default="false"/>
+                    <xs:attribute name="non-exempt-encryption" type="flag" default="false">
+                        <xs:annotation>
+                            <xs:documentation>Whether the app uses encryption that is not exempt from export rules.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="allow-insecure-http" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Domains the app may reach over plain HTTP; <code>*</code> allows any.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="linux" type="outputSection">
+        <xs:annotation>
+            <xs:documentation>Settings for Linux builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="electron" type="section">
+    <xs:element name="mac" type="outputSection">
         <xs:annotation>
-            <xs:documentation>Settings for Electron builds, such as <code>output-directory</code>.</xs:documentation>
+            <xs:documentation>Settings for macOS builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="flash" type="section">
+
+    <xs:element name="project">
         <xs:annotation>
-            <xs:documentation>Settings for Flash builds, such as <code>output-directory</code>.</xs:documentation>
+            <xs:documentation>Settings for rebuilding the project's native code.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="section">
+                    <xs:sequence>
+                        <xs:element name="rebuild" minOccurs="0">
+                            <xs:complexType mixed="true">
+                                <xs:complexContent>
+                                    <xs:extension base="section">
+                                        <xs:attribute name="path" type="xs:string">
+                                            <xs:annotation>
+                                                <xs:documentation>The folder holding the native build file.</xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                        <xs:attribute name="file" type="xs:string">
+                                            <xs:annotation>
+                                                <xs:documentation>The native build file, relative to <code>path</code>.</xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                        <xs:attribute name="fulldebug" type="xs:string"/>
+                                    </xs:extension>
+                                </xs:complexContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="tizen" type="outputSection">
+        <xs:annotation>
+            <xs:documentation>Settings for Tizen builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="html5" type="section">
+
+    <xs:element name="tools">
         <xs:annotation>
-            <xs:documentation>Settings for HTML5 builds, such as <code>output-directory</code> and <code>dependency-path</code>.</xs:documentation>
+            <xs:documentation>Settings for the Lime tools.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="section">
+                    <xs:attribute name="copy-ndlls" type="flag">
+                        <xs:annotation>
+                            <xs:documentation>Whether native libraries are copied into the output.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="tvos">
+        <xs:annotation>
+            <xs:documentation>Settings for tvOS builds.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:complexContent>
+                <xs:extension base="appleSection">
+                    <xs:attribute name="device" type="xs:string" default="appletv"/>
+                    <xs:attribute name="non-exempt-encryption" type="flag" default="true">
+                        <xs:annotation>
+                            <xs:documentation>Whether the app uses encryption that is not exempt from export rules.</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="webassembly" type="webSection">
+        <xs:annotation>
+            <xs:documentation>Settings for WebAssembly builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="ios" type="section">
+    <xs:element name="windows" type="outputSection">
         <xs:annotation>
-            <xs:documentation>Settings for iOS builds, such as <code>deployment</code>, <code>device</code> and <code>linker-flags</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="linux" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for Linux builds, such as <code>output-directory</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="mac" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for macOS builds, such as <code>output-directory</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="project" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for rebuilding the project's native code, such as <code>rebuild</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="tizen" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for Tizen builds, such as <code>output-directory</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="tools" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for the Lime tools, such as <code>copy-ndlls</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="tvos" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for tvOS builds, such as <code>deployment</code> and <code>device</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="webassembly" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for WebAssembly builds, such as <code>output-directory</code> and <code>dependency-path</code>.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="windows" type="section">
-        <xs:annotation>
-            <xs:documentation>Settings for Windows builds, such as <code>output-directory</code>.</xs:documentation>
+            <xs:documentation>Settings for Windows builds.</xs:documentation>
         </xs:annotation>
     </xs:element>
 </xs:schema>
