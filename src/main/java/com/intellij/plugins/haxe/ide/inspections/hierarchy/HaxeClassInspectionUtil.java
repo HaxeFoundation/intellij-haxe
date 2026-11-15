@@ -163,7 +163,20 @@ public final class HaxeClassInspectionUtil {
   }
 
   private static List<HaxeMethodModel> getAllInterfaceMethodDeclarations(HaxeClassReferenceModel intReference) {
-    return intReference.getHaxeClassModel().getMethods(null);
+    HaxeClassModel model = intReference.getHaxeClassModel();
+
+    if(model == null) return List.of();
+    return distinctByName(model.getAllMethods(null));
+  }
+
+
+  static <T extends HaxeBaseMemberModel> List<T> distinctByName(List<T> members) {
+    Map<String, T> byName = new LinkedHashMap<>();
+    for (T member : members) {
+      byName.remove(member.getName());
+      byName.put(member.getName(), member);
+    }
+    return List.copyOf(byName.values());
   }
 
   private static @NotNull List<HaxeMethodModel> getAllMethodsExcludingAbstractAndInterfaces(HaxeClassModel clazz) {
