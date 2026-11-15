@@ -1,3 +1,6 @@
+## 2.1.2
+### Fixed
+* Fixed: Regression in interface implementation check.
 ## 2.1.1
 ### Fixed
 * Fixed: bug preventing XML build files from loading if the contained namespaces

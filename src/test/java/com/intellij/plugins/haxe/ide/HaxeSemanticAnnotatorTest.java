@@ -479,6 +479,18 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     }
 
     @Test
+    @DisplayName("implement inherited interface methods")
+    public void testImplementInheritedInterfaceMethods() throws Exception {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
+    @DisplayName("implement inherited interface signature")
+    public void testImplementInheritedInterfaceSignature() throws Exception {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
     @DisplayName("implement extern interface")
     public void testImplementExternInterface() throws Exception {
       doTestNoFixWithWarnings();
@@ -540,6 +552,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     @Test
     @DisplayName("field type hint requirement")
     public void testFieldTypeHintRequirement() throws Exception {
+      doTestNoFixWithWarnings();
+    }
+
+    @Test
+    @DisplayName("implement inherited interface fields")
+    public void testImplementInheritedInterfaceFields() throws Exception {
       doTestNoFixWithWarnings();
     }
 

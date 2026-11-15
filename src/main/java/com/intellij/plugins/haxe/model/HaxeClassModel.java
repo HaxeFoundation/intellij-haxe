@@ -535,7 +535,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return members;
   }
 
-  private List<HaxeFieldModel> getAllFields(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeFieldModel> getAllFields(@Nullable HaxeGenericResolver resolver) {
     List<HaxeFieldModel> models =  getAncestorFields(resolver);
     models.addAll( getFields());
 

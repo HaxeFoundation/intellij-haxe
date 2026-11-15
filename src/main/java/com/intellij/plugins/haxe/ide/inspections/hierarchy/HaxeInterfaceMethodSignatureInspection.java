@@ -64,7 +64,7 @@ public class HaxeInterfaceMethodSignatureInspection extends HaxeInspection {
     if (intReference.getHaxeClassModel() != null) {
       List<HaxeFieldDeclaration> fieldsInThisClass = clazz.haxeClass.getFieldSelf(clazz.getGenericResolver(null));
       List<HaxeNamedComponent> allFields = clazz.haxeClass.getHaxeFieldAll(HaxeComponentType.INTERFACE);
-      for (HaxeFieldModel intField : intReference.getHaxeClassModel().getFields()) {
+      for (HaxeFieldModel intField : HaxeClassInspectionUtil.distinctByName(intReference.getHaxeClassModel().getAllFields(null))) {
         if (!intField.isStatic()) {
 
 
